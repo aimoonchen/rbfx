@@ -46,7 +46,7 @@ add_subdirectory(ETCPACK)
 if (NOT WEB)
     add_subdirectory(enkiTS)
 endif ()
-
+add_subdirectory(Effekseer)
 add_subdirectory(tinygltf)
 if (URHO3D_TESTING)
     add_subdirectory(catch2)
