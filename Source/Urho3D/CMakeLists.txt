@@ -51,6 +51,7 @@ endmacro()
 define_engine_source_files (Container Core IO Math)
 
 define_engine_source_files (Audio Engine Graphics Input Plugins RenderAPI RenderPipeline Resource Scene Script Shader UI Utility)
+define_engine_source_files (EffekseerUrho3D)
 list (REMOVE_ITEM SOURCE_FILES BindAll.cpp)     # Utility file for BindTool.
 
 if (URHO3D_PARTICLE_GRAPH)
@@ -240,6 +241,8 @@ if (URHO3D_XR AND DESKTOP)
         target_link_libraries(Urho3D PUBLIC openxr_loader)
     endif ()
 endif ()
+
+list (APPEND PUBLIC_THIRD_PARTY_DEPENDENCIES Effekseer)
 
 if (URHO3D_MERGE_STATIC_LIBS)
     list (APPEND PUBLIC_THIRD_PARTY_DEPENDENCIES Bullet)
