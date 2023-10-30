@@ -148,48 +148,22 @@ Urho3D::StaticPipelineStateId RendererImplemented::GetOrCreatePiplineState()
 	{
 		return it->second;
 	}
-
 	//auto piplineState = GetGraphics()->CreatePiplineState();
-
-    
-        Urho3D::GraphicsPipelineStateDesc desc;
-        Urho3D::InitializeInputLayout(desc.inputLayout_, {/*vertexBuffer_*/});
-        desc.colorWriteEnabled_ = true;
-
-//         const ea::string shaderDefines = "VERTEXCOLOR ";
-//         desc.vertexShader_ = graphics->GetShader(VS, "v2/X_Basic", shaderDefines);
-//         desc.pixelShader_ = graphics->GetShader(PS, "v2/X_Basic", shaderDefines);
-
-//       desc.primitiveType_ = primitiveType;
-//       desc.depthCompareFunction_ = depthCompare;
-//       desc.depthWriteEnabled_ = depthWriteEnabled;
-//       desc.blendMode_ = blendMode;
-//       desc.lineAntiAlias_ = lineAntiAlias;
-
-//       desc.debugName_ = Format("DebugRenderer for {}", debugName);
-
-//         return pipelineStates_.CreateState(desc);
-//     };
-
-// 	if (isReversedDepth_)
-// 	{
-// 		piplineState->DepthFunc = LLGI::DepthFuncType::GreaterEqual;
-// 	}
-// 	else
-// 	{
-// 		piplineState->DepthFunc = LLGI::DepthFuncType::LessEqual;
-// 	}
-
+    Urho3D::GraphicsPipelineStateDesc desc;
+    Urho3D::InitializeInputLayout(desc.inputLayout_, { currentVertexBuffer_ });
+    desc.colorWriteEnabled_ = true;
     desc.vertexShader_ = currentShader->GetVertexShader();
     desc.pixelShader_ = currentShader->GetPixelShader();
 
 	for (auto i = 0; i < currentShader->GetVertexLayouts().size(); i++)
 	{
-		piplineState->VertexLayouts[i] = currentShader->GetVertexLayouts()[i].Format;
-		piplineState->VertexLayoutNames[i] = currentShader->GetVertexLayouts()[i].Name;
-		piplineState->VertexLayoutSemantics[i] = currentShader->GetVertexLayouts()[i].Semantic;
+        const auto& ve = currentShader->GetVertexLayouts()[i].Format;
+        desc.inputLayout_.elements_[i].bufferStride_ = currentVertexBufferStride_;
+        desc.inputLayout_.elements_[i].elementSemantic_ = ve.semantic_;
+        desc.inputLayout_.elements_[i].elementType_ = ve.type_;
+        desc.inputLayout_.elements_[i].elementOffset_ = ve.offset_;
 	}
-	piplineState->VertexLayoutCount = (int32_t)currentShader->GetVertexLayouts().size();
+    desc.inputLayout_.size_ = (int32_t)currentShader->GetVertexLayouts().size();
 
     desc.primitiveType_ = currentTopologyType_;
 
@@ -321,12 +295,12 @@ RendererImplemented::RendererImplemented(int32_t squareMaxCount)
 RendererImplemented::~RendererImplemented()
 {
 	// to prevent objects to be disposed before finish renderings.
-	GetGraphics()->WaitFinish();
-
-	for (auto p : piplineStates_)
-	{
-		p.second->Release();
-	}
+// 	GetGraphics()->WaitFinish();
+// 
+// 	for (auto p : piplineStates_)
+// 	{
+// 		p.second->Release();
+// 	}
 	piplineStates_.clear();
 
 	commandList_.Reset();
@@ -427,40 +401,40 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 	// shader
 	// pos(3) color(1) uv(2)
 	std::vector<VertexLayout> layouts;
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 0});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 1});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 2});
+	layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
+	layouts.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
+	layouts.push_back(VertexLayout{ {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 2});
 
 	std::vector<VertexLayout> layouts_ad;
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 0});
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 1});
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 2});
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32A32_FLOAT, "TEXCOORD", 3}); // AlphaTextureUV + UVDistortionTextureUV
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 4});		 // BlendUV
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32A32_FLOAT, "TEXCOORD", 5}); // BlendAlphaUV + BlendUVDistortionUV
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32_FLOAT, "TEXCOORD", 6});			 // FlipbookIndexAndNextRate
-	layouts_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32_FLOAT, "TEXCOORD", 7});			 // AlphaThreshold
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 2});
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 1}, "TEXCOORD", 3}); // AlphaTextureUV + UVDistortionTextureUV
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 2}, "TEXCOORD", 4});		 // BlendUV
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 3}, "TEXCOORD", 5}); // BlendAlphaUV + BlendUVDistortionUV
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 4}, "TEXCOORD", 6});			 // FlipbookIndexAndNextRate
+	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5}, "TEXCOORD", 7});			 // AlphaThreshold
 
 	std::vector<VertexLayout> layouts_normal;
-	layouts_normal.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 0});
-	layouts_normal.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 1});
-	layouts_normal.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 2});
-	layouts_normal.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 3});
-	layouts_normal.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 4});
-	layouts_normal.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 5});
+	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
+	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
+	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL, 1}, "TEXCOORD", 2});
+	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT, 2}, "TEXCOORD", 3});
+	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 4});
+	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1}, "TEXCOORD", 5});
 
 	std::vector<VertexLayout> layouts_normal_ad;
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 0});
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 1});
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 2});
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 3});
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 4});
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 5});
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32A32_FLOAT, "TEXCOORD", 6}); // AlphaTextureUV + UVDistortionTextureUV
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 7});		// BlendUV
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32A32_FLOAT, "TEXCOORD", 8}); // BlendAlphaUV + BlendUVDistortionUV
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32_FLOAT, "TEXCOORD", 9});			// FlipbookIndexAndNextRate
-	layouts_normal_ad.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32_FLOAT, "TEXCOORD", 10});			// AlphaThreshold
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL, 1}, "TEXCOORD", 2});
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT, 2}, "TEXCOORD", 3});
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 4});
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1}, "TEXCOORD", 5});
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 2}, "TEXCOORD", 6}); // AlphaTextureUV + UVDistortionTextureUV
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 3}, "TEXCOORD", 7});		// BlendUV
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 4}, "TEXCOORD", 8}); // BlendAlphaUV + BlendUVDistortionUV
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5}, "TEXCOORD", 9});			// FlipbookIndexAndNextRate
+	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 6}, "TEXCOORD", 10});			// AlphaThreshold
 
 	shader_unlit_ = Shader::Create(graphicsDevice_.Get(),
 								   fixedShader_.SpriteUnlit_VS.data(),
@@ -912,13 +886,13 @@ void RendererImplemented::SetPixelBufferToShader(const void* data, int32_t size,
 void RendererImplemented::SetTextures(Shader* shader, Effekseer::Backend::TextureRef* textures, int32_t count)
 {
 	auto state = GetRenderState()->GetActiveState();
-	LLGI::TextureWrapMode ws[2];
-	ws[(int)Effekseer::TextureWrapType::Clamp] = LLGI::TextureWrapMode::Clamp;
-	ws[(int)Effekseer::TextureWrapType::Repeat] = LLGI::TextureWrapMode::Repeat;
+	Urho3D::TextureAddressMode ws[2];
+	ws[(int)Effekseer::TextureWrapType::Clamp] = Urho3D::TextureAddressMode::ADDRESS_CLAMP;
+	ws[(int)Effekseer::TextureWrapType::Repeat] = Urho3D::TextureAddressMode::ADDRESS_WRAP;
 
-	LLGI::TextureMinMagFilter fs[2];
-	fs[(int)Effekseer::TextureFilterType::Linear] = LLGI::TextureMinMagFilter::Linear;
-	fs[(int)Effekseer::TextureFilterType::Nearest] = LLGI::TextureMinMagFilter::Nearest;
+    Urho3D::TextureFilterMode fs[2];
+	fs[(int)Effekseer::TextureFilterType::Linear] = Urho3D::TextureFilterMode::FILTER_BILINEAR;
+	fs[(int)Effekseer::TextureFilterType::Nearest] = Urho3D::TextureFilterMode::FILTER_NEAREST;
 
 	for (int32_t i = 0; i < count; i++)
 	{

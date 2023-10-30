@@ -21,8 +21,8 @@ Shader::Shader(Backend::GraphicsDevice* graphicsDevice,
 
 Shader::~Shader()
 {
-	ES_SAFE_RELEASE(vertexShader_);
-	ES_SAFE_RELEASE(pixelShader_);
+// 	ES_SAFE_RELEASE(vertexShader_);
+// 	ES_SAFE_RELEASE(pixelShader_);
 	ES_SAFE_DELETE_ARRAY(m_vertexConstantBuffer);
 	ES_SAFE_DELETE_ARRAY(m_pixelConstantBuffer);
 }

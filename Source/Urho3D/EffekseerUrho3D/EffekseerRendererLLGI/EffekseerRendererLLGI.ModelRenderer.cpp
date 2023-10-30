@@ -1,4 +1,4 @@
-﻿
+
 #include "EffekseerRendererLLGI.RenderState.h"
 #include "EffekseerRendererLLGI.RendererImplemented.h"
 
@@ -62,7 +62,7 @@ ModelRenderer::ModelRenderer(RendererImplemented* renderer,
 	VertexType = EffekseerRenderer::ModelRendererVertexType::Instancing;
 
 	graphicsDevice_ = m_renderer->GetGraphicsDeviceInternal().Get();
-	LLGI::SafeAddRef(graphicsDevice_);
+	//LLGI::SafeAddRef(graphicsDevice_);
 }
 
 ModelRenderer::~ModelRenderer()
@@ -75,7 +75,7 @@ ModelRenderer::~ModelRenderer()
 	ES_SAFE_DELETE(shader_ad_lit_);
 	ES_SAFE_DELETE(shader_ad_distortion_);
 
-	LLGI::SafeRelease(graphicsDevice_);
+	//LLGI::SafeRelease(graphicsDevice_);
 }
 
 ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShader* fixedShader)
@@ -85,12 +85,13 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
 	assert(renderer->GetGraphics() != nullptr);
 
 	std::vector<VertexLayout> layouts;
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 0});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 1});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 2});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "TEXCOORD", 3});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 4});
-	layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "TEXCOORD", 5});
+    layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
+    layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL, 0}, "TEXCOORD", 1});
+    layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_BINORMAL, 0}, "TEXCOORD", 2});
+    layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_TANGENT, 0}, "TEXCOORD", 3});
+    layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 4});
+    layouts.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 5});
+
 
 	Shader* shader_lighting_texture_normal = Shader::Create(renderer->GetGraphicsDeviceInternal().Get(),
 															fixedShader->ModelLit_VS.data(),

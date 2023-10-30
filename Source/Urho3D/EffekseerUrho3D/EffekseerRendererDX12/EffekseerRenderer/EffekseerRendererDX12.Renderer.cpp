@@ -1,9 +1,11 @@
-﻿#include "EffekseerRendererDX12.Renderer.h"
-#include "../../3rdParty/LLGI/src/DX12/LLGI.CommandListDX12.h"
-#include "../../3rdParty/LLGI/src/DX12/LLGI.GraphicsDX12.h"
-#include "../../3rdParty/LLGI/src/DX12/LLGI.TextureDX12.h"
-#include "../EffekseerMaterialCompiler/DirectX12/EffekseerMaterialCompilerDX12.h"
-#include "../EffekseerRendererLLGI/EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerRendererDX12.Renderer.h"
+// #include "../../3rdParty/LLGI/src/DX12/LLGI.CommandListDX12.h"
+// #include "../../3rdParty/LLGI/src/DX12/LLGI.GraphicsDX12.h"
+// #include "../../3rdParty/LLGI/src/DX12/LLGI.TextureDX12.h"
+#include "../../EffekseerMaterialCompiler/DirectX12/EffekseerMaterialCompilerDX12.h"
+#include "../../EffekseerRendererLLGI/EffekseerRendererLLGI.RendererImplemented.h"
+#include "../../../RenderAPI/RenderContext.h"
+#include "../../../RenderAPI/RenderDevice.h"
 
 namespace Sprite_Unlit_VS_Ad
 {
@@ -140,10 +142,8 @@ namespace EffekseerRendererDX12
 {
 	auto renderer = ::Effekseer::MakeRefPtr<::EffekseerRendererLLGI::RendererImplemented>(squareMaxCount);
 
-	auto allocate_ = [](std::vector<LLGI::DataStructure>& ds, const unsigned char* data, int32_t size) -> void {
-		ds.resize(1);
-		ds[0].Size = size;
-		ds[0].Data = data;
+	auto allocate_ = [](std::string_view& ds, const unsigned char* data, int32_t size) -> void {
+        ds = {(const char*)data, size};
 		return;
 	};
 
@@ -259,43 +259,44 @@ void BeginCommandList(Effekseer::RefPtr<EffekseerRenderer::CommandList> commandL
 {
 	assert(commandList != nullptr);
 
-	if (dx12CommandList)
-	{
-		LLGI::PlatformContextDX12 context;
-		context.commandList = dx12CommandList;
-
-		auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
-		c->GetInternal()->BeginWithPlatform(&context);
-		c->SetState(EffekseerRendererLLGI::CommandListState::RunningWithPlatformCommandList);
-	}
-	else
-	{
-		auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
-		c->GetInternal()->Begin();
-		c->SetState(EffekseerRendererLLGI::CommandListState::Running);
-	}
+// 	if (dx12CommandList)
+// 	{
+// 		LLGI::PlatformContextDX12 context;
+// 		context.commandList = dx12CommandList;
+// 
+// 		auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 		c->GetInternal()->BeginWithPlatform(&context);
+// 		c->SetState(EffekseerRendererLLGI::CommandListState::RunningWithPlatformCommandList);
+// 	}
+// 	else
+// 	{
+// 		auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 		c->GetInternal()->Begin();
+// 		c->SetState(EffekseerRendererLLGI::CommandListState::Running);
+// 	}
 }
 
 void EndCommandList(Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList)
 {
 	assert(commandList != nullptr);
-	auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
-
-	if (c->GetState() == EffekseerRendererLLGI::CommandListState::RunningWithPlatformCommandList)
-	{
-		c->GetInternal()->EndWithPlatform();
-	}
-	else
-	{
-		c->GetInternal()->End();
-	}
+// 	auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 
+// 	if (c->GetState() == EffekseerRendererLLGI::CommandListState::RunningWithPlatformCommandList)
+// 	{
+// 		c->GetInternal()->EndWithPlatform();
+// 	}
+// 	else
+// 	{
+// 		c->GetInternal()->End();
+// 	}
 }
 
 void ExecuteCommandList(Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList)
 {
 	assert(commandList != nullptr);
 	auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
-	c->GetGraphics()->Execute(c->GetInternal());
+    static auto renderContext = c->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>()->GetRenderContext();
+    renderContext->Execute(c->GetInternal());
 }
 
 } // namespace EffekseerRendererDX12
