@@ -73,6 +73,7 @@ class RibbonRenderer;
 class RingRenderer;
 class ModelRenderer;
 class TrackRenderer;
+class GPUTimer;
 
 class EffectLoader;
 class TextureLoader;
@@ -742,6 +743,7 @@ using RibbonRendererRef = RefPtr<RibbonRenderer>;
 using RingRendererRef = RefPtr<RingRenderer>;
 using ModelRendererRef = RefPtr<ModelRenderer>;
 using TrackRendererRef = RefPtr<TrackRenderer>;
+using GPUTimerRef = RefPtr<GPUTimer>;
 using SoundPlayerRef = RefPtr<SoundPlayer>;
 
 using EffectLoaderRef = RefPtr<EffectLoader>;
@@ -937,6 +939,21 @@ enum class RendererMaterialType : int32_t
 	BackDistortion = 6,
 	Lighting = 7,
 	File = 128,
+};
+
+/**
+	@brief	texture type (except a File material type)
+*/
+enum class RendererTextureType : int32_t
+{
+	Color = 0,
+	Distortion = 0,
+	Normal = 1,
+	Alpha = 2,
+	UVDistortion = 3,
+	Blend = 4,
+	BlendAlpha = 5,
+	BlendUVDistortion = 6,
 };
 
 /**

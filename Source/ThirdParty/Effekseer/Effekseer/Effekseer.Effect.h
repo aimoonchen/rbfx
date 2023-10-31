@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------------
 // Include
 //----------------------------------------------------------------------------------
-#include "Effekseer.Base.h"
+#include "Effekseer.Base.Pre.h"
 #include "Effekseer.File.h"
 
 //----------------------------------------------------------------------------------
@@ -603,35 +603,34 @@ public:
 	*/
 	virtual EffectTerm CalculateTerm() const = 0;
 
+	/**
+	@brief
+	\~English	Get values of default dynamic inputs.
+	\~Japanese	動的パラメーターのデフォルトの値を取得する。
+	*/
+	virtual std::array<float, 4> GetDefaultDynamicInputs() const = 0;
+
 	virtual EffectImplemented* GetImplemented() = 0;
 	virtual const EffectImplemented* GetImplemented() const = 0;
 };
 
 /**
-@brief	共通描画パラメーター
-@note
-大きく変更される可能性があります。
+	@brief
+	\~English	Node rendering parameters
+	\~Japanese	ノードの描画パラメーター
+	@note
+	\~English
+	The members of this struct are subject to significant change.
+	\~Japanese
+	この構造体は内容が大きく変更される可能性があります。
 */
 struct EffectBasicRenderParameter
 {
 	int32_t MaterialIndex = -1;
 
-	int32_t ColorTextureIndex;
-
-	int32_t AlphaTextureIndex;
-	TextureWrapType AlphaTexWrapType;
-
-	int32_t UVDistortionIndex;
-	TextureWrapType UVDistortionTexWrapType;
-
-	int32_t BlendTextureIndex;
-	TextureWrapType BlendTexWrapType;
-
-	int32_t BlendAlphaTextureIndex;
-	TextureWrapType BlendAlphaTexWrapType;
-
-	int32_t BlendUVDistortionTextureIndex;
-	TextureWrapType BlendUVDistortionTexWrapType;
+	std::array<int32_t, TextureSlotMax> TextureIndexes;
+	std::array<TextureFilterType, TextureSlotMax> TextureFilters;
+	std::array<TextureWrapType, TextureSlotMax> TextureWraps;
 
 	NodeRendererFlipbookParameter FlipbookParams;
 
@@ -662,8 +661,6 @@ struct EffectBasicRenderParameter
 	} EdgeParam;
 
 	AlphaBlendType AlphaBlend;
-	TextureFilterType FilterType;
-	TextureWrapType WrapType;
 	bool ZWrite;
 	bool ZTest;
 	bool Distortion;

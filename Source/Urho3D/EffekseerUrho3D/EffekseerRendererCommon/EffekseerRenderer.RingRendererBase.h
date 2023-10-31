@@ -11,10 +11,8 @@
 #include <string.h>
 
 #include "EffekseerRenderer.CommonUtils.h"
-#include "EffekseerRenderer.IndexBufferBase.h"
 #include "EffekseerRenderer.RenderStateBase.h"
 #include "EffekseerRenderer.StandardRenderer.h"
-#include "EffekseerRenderer.VertexBufferBase.h"
 
 #define __ZOFFSET__
 
@@ -560,9 +558,9 @@ protected:
 				::Effekseer::SIMD::Vec3f outerNN{c_n * outerRadius, s_n * outerRadius, 0.0f};
 				outerTransform.Transform(outerNN);
 
-				::Effekseer::SIMD::Vec3f tangent0 = (outerCurrent - outerBefore).Normalize();
-				::Effekseer::SIMD::Vec3f tangent1 = (outerNext - outerCurrent).Normalize();
-				::Effekseer::SIMD::Vec3f tangent2 = (outerNN - outerNext).Normalize();
+				::Effekseer::SIMD::Vec3f tangent0 = (outerCurrent - outerBefore).GetNormal();
+				::Effekseer::SIMD::Vec3f tangent1 = (outerNext - outerCurrent).GetNormal();
+				::Effekseer::SIMD::Vec3f tangent2 = (outerNN - outerNext).GetNormal();
 
 				auto tangentCurrent = (tangent0 + tangent1) / 2.0f;
 				auto tangentNext = (tangent1 + tangent2) / 2.0f;
@@ -582,11 +580,11 @@ protected:
 					normalNext = -normalNext;
 				}
 
-				normalCurrent = normalCurrent.Normalize();
-				normalNext = normalNext.Normalize();
+				normalCurrent = normalCurrent.GetNormal();
+				normalNext = normalNext.GetNormal();
 
-				tangentCurrent = tangentCurrent.Normalize();
-				tangentNext = tangentNext.Normalize();
+				tangentCurrent = tangentCurrent.GetNormal();
+				tangentNext = tangentNext.GetNormal();
 
 				const auto packedNormalCurrent = PackVector3DF(normalCurrent);
 				const auto packedNormalNext = PackVector3DF(normalNext);
@@ -690,11 +688,13 @@ protected:
 
 			if (param.DepthParameterPtr->ZSort == Effekseer::ZSortType::NormalOrder)
 			{
-				std::sort(instances_.begin(), instances_.end(), [](const KeyValue& a, const KeyValue& b) -> bool { return a.Key < b.Key; });
+				std::sort(instances_.begin(), instances_.end(), [](const KeyValue& a, const KeyValue& b) -> bool
+						  { return a.Key < b.Key; });
 			}
 			else
 			{
-				std::sort(instances_.begin(), instances_.end(), [](const KeyValue& a, const KeyValue& b) -> bool { return a.Key > b.Key; });
+				std::sort(instances_.begin(), instances_.end(), [](const KeyValue& a, const KeyValue& b) -> bool
+						  { return a.Key > b.Key; });
 			}
 
 			const auto& state = m_renderer->GetStandardRenderer()->GetState();
@@ -704,6 +704,8 @@ protected:
 				RenderingInstance(kv.Value, param, state, camera);
 			}
 		}
+
+		renderer->GetStandardRenderer()->EndRenderingAndRenderingIfRequired();
 	}
 
 public:

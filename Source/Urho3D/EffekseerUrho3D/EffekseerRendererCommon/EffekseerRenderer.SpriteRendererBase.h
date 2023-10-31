@@ -12,10 +12,8 @@
 #include <string.h>
 
 #include "EffekseerRenderer.CommonUtils.h"
-#include "EffekseerRenderer.IndexBufferBase.h"
 #include "EffekseerRenderer.RenderStateBase.h"
 #include "EffekseerRenderer.StandardRenderer.h"
-#include "EffekseerRenderer.VertexBufferBase.h"
 
 //-----------------------------------------------------------------------------------
 //
@@ -361,8 +359,8 @@ protected:
 					StrideView<VERTEX> vs(verteies.pointerOrigin_, stride_, 4);
 					auto tangentX = efkVector3D(mat.X.GetX(), mat.Y.GetX(), mat.Z.GetX());
 					auto tangentZ = efkVector3D(mat.X.GetZ(), mat.Y.GetZ(), mat.Z.GetZ());
-					tangentX = tangentX.Normalize();
-					tangentZ = tangentZ.Normalize();
+					tangentX = tangentX.GetNormal();
+					tangentZ = tangentZ.GetNormal();
 
 					if (!parameter.IsRightHand)
 					{
@@ -421,11 +419,13 @@ protected:
 
 			if (param.ZSort == Effekseer::ZSortType::NormalOrder)
 			{
-				std::sort(instances.begin(), instances.end(), [](const KeyValue& a, const KeyValue& b) -> bool { return a.Key < b.Key; });
+				std::sort(instances.begin(), instances.end(), [](const KeyValue& a, const KeyValue& b) -> bool
+						  { return a.Key < b.Key; });
 			}
 			else
 			{
-				std::sort(instances.begin(), instances.end(), [](const KeyValue& a, const KeyValue& b) -> bool { return a.Key > b.Key; });
+				std::sort(instances.begin(), instances.end(), [](const KeyValue& a, const KeyValue& b) -> bool
+						  { return a.Key > b.Key; });
 			}
 
 			for (auto& kv : instances)
@@ -436,6 +436,8 @@ protected:
 				RenderingInstance(kv.Value, param, state, camera);
 			}
 		}
+
+		renderer->GetStandardRenderer()->EndRenderingAndRenderingIfRequired();
 	}
 
 public:

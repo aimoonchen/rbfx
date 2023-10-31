@@ -9,10 +9,8 @@
 #include <vector>
 
 #include "EffekseerRenderer.CommonUtils.h"
-#include "EffekseerRenderer.IndexBufferBase.h"
 #include "EffekseerRenderer.RenderStateBase.h"
 #include "EffekseerRenderer.Renderer.h"
-#include "EffekseerRenderer.VertexBufferBase.h"
 
 namespace EffekseerRenderer
 {
@@ -338,11 +336,13 @@ protected:
 
 			if (param.DepthParameterPtr->ZSort == Effekseer::ZSortType::NormalOrder)
 			{
-				std::sort(keyValues_.begin(), keyValues_.end(), [](const KeyValue& a, const KeyValue& b) -> bool { return a.Key < b.Key; });
+				std::sort(keyValues_.begin(), keyValues_.end(), [](const KeyValue& a, const KeyValue& b) -> bool
+						  { return a.Key < b.Key; });
 			}
 			else
 			{
-				std::sort(keyValues_.begin(), keyValues_.end(), [](const KeyValue& a, const KeyValue& b) -> bool { return a.Key > b.Key; });
+				std::sort(keyValues_.begin(), keyValues_.end(), [](const KeyValue& a, const KeyValue& b) -> bool
+						  { return a.Key > b.Key; });
 			}
 
 			matrixesSorted_.resize(m_matrixes.size());
@@ -536,7 +536,7 @@ protected:
 		float lightAmbientColor[4];
 
 		::Effekseer::SIMD::Vec3f lightDirection3 = renderer->GetLightDirection();
-		lightDirection3 = lightDirection3.Normalize();
+		lightDirection3 = lightDirection3.GetNormal();
 
 		VectorToFloat4(lightDirection3, lightDirection);
 		ColorToFloat4(renderer->GetLightColor(), lightColor);
@@ -631,7 +631,7 @@ protected:
 			if (param.BasicParameterPtr->MaterialType == Effekseer::RendererMaterialType::Lighting)
 			{
 				::Effekseer::SIMD::Vec3f lightDirection = renderer->GetLightDirection();
-				lightDirection = lightDirection.Normalize();
+				lightDirection = lightDirection.GetNormal();
 				VectorToFloat4(lightDirection, vcb->LightDirection);
 				VectorToFloat4(lightDirection, pcb->LightDirection);
 			}
@@ -817,7 +817,7 @@ public:
 			customData2_.push_back(instanceParameter.CustomData2);
 		}
 
-		//parameter.BasicParameterPtr
+		// parameter.BasicParameterPtr
 	}
 
 	template <typename RENDERER, typename SHADER, typename MODEL, bool Instancing, int InstanceCount>
@@ -1104,7 +1104,7 @@ public:
 
 		if (Instancing && isTimeSame)
 		{
-			//auto& imodel = model->InternalModels[stTime0];
+			// auto& imodel = model->InternalModels[stTime0];
 
 			// Invalid unless layout is set after buffer
 			renderer->SetVertexBuffer(model->GetVertexBuffer(stTime0), sizeof(Effekseer::Model::Vertex));

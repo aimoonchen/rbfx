@@ -1,4 +1,4 @@
-
+﻿
 #ifndef __EFFEKSEERRENDERER_LLGI_RENDERER_H__
 #define __EFFEKSEERRENDERER_LLGI_RENDERER_H__
 
@@ -6,41 +6,36 @@
 #include "EffekseerRendererLLGI.Base.h"
 
 #include "GraphicsDevice.h"
-#include "../../Graphics/Graphics.h"
-// #include <LLGI.Buffer.h>
-// #include <LLGI.CommandList.h>
-// #include <LLGI.Graphics.h>
+#include <LLGI.Buffer.h>
+#include <LLGI.CommandList.h>
+#include <LLGI.Graphics.h>
 
-namespace Urho3D
-{
-class DrawCommandQueue;
-}
 namespace EffekseerRendererLLGI
 {
 
 struct FixedShader
 {
-	std::string_view SpriteUnlit_VS;
-	std::string_view SpriteLit_VS;
-	std::string_view SpriteDistortion_VS;
-	std::string_view ModelUnlit_VS;
-	std::string_view ModelLit_VS;
-	std::string_view ModelDistortion_VS;
+	std::vector<LLGI::DataStructure> SpriteUnlit_VS;
+	std::vector<LLGI::DataStructure> SpriteLit_VS;
+	std::vector<LLGI::DataStructure> SpriteDistortion_VS;
+	std::vector<LLGI::DataStructure> ModelUnlit_VS;
+	std::vector<LLGI::DataStructure> ModelLit_VS;
+	std::vector<LLGI::DataStructure> ModelDistortion_VS;
 
-	std::string_view ModelUnlit_PS;
-	std::string_view ModelLit_PS;
-	std::string_view ModelDistortion_PS;
+	std::vector<LLGI::DataStructure> ModelUnlit_PS;
+	std::vector<LLGI::DataStructure> ModelLit_PS;
+	std::vector<LLGI::DataStructure> ModelDistortion_PS;
 
-	std::string_view AdvancedSpriteUnlit_VS;
-	std::string_view AdvancedSpriteLit_VS;
-	std::string_view AdvancedSpriteDistortion_VS;
-	std::string_view AdvancedModelUnlit_VS;
-	std::string_view AdvancedModelLit_VS;
-	std::string_view AdvancedModelDistortion_VS;
+	std::vector<LLGI::DataStructure> AdvancedSpriteUnlit_VS;
+	std::vector<LLGI::DataStructure> AdvancedSpriteLit_VS;
+	std::vector<LLGI::DataStructure> AdvancedSpriteDistortion_VS;
+	std::vector<LLGI::DataStructure> AdvancedModelUnlit_VS;
+	std::vector<LLGI::DataStructure> AdvancedModelLit_VS;
+	std::vector<LLGI::DataStructure> AdvancedModelDistortion_VS;
 
-	std::string_view AdvancedModelUnlit_PS;
-	std::string_view AdvancedModelLit_PS;
-	std::string_view AdvancedModelDistortion_PS;
+	std::vector<LLGI::DataStructure> AdvancedModelUnlit_PS;
+	std::vector<LLGI::DataStructure> AdvancedModelLit_PS;
+	std::vector<LLGI::DataStructure> AdvancedModelDistortion_PS;
 };
 
 /**
@@ -57,48 +52,48 @@ protected:
 	}
 
 public:
-	virtual Urho3D::Graphics* GetGraphics() const = 0;
+	virtual LLGI::Graphics* GetGraphics() const = 0;
 };
 
-// class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject
-// {
-// 	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
-// 
-// public:
-// 	SingleFrameMemoryPool(LLGI::SingleFrameMemoryPool* memoryPool)
-// 	{
-// 		memoryPool_ = memoryPool;
-// 		ES_SAFE_ADDREF(memoryPool_);
-// 	}
-// 
-// 	virtual ~SingleFrameMemoryPool()
-// 	{
-// 		ES_SAFE_RELEASE(memoryPool_);
-// 	}
-// 
-// 	void NewFrame() override
-// 	{
-// 		memoryPool_->NewFrame();
-// 	}
-// 
-// 	LLGI::SingleFrameMemoryPool* GetInternal()
-// 	{
-// 		return memoryPool_;
-// 	}
-// 
-// 	virtual int GetRef() override
-// 	{
-// 		return ::Effekseer::ReferenceObject::GetRef();
-// 	}
-// 	virtual int AddRef() override
-// 	{
-// 		return ::Effekseer::ReferenceObject::AddRef();
-// 	}
-// 	virtual int Release() override
-// 	{
-// 		return ::Effekseer::ReferenceObject::Release();
-// 	}
-// };
+class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject
+{
+	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
+
+public:
+	SingleFrameMemoryPool(LLGI::SingleFrameMemoryPool* memoryPool)
+	{
+		memoryPool_ = memoryPool;
+		ES_SAFE_ADDREF(memoryPool_);
+	}
+
+	virtual ~SingleFrameMemoryPool()
+	{
+		ES_SAFE_RELEASE(memoryPool_);
+	}
+
+	void NewFrame() override
+	{
+		memoryPool_->NewFrame();
+	}
+
+	LLGI::SingleFrameMemoryPool* GetInternal()
+	{
+		return memoryPool_;
+	}
+
+	virtual int GetRef() override
+	{
+		return ::Effekseer::ReferenceObject::GetRef();
+	}
+	virtual int AddRef() override
+	{
+		return ::Effekseer::ReferenceObject::AddRef();
+	}
+	virtual int Release() override
+	{
+		return ::Effekseer::ReferenceObject::Release();
+	}
+};
 
 enum class CommandListState
 {
@@ -110,44 +105,43 @@ enum class CommandListState
 class CommandList : public ::EffekseerRenderer::CommandList, public ::Effekseer::ReferenceObject
 {
 private:
-	Urho3D::Graphics* graphics_ = nullptr;
-// 	LLGI::CommandList* commandList_ = nullptr;
-// 	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
-    Urho3D::DrawCommandQueue* commandList_ = nullptr;
+	LLGI::Graphics* graphics_ = nullptr;
+	LLGI::CommandList* commandList_ = nullptr;
+	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
 	CommandListState state_ = CommandListState::Wait;
 
 public:
-	CommandList(Urho3D::Graphics* graphics, Urho3D::DrawCommandQueue* commandList/*, LLGI::SingleFrameMemoryPool* memoryPool*/)
+	CommandList(LLGI::Graphics* graphics, LLGI::CommandList* commandList, LLGI::SingleFrameMemoryPool* memoryPool)
 		: graphics_(graphics)
 		, commandList_(commandList)
-		//, memoryPool_(memoryPool)
+		, memoryPool_(memoryPool)
 	{
-// 		ES_SAFE_ADDREF(graphics_);
-// 		ES_SAFE_ADDREF(commandList_);
-// 		ES_SAFE_ADDREF(memoryPool_);
+		ES_SAFE_ADDREF(graphics_);
+		ES_SAFE_ADDREF(commandList_);
+		ES_SAFE_ADDREF(memoryPool_);
 	}
 
 	virtual ~CommandList()
 	{
-// 		ES_SAFE_RELEASE(graphics_);
-// 		ES_SAFE_RELEASE(commandList_);
-// 		ES_SAFE_RELEASE(memoryPool_);
+		ES_SAFE_RELEASE(graphics_);
+		ES_SAFE_RELEASE(commandList_);
+		ES_SAFE_RELEASE(memoryPool_);
 	}
 
-    Urho3D::Graphics* GetGraphics()
+	LLGI::Graphics* GetGraphics()
 	{
 		return graphics_;
 	}
 
-    Urho3D::DrawCommandQueue* GetInternal()
+	LLGI::CommandList* GetInternal()
 	{
 		return commandList_;
 	}
 
-// 	LLGI::SingleFrameMemoryPool* GetMemoryPool()
-// 	{
-// 		return memoryPool_;
-// 	}
+	LLGI::SingleFrameMemoryPool* GetMemoryPool()
+	{
+		return memoryPool_;
+	}
 
 	CommandListState GetState() const
 	{

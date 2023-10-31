@@ -3,21 +3,11 @@
 #define __EFFEKSEERRENDERER_LLGI_GRAPHICS_DEVICE_H__
 
 #include <Effekseer.h>
-// #include <LLGI.Buffer.h>
-// #include <LLGI.CommandList.h>
-// #include <LLGI.Graphics.h>
+#include <LLGI.Buffer.h>
+#include <LLGI.CommandList.h>
+#include <LLGI.Graphics.h>
 #include <assert.h>
 #include <set>
-
-namespace Urho3D
-{
-class Graphics;
-class VertexBuffer;
-class IndexBuffer;
-class Texture2D;
-class ShaderVariation;
-class VertexElement;
-}
 
 namespace EffekseerRendererLLGI
 {
@@ -48,6 +38,10 @@ using RenderPassRef = Effekseer::RefPtr<RenderPass>;
 using PipelineStateRef = Effekseer::RefPtr<PipelineState>;
 using UniformLayoutRef = Effekseer::RefPtr<UniformLayout>;
 
+std::vector<uint8_t> Serialize(const std::vector<LLGI::DataStructure>& data);
+
+std::vector<LLGI::DataStructure> Deserialize(const void* data, int32_t size);
+
 class DeviceObject
 {
 private:
@@ -62,7 +56,7 @@ class VertexBuffer
 	  public Effekseer::Backend::VertexBuffer
 {
 private:
-	ea::shared_ptr<Urho3D::VertexBuffer> buffer_;
+	std::shared_ptr<LLGI::Buffer> buffer_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	int32_t size_ = 0;
 	bool isDynamic_ = false;
@@ -72,7 +66,7 @@ public:
 
 	~VertexBuffer() override;
 
-	bool Allocate(int32_t size, ea::vector<Urho3D::VertexElement> elements, bool isDynamic);
+	bool Allocate(int32_t size, bool isDynamic);
 
 	void Deallocate();
 
@@ -80,11 +74,11 @@ public:
 
 	void OnResetDevice() override;
 
-	bool Init(int32_t size, ea::vector<Urho3D::VertexElement> elements, bool isDynamic);
+	bool Init(int32_t size, bool isDynamic);
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
-    Urho3D::VertexBuffer* GetBuffer()
+	LLGI::Buffer* GetBuffer()
 	{
 		return buffer_.get();
 	}
@@ -95,7 +89,7 @@ class IndexBuffer
 	  public Effekseer::Backend::IndexBuffer
 {
 private:
-	ea::shared_ptr<Urho3D::IndexBuffer> buffer_;
+	std::shared_ptr<LLGI::Buffer> buffer_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	int32_t stride_ = 0;
 
@@ -116,7 +110,7 @@ public:
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
-    Urho3D::IndexBuffer* GetBuffer()
+	LLGI::Buffer* GetBuffer()
 	{
 		return buffer_.get();
 	}
@@ -126,7 +120,7 @@ class Texture
 	: public DeviceObject,
 	  public Effekseer::Backend::Texture
 {
-	ea::shared_ptr<Urho3D::Texture2D> texture_;
+	std::shared_ptr<LLGI::Texture> texture_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	std::function<void()> onDisposed_;
 
@@ -136,13 +130,43 @@ public:
 
 	bool Init(const Effekseer::Backend::TextureParameter& param, const Effekseer::CustomVector<uint8_t>& initialData);
 
-	//bool Init(uint64_t id, std::function<void()> onDisposed);
+	bool Init(uint64_t id, std::function<void()> onDisposed);
 
-	bool Init(Urho3D::Texture2D* texture);
+	bool Init(LLGI::Texture* texture);
 
-	ea::shared_ptr<Urho3D::Texture2D>& GetTexture()
+	std::shared_ptr<LLGI::Texture>& GetTexture()
 	{
 		return texture_;
+	}
+};
+
+class VertexLayout
+	: public DeviceObject,
+	  public Effekseer::Backend::VertexLayout
+{
+public:
+	class Element
+	{
+	public:
+		LLGI::VertexLayoutFormat Format;
+		std::string Name;
+		int32_t Semantic;
+	};
+
+private:
+	Effekseer::CustomVector<Element> elements_;
+
+public:
+	VertexLayout() = default;
+	~VertexLayout() = default;
+
+	bool Init(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount);
+
+	void MakeGenerated();
+
+	const Effekseer::CustomVector<Element>& GetElements() const
+	{
+		return elements_;
 	}
 };
 
@@ -152,21 +176,21 @@ class Shader
 {
 private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
-	Urho3D::ShaderVariation* vertexShader_ = nullptr;
-	Urho3D::ShaderVariation* pixelShader_ = nullptr;
+	std::shared_ptr<LLGI::Shader> vertexShader_ = nullptr;
+	std::shared_ptr<LLGI::Shader> pixelShader_ = nullptr;
 
 public:
 	Shader(GraphicsDevice* graphicsDevice);
 	~Shader() override;
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize);
 
-	Urho3D::ShaderVariation* GetVertexShader() const
+	LLGI::Shader* GetVertexShader() const
 	{
-		return vertexShader_;
+		return vertexShader_.get();
 	}
-	Urho3D::ShaderVariation* GetPixelShader() const
+	LLGI::Shader* GetPixelShader() const
 	{
-		return pixelShader_;
+		return pixelShader_.get();
 	}
 };
 
@@ -175,10 +199,10 @@ class GraphicsDevice
 {
 private:
 	std::set<DeviceObject*> objects_;
-    Urho3D::Graphics* graphics_;
+	LLGI::Graphics* graphics_;
 
 public:
-	GraphicsDevice(Urho3D::Graphics* graphics);
+	GraphicsDevice(LLGI::Graphics* graphics);
 
 	~GraphicsDevice() override;
 
@@ -186,7 +210,7 @@ public:
 
 	void ResetDevice();
 
-    Urho3D::Graphics* GetGraphics();
+	LLGI::Graphics* GetGraphics();
 
 	void Register(DeviceObject* deviceObject);
 
@@ -198,9 +222,11 @@ public:
 
 	Effekseer::Backend::TextureRef CreateTexture(const Effekseer::Backend::TextureParameter& param, const Effekseer::CustomVector<uint8_t>& initialData) override;
 
-	//Effekseer::Backend::TextureRef CreateTexture(uint64_t id, const std::function<void()>& onDisposed);
+	Effekseer::Backend::TextureRef CreateTexture(uint64_t id, const std::function<void()>& onDisposed);
 
-	Effekseer::Backend::TextureRef CreateTexture(Urho3D::Texture2D* texture);
+	Effekseer::Backend::TextureRef CreateTexture(LLGI::Texture* texture);
+
+	Effekseer::Backend::VertexLayoutRef CreateVertexLayout(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount) override;
 
 	Effekseer::Backend::ShaderRef CreateShaderFromBinary(const void* vsData, int32_t vsDataSize, const void* psData, int32_t psDataSize) override;
 };

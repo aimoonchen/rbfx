@@ -1,12 +1,12 @@
-
+﻿
 #ifndef __EFFEKSEERRENDERER_LLGI_MODEL_RENDERER_H__
 #define __EFFEKSEERRENDERER_LLGI_MODEL_RENDERER_H__
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.ModelRendererBase.h"
 #include "EffekseerRendererLLGI.RendererImplemented.h"
 
-// #include <LLGI.Buffer.h>
-// #include <LLGI.Graphics.h>
+#include <LLGI.Buffer.h>
+#include <LLGI.Graphics.h>
 
 namespace EffekseerRendererLLGI
 {

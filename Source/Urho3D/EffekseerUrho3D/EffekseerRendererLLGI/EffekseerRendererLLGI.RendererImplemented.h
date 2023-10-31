@@ -1,4 +1,4 @@
-
+﻿
 #ifndef __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__
 #define __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__
 
@@ -7,44 +7,38 @@
 #include "../EffekseerRendererCommon/EffekseerRenderer.StandardRenderer.h"
 #include "EffekseerRendererLLGI.Base.h"
 #include "EffekseerRendererLLGI.Renderer.h"
-// #include <LLGI.CommandList.h>
-// #include <LLGI.Graphics.h>
-// #include <LLGI.PipelineState.h>
-// #include <LLGI.Texture.h>
-#include "../../RenderPipeline/RenderPipelineDefs.h"
-namespace Urho3D
-{
-class StaticPipelineStateCache;
-}
+#include <LLGI.CommandList.h>
+#include <LLGI.Graphics.h>
+#include <LLGI.PipelineState.h>
+#include <LLGI.Texture.h>
 
 namespace EffekseerRendererLLGI
 {
 
 using Vertex = EffekseerRenderer::SimpleVertex;
-//using VertexDistortion = EffekseerRenderer::VertexDistortion;
+// using VertexDistortion = EffekseerRenderer::VertexDistortion;
 
 class PiplineStateKey
 {
 public:
 	Shader* shader = nullptr;
 	EffekseerRenderer::RenderStateBase::State state;
-	Urho3D::PrimitiveType topologyType;
+	LLGI::TopologyType topologyType;
 	LLGI::RenderPassPipelineState* renderPassPipelineState = nullptr;
 	bool operator<(const PiplineStateKey& v) const;
 };
 
-Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType format);
+LLGI::TextureFormatType ConvertTextureFormat(Effekseer::Backend::TextureFormatType format);
 
 class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 	friend class DeviceObject;
 
 protected:
-    ea::unique_ptr<Urho3D::StaticPipelineStateCache> pipelineStatesCache_;
-	std::map<PiplineStateKey, Urho3D::StaticPipelineStateId> piplineStates_;
-	Urho3D::VertexBuffer* currentVertexBuffer_ = nullptr;
+	std::map<PiplineStateKey, LLGI::PipelineState*> piplineStates_;
+	LLGI::Buffer* currentVertexBuffer_ = nullptr;
 	int32_t currentVertexBufferStride_ = 0;
-	Urho3D::PrimitiveType currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
+	LLGI::TopologyType currentTopologyType_ = LLGI::TopologyType::Triangle;
 
 	std::unordered_map<LLGI::RenderPassPipelineStateKey, std::shared_ptr<LLGI::RenderPassPipelineState>, LLGI::RenderPassPipelineStateKey::Hash> renderpassPipelineStates_;
 
@@ -57,19 +51,10 @@ protected:
 	Backend::GraphicsDeviceRef graphicsDevice_ = nullptr;
 	std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
 
-	VertexBuffer* m_vertexBuffer;
-	IndexBuffer* m_indexBuffer;
-	IndexBuffer* m_indexBufferForWireframe = nullptr;
+	Effekseer::Backend::IndexBufferRef currentndexBuffer_;
+	Effekseer::Backend::IndexBufferRef indexBuffer_;
+	Effekseer::Backend::IndexBufferRef indexBufferForWireframe_;
 	int32_t m_squareMaxCount;
-
-	Shader* shader_unlit_ = nullptr;
-	Shader* shader_lit_ = nullptr;
-	Shader* shader_distortion_ = nullptr;
-
-	Shader* shader_ad_unlit_ = nullptr;
-	Shader* shader_ad_lit_ = nullptr;
-	Shader* shader_ad_distortion_ = nullptr;
-
 	Shader* currentShader = nullptr;
 
 	bool isReversedDepth_ = false;
@@ -92,11 +77,7 @@ protected:
 
 	LLGI::CommandList* GetCurrentCommandList();
 
-    Urho3D::StaticPipelineStateId GetOrCreatePiplineState();
-
-	virtual void GenerateVertexBuffer();
-
-	virtual void GenerateIndexBuffer();
+	LLGI::PipelineState* GetOrCreatePiplineState();
 
 public:
 	//! shaders (todo implemented)
@@ -116,7 +97,7 @@ public:
 
 	bool Initialize(Backend::GraphicsDeviceRef graphicsDevice, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth);
 
-	bool Initialize(Urho3D::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth);
+	bool Initialize(LLGI::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth);
 
 	void SetRestorationOfStatesFlag(bool flag) override;
 
@@ -138,20 +119,12 @@ public:
 		return graphicsDevice_;
 	}
 
-    Urho3D::Graphics* GetGraphics() const override
+	LLGI::Graphics* GetGraphics() const override
 	{
 		return graphicsDevice_->GetGraphics();
 	}
 
-	/**
-		@brief	頂点バッファ取得
-	*/
-	VertexBuffer* GetVertexBuffer();
-
-	/**
-		@brief	インデックスバッファ取得
-	*/
-	IndexBuffer* GetIndexBuffer();
+	Effekseer::Backend::IndexBufferRef GetIndexBuffer();
 
 	/**
 		@brief	最大描画スプライト数
@@ -197,7 +170,7 @@ public:
 
 	::Effekseer::MaterialLoaderRef CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
 
-	void SetBackgroundInternal(Urho3D::Texture2D* background);
+	void SetBackgroundInternal(LLGI::Texture* background);
 
 	EffekseerRenderer::DistortingCallback* GetDistortingCallback() override;
 
@@ -208,10 +181,7 @@ public:
 		return m_standardRenderer;
 	}
 
-	void SetVertexBuffer(VertexBuffer* vertexBuffer, int32_t stride);
-	void SetVertexBuffer(Urho3D::VertexBuffer* vertexBuffer, int32_t stride);
-	void SetIndexBuffer(IndexBuffer* indexBuffer);
-	void SetIndexBuffer(Urho3D::IndexBuffer* indexBuffer);
+	void SetVertexBuffer(LLGI::Buffer* vertexBuffer, int32_t stride);
 
 	void SetVertexBuffer(const Effekseer::Backend::VertexBufferRef& vertexBuffer, int32_t stride);
 	void SetIndexBuffer(const Effekseer::Backend::IndexBufferRef& indexBuffer);
@@ -221,7 +191,6 @@ public:
 	void DrawPolygon(int32_t vertexCount, int32_t indexCount);
 	void DrawPolygonInstanced(int32_t vertexCount, int32_t indexCount, int32_t instanceCount);
 
-	Shader* GetShader(::EffekseerRenderer::RendererShaderType type) const;
 	void BeginShader(Shader* shader);
 	void EndShader(Shader* shader);
 

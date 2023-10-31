@@ -39,7 +39,7 @@ void MaterialLoader::Deserialize(uint8_t* data, uint32_t datasize, LLGI::Compile
 	}
 }
 
-MaterialLoader::MaterialLoader(Backend::GraphicsDevice* graphicsDevice,
+MaterialLoader::MaterialLoader(Backend::GraphicsDeviceRef graphicsDevice,
 							   ::Effekseer::FileInterfaceRef fileInterface,
 							   ::Effekseer::CompiledMaterialPlatformType platformType,
 							   ::Effekseer::MaterialCompiler* materialCompiler)
@@ -53,14 +53,12 @@ MaterialLoader::MaterialLoader(Backend::GraphicsDevice* graphicsDevice,
 	}
 
 	graphicsDevice_ = graphicsDevice;
-	ES_SAFE_ADDREF(graphicsDevice_);
 	ES_SAFE_ADDREF(materialCompiler_);
 }
 
 MaterialLoader ::~MaterialLoader()
 {
 	ES_SAFE_RELEASE(materialCompiler_);
-	ES_SAFE_RELEASE(graphicsDevice_);
 }
 
 ::Effekseer::MaterialRef MaterialLoader::Load(const char16_t* path)
@@ -145,35 +143,39 @@ MaterialLoader ::~MaterialLoader()
 			Deserialize((uint8_t*)binary->GetVertexShaderData(shaderTypes[st]), binary->GetVertexShaderSize(shaderTypes[st]), resultVS);
 			Deserialize((uint8_t*)binary->GetPixelShaderData(shaderTypes[st]), binary->GetPixelShaderSize(shaderTypes[st]), resultPS);
 
-			std::array<LLGI::DataStructure, 4> dataVS;
-			std::array<LLGI::DataStructure, 4> dataPS;
+			std::vector<LLGI::DataStructure> dataVS;
+			std::vector<LLGI::DataStructure> dataPS;
 
 			for (size_t i = 0; i < resultVS.Binary.size(); i++)
 			{
-				dataVS[i].Data = resultVS.Binary[i].data();
-				dataVS[i].Size = static_cast<int32_t>(resultVS.Binary[i].size());
+				LLGI::DataStructure ds;
+				ds.Data = resultVS.Binary[i].data();
+				ds.Size = static_cast<int32_t>(resultVS.Binary[i].size());
+				dataVS.emplace_back(ds);
 			}
 
 			for (size_t i = 0; i < resultPS.Binary.size(); i++)
 			{
-				dataPS[i].Data = resultPS.Binary[i].data();
-				dataPS[i].Size = static_cast<int32_t>(resultPS.Binary[i].size());
+				LLGI::DataStructure ds;
+				ds.Data = resultPS.Binary[i].data();
+				ds.Size = static_cast<int32_t>(resultPS.Binary[i].size());
+				dataPS.emplace_back(ds);
 			}
 
-			// Pos(3) Color(1) UV(2)
-			std::vector<VertexLayout> layouts;
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "POSITION", 0});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "NORMAL", 0});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 0});
+			auto vl = EffekseerRenderer::GetMaterialSimpleVertexLayout(graphicsDevice_).DownCast<Backend::VertexLayout>();
 
-			shader = Shader::Create(graphicsDevice_,
-									dataVS.data(),
-									(int32_t)resultVS.Binary.size(),
-									dataPS.data(),
-									(int32_t)resultPS.Binary.size(),
-									"MaterialStandardRenderer",
-									layouts,
-									true);
+			auto vs_shader_data = Backend::Serialize(dataVS);
+			auto ps_shader_data = Backend::Serialize(dataPS);
+
+			shader = Shader::Create(
+				graphicsDevice_,
+				graphicsDevice_->CreateShaderFromBinary(
+					vs_shader_data.data(),
+					(int32_t)vs_shader_data.size(),
+					ps_shader_data.data(),
+					(int32_t)ps_shader_data.size()),
+				vl,
+				"MaterialStandardRenderer");
 		}
 		else
 		{
@@ -183,72 +185,38 @@ MaterialLoader ::~MaterialLoader()
 			Deserialize((uint8_t*)binary->GetVertexShaderData(shaderTypes[st]), binary->GetVertexShaderSize(shaderTypes[st]), resultVS);
 			Deserialize((uint8_t*)binary->GetPixelShaderData(shaderTypes[st]), binary->GetPixelShaderSize(shaderTypes[st]), resultPS);
 
-			std::array<LLGI::DataStructure, 4> dataVS;
-			std::array<LLGI::DataStructure, 4> dataPS;
+			std::vector<LLGI::DataStructure> dataVS;
+			std::vector<LLGI::DataStructure> dataPS;
 
 			for (size_t i = 0; i < resultVS.Binary.size(); i++)
 			{
-				dataVS[i].Data = resultVS.Binary[i].data();
-				dataVS[i].Size = static_cast<int32_t>(resultVS.Binary[i].size());
+				LLGI::DataStructure ds;
+				ds.Data = resultVS.Binary[i].data();
+				ds.Size = static_cast<int32_t>(resultVS.Binary[i].size());
+				dataVS.emplace_back(ds);
 			}
 
 			for (size_t i = 0; i < resultPS.Binary.size(); i++)
 			{
-				dataPS[i].Data = resultPS.Binary[i].data();
-				dataPS[i].Size = static_cast<int32_t>(resultPS.Binary[i].size());
+				LLGI::DataStructure ds;
+				ds.Data = resultPS.Binary[i].data();
+				ds.Size = static_cast<int32_t>(resultPS.Binary[i].size());
+				dataPS.emplace_back(ds);
 			}
 
-			// Pos(3) Color(1) Normal(1) Tangent(1) UV(2) UV(2)
-			std::vector<VertexLayout> layouts;
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "POSITION", 0});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "NORMAL", 0});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "NORMAL", 1});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "NORMAL", 2});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 0});
-			layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 1});
+			auto vl = EffekseerRenderer::GetMaterialSpriteVertexLayout(graphicsDevice_, static_cast<int32_t>(materialFile.GetCustomData1Count()), static_cast<int32_t>(materialFile.GetCustomData2Count())).DownCast<Backend::VertexLayout>();
 
-			int32_t offset = 40;
-			int count = 6;
-			int index = 2;
-
-			auto getFormat = [](int32_t i) -> LLGI::VertexLayoutFormat {
-				if (i == 2)
-					return LLGI::VertexLayoutFormat::R32G32_FLOAT;
-				if (i == 3)
-					return LLGI::VertexLayoutFormat::R32G32B32_FLOAT;
-				if (i == 4)
-					return LLGI::VertexLayoutFormat::R32G32B32A32_FLOAT;
-
-				assert(false);
-				return LLGI::VertexLayoutFormat::R32_FLOAT;
-			};
-			if (materialFile.GetCustomData1Count() > 0)
-			{
-				layouts.push_back(VertexLayout{getFormat(materialFile.GetCustomData1Count()), "TEXCOORD", index});
-
-				index++;
-				count++;
-				offset += sizeof(float) * materialFile.GetCustomData1Count();
-			}
-
-			if (materialFile.GetCustomData2Count() > 0)
-			{
-				layouts.push_back(VertexLayout{getFormat(materialFile.GetCustomData2Count()), "TEXCOORD", index});
-
-				index++;
-				count++;
-
-				offset += sizeof(float) * materialFile.GetCustomData2Count();
-			}
+			auto vs_shader_data = Backend::Serialize(dataVS);
+			auto ps_shader_data = Backend::Serialize(dataPS);
 
 			shader = Shader::Create(graphicsDevice_,
-									dataVS.data(),
-									(int32_t)resultVS.Binary.size(),
-									dataPS.data(),
-									(int32_t)resultPS.Binary.size(),
-									"MaterialStandardRenderer",
-									layouts,
-									true);
+									graphicsDevice_->CreateShaderFromBinary(
+										vs_shader_data.data(),
+										(int32_t)vs_shader_data.size(),
+										ps_shader_data.data(),
+										(int32_t)ps_shader_data.size()),
+									vl,
+									"MaterialStandardRenderer");
 		}
 
 		if (shader == nullptr)
@@ -282,42 +250,43 @@ MaterialLoader ::~MaterialLoader()
 			(uint8_t*)binary->GetVertexShaderData(shaderTypesModel[st]), binary->GetVertexShaderSize(shaderTypesModel[st]), resultVS);
 		Deserialize((uint8_t*)binary->GetPixelShaderData(shaderTypesModel[st]), binary->GetPixelShaderSize(shaderTypesModel[st]), resultPS);
 
-		std::array<LLGI::DataStructure, 4> dataVS;
-		std::array<LLGI::DataStructure, 4> dataPS;
+		std::vector<LLGI::DataStructure> dataVS;
+		std::vector<LLGI::DataStructure> dataPS;
 
 		for (size_t i = 0; i < resultVS.Binary.size(); i++)
 		{
-			dataVS[i].Data = resultVS.Binary[i].data();
-			dataVS[i].Size = static_cast<int32_t>(resultVS.Binary[i].size());
+			LLGI::DataStructure ds;
+			ds.Data = resultVS.Binary[i].data();
+			ds.Size = static_cast<int32_t>(resultVS.Binary[i].size());
+			dataVS.emplace_back(ds);
 		}
 
 		for (size_t i = 0; i < resultPS.Binary.size(); i++)
 		{
-			dataPS[i].Data = resultPS.Binary[i].data();
-			dataPS[i].Size = static_cast<int32_t>(resultPS.Binary[i].size());
+			LLGI::DataStructure ds;
+			ds.Data = resultPS.Binary[i].data();
+			ds.Size = static_cast<int32_t>(resultPS.Binary[i].size());
+			dataPS.emplace_back(ds);
 		}
 
 		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, true, st, LLGI_InstanceCount);
 
-		std::vector<VertexLayout> layouts;
-		layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "POSITION", 0});
-		layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "NORMAL", 0});
-		layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "NORMAL", 1});
-		layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32B32_FLOAT, "NORMAL", 2});
-		layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R32G32_FLOAT, "TEXCOORD", 0});
-		layouts.push_back(VertexLayout{LLGI::VertexLayoutFormat::R8G8B8A8_UNORM, "NORMAL", 3});
-
 		// compile
 		std::string log;
+		auto vl = EffekseerRenderer::GetMaterialModelVertexLayout(graphicsDevice_).DownCast<Backend::VertexLayout>();
+
+		auto vs_shader_data = Backend::Serialize(dataVS);
+		auto ps_shader_data = Backend::Serialize(dataPS);
 
 		auto shader = Shader::Create(graphicsDevice_,
-									 dataVS.data(),
-									 (int32_t)resultVS.Binary.size(),
-									 dataPS.data(),
-									 (int32_t)resultPS.Binary.size(),
-									 "MaterialStandardModelRenderer",
-									 layouts,
-									 true);
+									 graphicsDevice_->CreateShaderFromBinary(
+										 vs_shader_data.data(),
+										 (int32_t)vs_shader_data.size(),
+										 ps_shader_data.data(),
+										 (int32_t)ps_shader_data.size()),
+									 vl,
+									 "MaterialStandardModelRenderer");
+
 		if (shader == nullptr)
 			return nullptr;
 

@@ -10,10 +10,8 @@
 #include <string.h>
 
 #include "EffekseerRenderer.CommonUtils.h"
-#include "EffekseerRenderer.IndexBufferBase.h"
 #include "EffekseerRenderer.RenderStateBase.h"
 #include "EffekseerRenderer.StandardRenderer.h"
-#include "EffekseerRenderer.VertexBufferBase.h"
 
 //-----------------------------------------------------------------------------------
 //
@@ -407,9 +405,9 @@ protected:
 					::Effekseer::SIMD::Vec3f U;
 
 					U = ::Effekseer::SIMD::Vec3f(r.X.GetY(), r.Y.GetY(), r.X.GetY());
-					F = ::Effekseer::SIMD::Vec3f(-m_renderer->GetCameraFrontDirection()).Normalize();
-					R = ::Effekseer::SIMD::Vec3f::Cross(U, F).Normalize();
-					F = ::Effekseer::SIMD::Vec3f::Cross(R, U).Normalize();
+					F = ::Effekseer::SIMD::Vec3f(-m_renderer->GetCameraFrontDirection()).GetNormal();
+					R = ::Effekseer::SIMD::Vec3f::Cross(U, F).GetNormal();
+					F = ::Effekseer::SIMD::Vec3f::Cross(R, U).GetNormal();
 
 					::Effekseer::SIMD::Mat43f mat_rot(-R.GetX(),
 													  -R.GetY(),
@@ -529,9 +527,9 @@ protected:
 
 						U = ::Effekseer::SIMD::Vec3f(r.X.GetY(), r.Y.GetY(), r.Z.GetY());
 
-						F = ::Effekseer::SIMD::Vec3f(-m_renderer->GetCameraFrontDirection()).Normalize();
-						R = ::Effekseer::SIMD::Vec3f::Cross(U, F).Normalize();
-						F = ::Effekseer::SIMD::Vec3f::Cross(R, U).Normalize();
+						F = ::Effekseer::SIMD::Vec3f(-m_renderer->GetCameraFrontDirection()).GetNormal();
+						R = ::Effekseer::SIMD::Vec3f::Cross(U, F).GetNormal();
+						F = ::Effekseer::SIMD::Vec3f::Cross(R, U).GetNormal();
 
 						::Effekseer::SIMD::Mat43f mat_rot(-R.GetX(),
 														  -R.GetY(),
@@ -897,6 +895,11 @@ public:
 	void Rendering(const efkRibbonNodeParam& parameter, const efkRibbonInstanceParam& instanceParameter, void* userData) override
 	{
 		Rendering_(parameter, instanceParameter, m_renderer->GetCameraMatrix());
+	}
+
+	void EndRendering(const efkRibbonNodeParam& parameter, void* userData) override
+	{
+		m_renderer->GetStandardRenderer()->EndRenderingAndRenderingIfRequired();
 	}
 };
 //----------------------------------------------------------------------------------

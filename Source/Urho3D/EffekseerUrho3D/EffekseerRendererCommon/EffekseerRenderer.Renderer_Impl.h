@@ -4,6 +4,9 @@
 #include <Effekseer.h>
 
 #include "EffekseerRenderer.Renderer.h"
+#include "EffekseerRenderer.ShaderBase.h"
+#include "EffekseerRendererFlags.h"
+#include "VertexBuffer.h"
 
 namespace EffekseerRenderer
 {
@@ -47,15 +50,20 @@ public:
 	Effekseer::RefPtr<Effekseer::RenderingUserData> CurrentRenderingUserData;
 	void* CurrentHandleUserData = nullptr;
 
-	//! for OpenGL
-	int32_t CurrentRingBufferIndex = 0;
-
-	//! for OpenGL
-	int32_t RingBufferCount = 1;
-
 	std::shared_ptr<ExternalShaderSettings> externalShaderSettings;
 
 	bool MaintainGammaColorInLinearColorSpace = false;
+
+	bool IsPremultipliedAlphaEnabled = false;
+
+	std::shared_ptr<VertexBuffer> InternalVertexBuffer;
+
+	std::unique_ptr<ShaderBase> ShaderUnlit = nullptr;
+	std::unique_ptr<ShaderBase> ShaderLit = nullptr;
+	std::unique_ptr<ShaderBase> ShaderDistortion = nullptr;
+	std::unique_ptr<ShaderBase> ShaderAdUnlit = nullptr;
+	std::unique_ptr<ShaderBase> ShaderAdLit = nullptr;
+	std::unique_ptr<ShaderBase> ShaderAdDistortion = nullptr;
 
 	Impl() = default;
 	~Impl();
@@ -127,6 +135,8 @@ public:
 	void GetDepth(::Effekseer::Backend::TextureRef& texture, DepthReconstructionParameter& reconstructionParam);
 
 	void SetDepth(::Effekseer::Backend::TextureRef texture, const DepthReconstructionParameter& reconstructionParam);
+
+	ShaderBase* GetShader(::EffekseerRenderer::RendererShaderType type) const;
 };
 
 } // namespace EffekseerRenderer

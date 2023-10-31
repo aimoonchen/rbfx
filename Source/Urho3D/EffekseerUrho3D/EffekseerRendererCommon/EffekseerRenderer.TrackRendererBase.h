@@ -10,10 +10,8 @@
 #include <string.h>
 
 #include "EffekseerRenderer.CommonUtils.h"
-#include "EffekseerRenderer.IndexBufferBase.h"
 #include "EffekseerRenderer.RenderStateBase.h"
 #include "EffekseerRenderer.StandardRenderer.h"
-#include "EffekseerRenderer.VertexBufferBase.h"
 
 //-----------------------------------------------------------------------------------
 //
@@ -1070,6 +1068,11 @@ public:
 
 		m_renderer->GetStandardRenderer()->BeginRenderingAndRenderingIfRequired(state, vertexCount, stride_, (void*&)m_ringBufferData);
 		vertexCount_ = vertexCount;
+	}
+
+	void EndRendering(const efkTrackNodeParam& parameter, void* userData) override
+	{
+		m_renderer->GetStandardRenderer()->EndRenderingAndRenderingIfRequired();
 	}
 };
 

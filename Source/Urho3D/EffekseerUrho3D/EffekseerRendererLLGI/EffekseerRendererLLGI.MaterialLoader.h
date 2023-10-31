@@ -4,7 +4,6 @@
 
 #include "../3rdParty/LLGI/src/LLGI.Compiler.h"
 #include "../Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.h"
-#include "EffekseerRendererLLGI.DeviceObject.h"
 #include "EffekseerRendererLLGI.RendererImplemented.h"
 
 #include <Effekseer.h>
@@ -22,7 +21,7 @@ namespace EffekseerRendererLLGI
 class MaterialLoader : public ::Effekseer::MaterialLoader
 {
 private:
-	Backend::GraphicsDevice* graphicsDevice_ = nullptr;
+	Backend::GraphicsDeviceRef graphicsDevice_ = nullptr;
 	::Effekseer::FileInterfaceRef fileInterface_ = nullptr;
 	::Effekseer::CompiledMaterialPlatformType platformType_;
 	::Effekseer::MaterialCompiler* materialCompiler_ = nullptr;
@@ -34,7 +33,7 @@ protected:
 	virtual void Deserialize(uint8_t* data, uint32_t datasize, LLGI::CompilerResult& result);
 
 public:
-	MaterialLoader(Backend::GraphicsDevice* graphicsDevice,
+	MaterialLoader(Backend::GraphicsDeviceRef graphicsDevice,
 				   ::Effekseer::FileInterfaceRef fileInterface,
 				   ::Effekseer::CompiledMaterialPlatformType platformType,
 				   ::Effekseer::MaterialCompiler* materialCompiler);

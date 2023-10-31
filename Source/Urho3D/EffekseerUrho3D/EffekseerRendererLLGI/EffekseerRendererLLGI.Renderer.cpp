@@ -4,12 +4,9 @@
 #include "EffekseerRendererLLGI.RenderState.h"
 #include "EffekseerRendererLLGI.RendererImplemented.h"
 
-#include "EffekseerRendererLLGI.DeviceObject.h"
-#include "EffekseerRendererLLGI.IndexBuffer.h"
 #include "EffekseerRendererLLGI.MaterialLoader.h"
 #include "EffekseerRendererLLGI.ModelRenderer.h"
 #include "EffekseerRendererLLGI.Shader.h"
-#include "EffekseerRendererLLGI.VertexBuffer.h"
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.RibbonRendererBase.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.RingRendererBase.h"
@@ -19,12 +16,6 @@
 #include "../EffekseerRendererCommon/TextureLoader.h"
 
 #include <iostream>
-
-#include "../../Graphics/GraphicsUtils.h"
-#include "../../RenderPipeline/StaticPipelineStateCache.h"
-#include "../../RenderAPI/RenderContext.h"
-#include "../../RenderAPI/RenderDevice.h"
-#include "../../RenderAPI/PipelineState.h"
 
 namespace EffekseerRendererLLGI
 {
@@ -59,60 +50,60 @@ bool PiplineStateKey::operator<(const PiplineStateKey& v) const
 	return false;
 }
 
-Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType format)
+LLGI::TextureFormatType ConvertTextureFormat(Effekseer::Backend::TextureFormatType format)
 {
 	switch (format)
 	{
 	case Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM:
-		return Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM;
+		return LLGI::TextureFormatType::R8G8B8A8_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM:
-		return Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM;
+		return LLGI::TextureFormatType::B8G8R8A8_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::R8_UNORM:
-		return Urho3D::TextureFormat::TEX_FORMAT_R8_UNORM;
+		return LLGI::TextureFormatType::R8_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::R16G16_FLOAT:
-		return Urho3D::TextureFormat::TEX_FORMAT_RG16_FLOAT;
+		return LLGI::TextureFormatType::R16G16_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::R16G16B16A16_FLOAT:
-		return Urho3D::TextureFormat::TEX_FORMAT_RGBA16_FLOAT;
+		return LLGI::TextureFormatType::R16G16B16A16_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::R32G32B32A32_FLOAT:
-		return Urho3D::TextureFormat::TEX_FORMAT_RGBA32_FLOAT;
+		return LLGI::TextureFormatType::R32G32B32A32_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC1:
-		return Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM;
+		return LLGI::TextureFormatType::BC1;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC2:
-		return Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM;
+		return LLGI::TextureFormatType::BC2;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC3:
-		return Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM;
+		return LLGI::TextureFormatType::BC3;
 		break;
 	case Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM_SRGB:
-		return Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB;
+		return LLGI::TextureFormatType::R8G8B8A8_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM_SRGB:
-		return Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM_SRGB;
+		return LLGI::TextureFormatType::B8G8R8A8_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC1_SRGB:
-		return Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM_SRGB;
+		return LLGI::TextureFormatType::BC1_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC2_SRGB:
-		return Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM_SRGB;
+		return LLGI::TextureFormatType::BC2_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC3_SRGB:
-		return Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM_SRGB;
+		return LLGI::TextureFormatType::BC3_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::D32:
-		return Urho3D::TextureFormat::TEX_FORMAT_D32_FLOAT;
+		return LLGI::TextureFormatType::D32;
 		break;
 	case Effekseer::Backend::TextureFormatType::D24S8:
-		return Urho3D::TextureFormat::TEX_FORMAT_D24_UNORM_S8_UINT;
+		return LLGI::TextureFormatType::D24S8;
 		break;
 	case Effekseer::Backend::TextureFormatType::D32S8:
-		return Urho3D::TextureFormat::TEX_FORMAT_D32_FLOAT_S8X24_UINT;
+		return LLGI::TextureFormatType::D32S8;
 		break;
 	case Effekseer::Backend::TextureFormatType::Unknown:
 		break;
@@ -120,7 +111,7 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 		break;
 	}
 
-	return Urho3D::TextureFormat::TEX_FORMAT_UNKNOWN;
+	return LLGI::TextureFormatType::Unknown;
 }
 
 LLGI::CommandList* RendererImplemented::GetCurrentCommandList()
@@ -135,7 +126,7 @@ LLGI::CommandList* RendererImplemented::GetCurrentCommandList()
 	return nullptr;
 }
 
-Urho3D::StaticPipelineStateId RendererImplemented::GetOrCreatePiplineState()
+LLGI::PipelineState* RendererImplemented::GetOrCreatePiplineState()
 {
 	PiplineStateKey key;
 	key.state = m_renderState->GetActiveState();
@@ -148,145 +139,143 @@ Urho3D::StaticPipelineStateId RendererImplemented::GetOrCreatePiplineState()
 	{
 		return it->second;
 	}
-	//auto piplineState = GetGraphics()->CreatePiplineState();
-    Urho3D::GraphicsPipelineStateDesc desc;
-    Urho3D::InitializeInputLayout(desc.inputLayout_, { currentVertexBuffer_ });
-    desc.colorWriteEnabled_ = true;
-    desc.vertexShader_ = currentShader->GetVertexShader();
-    desc.pixelShader_ = currentShader->GetPixelShader();
 
-	for (auto i = 0; i < currentShader->GetVertexLayouts().size(); i++)
+	auto piplineState = GetGraphics()->CreatePiplineState();
+
+	if (isReversedDepth_)
 	{
-        const auto& ve = currentShader->GetVertexLayouts()[i].Format;
-        desc.inputLayout_.elements_[i].bufferStride_ = currentVertexBufferStride_;
-        desc.inputLayout_.elements_[i].elementSemantic_ = ve.semantic_;
-        desc.inputLayout_.elements_[i].elementType_ = ve.type_;
-        desc.inputLayout_.elements_[i].elementOffset_ = ve.offset_;
+		piplineState->DepthFunc = LLGI::DepthFuncType::GreaterEqual;
 	}
-    desc.inputLayout_.size_ = (int32_t)currentShader->GetVertexLayouts().size();
-
-    desc.primitiveType_ = currentTopologyType_;
-
-    desc.depthCompareFunction_ = key.state.DepthTest ? (isReversedDepth_ ? Urho3D::CompareMode::CMP_GREATEREQUAL : Urho3D::CompareMode::CMP_LESSEQUAL) : Urho3D::CompareMode::CMP_ALWAYS;
-    desc.depthWriteEnabled_ = key.state.DepthWrite;
-
-	if (key.state.CullingType == ::Effekseer::CullingType::Back)
+	else
 	{
-		desc.cullMode_ = isReversedDepth_ ? Urho3D::CullMode::CULL_CW : Urho3D::CullMode::CULL_CCW;
-	}
-	else if (key.state.CullingType == ::Effekseer::CullingType::Front)
-	{
-        desc.cullMode_ = isReversedDepth_ ? Urho3D::CullMode::CULL_CCW : Urho3D::CullMode::CULL_CW;
-	}
-	else if (key.state.CullingType == ::Effekseer::CullingType::Double)
-	{
-        desc.cullMode_ = Urho3D::CullMode::CULL_NONE;
+		piplineState->DepthFunc = LLGI::DepthFuncType::LessEqual;
 	}
 
-    desc.blendMode_ = Urho3D::BlendMode::BLEND_ALPHA;
+	piplineState->SetShader(LLGI::ShaderStageType::Vertex, currentShader->GetVertexShader());
+	piplineState->SetShader(LLGI::ShaderStageType::Pixel, currentShader->GetPixelShader());
 
-// 	piplineState->IsBlendEnabled = true;
-// 	piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::One;
-// 	piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 	piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Max;
+	for (size_t i = 0; i < currentShader->GetVertexLayouts()->GetElements().size(); i++)
+	{
+		piplineState->VertexLayouts[i] = currentShader->GetVertexLayouts()->GetElements()[i].Format;
+		piplineState->VertexLayoutNames[i] = currentShader->GetVertexLayouts()->GetElements()[i].Name;
+		piplineState->VertexLayoutSemantics[i] = currentShader->GetVertexLayouts()->GetElements()[i].Semantic;
+	}
+	piplineState->VertexLayoutCount = static_cast<int32_t>(currentShader->GetVertexLayouts()->GetElements().size());
+
+	piplineState->Topology = currentTopologyType_;
+
+	piplineState->IsDepthTestEnabled = key.state.DepthTest;
+	piplineState->IsDepthWriteEnabled = key.state.DepthWrite;
+
+	if (isReversedDepth_)
+	{
+		if (key.state.CullingType == ::Effekseer::CullingType::Back)
+		{
+			piplineState->Culling = LLGI::CullingMode::Clockwise;
+		}
+		else if (key.state.CullingType == ::Effekseer::CullingType::Front)
+		{
+			piplineState->Culling = LLGI::CullingMode::CounterClockwise;
+		}
+		else if (key.state.CullingType == ::Effekseer::CullingType::Double)
+		{
+			piplineState->Culling = LLGI::CullingMode::DoubleSide;
+		}
+	}
+	else
+	{
+		piplineState->Culling = (LLGI::CullingMode)key.state.CullingType;
+	}
+
+	piplineState->IsBlendEnabled = true;
+	piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::One;
+	piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
+	piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Max;
 
 	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Opacity)
 	{
-// 		piplineState->IsBlendEnabled = false;
-// 		piplineState->IsBlendEnabled = true;
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::One;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_REPLACE;
+		piplineState->IsBlendEnabled = false;
+		piplineState->IsBlendEnabled = true;
+		piplineState->BlendDstFunc = LLGI::BlendFuncType::Zero;
+		piplineState->BlendSrcFunc = LLGI::BlendFuncType::One;
+		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
 	}
 
 	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Blend)
 	{
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::OneMinusSrcAlpha;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
+		if (GetImpl()->IsPremultipliedAlphaEnabled)
+		{
+			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
+			piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
+			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
+			piplineState->BlendDstFunc = LLGI::BlendFuncType::OneMinusSrcAlpha;
+			piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::One;
+			piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::OneMinusSrcAlpha;
+		}
+		else
+		{
+			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
+			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
+			piplineState->BlendDstFunc = LLGI::BlendFuncType::OneMinusSrcAlpha;
+		}
 	}
 
 	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Add)
 	{
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_ADDALPHA;
+		if (GetImpl()->IsPremultipliedAlphaEnabled)
+		{
+			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
+			piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
+			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
+			piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
+			piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
+			piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
+		}
+		else
+		{
+			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
+			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
+			piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
+		}
 	}
 
 	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Sub)
 	{
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::ReverseSub;
-// 		piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_SUBTRACTALPHA;
+		piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
+		piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
+		piplineState->BlendEquationRGB = LLGI::BlendEquationType::ReverseSub;
+		piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
+		piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
+		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
 	}
 
 	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Mul)
 	{
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::SrcColor;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-// 		piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_MULTIPLY;
+		piplineState->BlendDstFunc = LLGI::BlendFuncType::SrcColor;
+		piplineState->BlendSrcFunc = LLGI::BlendFuncType::Zero;
+		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
+		piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
+		piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
+		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
 	}
 
-// 	piplineState->SetRenderPassPipelineState(currentRenderPassPipelineState_.get());
-// 
-// 	if (!piplineState->Compile())
-// 	{
-// 		assert(0);
-// 	}
-    auto piplineStateId = pipelineStatesCache_->CreateState(desc);
-	piplineStates_[key] = piplineStateId;
+	piplineState->SetRenderPassPipelineState(currentRenderPassPipelineState_.get());
 
-	return piplineStateId;
-}
-
-void RendererImplemented::GenerateVertexBuffer()
-{
-	m_vertexBuffer =
-		VertexBuffer::Create(graphicsDevice_.Get(), EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4, true, false);
-}
-
-void RendererImplemented::GenerateIndexBuffer()
-{
-	m_indexBuffer = IndexBuffer::Create(graphicsDevice_.Get(), m_squareMaxCount * 6, false, false);
-	if (m_indexBuffer == nullptr)
-		return;
-
-	m_indexBuffer->Lock();
-
-	for (int i = 0; i < m_squareMaxCount; i++)
+	if (!piplineState->Compile())
 	{
-		uint16_t* buf = (uint16_t*)m_indexBuffer->GetBufferDirect(6);
-		buf[0] = 3 + 4 * i;
-		buf[1] = 1 + 4 * i;
-		buf[2] = 0 + 4 * i;
-		buf[3] = 3 + 4 * i;
-		buf[4] = 0 + 4 * i;
-		buf[5] = 2 + 4 * i;
+		assert(0);
 	}
 
-	m_indexBuffer->Unlock();
+	piplineStates_[key] = piplineState;
+
+	return piplineState;
 }
 
 RendererImplemented::RendererImplemented(int32_t squareMaxCount)
 	: graphicsDevice_(nullptr)
-	, m_vertexBuffer(nullptr)
-	, m_indexBuffer(nullptr)
 	, m_squareMaxCount(squareMaxCount)
 	, m_coordinateSystem(::Effekseer::CoordinateSystem::RH)
 	, m_renderState(nullptr)
-
-	, shader_unlit_(nullptr)
-	, shader_distortion_(nullptr)
 	, m_standardRenderer(nullptr)
 	, m_distortingCallback(nullptr)
 {
@@ -295,12 +284,12 @@ RendererImplemented::RendererImplemented(int32_t squareMaxCount)
 RendererImplemented::~RendererImplemented()
 {
 	// to prevent objects to be disposed before finish renderings.
-// 	GetGraphics()->WaitFinish();
-// 
-// 	for (auto p : piplineStates_)
-// 	{
-// 		p.second->Release();
-// 	}
+	GetGraphics()->WaitFinish();
+
+	for (auto p : piplineStates_)
+	{
+		p.second->Release();
+	}
 	piplineStates_.clear();
 
 	commandList_.Reset();
@@ -308,19 +297,7 @@ RendererImplemented::~RendererImplemented()
 
 	ES_SAFE_DELETE(m_distortingCallback);
 	ES_SAFE_DELETE(m_standardRenderer);
-
-	ES_SAFE_DELETE(shader_unlit_);
-	ES_SAFE_DELETE(shader_lit_);
-	ES_SAFE_DELETE(shader_distortion_);
-
-	ES_SAFE_DELETE(shader_ad_unlit_);
-	ES_SAFE_DELETE(shader_ad_lit_);
-	ES_SAFE_DELETE(shader_ad_distortion_);
-
 	ES_SAFE_DELETE(m_renderState);
-	ES_SAFE_DELETE(m_vertexBuffer);
-	ES_SAFE_DELETE(m_indexBuffer);
-	ES_SAFE_DELETE(m_indexBufferForWireframe);
 
 	if (materialCompiler_ != nullptr)
 	{
@@ -337,7 +314,7 @@ void RendererImplemented::OnResetDevice()
 {
 }
 
-bool RendererImplemented::Initialize(Urho3D::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth)
+bool RendererImplemented::Initialize(LLGI::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth)
 {
 
 	auto gd = Effekseer::MakeRefPtr<Backend::GraphicsDevice>(graphics);
@@ -351,170 +328,147 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 									 LLGI::RenderPassPipelineStateKey key,
 									 bool isReversedDepth)
 {
-    pipelineStatesCache_ = ea::make_unique<Urho3D::StaticPipelineStateCache>(GetGraphics()->GetContext());
 	graphicsDevice_ = graphicsDevice;
 	ChangeRenderPassPipelineState(key);
 	isReversedDepth_ = isReversedDepth;
 
-	//LLGI::SetLogger([](LLGI::LogType type, const std::string& message) { std::cout << message << std::endl; });
+	LLGI::SetLogger([](LLGI::LogType type, const std::string& message)
+					{ std::cout << message << std::endl; });
 
 	// Generate vertex buffer
 	{
-		GenerateVertexBuffer();
-		if (m_vertexBuffer == nullptr)
-			return false;
-	}
-
-	// Generate index buffer
-	{
-		GenerateIndexBuffer();
-		if (m_indexBuffer == nullptr)
-			return false;
-	}
-
-	// Generate index buffer for rendering wireframes
-	{
-		m_indexBufferForWireframe = IndexBuffer::Create(graphicsDevice_.Get(), m_squareMaxCount * 8, false, false);
-		if (m_indexBufferForWireframe == nullptr)
-			return false;
-
-		m_indexBufferForWireframe->Lock();
-
-		for (int i = 0; i < m_squareMaxCount; i++)
+		GetImpl()->InternalVertexBuffer = std::make_shared<EffekseerRenderer::VertexBufferRing>(graphicsDevice_, EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4, 3);
+		if (!GetImpl()->InternalVertexBuffer->GetIsValid())
 		{
-			uint16_t* buf = (uint16_t*)m_indexBufferForWireframe->GetBufferDirect(8);
-			buf[0] = 0 + 4 * i;
-			buf[1] = 1 + 4 * i;
-			buf[2] = 2 + 4 * i;
-			buf[3] = 3 + 4 * i;
-			buf[4] = 0 + 4 * i;
-			buf[5] = 2 + 4 * i;
-			buf[6] = 1 + 4 * i;
-			buf[7] = 3 + 4 * i;
+			GetImpl()->InternalVertexBuffer = nullptr;
+			return false;
 		}
+	}
 
-		m_indexBufferForWireframe->Unlock();
+	if (!EffekseerRenderer::GenerateIndexDataStride<int16_t>(graphicsDevice_, m_squareMaxCount, indexBuffer_, indexBufferForWireframe_))
+	{
+		return false;
 	}
 
 	m_renderState = new RenderState(this);
 
-	// shader
-	// pos(3) color(1) uv(2)
-	std::vector<VertexLayout> layouts;
-	layouts.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
-	layouts.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
-	layouts.push_back(VertexLayout{ {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 2});
+	auto vlUnlit = EffekseerRenderer::GetVertexLayout(graphicsDevice_, EffekseerRenderer::RendererShaderType::Unlit).DownCast<Backend::VertexLayout>();
+	auto vlLit = EffekseerRenderer::GetVertexLayout(graphicsDevice_, EffekseerRenderer::RendererShaderType::Lit).DownCast<Backend::VertexLayout>();
+	auto vlDist = EffekseerRenderer::GetVertexLayout(graphicsDevice_, EffekseerRenderer::RendererShaderType::BackDistortion).DownCast<Backend::VertexLayout>();
+	auto vlUnlitAd = EffekseerRenderer::GetVertexLayout(graphicsDevice_, EffekseerRenderer::RendererShaderType::AdvancedUnlit).DownCast<Backend::VertexLayout>();
+	auto vlLitAd = EffekseerRenderer::GetVertexLayout(graphicsDevice_, EffekseerRenderer::RendererShaderType::AdvancedLit).DownCast<Backend::VertexLayout>();
+	auto vlDistAd = EffekseerRenderer::GetVertexLayout(graphicsDevice_, EffekseerRenderer::RendererShaderType::AdvancedBackDistortion).DownCast<Backend::VertexLayout>();
 
-	std::vector<VertexLayout> layouts_ad;
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 2});
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 1}, "TEXCOORD", 3}); // AlphaTextureUV + UVDistortionTextureUV
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 2}, "TEXCOORD", 4});		 // BlendUV
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 3}, "TEXCOORD", 5}); // BlendAlphaUV + BlendUVDistortionUV
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 4}, "TEXCOORD", 6});			 // FlipbookIndexAndNextRate
-	layouts_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5}, "TEXCOORD", 7});			 // AlphaThreshold
+	vlUnlit->MakeGenerated();
+	vlLit->MakeGenerated();
+	vlDist->MakeGenerated();
+	vlUnlitAd->MakeGenerated();
+	vlLitAd->MakeGenerated();
+	vlDistAd->MakeGenerated();
 
-	std::vector<VertexLayout> layouts_normal;
-	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
-	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
-	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL, 1}, "TEXCOORD", 2});
-	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT, 2}, "TEXCOORD", 3});
-	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 4});
-	layouts_normal.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1}, "TEXCOORD", 5});
+	auto unlit_vs_shader_data = Backend::Serialize(fixedShader_.SpriteUnlit_VS);
+	auto unlit_ps_shader_data = Backend::Serialize(fixedShader_.ModelUnlit_PS);
 
-	std::vector<VertexLayout> layouts_normal_ad;
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0}, "TEXCOORD", 0});
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0}, "TEXCOORD", 1});
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL, 1}, "TEXCOORD", 2});
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT, 2}, "TEXCOORD", 3});
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0}, "TEXCOORD", 4});
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1}, "TEXCOORD", 5});
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 2}, "TEXCOORD", 6}); // AlphaTextureUV + UVDistortionTextureUV
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 3}, "TEXCOORD", 7});		// BlendUV
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 4}, "TEXCOORD", 8}); // BlendAlphaUV + BlendUVDistortionUV
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5}, "TEXCOORD", 9});			// FlipbookIndexAndNextRate
-	layouts_normal_ad.push_back(VertexLayout{{Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 6}, "TEXCOORD", 10});			// AlphaThreshold
-
-	shader_unlit_ = Shader::Create(graphicsDevice_.Get(),
-								   fixedShader_.SpriteUnlit_VS.data(),
-								   (int32_t)fixedShader_.SpriteUnlit_VS.size(),
-								   fixedShader_.ModelUnlit_PS.data(),
-								   (int32_t)fixedShader_.ModelUnlit_PS.size(),
-								   "StandardRenderer",
-								   layouts,
-								   false);
-	if (shader_unlit_ == nullptr)
+	auto shader_unlit = Shader::Create(graphicsDevice_,
+									   graphicsDevice_->CreateShaderFromBinary(
+										   unlit_vs_shader_data.data(),
+										   static_cast<int32_t>(unlit_vs_shader_data.size()),
+										   unlit_ps_shader_data.data(),
+										   static_cast<int32_t>(unlit_ps_shader_data.size())),
+									   vlUnlit,
+									   "StandardRenderer");
+	if (shader_unlit == nullptr)
 		return false;
+	GetImpl()->ShaderUnlit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_unlit);
 
-	shader_distortion_ = Shader::Create(graphicsDevice_.Get(),
-										fixedShader_.SpriteDistortion_VS.data(),
-										(int32_t)fixedShader_.SpriteDistortion_VS.size(),
-										fixedShader_.ModelDistortion_PS.data(),
-										(int32_t)fixedShader_.ModelDistortion_PS.size(),
-										"StandardRenderer Distortion",
-										layouts_normal,
-										false);
-	if (shader_distortion_ == nullptr)
+	auto distortion_vs_shader_data = Backend::Serialize(fixedShader_.SpriteDistortion_VS);
+	auto distortion_ps_shader_data = Backend::Serialize(fixedShader_.ModelDistortion_PS);
+
+	auto shader_distortion = Shader::Create(graphicsDevice_,
+											graphicsDevice_->CreateShaderFromBinary(
+												distortion_vs_shader_data.data(),
+												static_cast<int32_t>(distortion_vs_shader_data.size()),
+												distortion_ps_shader_data.data(),
+												static_cast<int32_t>(distortion_ps_shader_data.size())),
+											vlDist,
+											"StandardRenderer Distortion");
+	if (shader_distortion == nullptr)
 		return false;
+	GetImpl()->ShaderDistortion = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_distortion);
 
-	shader_ad_unlit_ = Shader::Create(graphicsDevice_.Get(),
-									  fixedShader_.AdvancedSpriteUnlit_VS.data(),
-									  (int32_t)fixedShader_.AdvancedSpriteUnlit_VS.size(),
-									  fixedShader_.AdvancedModelUnlit_PS.data(),
-									  (int32_t)fixedShader_.AdvancedModelUnlit_PS.size(),
-									  "StandardRenderer",
-									  layouts_ad,
-									  false);
-	if (shader_ad_unlit_ == nullptr)
+	auto ad_unlit_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteUnlit_VS);
+	auto ad_unlit_ps_shader_data = Backend::Serialize(fixedShader_.AdvancedModelUnlit_PS);
+
+	auto shader_ad_unlit = Shader::Create(graphicsDevice_,
+										  graphicsDevice_->CreateShaderFromBinary(
+											  ad_unlit_vs_shader_data.data(),
+											  static_cast<int32_t>(ad_unlit_vs_shader_data.size()),
+											  ad_unlit_ps_shader_data.data(),
+											  static_cast<int32_t>(ad_unlit_ps_shader_data.size())),
+										  vlUnlitAd,
+										  "StandardRenderer");
+	if (shader_ad_unlit == nullptr)
 		return false;
+	GetImpl()->ShaderAdUnlit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_unlit);
 
-	shader_ad_distortion_ = Shader::Create(graphicsDevice_.Get(),
-										   fixedShader_.AdvancedSpriteDistortion_VS.data(),
-										   (int32_t)fixedShader_.AdvancedSpriteDistortion_VS.size(),
-										   fixedShader_.AdvancedModelDistortion_PS.data(),
-										   (int32_t)fixedShader_.AdvancedModelDistortion_PS.size(),
-										   "StandardRenderer Distortion",
-										   layouts_normal_ad,
-										   false);
-	if (shader_ad_distortion_ == nullptr)
+	auto ad_dist_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteDistortion_VS);
+	auto ad_dist_ps_shader_data = Backend::Serialize(fixedShader_.AdvancedModelDistortion_PS);
+
+	auto shader_ad_distortion = Shader::Create(graphicsDevice_,
+											   graphicsDevice_->CreateShaderFromBinary(
+												   ad_dist_vs_shader_data.data(),
+												   static_cast<int32_t>(ad_dist_vs_shader_data.size()),
+												   ad_dist_ps_shader_data.data(),
+												   static_cast<int32_t>(ad_dist_ps_shader_data.size())),
+											   vlDistAd,
+											   "StandardRenderer Distortion");
+	if (shader_ad_distortion == nullptr)
 		return false;
+	GetImpl()->ShaderAdDistortion = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_distortion);
 
-	shader_lit_ = Shader::Create(graphicsDevice_.Get(),
-								 fixedShader_.SpriteLit_VS.data(),
-								 (int32_t)fixedShader_.SpriteLit_VS.size(),
-								 fixedShader_.ModelLit_PS.data(),
-								 (int32_t)fixedShader_.ModelLit_PS.size(),
-								 "StandardRenderer Lighting",
-								 layouts_normal,
-								 false);
+	auto lit_vs_shader_data = Backend::Serialize(fixedShader_.SpriteLit_VS);
+	auto lit_ps_shader_data = Backend::Serialize(fixedShader_.ModelLit_PS);
 
-	shader_ad_lit_ = Shader::Create(graphicsDevice_.Get(),
-									fixedShader_.AdvancedSpriteLit_VS.data(),
-									(int32_t)fixedShader_.AdvancedSpriteLit_VS.size(),
-									fixedShader_.AdvancedModelLit_PS.data(),
-									(int32_t)fixedShader_.AdvancedModelLit_PS.size(),
-									"StandardRenderer Lighting",
-									layouts_normal_ad,
-									false);
+	auto shader_lit = Shader::Create(graphicsDevice_,
+									 graphicsDevice_->CreateShaderFromBinary(
+										 lit_vs_shader_data.data(),
+										 static_cast<int32_t>(lit_vs_shader_data.size()),
+										 lit_ps_shader_data.data(),
+										 static_cast<int32_t>(lit_ps_shader_data.size())),
+									 vlLit,
+									 "StandardRenderer Lighting");
+	GetImpl()->ShaderLit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_lit);
 
-	shader_unlit_->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
-	shader_unlit_->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
+	auto ad_lit_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteLit_VS);
+	auto ad_lit_ps_shader_data = Backend::Serialize(fixedShader_.AdvancedModelLit_PS);
 
-	shader_distortion_->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
-	shader_distortion_->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBufferDistortion));
+	auto shader_ad_lit = Shader::Create(graphicsDevice_,
+										graphicsDevice_->CreateShaderFromBinary(
+											ad_lit_vs_shader_data.data(),
+											static_cast<int32_t>(ad_lit_vs_shader_data.size()),
+											ad_lit_ps_shader_data.data(),
+											static_cast<int32_t>(ad_lit_ps_shader_data.size())),
+										vlLitAd,
+										"StandardRenderer Lighting");
+	GetImpl()->ShaderAdLit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_lit);
 
-	shader_ad_unlit_->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
-	shader_ad_unlit_->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
+	shader_unlit->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
+	shader_unlit->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
 
-	shader_ad_distortion_->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
-	shader_ad_distortion_->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBufferDistortion));
+	shader_distortion->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
+	shader_distortion->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBufferDistortion));
 
-	shader_lit_->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
-	shader_lit_->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
+	shader_ad_unlit->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
+	shader_ad_unlit->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
 
-	shader_ad_lit_->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
-	shader_ad_lit_->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
+	shader_ad_distortion->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
+	shader_ad_distortion->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBufferDistortion));
+
+	shader_lit->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
+	shader_lit->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
+
+	shader_ad_lit->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
+	shader_ad_lit->SetPixelConstantBufferSize(sizeof(EffekseerRenderer::PixelConstantBuffer));
 
 	m_standardRenderer = new EffekseerRenderer::StandardRenderer<RendererImplemented, Shader>(this);
 
@@ -582,6 +536,8 @@ bool RendererImplemented::EndRendering()
 	// reset renderer
 	m_standardRenderer->ResetAndRenderingIfRequired();
 
+	currentndexBuffer_ = nullptr;
+
 	return true;
 }
 
@@ -590,21 +546,13 @@ void RendererImplemented::SetCommandList(Effekseer::RefPtr<EffekseerRenderer::Co
 	commandList_ = commandList;
 }
 
-VertexBuffer* RendererImplemented::GetVertexBuffer()
+Effekseer::Backend::IndexBufferRef RendererImplemented::GetIndexBuffer()
 {
-	return m_vertexBuffer;
-}
-
-IndexBuffer* RendererImplemented::GetIndexBuffer()
-{
-	if (m_renderMode == ::Effekseer::RenderMode::Wireframe)
+	if (GetRenderMode() == ::Effekseer::RenderMode::Wireframe)
 	{
-		return m_indexBufferForWireframe;
+		return indexBufferForWireframe_;
 	}
-	else
-	{
-		return m_indexBuffer;
-	}
+	return indexBuffer_;
 }
 
 int32_t RendererImplemented::GetSquareMaxCount() const
@@ -654,10 +602,10 @@ int32_t RendererImplemented::GetSquareMaxCount() const
 
 ::Effekseer::MaterialLoaderRef RendererImplemented::CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface)
 {
-	return ::Effekseer::MakeRefPtr<MaterialLoader>(graphicsDevice_.Get(), fileInterface, platformType_, materialCompiler_);
+	return ::Effekseer::MakeRefPtr<MaterialLoader>(graphicsDevice_, fileInterface, platformType_, materialCompiler_);
 }
 
-void RendererImplemented::SetBackgroundInternal(Urho3D::Texture2D* background)
+void RendererImplemented::SetBackgroundInternal(LLGI::Texture* background)
 {
 	if (m_backgroundLLGI == nullptr)
 	{
@@ -683,26 +631,10 @@ void RendererImplemented::SetDistortingCallback(EffekseerRenderer::DistortingCal
 	m_distortingCallback = callback;
 }
 
-void RendererImplemented::SetVertexBuffer(Urho3D::VertexBuffer* vertexBuffer, int32_t stride)
+void RendererImplemented::SetVertexBuffer(LLGI::Buffer* vertexBuffer, int32_t stride)
 {
 	currentVertexBuffer_ = vertexBuffer;
 	currentVertexBufferStride_ = stride;
-}
-
-void RendererImplemented::SetVertexBuffer(VertexBuffer* vertexBuffer, int32_t stride)
-{
-	currentVertexBuffer_ = vertexBuffer->GetVertexBuffer();
-	currentVertexBufferStride_ = stride;
-}
-
-void RendererImplemented::SetIndexBuffer(IndexBuffer* indexBuffer)
-{
-	GetCurrentCommandList()->SetIndexBuffer(indexBuffer->GetIndexBuffer(), 2);
-}
-
-void RendererImplemented::SetIndexBuffer(Urho3D::IndexBuffer* indexBuffer)
-{
-	GetCurrentCommandList()->SetIndexBuffer(indexBuffer, 4);
 }
 
 void RendererImplemented::SetVertexBuffer(const Effekseer::Backend::VertexBufferRef& vertexBuffer, int32_t stride)
@@ -715,19 +647,19 @@ void RendererImplemented::SetVertexBuffer(const Effekseer::Backend::VertexBuffer
 void RendererImplemented::SetIndexBuffer(const Effekseer::Backend::IndexBufferRef& indexBuffer)
 {
 	auto ib = static_cast<Backend::IndexBuffer*>(indexBuffer.Get());
-
-	SetIndexBuffer(ib->GetBuffer());
+	currentndexBuffer_ = indexBuffer;
+	GetCurrentCommandList()->SetIndexBuffer(ib->GetBuffer(), ib->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride2 ? 2 : 4);
 }
 
 void RendererImplemented::SetLayout(Shader* shader)
 {
 	if (m_renderMode == Effekseer::RenderMode::Normal)
 	{
-		currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
+		currentTopologyType_ = LLGI::TopologyType::Triangle;
 	}
 	else
 	{
-		currentTopologyType_ = Urho3D::PrimitiveType::LINE_LIST;
+		currentTopologyType_ = LLGI::TopologyType::Line;
 	}
 }
 
@@ -745,7 +677,7 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 		assert(constantBufferVS != nullptr);
 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
 		constantBufferVS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, LLGI::ShaderStageType::Vertex);
+		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
 	}
 
 	if (currentShader->GetPixelConstantBufferSize() > 0)
@@ -754,15 +686,10 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 		assert(constantBufferPS != nullptr);
 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
 		constantBufferPS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, LLGI::ShaderStageType::Pixel);
+		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
 	}
 
-    auto* renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
-    auto* renderContext = renderDevice->GetRenderContext();
-    const Urho3D::PipelineStateOutputDesc& outputDesc = renderContext->GetCurrentRenderTargetsDesc();
-
-	auto piplineStateId = GetOrCreatePiplineState();
-    auto piplineState = pipelineStatesCache_->GetState(piplineStateId, outputDesc);
+	auto piplineState = GetOrCreatePiplineState();
 	GetCurrentCommandList()->SetPipelineState(piplineState);
 
 	impl->drawcallCount++;
@@ -804,7 +731,7 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 		assert(constantBufferVS != nullptr);
 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
 		constantBufferVS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, LLGI::ShaderStageType::Vertex);
+		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
 	}
 
 	if (currentShader->GetPixelConstantBufferSize() > 0)
@@ -813,7 +740,7 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 		assert(constantBufferPS != nullptr);
 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
 		constantBufferPS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, LLGI::ShaderStageType::Pixel);
+		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
 	}
 
 	auto piplineState = GetOrCreatePiplineState();
@@ -827,36 +754,6 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 
 	LLGI::SafeRelease(constantBufferVS);
 	LLGI::SafeRelease(constantBufferPS);
-}
-
-Shader* RendererImplemented::GetShader(::EffekseerRenderer::RendererShaderType type) const
-{
-	if (type == ::EffekseerRenderer::RendererShaderType::AdvancedBackDistortion)
-	{
-		return shader_ad_distortion_;
-	}
-	else if (type == ::EffekseerRenderer::RendererShaderType::AdvancedLit)
-	{
-		return shader_ad_lit_;
-	}
-	else if (type == ::EffekseerRenderer::RendererShaderType::AdvancedUnlit)
-	{
-		return shader_ad_unlit_;
-	}
-	else if (type == ::EffekseerRenderer::RendererShaderType::BackDistortion)
-	{
-		return shader_distortion_;
-	}
-	else if (type == ::EffekseerRenderer::RendererShaderType::Lit)
-	{
-		return shader_lit_;
-	}
-	else if (type == ::EffekseerRenderer::RendererShaderType::Unlit)
-	{
-		return shader_unlit_;
-	}
-
-	return nullptr;
 }
 
 void RendererImplemented::BeginShader(Shader* shader)
@@ -886,31 +783,27 @@ void RendererImplemented::SetPixelBufferToShader(const void* data, int32_t size,
 void RendererImplemented::SetTextures(Shader* shader, Effekseer::Backend::TextureRef* textures, int32_t count)
 {
 	auto state = GetRenderState()->GetActiveState();
-	Urho3D::TextureAddressMode ws[2];
-	ws[(int)Effekseer::TextureWrapType::Clamp] = Urho3D::TextureAddressMode::ADDRESS_CLAMP;
-	ws[(int)Effekseer::TextureWrapType::Repeat] = Urho3D::TextureAddressMode::ADDRESS_WRAP;
+	LLGI::TextureWrapMode ws[2];
+	ws[(int)Effekseer::TextureWrapType::Clamp] = LLGI::TextureWrapMode::Clamp;
+	ws[(int)Effekseer::TextureWrapType::Repeat] = LLGI::TextureWrapMode::Repeat;
 
-    Urho3D::TextureFilterMode fs[2];
-	fs[(int)Effekseer::TextureFilterType::Linear] = Urho3D::TextureFilterMode::FILTER_BILINEAR;
-	fs[(int)Effekseer::TextureFilterType::Nearest] = Urho3D::TextureFilterMode::FILTER_NEAREST;
+	LLGI::TextureMinMagFilter fs[2];
+	fs[(int)Effekseer::TextureFilterType::Linear] = LLGI::TextureMinMagFilter::Linear;
+	fs[(int)Effekseer::TextureFilterType::Nearest] = LLGI::TextureMinMagFilter::Nearest;
 
 	for (int32_t i = 0; i < count; i++)
 	{
 		if (textures[i] == nullptr)
 		{
-			GetCurrentCommandList()->SetTexture(
-				nullptr, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i, LLGI::ShaderStageType::Vertex);
-			GetCurrentCommandList()->SetTexture(
-				nullptr, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i, LLGI::ShaderStageType::Pixel);
+			GetCurrentCommandList()->SetTexture(nullptr, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
+			GetCurrentCommandList()->SetTexture(nullptr, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
 		}
 		else
 		{
 			auto texture = static_cast<Backend::Texture*>(textures[i].Get());
 			auto t = texture->GetTexture().get();
-			GetCurrentCommandList()->SetTexture(
-				t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i, LLGI::ShaderStageType::Vertex);
-			GetCurrentCommandList()->SetTexture(
-				t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i, LLGI::ShaderStageType::Pixel);
+			GetCurrentCommandList()->SetTexture(t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
+			GetCurrentCommandList()->SetTexture(t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
 		}
 	}
 }

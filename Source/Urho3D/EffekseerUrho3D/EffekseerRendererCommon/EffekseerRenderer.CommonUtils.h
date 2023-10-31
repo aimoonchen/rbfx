@@ -4,6 +4,7 @@
 
 #include "EffekseerRenderer.Renderer.h"
 #include "EffekseerRenderer.Renderer_Impl.h"
+#include "EffekseerRendererFlags.h"
 #include <Effekseer.h>
 #include <Effekseer/Material/Effekseer.CompiledMaterial.h>
 #include <Effekseer/Model/SplineGenerator.h>
@@ -909,17 +910,6 @@ struct MaterialShaderParameterGenerator
 	}
 };
 
-enum class RendererShaderType
-{
-	Unlit,
-	Lit,
-	BackDistortion,
-	AdvancedUnlit,
-	AdvancedLit,
-	AdvancedBackDistortion,
-	Material,
-};
-
 struct ShaderParameterCollector
 {
 	RendererShaderType ShaderType{};
@@ -1571,8 +1561,16 @@ struct PixelConstantBufferDistortion
 
 void CalculateAlignedTextureInformation(Effekseer::Backend::TextureFormatType format, const std::array<int, 2>& size, int32_t& sizePerWidth, int32_t& height);
 
-//! only support OpenGL
+//! only support OpenGL, DirectX11
 Effekseer::Backend::VertexLayoutRef GetVertexLayout(Effekseer::Backend::GraphicsDeviceRef graphicsDevice, RendererShaderType type);
+
+Effekseer::Backend::VertexLayoutRef GetModelRendererVertexLayout(Effekseer::Backend::GraphicsDeviceRef graphicsDevice);
+
+Effekseer::Backend::VertexLayoutRef GetMaterialSimpleVertexLayout(Effekseer::Backend::GraphicsDeviceRef graphicsDevice);
+
+Effekseer::Backend::VertexLayoutRef GetMaterialSpriteVertexLayout(Effekseer::Backend::GraphicsDeviceRef graphicsDevice, int32_t customData1, int32_t customData2);
+
+Effekseer::Backend::VertexLayoutRef GetMaterialModelVertexLayout(Effekseer::Backend::GraphicsDeviceRef graphicsDevice);
 
 struct FlipbookVertexBuffer
 {
@@ -1663,6 +1661,73 @@ inline RendererStateFlipbook ToState(const Effekseer::NodeRendererFlipbookParame
 	ret.OffsetY = param.Offset[1];
 	return ret;
 }
+
+template <typename T>
+bool GenerateIndexDataStride(Effekseer::Backend::GraphicsDeviceRef graphicsDevice, int32_t squareMaxCount, Effekseer::Backend::IndexBufferRef& indexBuffer, Effekseer::Backend::IndexBufferRef& indexBufferForWireframe)
+{
+	auto stride = sizeof(T) == 2 ? 
+		Effekseer::Backend::IndexBufferStrideType::Stride2 : Effekseer::Backend::IndexBufferStrideType::Stride4;
+
+	{
+		std::vector<T> buffer;
+		buffer.resize(squareMaxCount * 6);
+
+		for (int i = 0; i < squareMaxCount; i++)
+		{
+			buffer[0 + i * 6] = (T)(3 + 4 * i);
+			buffer[1 + i * 6] = (T)(1 + 4 * i);
+			buffer[2 + i * 6] = (T)(0 + 4 * i);
+			buffer[3 + i * 6] = (T)(3 + 4 * i);
+			buffer[4 + i * 6] = (T)(0 + 4 * i);
+			buffer[5 + i * 6] = (T)(2 + 4 * i);
+		}
+
+		indexBuffer = graphicsDevice->CreateIndexBuffer(squareMaxCount * 6, buffer.data(), stride);
+		if (indexBuffer == nullptr)
+			return false;
+	}
+
+	{
+		std::vector<T> buffer;
+		buffer.resize(squareMaxCount * 8);
+
+		for (int i = 0; i < squareMaxCount; i++)
+		{
+			buffer[0 + i * 8] = (T)(0 + 4 * i);
+			buffer[1 + i * 8] = (T)(1 + 4 * i);
+			buffer[2 + i * 8] = (T)(2 + 4 * i);
+			buffer[3 + i * 8] = (T)(3 + 4 * i);
+			buffer[4 + i * 8] = (T)(0 + 4 * i);
+			buffer[5 + i * 8] = (T)(2 + 4 * i);
+			buffer[6 + i * 8] = (T)(1 + 4 * i);
+			buffer[7 + i * 8] = (T)(3 + 4 * i);
+		}
+
+		indexBufferForWireframe = graphicsDevice->CreateIndexBuffer(squareMaxCount * 8, buffer.data(), stride);
+		if (indexBufferForWireframe == nullptr)
+			return false;
+	}
+
+	return true;
+}
+
+class DirtiedBlock
+{
+	struct Block
+	{
+		int32_t offset;
+		int32_t size;
+	};
+
+	std::vector<Block> blocks_;
+
+public:
+	/**
+		@brief	Allocate block
+		@return	whether is required to discard.
+	*/
+	bool Allocate(int32_t size, int32_t offset);
+};
 
 } // namespace EffekseerRenderer
 #endif // __EFFEKSEERRENDERER_COMMON_UTILS_H__

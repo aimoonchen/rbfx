@@ -1,69 +1,68 @@
-
+﻿
 #ifndef __EFFEKSEERRENDERER_LLGI_SHADER_H__
 #define __EFFEKSEERRENDERER_LLGI_SHADER_H__
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.ShaderBase.h"
-#include "EffekseerRendererLLGI.DeviceObject.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
-
-// #include <LLGI.Graphics.h>
-// #include <LLGI.Shader.h>
-#include "../../Graphics/GraphicsDefs.h"
+#include "GraphicsDevice.h"
 
 namespace EffekseerRendererLLGI
 {
 
-class VertexLayout
-{
-public:
-	Urho3D::VertexElement Format;
-	std::string Name;
-	int32_t Semantic;
-};
-
-class Shader : public DeviceObject, public ::EffekseerRenderer::ShaderBase
+class Shader : public ::EffekseerRenderer::ShaderBase
 {
 private:
-	Urho3D::ShaderVariation* vertexShader_ = nullptr;
-	Urho3D::ShaderVariation* pixelShader_ = nullptr;
-	std::vector<VertexLayout> layouts_;
+	Backend::GraphicsDeviceRef graphicsDevice_;
+	Backend::ShaderRef shader_;
+	Backend::ShaderRef shaderOverride_;
+
+	Backend::VertexLayoutRef vertexLayout_;
 
 	void* m_vertexConstantBuffer;
 	void* m_pixelConstantBuffer;
 	int32_t vertexConstantBufferSize = 0;
 	int32_t pixelConstantBufferSize = 0;
 
-	Shader(Backend::GraphicsDevice* graphicsDevice,
-		   Urho3D::ShaderVariation* vertexShader,
-		   Urho3D::ShaderVariation* pixelShader,
-		   const std::vector<VertexLayout>& layouts,
-		   bool hasRefCount);
+	Shader(Backend::GraphicsDeviceRef graphicsDevice,
+		   Backend::ShaderRef shader,
+		   Backend::VertexLayoutRef vertexLayout);
 
 public:
-	virtual ~Shader();
+	~Shader() override;
 
-	static Shader* Create(Backend::GraphicsDevice* graphicsDevice,
-						  LLGI::DataStructure* vertexData,
-						  int32_t vertexDataCount,
-						  LLGI::DataStructure* pixelData,
-						  int32_t pixelDataCount,
-						  const char* name,
-						  const std::vector<VertexLayout>& layoutFormats,
-						  bool hasRefCount);
+	static Shader* Create(Effekseer::Backend::GraphicsDeviceRef graphicsDevice,
+						  Effekseer::Backend::ShaderRef shader,
+						  Effekseer::Backend::VertexLayoutRef vertexLayout,
+						  const char* name);
 
 public:
-	Urho3D::ShaderVariation* GetVertexShader() const
+	void OverrideShader(::Effekseer::Backend::ShaderRef shader) override
 	{
-		return vertexShader_;
+		shaderOverride_ = shader.DownCast<Backend::Shader>();
 	}
-	Urho3D::ShaderVariation* GetPixelShader() const
+
+public:
+	LLGI::Shader* GetVertexShader() const
 	{
-		return pixelShader_;
+		if (shaderOverride_ != nullptr)
+		{
+			shaderOverride_->GetVertexShader();
+		}
+		return shader_->GetVertexShader();
 	}
-	std::vector<VertexLayout>& GetVertexLayouts()
+	LLGI::Shader* GetPixelShader() const
 	{
-		return layouts_;
+		if (shaderOverride_ != nullptr)
+		{
+			shaderOverride_->GetPixelShader();
+		}
+		return shader_->GetPixelShader();
 	}
+
+	const Backend::VertexLayoutRef& GetVertexLayouts()
+	{
+		return vertexLayout_;
+	}
+
 	void SetVertexConstantBufferSize(int32_t size);
 	void SetPixelConstantBufferSize(int32_t size);
 	int32_t GetVertexConstantBufferSize()

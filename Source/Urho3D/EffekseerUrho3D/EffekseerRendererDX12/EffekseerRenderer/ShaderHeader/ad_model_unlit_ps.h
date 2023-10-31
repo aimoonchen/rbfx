@@ -9,27 +9,27 @@
 //
 // Buffer Definitions: 
 //
-// cbuffer PS_ConstanBuffer
+// cbuffer PS_ConstantBuffer
 // {
 //
-//   float4 _417_fLightDirection;       // Offset:    0 Size:    16 [unused]
-//   float4 _417_fLightColor;           // Offset:   16 Size:    16 [unused]
-//   float4 _417_fLightAmbient;         // Offset:   32 Size:    16 [unused]
-//   float4 _417_fFlipbookParameter;    // Offset:   48 Size:    16
-//   float4 _417_fUVDistortionParameter;// Offset:   64 Size:    16
-//   float4 _417_fBlendTextureParameter;// Offset:   80 Size:    16
-//   float4 _417_fCameraFrontDirection; // Offset:   96 Size:    16
-//   float4 _417_fFalloffParameter;     // Offset:  112 Size:    16
-//   float4 _417_fFalloffBeginColor;    // Offset:  128 Size:    16
-//   float4 _417_fFalloffEndColor;      // Offset:  144 Size:    16
-//   float4 _417_fEmissiveScaling;      // Offset:  160 Size:    16
-//   float4 _417_fEdgeColor;            // Offset:  176 Size:    16
-//   float4 _417_fEdgeParameter;        // Offset:  192 Size:    16
-//   float4 _417_softParticleParam;     // Offset:  208 Size:    16
-//   float4 _417_reconstructionParam1;  // Offset:  224 Size:    16
-//   float4 _417_reconstructionParam2;  // Offset:  240 Size:    16
-//   float4 _417_mUVInversedBack;       // Offset:  256 Size:    16
-//   float4 _417_miscFlags;             // Offset:  272 Size:    16
+//   float4 _433_fLightDirection;       // Offset:    0 Size:    16 [unused]
+//   float4 _433_fLightColor;           // Offset:   16 Size:    16 [unused]
+//   float4 _433_fLightAmbient;         // Offset:   32 Size:    16 [unused]
+//   float4 _433_fFlipbookParameter;    // Offset:   48 Size:    16
+//   float4 _433_fUVDistortionParameter;// Offset:   64 Size:    16
+//   float4 _433_fBlendTextureParameter;// Offset:   80 Size:    16
+//   float4 _433_fCameraFrontDirection; // Offset:   96 Size:    16
+//   float4 _433_fFalloffParameter;     // Offset:  112 Size:    16
+//   float4 _433_fFalloffBeginColor;    // Offset:  128 Size:    16
+//   float4 _433_fFalloffEndColor;      // Offset:  144 Size:    16
+//   float4 _433_fEmissiveScaling;      // Offset:  160 Size:    16
+//   float4 _433_fEdgeColor;            // Offset:  176 Size:    16
+//   float4 _433_fEdgeParameter;        // Offset:  192 Size:    16
+//   float4 _433_softParticleParam;     // Offset:  208 Size:    16
+//   float4 _433_reconstructionParam1;  // Offset:  224 Size:    16
+//   float4 _433_reconstructionParam2;  // Offset:  240 Size:    16
+//   float4 _433_mUVInversedBack;       // Offset:  256 Size:    16
+//   float4 _433_miscFlags;             // Offset:  272 Size:    16
 //
 // }
 //
@@ -52,7 +52,7 @@
 // _blendAlphaTex                    texture  float4          2d    4        1
 // _blendUVDistortionTex             texture  float4          2d    5        1
 // _depthTex                         texture  float4          2d    6        1
-// PS_ConstanBuffer                  cbuffer      NA          NA    1        1
+// PS_ConstantBuffer                 cbuffer      NA          NA    1        1
 //
 //
 //
@@ -255,10 +255,10 @@ ret
 
 const BYTE g_main[] =
 {
-     68,  88,  66,  67, 112, 152, 
-    117,  78, 249,  11,  48, 204, 
-     53,  89, 198,   8, 185, 189, 
-    238, 216,   1,   0,   0,   0, 
+     68,  88,  66,  67, 251,  14, 
+     43,   8,   2, 196, 114, 111, 
+    175, 205,  22,  76, 217,  95, 
+    233, 173,   1,   0,   0,   0, 
      92,  29,   0,   0,   5,   0, 
       0,   0,  52,   0,   0,   0, 
     216,   6,   0,   0, 192,   7, 
@@ -390,9 +390,9 @@ const BYTE g_main[] =
     101, 120,   0,  95, 100, 101, 
     112, 116, 104,  84, 101, 120, 
       0,  80,  83,  95,  67, 111, 
-    110, 115, 116,  97, 110,  66, 
-    117, 102, 102, 101, 114,   0, 
-    171, 171, 233,   2,   0,   0, 
+    110, 115, 116,  97, 110, 116, 
+     66, 117, 102, 102, 101, 114, 
+      0, 171, 233,   2,   0,   0, 
      18,   0,   0,   0,  20,   3, 
       0,   0,  32,   1,   0,   0, 
       0,   0,   0,   0,   0,   0, 
@@ -468,75 +468,75 @@ const BYTE g_main[] =
      16,   1,   0,   0,  16,   0, 
       0,   0,   2,   0,   0,   0, 
     220,   4,   0,   0,   0,   0, 
-      0,   0,  95,  52,  49,  55, 
+      0,   0,  95,  52,  51,  51, 
      95, 102,  76, 105, 103, 104, 
     116,  68, 105, 114, 101,  99, 
     116, 105, 111, 110,   0, 171, 
     171, 171,   1,   0,   3,   0, 
       1,   0,   4,   0,   0,   0, 
       0,   0,   0,   0,   0,   0, 
-     95,  52,  49,  55,  95, 102, 
+     95,  52,  51,  51,  95, 102, 
      76, 105, 103, 104, 116,  67, 
     111, 108, 111, 114,   0,  95, 
-     52,  49,  55,  95, 102,  76, 
+     52,  51,  51,  95, 102,  76, 
     105, 103, 104, 116,  65, 109, 
      98, 105, 101, 110, 116,   0, 
-     95,  52,  49,  55,  95, 102, 
+     95,  52,  51,  51,  95, 102, 
      70, 108, 105, 112,  98, 111, 
     111, 107,  80,  97, 114,  97, 
     109, 101, 116, 101, 114,   0, 
-     95,  52,  49,  55,  95, 102, 
+     95,  52,  51,  51,  95, 102, 
      85,  86,  68, 105, 115, 116, 
     111, 114, 116, 105, 111, 110, 
      80,  97, 114,  97, 109, 101, 
     116, 101, 114,   0,  95,  52, 
-     49,  55,  95, 102,  66, 108, 
+     51,  51,  95, 102,  66, 108, 
     101, 110, 100,  84, 101, 120, 
     116, 117, 114, 101,  80,  97, 
     114,  97, 109, 101, 116, 101, 
-    114,   0,  95,  52,  49,  55, 
+    114,   0,  95,  52,  51,  51, 
      95, 102,  67,  97, 109, 101, 
     114,  97,  70, 114, 111, 110, 
     116,  68, 105, 114, 101,  99, 
     116, 105, 111, 110,   0,  95, 
-     52,  49,  55,  95, 102,  70, 
+     52,  51,  51,  95, 102,  70, 
      97, 108, 108, 111, 102, 102, 
      80,  97, 114,  97, 109, 101, 
     116, 101, 114,   0,  95,  52, 
-     49,  55,  95, 102,  70,  97, 
+     51,  51,  95, 102,  70,  97, 
     108, 108, 111, 102, 102,  66, 
     101, 103, 105, 110,  67, 111, 
     108, 111, 114,   0,  95,  52, 
-     49,  55,  95, 102,  70,  97, 
+     51,  51,  95, 102,  70,  97, 
     108, 108, 111, 102, 102,  69, 
     110, 100,  67, 111, 108, 111, 
-    114,   0,  95,  52,  49,  55, 
+    114,   0,  95,  52,  51,  51, 
      95, 102,  69, 109, 105, 115, 
     115, 105, 118, 101,  83,  99, 
      97, 108, 105, 110, 103,   0, 
-     95,  52,  49,  55,  95, 102, 
+     95,  52,  51,  51,  95, 102, 
      69, 100, 103, 101,  67, 111, 
     108, 111, 114,   0,  95,  52, 
-     49,  55,  95, 102,  69, 100, 
+     51,  51,  95, 102,  69, 100, 
     103, 101,  80,  97, 114,  97, 
     109, 101, 116, 101, 114,   0, 
-     95,  52,  49,  55,  95, 115, 
+     95,  52,  51,  51,  95, 115, 
     111, 102, 116,  80,  97, 114, 
     116, 105,  99, 108, 101,  80, 
      97, 114,  97, 109,   0,  95, 
-     52,  49,  55,  95, 114, 101, 
+     52,  51,  51,  95, 114, 101, 
      99, 111, 110, 115, 116, 114, 
     117,  99, 116, 105, 111, 110, 
      80,  97, 114,  97, 109,  49, 
-      0,  95,  52,  49,  55,  95, 
+      0,  95,  52,  51,  51,  95, 
     114, 101,  99, 111, 110, 115, 
     116, 114, 117,  99, 116, 105, 
     111, 110,  80,  97, 114,  97, 
-    109,  50,   0,  95,  52,  49, 
-     55,  95, 109,  85,  86,  73, 
+    109,  50,   0,  95,  52,  51, 
+     51,  95, 109,  85,  86,  73, 
     110, 118, 101, 114, 115, 101, 
     100,  66,  97,  99, 107,   0, 
-     95,  52,  49,  55,  95, 109, 
+     95,  52,  51,  51,  95, 109, 
     105, 115,  99,  70, 108,  97, 
     103, 115,   0,  77, 105,  99, 
     114, 111, 115, 111, 102, 116, 
