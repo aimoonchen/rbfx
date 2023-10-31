@@ -50,60 +50,60 @@ bool PiplineStateKey::operator<(const PiplineStateKey& v) const
 	return false;
 }
 
-LLGI::TextureFormatType ConvertTextureFormat(Effekseer::Backend::TextureFormatType format)
+Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType format)
 {
 	switch (format)
 	{
 	case Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM:
-		return LLGI::TextureFormatType::R8G8B8A8_UNORM;
+		return Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM:
-		return LLGI::TextureFormatType::B8G8R8A8_UNORM;
+		return Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::R8_UNORM:
-		return LLGI::TextureFormatType::R8_UNORM;
+		return Urho3D::TextureFormat::TEX_FORMAT_R8_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::R16G16_FLOAT:
-		return LLGI::TextureFormatType::R16G16_FLOAT;
+		return Urho3D::TextureFormat::TEX_FORMAT_RG16_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::R16G16B16A16_FLOAT:
-		return LLGI::TextureFormatType::R16G16B16A16_FLOAT;
+		return Urho3D::TextureFormat::TEX_FORMAT_RGBA16_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::R32G32B32A32_FLOAT:
-		return LLGI::TextureFormatType::R32G32B32A32_FLOAT;
+		return Urho3D::TextureFormat::TEX_FORMAT_RGBA32_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC1:
-		return LLGI::TextureFormatType::BC1;
+		return Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC2:
-		return LLGI::TextureFormatType::BC2;
+		return Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC3:
-		return LLGI::TextureFormatType::BC3;
+		return Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM;
 		break;
 	case Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM_SRGB:
-		return LLGI::TextureFormatType::R8G8B8A8_UNORM_SRGB;
+		return Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM_SRGB:
-		return LLGI::TextureFormatType::B8G8R8A8_UNORM_SRGB;
+		return Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC1_SRGB:
-		return LLGI::TextureFormatType::BC1_SRGB;
+		return Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC2_SRGB:
-		return LLGI::TextureFormatType::BC2_SRGB;
+		return Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::BC3_SRGB:
-		return LLGI::TextureFormatType::BC3_SRGB;
+		return Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM_SRGB;
 		break;
 	case Effekseer::Backend::TextureFormatType::D32:
-		return LLGI::TextureFormatType::D32;
+		return Urho3D::TextureFormat::TEX_FORMAT_D32_FLOAT;
 		break;
 	case Effekseer::Backend::TextureFormatType::D24S8:
-		return LLGI::TextureFormatType::D24S8;
+		return Urho3D::TextureFormat::TEX_FORMAT_D24_UNORM_S8_UINT;
 		break;
 	case Effekseer::Backend::TextureFormatType::D32S8:
-		return LLGI::TextureFormatType::D32S8;
+		return Urho3D::TextureFormat::TEX_FORMAT_D32_FLOAT_S8X24_UINT;
 		break;
 	case Effekseer::Backend::TextureFormatType::Unknown:
 		break;
@@ -111,10 +111,10 @@ LLGI::TextureFormatType ConvertTextureFormat(Effekseer::Backend::TextureFormatTy
 		break;
 	}
 
-	return LLGI::TextureFormatType::Unknown;
+	return Urho3D::TextureFormat::TEX_FORMAT_UNKNOWN;
 }
 
-LLGI::CommandList* RendererImplemented::GetCurrentCommandList()
+Urho3D::DrawCommandQueue* RendererImplemented::GetCurrentCommandList()
 {
 	if (commandList_ != nullptr)
 	{
@@ -314,7 +314,7 @@ void RendererImplemented::OnResetDevice()
 {
 }
 
-bool RendererImplemented::Initialize(LLGI::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth)
+bool RendererImplemented::Initialize(Urho3D::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth)
 {
 
 	auto gd = Effekseer::MakeRefPtr<Backend::GraphicsDevice>(graphics);

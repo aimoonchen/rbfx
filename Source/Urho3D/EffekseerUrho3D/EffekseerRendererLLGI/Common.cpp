@@ -25,7 +25,7 @@ void ChangeRenderPassPipelineState(EffekseerRenderer::RendererRef renderer, Rend
 void FlushAndWait(::Effekseer::Backend::GraphicsDeviceRef graphicsDevice)
 {
 	auto gd = static_cast<::EffekseerRendererLLGI::Backend::GraphicsDevice*>(graphicsDevice.Get());
-	auto g = static_cast<LLGI::Graphics*>(gd->GetGraphics());
+	auto g = static_cast<Urho3D::Graphics*>(gd->GetGraphics());
 	g->WaitFinish();
 }
 
@@ -33,7 +33,7 @@ Effekseer::RefPtr<EffekseerRenderer::CommandList> CreateCommandList(::Effekseer:
 																	Effekseer::RefPtr<::EffekseerRenderer::SingleFrameMemoryPool> memoryPool)
 {
 	auto gd = static_cast<::EffekseerRendererLLGI::Backend::GraphicsDevice*>(graphicsDevice.Get());
-	auto g = static_cast<LLGI::Graphics*>(gd->GetGraphics());
+	auto g = static_cast<Urho3D::Graphics*>(gd->GetGraphics());
 	auto mp = static_cast<::EffekseerRendererLLGI::SingleFrameMemoryPool*>(memoryPool.Get());
 	auto commandList = g->CreateCommandList(mp->GetInternal());
 	auto ret = Effekseer::MakeRefPtr<EffekseerRendererLLGI::CommandList>(g, commandList, mp->GetInternal());
@@ -44,7 +44,7 @@ Effekseer::RefPtr<EffekseerRenderer::CommandList> CreateCommandList(::Effekseer:
 Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> CreateSingleFrameMemoryPool(::Effekseer::Backend::GraphicsDeviceRef graphicsDevice)
 {
 	auto gd = static_cast<::EffekseerRendererLLGI::Backend::GraphicsDevice*>(graphicsDevice.Get());
-	auto g = static_cast<LLGI::Graphics*>(gd->GetGraphics());
+	auto g = static_cast<Urho3D::Graphics*>(gd->GetGraphics());
 	auto mp = g->CreateSingleFrameMemoryPool(1024 * 1024 * 8, 128);
 	auto ret = Effekseer::MakeRefPtr<EffekseerRendererLLGI::SingleFrameMemoryPool>(mp);
 	ES_SAFE_RELEASE(mp);

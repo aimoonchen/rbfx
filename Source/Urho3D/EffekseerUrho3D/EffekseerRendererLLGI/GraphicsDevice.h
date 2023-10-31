@@ -3,12 +3,31 @@
 #define __EFFEKSEERRENDERER_LLGI_GRAPHICS_DEVICE_H__
 
 #include <Effekseer.h>
-#include <LLGI.Buffer.h>
-#include <LLGI.CommandList.h>
-#include <LLGI.Graphics.h>
+// #include <LLGI.Buffer.h>
+// #include <LLGI.CommandList.h>
+// #include <LLGI.Graphics.h>
 #include <assert.h>
 #include <set>
+#include "../../Graphics/GraphicsDefs.h"
 
+namespace Urho3D
+{
+class Graphics;
+class ShaderVariation;
+class VertexBuffer;
+class IndexBuffer;
+class Texture2D;
+class DrawCommandQueue;
+} // namespace
+
+namespace LLGI
+{
+struct DataStructure
+{
+    const void* Data;
+    int32_t Size;
+};
+}
 namespace EffekseerRendererLLGI
 {
 namespace Backend
@@ -56,7 +75,7 @@ class VertexBuffer
 	  public Effekseer::Backend::VertexBuffer
 {
 private:
-	std::shared_ptr<LLGI::Buffer> buffer_;
+	std::shared_ptr<Urho3D::VertexBuffer> buffer_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	int32_t size_ = 0;
 	bool isDynamic_ = false;
@@ -78,7 +97,7 @@ public:
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
-	LLGI::Buffer* GetBuffer()
+    Urho3D::VertexBuffer* GetBuffer()
 	{
 		return buffer_.get();
 	}
@@ -89,7 +108,7 @@ class IndexBuffer
 	  public Effekseer::Backend::IndexBuffer
 {
 private:
-	std::shared_ptr<LLGI::Buffer> buffer_;
+	std::shared_ptr<Urho3D::IndexBuffer> buffer_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	int32_t stride_ = 0;
 
@@ -110,7 +129,7 @@ public:
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
-	LLGI::Buffer* GetBuffer()
+    Urho3D::IndexBuffer* GetBuffer()
 	{
 		return buffer_.get();
 	}
@@ -120,7 +139,7 @@ class Texture
 	: public DeviceObject,
 	  public Effekseer::Backend::Texture
 {
-	std::shared_ptr<LLGI::Texture> texture_;
+	std::shared_ptr<Urho3D::Texture2D> texture_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	std::function<void()> onDisposed_;
 
@@ -132,9 +151,9 @@ public:
 
 	bool Init(uint64_t id, std::function<void()> onDisposed);
 
-	bool Init(LLGI::Texture* texture);
+	bool Init(Urho3D::Texture2D* texture);
 
-	std::shared_ptr<LLGI::Texture>& GetTexture()
+	std::shared_ptr<Urho3D::Texture2D>& GetTexture()
 	{
 		return texture_;
 	}
@@ -148,7 +167,8 @@ public:
 	class Element
 	{
 	public:
-		LLGI::VertexLayoutFormat Format;
+		//LLGI::VertexLayoutFormat Format;
+        Urho3D::VertexElement Format;
 		std::string Name;
 		int32_t Semantic;
 	};
@@ -176,19 +196,19 @@ class Shader
 {
 private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
-	std::shared_ptr<LLGI::Shader> vertexShader_ = nullptr;
-	std::shared_ptr<LLGI::Shader> pixelShader_ = nullptr;
+	std::shared_ptr<Urho3D::ShaderVariation> vertexShader_ = nullptr;
+	std::shared_ptr<Urho3D::ShaderVariation> pixelShader_ = nullptr;
 
 public:
 	Shader(GraphicsDevice* graphicsDevice);
 	~Shader() override;
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize);
 
-	LLGI::Shader* GetVertexShader() const
+    Urho3D::ShaderVariation* GetVertexShader() const
 	{
 		return vertexShader_.get();
 	}
-	LLGI::Shader* GetPixelShader() const
+    Urho3D::ShaderVariation* GetPixelShader() const
 	{
 		return pixelShader_.get();
 	}
@@ -199,10 +219,10 @@ class GraphicsDevice
 {
 private:
 	std::set<DeviceObject*> objects_;
-	LLGI::Graphics* graphics_;
+    Urho3D::Graphics* graphics_;
 
 public:
-	GraphicsDevice(LLGI::Graphics* graphics);
+	GraphicsDevice(Urho3D::Graphics* graphics);
 
 	~GraphicsDevice() override;
 
@@ -210,7 +230,7 @@ public:
 
 	void ResetDevice();
 
-	LLGI::Graphics* GetGraphics();
+	Urho3D::Graphics* GetGraphics();
 
 	void Register(DeviceObject* deviceObject);
 
@@ -224,7 +244,7 @@ public:
 
 	Effekseer::Backend::TextureRef CreateTexture(uint64_t id, const std::function<void()>& onDisposed);
 
-	Effekseer::Backend::TextureRef CreateTexture(LLGI::Texture* texture);
+	Effekseer::Backend::TextureRef CreateTexture(Urho3D::Texture2D* texture);
 
 	Effekseer::Backend::VertexLayoutRef CreateVertexLayout(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount) override;
 

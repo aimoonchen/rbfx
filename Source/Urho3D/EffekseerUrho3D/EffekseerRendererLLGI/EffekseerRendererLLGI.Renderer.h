@@ -1,4 +1,4 @@
-﻿
+
 #ifndef __EFFEKSEERRENDERER_LLGI_RENDERER_H__
 #define __EFFEKSEERRENDERER_LLGI_RENDERER_H__
 
@@ -6,9 +6,9 @@
 #include "EffekseerRendererLLGI.Base.h"
 
 #include "GraphicsDevice.h"
-#include <LLGI.Buffer.h>
-#include <LLGI.CommandList.h>
-#include <LLGI.Graphics.h>
+// #include <LLGI.Buffer.h>
+// #include <LLGI.CommandList.h>
+// #include <LLGI.Graphics.h>
 
 namespace EffekseerRendererLLGI
 {
@@ -52,48 +52,48 @@ protected:
 	}
 
 public:
-	virtual LLGI::Graphics* GetGraphics() const = 0;
+	virtual Urho3D::Graphics* GetGraphics() const = 0;
 };
 
-class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject
-{
-	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
-
-public:
-	SingleFrameMemoryPool(LLGI::SingleFrameMemoryPool* memoryPool)
-	{
-		memoryPool_ = memoryPool;
-		ES_SAFE_ADDREF(memoryPool_);
-	}
-
-	virtual ~SingleFrameMemoryPool()
-	{
-		ES_SAFE_RELEASE(memoryPool_);
-	}
-
-	void NewFrame() override
-	{
-		memoryPool_->NewFrame();
-	}
-
-	LLGI::SingleFrameMemoryPool* GetInternal()
-	{
-		return memoryPool_;
-	}
-
-	virtual int GetRef() override
-	{
-		return ::Effekseer::ReferenceObject::GetRef();
-	}
-	virtual int AddRef() override
-	{
-		return ::Effekseer::ReferenceObject::AddRef();
-	}
-	virtual int Release() override
-	{
-		return ::Effekseer::ReferenceObject::Release();
-	}
-};
+// class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject
+// {
+// 	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
+// 
+// public:
+// 	SingleFrameMemoryPool(LLGI::SingleFrameMemoryPool* memoryPool)
+// 	{
+// 		memoryPool_ = memoryPool;
+// 		ES_SAFE_ADDREF(memoryPool_);
+// 	}
+// 
+// 	virtual ~SingleFrameMemoryPool()
+// 	{
+// 		ES_SAFE_RELEASE(memoryPool_);
+// 	}
+// 
+// 	void NewFrame() override
+// 	{
+// 		memoryPool_->NewFrame();
+// 	}
+// 
+// 	LLGI::SingleFrameMemoryPool* GetInternal()
+// 	{
+// 		return memoryPool_;
+// 	}
+// 
+// 	virtual int GetRef() override
+// 	{
+// 		return ::Effekseer::ReferenceObject::GetRef();
+// 	}
+// 	virtual int AddRef() override
+// 	{
+// 		return ::Effekseer::ReferenceObject::AddRef();
+// 	}
+// 	virtual int Release() override
+// 	{
+// 		return ::Effekseer::ReferenceObject::Release();
+// 	}
+// };
 
 enum class CommandListState
 {
@@ -105,43 +105,43 @@ enum class CommandListState
 class CommandList : public ::EffekseerRenderer::CommandList, public ::Effekseer::ReferenceObject
 {
 private:
-	LLGI::Graphics* graphics_ = nullptr;
-	LLGI::CommandList* commandList_ = nullptr;
-	LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
+	Urho3D::Graphics* graphics_ = nullptr;
+	Urho3D::DrawCommandQueue* commandList_ = nullptr;
+	//LLGI::SingleFrameMemoryPool* memoryPool_ = nullptr;
 	CommandListState state_ = CommandListState::Wait;
 
 public:
-	CommandList(LLGI::Graphics* graphics, LLGI::CommandList* commandList, LLGI::SingleFrameMemoryPool* memoryPool)
+	CommandList(Urho3D::Graphics* graphics, Urho3D::DrawCommandQueue* commandList/*, LLGI::SingleFrameMemoryPool* memoryPool*/)
 		: graphics_(graphics)
 		, commandList_(commandList)
-		, memoryPool_(memoryPool)
+		//, memoryPool_(memoryPool)
 	{
-		ES_SAFE_ADDREF(graphics_);
-		ES_SAFE_ADDREF(commandList_);
-		ES_SAFE_ADDREF(memoryPool_);
+// 		ES_SAFE_ADDREF(graphics_);
+// 		ES_SAFE_ADDREF(commandList_);
+// 		ES_SAFE_ADDREF(memoryPool_);
 	}
 
 	virtual ~CommandList()
 	{
-		ES_SAFE_RELEASE(graphics_);
-		ES_SAFE_RELEASE(commandList_);
-		ES_SAFE_RELEASE(memoryPool_);
+// 		ES_SAFE_RELEASE(graphics_);
+// 		ES_SAFE_RELEASE(commandList_);
+// 		ES_SAFE_RELEASE(memoryPool_);
 	}
 
-	LLGI::Graphics* GetGraphics()
+	Urho3D::Graphics* GetGraphics()
 	{
 		return graphics_;
 	}
 
-	LLGI::CommandList* GetInternal()
+	Urho3D::DrawCommandQueue* GetInternal()
 	{
 		return commandList_;
 	}
 
-	LLGI::SingleFrameMemoryPool* GetMemoryPool()
-	{
-		return memoryPool_;
-	}
+// 	LLGI::SingleFrameMemoryPool* GetMemoryPool()
+// 	{
+// 		return memoryPool_;
+// 	}
 
 	CommandListState GetState() const
 	{

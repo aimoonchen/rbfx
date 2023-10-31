@@ -202,70 +202,70 @@ bool Texture::Init(const Effekseer::Backend::TextureParameter& param, const Effe
 		count++;
 	}
 
-	LLGI::TextureInitializationParameter texParam;
-	texParam.Size = LLGI::Vec2I(param.Size[0], param.Size[1]);
-	texParam.MipMapCount = param.MipLevelCount < 1 ? count : param.MipLevelCount;
-
-	// TODO : Fix it
-	texParam.MipMapCount = 1;
-
-	LLGI::TextureFormatType format = LLGI::TextureFormatType::R8G8B8A8_UNORM;
+// 	LLGI::TextureInitializationParameter texParam;
+// 	texParam.Size = LLGI::Vec2I(param.Size[0], param.Size[1]);
+// 	texParam.MipMapCount = param.MipLevelCount < 1 ? count : param.MipLevelCount;
+// 
+// 	// TODO : Fix it
+// 	texParam.MipMapCount = 1;
+    auto MipMapCount = 1;
+    auto format = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM;
 
 	if (param.Format == Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM)
 	{
-		texParam.Format = LLGI::TextureFormatType::R8G8B8A8_UNORM;
+		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM)
 	{
-		texParam.Format = LLGI::TextureFormatType::B8G8R8A8_UNORM;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::R8_UNORM)
 	{
-		texParam.Format = LLGI::TextureFormatType::R8_UNORM;
+		format = Urho3D::TextureFormat::TEX_FORMAT_R8_UNORM;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::R16G16_FLOAT)
 	{
-		texParam.Format = LLGI::TextureFormatType::R16G16_FLOAT;
+		format = Urho3D::TextureFormat::TEX_FORMAT_RG16_FLOAT;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::R16G16B16A16_FLOAT)
 	{
-		texParam.Format = LLGI::TextureFormatType::R16G16B16A16_FLOAT;
+		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA16_FLOAT;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::R32G32B32A32_FLOAT)
 	{
-		texParam.Format = LLGI::TextureFormatType::R32G32B32A32_FLOAT;
+		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA32_FLOAT;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::BC1)
 	{
-		texParam.Format = LLGI::TextureFormatType::BC1;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::BC2)
 	{
-		texParam.Format = LLGI::TextureFormatType::BC2;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::BC3)
 	{
-		texParam.Format = LLGI::TextureFormatType::BC3;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM_SRGB)
 	{
-		texParam.Format = LLGI::TextureFormatType::R8G8B8A8_UNORM_SRGB;
+		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM_SRGB)
 	{
-		texParam.Format = LLGI::TextureFormatType::B8G8R8A8_UNORM_SRGB;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM_SRGB;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::BC1_SRGB)
 	{
-		texParam.Format = LLGI::TextureFormatType::BC1_SRGB;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM_SRGB;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::BC2_SRGB)
 	{
-		texParam.Format = LLGI::TextureFormatType::BC2_SRGB;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM_SRGB;
 	}
 	else if (param.Format == Effekseer::Backend::TextureFormatType::BC3_SRGB)
 	{
-		texParam.Format = LLGI::TextureFormatType::BC3_SRGB;
+		format = Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM_SRGB;
 	}
 	else
 	{
@@ -274,17 +274,17 @@ bool Texture::Init(const Effekseer::Backend::TextureParameter& param, const Effe
 		return false;
 	}
 
-	auto texture = graphicsDevice_->GetGraphics()->CreateTexture(texParam);
-	auto buf = texture->Lock();
-
-	if (initialData.size() > 0)
-	{
-		memcpy(buf, initialData.data(), initialData.size());
-	}
-
-	texture->Unlock();
-
-	texture_ = LLGI::CreateSharedPtr(texture);
+// 	auto texture = graphicsDevice_->GetGraphics()->CreateTexture(texParam);
+// 	auto buf = texture->Lock();
+// 
+// 	if (initialData.size() > 0)
+// 	{
+// 		memcpy(buf, initialData.data(), initialData.size());
+// 	}
+// 
+// 	texture->Unlock();
+// 
+// 	texture_ = LLGI::CreateSharedPtr(texture);
 	param_ = param;
 	return true;
 }
@@ -384,7 +384,7 @@ bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, co
 	return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
-GraphicsDevice::GraphicsDevice(LLGI::Graphics* graphics)
+GraphicsDevice::GraphicsDevice(Urho3D::Graphics* graphics)
 	: graphics_(graphics)
 {
 	ES_SAFE_ADDREF(graphics_);
@@ -411,7 +411,7 @@ void GraphicsDevice::ResetDevice()
 	}
 }
 
-LLGI::Graphics* GraphicsDevice::GetGraphics()
+Urho3D::Graphics* GraphicsDevice::GetGraphics()
 {
 	return graphics_;
 }

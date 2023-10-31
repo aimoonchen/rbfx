@@ -1,4 +1,4 @@
-﻿
+
 #ifndef __EFFEKSEERRENDERER_LLGI_SHADER_H__
 #define __EFFEKSEERRENDERER_LLGI_SHADER_H__
 
@@ -41,7 +41,7 @@ public:
 	}
 
 public:
-	LLGI::Shader* GetVertexShader() const
+    Urho3D::ShaderVariation* GetVertexShader() const
 	{
 		if (shaderOverride_ != nullptr)
 		{
@@ -49,7 +49,7 @@ public:
 		}
 		return shader_->GetVertexShader();
 	}
-	LLGI::Shader* GetPixelShader() const
+	Urho3D::ShaderVariation* GetPixelShader() const
 	{
 		if (shaderOverride_ != nullptr)
 		{
