@@ -18,6 +18,8 @@ class VertexBuffer;
 class IndexBuffer;
 class Texture2D;
 class DrawCommandQueue;
+class PipelineState;
+class StaticPipelineStateCache;
 } // namespace
 
 namespace LLGI
@@ -75,17 +77,18 @@ class VertexBuffer
 	  public Effekseer::Backend::VertexBuffer
 {
 private:
-	std::shared_ptr<Urho3D::VertexBuffer> buffer_;
+	ea::shared_ptr<Urho3D::VertexBuffer> buffer_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
-	int32_t size_ = 0;
+	//int32_t size_ = 0;
 	bool isDynamic_ = false;
+    int32_t stride_ = 0;
 
 public:
 	VertexBuffer(GraphicsDevice* graphicsDevice);
 
 	~VertexBuffer() override;
 
-	bool Allocate(int32_t size, bool isDynamic);
+	bool Allocate(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic);
 
 	void Deallocate();
 
@@ -93,7 +96,7 @@ public:
 
 	void OnResetDevice() override;
 
-	bool Init(int32_t size, bool isDynamic);
+	bool Init(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic);
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
@@ -108,7 +111,7 @@ class IndexBuffer
 	  public Effekseer::Backend::IndexBuffer
 {
 private:
-	std::shared_ptr<Urho3D::IndexBuffer> buffer_;
+	ea::shared_ptr<Urho3D::IndexBuffer> buffer_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	int32_t stride_ = 0;
 
@@ -139,7 +142,7 @@ class Texture
 	: public DeviceObject,
 	  public Effekseer::Backend::Texture
 {
-	std::shared_ptr<Urho3D::Texture2D> texture_;
+	ea::shared_ptr<Urho3D::Texture2D> texture_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	std::function<void()> onDisposed_;
 
@@ -153,7 +156,7 @@ public:
 
 	bool Init(Urho3D::Texture2D* texture);
 
-	std::shared_ptr<Urho3D::Texture2D>& GetTexture()
+	ea::shared_ptr<Urho3D::Texture2D>& GetTexture()
 	{
 		return texture_;
 	}
@@ -169,8 +172,8 @@ public:
 	public:
 		//LLGI::VertexLayoutFormat Format;
         Urho3D::VertexElement Format;
-		std::string Name;
-		int32_t Semantic;
+// 		std::string Name;
+// 		int32_t Semantic;
 	};
 
 private:
@@ -196,21 +199,21 @@ class Shader
 {
 private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
-	std::shared_ptr<Urho3D::ShaderVariation> vertexShader_ = nullptr;
-	std::shared_ptr<Urho3D::ShaderVariation> pixelShader_ = nullptr;
+	Urho3D::ShaderVariation* vertexShader_ = nullptr;
+    Urho3D::ShaderVariation* pixelShader_ = nullptr;
 
 public:
 	Shader(GraphicsDevice* graphicsDevice);
 	~Shader() override;
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize);
-
+    bool Init(const char* vertexFilename, const char* pixelFilename);
     Urho3D::ShaderVariation* GetVertexShader() const
 	{
-		return vertexShader_.get();
+		return vertexShader_;
 	}
     Urho3D::ShaderVariation* GetPixelShader() const
 	{
-		return pixelShader_.get();
+		return pixelShader_;
 	}
 };
 

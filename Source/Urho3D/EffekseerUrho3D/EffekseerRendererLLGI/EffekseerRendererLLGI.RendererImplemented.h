@@ -1,4 +1,4 @@
-﻿
+
 #ifndef __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__
 #define __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__
 
@@ -7,10 +7,11 @@
 #include "../EffekseerRendererCommon/EffekseerRenderer.StandardRenderer.h"
 #include "EffekseerRendererLLGI.Base.h"
 #include "EffekseerRendererLLGI.Renderer.h"
-#include <LLGI.CommandList.h>
-#include <LLGI.Graphics.h>
-#include <LLGI.PipelineState.h>
-#include <LLGI.Texture.h>
+// #include <LLGI.CommandList.h>
+// #include <LLGI.Graphics.h>
+// #include <LLGI.PipelineState.h>
+// #include <LLGI.Texture.h>
+#include "../../RenderPipeline/RenderPipelineDefs.h"
 
 namespace EffekseerRendererLLGI
 {
@@ -23,24 +24,24 @@ class PiplineStateKey
 public:
 	Shader* shader = nullptr;
 	EffekseerRenderer::RenderStateBase::State state;
-	LLGI::TopologyType topologyType;
-	LLGI::RenderPassPipelineState* renderPassPipelineState = nullptr;
+	Urho3D::PrimitiveType topologyType;
+	//LLGI::RenderPassPipelineState* renderPassPipelineState = nullptr;
 	bool operator<(const PiplineStateKey& v) const;
 };
 
-LLGI::TextureFormatType ConvertTextureFormat(Effekseer::Backend::TextureFormatType format);
+Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType format);
 
 class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 	friend class DeviceObject;
 
 protected:
-	std::map<PiplineStateKey, LLGI::PipelineState*> piplineStates_;
-	LLGI::Buffer* currentVertexBuffer_ = nullptr;
+	std::map<PiplineStateKey, Urho3D::PipelineState*> piplineStates_;
+	Urho3D::VertexBuffer* currentVertexBuffer_ = nullptr;
 	int32_t currentVertexBufferStride_ = 0;
-	LLGI::TopologyType currentTopologyType_ = LLGI::TopologyType::Triangle;
+	Urho3D::PrimitiveType currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
 
-	std::unordered_map<LLGI::RenderPassPipelineStateKey, std::shared_ptr<LLGI::RenderPassPipelineState>, LLGI::RenderPassPipelineStateKey::Hash> renderpassPipelineStates_;
+	//std::unordered_map<LLGI::RenderPassPipelineStateKey, std::shared_ptr<LLGI::RenderPassPipelineState>, LLGI::RenderPassPipelineStateKey::Hash> renderpassPipelineStates_;
 
 	// TODO
 	/**
@@ -49,7 +50,7 @@ protected:
 	*/
 
 	Backend::GraphicsDeviceRef graphicsDevice_ = nullptr;
-	std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
+	//std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
 
 	Effekseer::Backend::IndexBufferRef currentndexBuffer_;
 	Effekseer::Backend::IndexBufferRef indexBuffer_;
@@ -77,7 +78,7 @@ protected:
 
 	Urho3D::DrawCommandQueue* GetCurrentCommandList();
 
-	LLGI::PipelineState* GetOrCreatePiplineState();
+    Urho3D::PipelineState* GetOrCreatePiplineState();
 
 public:
 	//! shaders (todo implemented)
@@ -95,13 +96,13 @@ public:
 
 	void OnResetDevice() override;
 
-	bool Initialize(Backend::GraphicsDeviceRef graphicsDevice, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth);
+	bool Initialize(Backend::GraphicsDeviceRef graphicsDevice, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth);
 
-	bool Initialize(Urho3D::Graphics* graphics, LLGI::RenderPassPipelineStateKey key, bool isReversedDepth);
+	bool Initialize(Urho3D::Graphics* graphics, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth);
 
 	void SetRestorationOfStatesFlag(bool flag) override;
 
-	void ChangeRenderPassPipelineState(LLGI::RenderPassPipelineStateKey key);
+	//void ChangeRenderPassPipelineState(LLGI::RenderPassPipelineStateKey key);
 
 	bool BeginRendering() override;
 
@@ -170,7 +171,7 @@ public:
 
 	::Effekseer::MaterialLoaderRef CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
 
-	void SetBackgroundInternal(LLGI::Texture* background);
+	void SetBackgroundInternal(Urho3D::Texture2D* background);
 
 	EffekseerRenderer::DistortingCallback* GetDistortingCallback() override;
 
@@ -181,7 +182,7 @@ public:
 		return m_standardRenderer;
 	}
 
-	void SetVertexBuffer(LLGI::Buffer* vertexBuffer, int32_t stride);
+	void SetVertexBuffer(Urho3D::VertexBuffer* vertexBuffer, int32_t stride);
 
 	void SetVertexBuffer(const Effekseer::Backend::VertexBufferRef& vertexBuffer, int32_t stride);
 	void SetIndexBuffer(const Effekseer::Backend::IndexBufferRef& indexBuffer);

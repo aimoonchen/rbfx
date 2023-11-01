@@ -1,4 +1,4 @@
-﻿
+
 #include "EffekseerRendererLLGI.RenderState.h"
 #include "EffekseerRendererLLGI.RendererImplemented.h"
 
@@ -60,7 +60,7 @@ ModelRenderer::ModelRenderer(RendererImplemented* renderer,
 	VertexType = EffekseerRenderer::ModelRendererVertexType::Instancing;
 
 	graphicsDevice_ = m_renderer->GetGraphicsDeviceInternal().Get();
-	LLGI::SafeAddRef(graphicsDevice_);
+	//LLGI::SafeAddRef(graphicsDevice_);
 }
 
 ModelRenderer::~ModelRenderer()
@@ -73,7 +73,7 @@ ModelRenderer::~ModelRenderer()
 	ES_SAFE_DELETE(shader_ad_lit_);
 	ES_SAFE_DELETE(shader_ad_distortion_);
 
-	LLGI::SafeRelease(graphicsDevice_);
+	//LLGI::SafeRelease(graphicsDevice_);
 }
 
 ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShader* fixedShader)
