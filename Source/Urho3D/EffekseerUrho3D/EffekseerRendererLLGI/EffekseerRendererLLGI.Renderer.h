@@ -38,6 +38,9 @@ struct FixedShader
 	std::vector<LLGI::DataStructure> AdvancedModelDistortion_PS;
 };
 
+class Renderer;
+using RendererRef = ::Effekseer::RefPtr<Renderer>;
+
 /**
 	@brief	Renderer class
 */
@@ -53,6 +56,8 @@ protected:
 
 public:
 	virtual Urho3D::Graphics* GetGraphics() const = 0;
+
+    static RendererRef Create(Urho3D::Graphics* graphics, int32_t squareMaxCount);
 };
 
 // class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject

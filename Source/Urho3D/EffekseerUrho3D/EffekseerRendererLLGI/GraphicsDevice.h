@@ -202,11 +202,14 @@ private:
 	Urho3D::ShaderVariation* vertexShader_ = nullptr;
     Urho3D::ShaderVariation* pixelShader_ = nullptr;
 
+    Effekseer::Backend::UniformLayoutRef uniformLayout_ = nullptr;
+
 public:
 	Shader(GraphicsDevice* graphicsDevice);
 	~Shader() override;
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize);
-    bool Init(const char* vertexFilename, const char* pixelFilename);
+    bool Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout);
+    bool Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout);
     Urho3D::ShaderVariation* GetVertexShader() const
 	{
 		return vertexShader_;
@@ -215,6 +218,7 @@ public:
 	{
 		return pixelShader_;
 	}
+    const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;
 };
 
 class GraphicsDevice
@@ -252,6 +256,9 @@ public:
 	Effekseer::Backend::VertexLayoutRef CreateVertexLayout(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount) override;
 
 	Effekseer::Backend::ShaderRef CreateShaderFromBinary(const void* vsData, int32_t vsDataSize, const void* psData, int32_t psDataSize) override;
+
+    Effekseer::Backend::ShaderRef CreateShaderFromCodes(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef layout) override;
+    Effekseer::Backend::ShaderRef CreateShaderFromFile(const char* vsFilename, const char* psFilename, Effekseer::Backend::UniformLayoutRef uniformLayout);
 };
 
 } // namespace Backend

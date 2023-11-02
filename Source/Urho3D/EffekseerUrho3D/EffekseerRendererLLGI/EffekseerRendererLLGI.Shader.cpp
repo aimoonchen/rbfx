@@ -1,4 +1,4 @@
-﻿
+
 #include "EffekseerRendererLLGI.Shader.h"
 #include "EffekseerRendererLLGI.RendererImplemented.h"
 
@@ -31,6 +31,11 @@ Shader* Shader::Create(Effekseer::Backend::GraphicsDeviceRef graphicsDevice,
 	assert(shader != nullptr);
 
 	return new Shader(graphicsDevice.DownCast<Backend::GraphicsDevice>(), shader.DownCast<Backend::Shader>(), vertexLayout.DownCast<Backend::VertexLayout>());
+}
+
+const Effekseer::Backend::UniformLayoutRef& Shader::GetUniformLayout() const
+{
+    return shader_->GetUniformLayout();
 }
 
 void Shader::SetVertexConstantBufferSize(int32_t size)

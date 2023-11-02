@@ -215,7 +215,17 @@ public:
 	{
 		return ::Effekseer::ReferenceObject::Release();
 	}
+    // TODO: for rbfx
+    void StoreUniforms(bool transpose);
 };
+
+void AddVertexUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout);
+
+void AddPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout);
+
+void AddDistortionPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout);
+
+Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(EffekseerRenderer::RendererShaderType type);
 
 } // namespace EffekseerRendererLLGI
 

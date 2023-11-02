@@ -1,3 +1,4 @@
+/*
 #include "EffekseerMaterialCompilerDX12.h"
 #include <iostream>
 
@@ -206,3 +207,4 @@ extern "C"
 	}
 }
 #endif
+*/

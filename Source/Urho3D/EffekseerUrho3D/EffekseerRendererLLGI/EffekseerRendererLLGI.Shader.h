@@ -62,7 +62,7 @@ public:
 	{
 		return vertexLayout_;
 	}
-
+    const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;
 	void SetVertexConstantBufferSize(int32_t size);
 	void SetPixelConstantBufferSize(int32_t size);
 	int32_t GetVertexConstantBufferSize()

@@ -121,6 +121,19 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 	return Urho3D::TextureFormat::TEX_FORMAT_UNKNOWN;
 }
 
+//----------------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------------
+RendererRef Renderer::Create(Urho3D::Graphics* graphics, int32_t squareMaxCount)
+{
+    auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(graphics, squareMaxCount);
+    if (renderer->Initialize(graphics, false))
+    {
+        return renderer;
+    }
+    return nullptr;
+}
+
 Urho3D::DrawCommandQueue* RendererImplemented::GetCurrentCommandList()
 {
 	if (commandList_ != nullptr)
@@ -281,74 +294,27 @@ Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
 // 		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
         desc.blendMode_ = Urho3D::BlendMode::BLEND_MULTIPLY;
 	}
-    auto shaderName = currentShader->GetPixelShader()->GetShaderName();
-    ea::array<const char*, 8> samplerName{};
-    auto samplerCount = 0;
-    if (shaderName == "ad_model_distortion") {
-        samplerCount = 8;
-        // ad_model_distortion
-        samplerName[0] = "Sampler_sampler_colorTex";
-        samplerName[1] = "Sampler_sampler_backTex";
-        samplerName[2] = "Sampler_sampler_alphaTex";
-        samplerName[3] = "Sampler_sampler_uvDistortionTex";
-        samplerName[4] = "Sampler_sampler_blendTex";
-        samplerName[5] = "Sampler_sampler_blendAlphaTex";
-        samplerName[6] = "Sampler_sampler_blendUVDistortionTex";
-        samplerName[7] = "Sampler_sampler_depthTex";
-    } else if (shaderName == "ad_model_lit") {
-        samplerCount = 8;
-        // ad_model_lit
-        samplerName[0] = "Sampler_sampler_colorTex";
-        samplerName[1] = "Sampler_sampler_normalTex";
-        samplerName[2] = "Sampler_sampler_alphaTex";
-        samplerName[3] = "Sampler_sampler_uvDistortionTex";
-        samplerName[4] = "Sampler_sampler_blendTex";
-        samplerName[5] = "Sampler_sampler_blendAlphaTex";
-        samplerName[6] = "Sampler_sampler_blendUVDistortionTex";
-        samplerName[7] = "Sampler_sampler_depthTex";
-    } else if (shaderName == "ad_model_unlit") {
-        samplerCount = 7;
-        // ad_model_unlit
-        samplerName[0] = "Sampler_sampler_colorTex";
-        samplerName[1] = "Sampler_sampler_alphaTex";
-        samplerName[2] = "Sampler_sampler_uvDistortionTex";
-        samplerName[3] = "Sampler_sampler_blendTex";
-        samplerName[4] = "Sampler_sampler_blendAlphaTex";
-        samplerName[5] = "Sampler_sampler_blendUVDistortionTex";
-        samplerName[6] = "Sampler_sampler_depthTex";
-    } else if (shaderName == "model_distortion") {
-        samplerCount = 3;
-        // model_distortion
-        samplerName[0] = "Sampler_sampler_colorTex";
-        samplerName[1] = "Sampler_sampler_backTex";
-        samplerName[2] = "Sampler_sampler_depthTex";
-    } else if (shaderName == "model_lit") {
-        samplerCount = 3;
-        // model_lit
-        samplerName[0] = "Sampler_sampler_colorTex";
-        samplerName[1] = "Sampler_sampler_normalTex";
-        samplerName[2] = "Sampler_sampler_depthTex";
-    } else if (shaderName == "model_unlit") {
-        samplerCount = 2;
-        // model_unlit
-        samplerName[0] = "Sampler_sampler_colorTex";
-        samplerName[1] = "Sampler_sampler_depthTex";
-    }
-    Urho3D::TextureAddressMode ws[2]{};
-    ws[(int)Effekseer::TextureWrapType::Clamp] = Urho3D::TextureAddressMode::ADDRESS_CLAMP;
-    ws[(int)Effekseer::TextureWrapType::Repeat] = Urho3D::TextureAddressMode::ADDRESS_WRAP;
+    const auto& uniformLayout = currentShader->GetUniformLayout();
+    if (uniformLayout != nullptr) {
+        Urho3D::TextureAddressMode ws[2]{};
+        ws[(int)Effekseer::TextureWrapType::Clamp] = Urho3D::TextureAddressMode::ADDRESS_CLAMP;
+        ws[(int)Effekseer::TextureWrapType::Repeat] = Urho3D::TextureAddressMode::ADDRESS_WRAP;
 
-    Urho3D::TextureFilterMode fs[2]{};
-    fs[(int)Effekseer::TextureFilterType::Linear] = Urho3D::TextureFilterMode::FILTER_BILINEAR;
-    fs[(int)Effekseer::TextureFilterType::Nearest] = Urho3D::TextureFilterMode::FILTER_NEAREST;
-
-    const auto& state = key.state;
-    for (int i = 0; i < samplerCount; i++) {
-        auto ssd = Urho3D::SamplerStateDesc::Default();
-        ssd.filterMode_ = fs[(int)state.TextureFilterTypes[i]];
-        ssd.addressMode_.fill(ws[(int)state.TextureWrapTypes[i]]);
-        desc.samplers_.Add(samplerName[i], ssd);
+        Urho3D::TextureFilterMode fs[2]{};
+        fs[(int)Effekseer::TextureFilterType::Linear] = Urho3D::TextureFilterMode::FILTER_BILINEAR;
+        fs[(int)Effekseer::TextureFilterType::Nearest] = Urho3D::TextureFilterMode::FILTER_NEAREST;
+        
+        const auto& samplerNames = uniformLayout->GetTextures();
+        auto samplerCount = samplerNames.size();
+        const auto& state = key.state;
+        for (int i = 0; i < samplerCount; i++) {
+            auto ssd = Urho3D::SamplerStateDesc::Default();
+            ssd.filterMode_ = fs[(int)state.TextureFilterTypes[i]];
+            ssd.addressMode_.fill(ws[(int)state.TextureWrapTypes[i]]);
+            desc.samplers_.Add(samplerNames[i].c_str(), ssd);
+        }
     }
+
 //     piplineState->SetRenderPassPipelineState(currentRenderPassPipelineState_.get());
 // 
 // 	if (!piplineState->Compile())
@@ -415,6 +381,24 @@ bool RendererImplemented::Initialize(Urho3D::Graphics* graphics, /*LLGI::RenderP
 	return ret;
 }
 
+static const char* kShaderName[] = {
+    "Unlit",                  // RendererShaderType::Unlit
+    "Lit",                    // RendererShaderType::Lit
+    "BackDistortion",         // RendererShaderType::BackDistortion
+    "AdvancedUnlit",          // RendererShaderType::AdvancedUnlit
+    "AdvancedLit",            // RendererShaderType::AdvancedLit
+    "AdvancedBackDistortion", // RendererShaderType::AdvancedBackDistortion
+};
+
+static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
+    {"effekseer/builtin/sprite_unlit_vs", "effekseer/builtin/model_unlit_ps"}, // RendererShaderType::Unlit
+    {"effekseer/builtin/sprite_lit_vs", "effekseer/builtin/model_lit_ps"}, // RendererShaderType::Lit
+    {"effekseer/builtin/sprite_distortion_vs", "effekseer/builtin/model_distortion_ps"}, // RendererShaderType::BackDistortion
+    {"effekseer/builtin/ad_sprite_unlit_vs", "effekseer/builtin/ad_model_unlit_ps"}, // RendererShaderType::AdvancedUnlit
+    {"effekseer/builtin/ad_sprite_lit_vs", "effekseer/builtin/ad_model_lit_ps"}, // RendererShaderType::AdvancedLit
+    {"effekseer/builtin/ad_sprite_distortion_vs", "effekseer/builtin/ad_model_distortion_ps"} // RendererShaderType::AdvancedBackDistortion
+};
+
 bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 									 //LLGI::RenderPassPipelineStateKey key,
 									 bool isReversedDepth)
@@ -456,16 +440,35 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 	vlUnlitAd->MakeGenerated();
 	vlLitAd->MakeGenerated();
 	vlDistAd->MakeGenerated();
+    // TODO: uniform layout for rbfx
+    const auto texLocUnlit = GetTextureLocations(EffekseerRenderer::RendererShaderType::Unlit);
+    const auto texLocLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedLit);
+    const auto texLocDist = GetTextureLocations(EffekseerRenderer::RendererShaderType::BackDistortion);
+    const auto texLocAdUnlit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedUnlit);
+    const auto texLocAdLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedLit);
+    const auto texLocAdDist = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedBackDistortion);
 
+    Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement> uniformLayoutElementsLitUnlit;
+    AddVertexUniformLayout(uniformLayoutElementsLitUnlit);
+    AddPixelUniformLayout(uniformLayoutElementsLitUnlit);
+
+    Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement> uniformLayoutElementsDist;
+    AddVertexUniformLayout(uniformLayoutElementsDist);
+    AddDistortionPixelUniformLayout(uniformLayoutElementsDist);
+    //
 	auto unlit_vs_shader_data = Backend::Serialize(fixedShader_.SpriteUnlit_VS);
 	auto unlit_ps_shader_data = Backend::Serialize(fixedShader_.ModelUnlit_PS);
-
+    auto pathIndex = (int)EffekseerRenderer::RendererShaderType::Unlit;
 	auto shader_unlit = Shader::Create(graphicsDevice_,
-									   graphicsDevice_->CreateShaderFromBinary(
-										   unlit_vs_shader_data.data(),
-										   static_cast<int32_t>(unlit_vs_shader_data.size()),
-										   unlit_ps_shader_data.data(),
-										   static_cast<int32_t>(unlit_ps_shader_data.size())),
+// 									   graphicsDevice_->CreateShaderFromBinary(
+// 										   unlit_vs_shader_data.data(),
+// 										   static_cast<int32_t>(unlit_vs_shader_data.size()),
+// 										   unlit_ps_shader_data.data(),
+// 										   static_cast<int32_t>(unlit_ps_shader_data.size())),
+                                       graphicsDevice_->CreateShaderFromFile(
+                                           kShaderFilepath[pathIndex][0],
+                                           kShaderFilepath[pathIndex][1],
+                                           Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocUnlit, uniformLayoutElementsLitUnlit)),
 									   vlUnlit,
 									   "StandardRenderer");
 	if (shader_unlit == nullptr)
@@ -474,13 +477,17 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 
 	auto distortion_vs_shader_data = Backend::Serialize(fixedShader_.SpriteDistortion_VS);
 	auto distortion_ps_shader_data = Backend::Serialize(fixedShader_.ModelDistortion_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::BackDistortion;
 	auto shader_distortion = Shader::Create(graphicsDevice_,
-											graphicsDevice_->CreateShaderFromBinary(
-												distortion_vs_shader_data.data(),
-												static_cast<int32_t>(distortion_vs_shader_data.size()),
-												distortion_ps_shader_data.data(),
-												static_cast<int32_t>(distortion_ps_shader_data.size())),
+// 											graphicsDevice_->CreateShaderFromBinary(
+// 												distortion_vs_shader_data.data(),
+// 												static_cast<int32_t>(distortion_vs_shader_data.size()),
+// 												distortion_ps_shader_data.data(),
+// 												static_cast<int32_t>(distortion_ps_shader_data.size())),
+                                            graphicsDevice_->CreateShaderFromFile(
+                                                kShaderFilepath[pathIndex][0],
+                                                kShaderFilepath[pathIndex][1],
+                                                Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocDist, uniformLayoutElementsDist)),
 											vlDist,
 											"StandardRenderer Distortion");
 	if (shader_distortion == nullptr)
@@ -489,13 +496,17 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 
 	auto ad_unlit_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteUnlit_VS);
 	auto ad_unlit_ps_shader_data = Backend::Serialize(fixedShader_.AdvancedModelUnlit_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::AdvancedUnlit;
 	auto shader_ad_unlit = Shader::Create(graphicsDevice_,
-										  graphicsDevice_->CreateShaderFromBinary(
-											  ad_unlit_vs_shader_data.data(),
-											  static_cast<int32_t>(ad_unlit_vs_shader_data.size()),
-											  ad_unlit_ps_shader_data.data(),
-											  static_cast<int32_t>(ad_unlit_ps_shader_data.size())),
+// 										  graphicsDevice_->CreateShaderFromBinary(
+// 											  ad_unlit_vs_shader_data.data(),
+// 											  static_cast<int32_t>(ad_unlit_vs_shader_data.size()),
+// 											  ad_unlit_ps_shader_data.data(),
+// 											  static_cast<int32_t>(ad_unlit_ps_shader_data.size())),
+                                          graphicsDevice_->CreateShaderFromFile(
+                                              kShaderFilepath[pathIndex][0],
+                                              kShaderFilepath[pathIndex][1],
+                                              Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdUnlit, uniformLayoutElementsLitUnlit)),
 										  vlUnlitAd,
 										  "StandardRenderer");
 	if (shader_ad_unlit == nullptr)
@@ -504,13 +515,17 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 
 	auto ad_dist_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteDistortion_VS);
 	auto ad_dist_ps_shader_data = Backend::Serialize(fixedShader_.AdvancedModelDistortion_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::AdvancedBackDistortion;
 	auto shader_ad_distortion = Shader::Create(graphicsDevice_,
-											   graphicsDevice_->CreateShaderFromBinary(
-												   ad_dist_vs_shader_data.data(),
-												   static_cast<int32_t>(ad_dist_vs_shader_data.size()),
-												   ad_dist_ps_shader_data.data(),
-												   static_cast<int32_t>(ad_dist_ps_shader_data.size())),
+// 											   graphicsDevice_->CreateShaderFromBinary(
+// 												   ad_dist_vs_shader_data.data(),
+// 												   static_cast<int32_t>(ad_dist_vs_shader_data.size()),
+// 												   ad_dist_ps_shader_data.data(),
+// 												   static_cast<int32_t>(ad_dist_ps_shader_data.size())),
+                                               graphicsDevice_->CreateShaderFromFile(
+                                                   kShaderFilepath[pathIndex][0],
+                                                   kShaderFilepath[pathIndex][1],
+                                                   Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdDist, uniformLayoutElementsDist)),
 											   vlDistAd,
 											   "StandardRenderer Distortion");
 	if (shader_ad_distortion == nullptr)
@@ -519,26 +534,34 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 
 	auto lit_vs_shader_data = Backend::Serialize(fixedShader_.SpriteLit_VS);
 	auto lit_ps_shader_data = Backend::Serialize(fixedShader_.ModelLit_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::Lit;
 	auto shader_lit = Shader::Create(graphicsDevice_,
-									 graphicsDevice_->CreateShaderFromBinary(
-										 lit_vs_shader_data.data(),
-										 static_cast<int32_t>(lit_vs_shader_data.size()),
-										 lit_ps_shader_data.data(),
-										 static_cast<int32_t>(lit_ps_shader_data.size())),
+// 									 graphicsDevice_->CreateShaderFromBinary(
+// 										 lit_vs_shader_data.data(),
+// 										 static_cast<int32_t>(lit_vs_shader_data.size()),
+// 										 lit_ps_shader_data.data(),
+// 										 static_cast<int32_t>(lit_ps_shader_data.size())),
+                                     graphicsDevice_->CreateShaderFromFile(
+                                         kShaderFilepath[pathIndex][0],
+                                         kShaderFilepath[pathIndex][1],
+                                         Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocLit, uniformLayoutElementsLitUnlit)),
 									 vlLit,
 									 "StandardRenderer Lighting");
 	GetImpl()->ShaderLit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_lit);
 
 	auto ad_lit_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteLit_VS);
 	auto ad_lit_ps_shader_data = Backend::Serialize(fixedShader_.AdvancedModelLit_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::AdvancedLit;
 	auto shader_ad_lit = Shader::Create(graphicsDevice_,
-										graphicsDevice_->CreateShaderFromBinary(
-											ad_lit_vs_shader_data.data(),
-											static_cast<int32_t>(ad_lit_vs_shader_data.size()),
-											ad_lit_ps_shader_data.data(),
-											static_cast<int32_t>(ad_lit_ps_shader_data.size())),
+// 										graphicsDevice_->CreateShaderFromBinary(
+// 											ad_lit_vs_shader_data.data(),
+// 											static_cast<int32_t>(ad_lit_vs_shader_data.size()),
+// 											ad_lit_ps_shader_data.data(),
+// 											static_cast<int32_t>(ad_lit_ps_shader_data.size())),
+                                        graphicsDevice_->CreateShaderFromFile(
+                                            kShaderFilepath[pathIndex][0],
+                                            kShaderFilepath[pathIndex][1],
+                                            Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdLit, uniformLayoutElementsLitUnlit)),
 										vlLitAd,
 										"StandardRenderer Lighting");
 	GetImpl()->ShaderAdLit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_lit);
@@ -753,31 +776,83 @@ void RendererImplemented::SetLayout(Shader* shader)
 	}
 }
 
+// TODO: don't copy uniform
+void RendererImplemented::StoreUniforms(bool transpose)
+{
+    for (size_t i = 0; i < currentShader->GetUniformLayout()->GetElements().size(); i++)
+    {
+        const auto& element = currentShader->GetUniformLayout()->GetElements()[i];
+
+        const char* uniformBuffer = nullptr;
+
+        if (element.Stage == Effekseer::Backend::ShaderStageType::Vertex)
+        {
+            uniformBuffer = (const char*)currentShader->GetVertexConstantBuffer();
+        }
+        else if (element.Stage == Effekseer::Backend::ShaderStageType::Pixel)
+        {
+            uniformBuffer = (const char*)currentShader->GetPixelConstantBuffer();
+        }
+
+        if (uniformBuffer != nullptr)
+        {
+            if (element.Type == Effekseer::Backend::UniformBufferLayoutElementType::Vector4)
+            {
+//                 const auto& buffer = uniformBuffer->GetBuffer();
+//                 assert(buffer.size() >= element.Offset + sizeof(float) * 4);
+//                 GLExt::glUniform4fv(
+//                     loc, element.Count, reinterpret_cast<const GLfloat*>(buffer.data() + element.Offset));
+                GetCurrentCommandList()->AddShaderParameter(element.Name.c_str(), ea::span((Urho3D::Vector4*)(uniformBuffer + element.Offset), element.Count));
+            }
+            else if (element.Type == Effekseer::Backend::UniformBufferLayoutElementType::Matrix44)
+            {
+//                 const auto& buffer = uniformBuffer->GetBuffer();
+//                 assert(buffer.size() >= element.Offset + sizeof(float) * 4 * 4);
+//                 GLExt::glUniformMatrix4fv(loc, element.Count, transpose ? GL_TRUE : GL_FALSE,
+//                     reinterpret_cast<const GLfloat*>(buffer.data() + element.Offset));
+                GetCurrentCommandList()->AddShaderParameter(element.Name.c_str(), ea::span((Urho3D::Matrix4*)(uniformBuffer + element.Offset), element.Count));
+            }
+            else
+            {
+                // Unimplemented
+                assert(0);
+            }
+        }
+        else
+        {
+            // Invalid
+            assert(0);
+        }
+    }
+}
+
 void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 {
 	// constant buffer
-	LLGI::Buffer* constantBufferVS = nullptr;
-	LLGI::Buffer* constantBufferPS = nullptr;
+// 	LLGI::Buffer* constantBufferVS = nullptr;
+// 	LLGI::Buffer* constantBufferPS = nullptr;
 
 	auto cl = commandList_.DownCast<CommandList>();
 
 	if (currentShader->GetVertexConstantBufferSize() > 0)
 	{
-		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
-		assert(constantBufferVS != nullptr);
-		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
-		constantBufferVS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
+// 		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
+// 		assert(constantBufferVS != nullptr);
+// 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
+// 		constantBufferVS->Unlock();
+// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
 	}
 
 	if (currentShader->GetPixelConstantBufferSize() > 0)
 	{
-		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
-		assert(constantBufferPS != nullptr);
-		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
-		constantBufferPS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
+// 		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
+// 		assert(constantBufferPS != nullptr);
+// 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
+// 		constantBufferPS->Unlock();
+// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
 	}
+
+    StoreUniforms(false);
 
 	auto piplineState = GetOrCreatePiplineState();
 	GetCurrentCommandList()->SetPipelineState(piplineState);
@@ -812,28 +887,30 @@ void RendererImplemented::DrawPolygon(int32_t vertexCount, int32_t indexCount)
 void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t indexCount, int32_t instanceCount)
 {
 	// constant buffer
-	LLGI::Buffer* constantBufferVS = nullptr;
-	LLGI::Buffer* constantBufferPS = nullptr;
+// 	LLGI::Buffer* constantBufferVS = nullptr;
+// 	LLGI::Buffer* constantBufferPS = nullptr;
 
 	auto cl = commandList_.DownCast<CommandList>();
 
 	if (currentShader->GetVertexConstantBufferSize() > 0)
 	{
-		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
-		assert(constantBufferVS != nullptr);
-		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
-		constantBufferVS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
+// 		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
+// 		assert(constantBufferVS != nullptr);
+// 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
+// 		constantBufferVS->Unlock();
+// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
 	}
 
 	if (currentShader->GetPixelConstantBufferSize() > 0)
 	{
-		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
-		assert(constantBufferPS != nullptr);
-		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
-		constantBufferPS->Unlock();
-		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
+// 		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
+// 		assert(constantBufferPS != nullptr);
+// 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
+// 		constantBufferPS->Unlock();
+// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
 	}
+
+    StoreUniforms(false);
 
 	auto piplineState = GetOrCreatePiplineState();
 	GetCurrentCommandList()->SetPipelineState(piplineState);
@@ -899,12 +976,18 @@ void RendererImplemented::SetTextures(Shader* shader, Effekseer::Backend::Textur
 // 			GetCurrentCommandList()->SetTexture(t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
 // 		}
 // 	}
+    const auto& uniformLayout = shader->GetUniformLayout();
+    if (uniformLayout == nullptr)
+    {
+        return;
+    }
+    const auto& samplerNames = uniformLayout->GetTextures();
     for (int32_t i = 0; i < count; i++) {
         if (textures[i] == nullptr) {
-            GetCurrentCommandList()->AddShaderResource("", nullptr);
+            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
         } else {
             auto texture = static_cast<Backend::Texture*>(textures[i].Get());
-            GetCurrentCommandList()->AddShaderResource("", texture->GetTexture().get());
+            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
         }
     }
 }
@@ -913,6 +996,144 @@ void RendererImplemented::ResetRenderState()
 {
 	m_renderState->GetActiveState().Reset();
 	m_renderState->Update(true);
+}
+
+void AddVertexUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout)
+{
+    using namespace Effekseer::Backend;
+
+    int vsOffset = 0;
+
+    auto storeVector = [&](const char* name)
+    {
+        uniformLayout.emplace_back(
+            UniformLayoutElement{ShaderStageType::Vertex, name, UniformBufferLayoutElementType::Vector4, 1, vsOffset});
+        vsOffset += sizeof(float[4]);
+    };
+
+    auto storeMatrix = [&](const char* name)
+    {
+        uniformLayout.emplace_back(
+            UniformLayoutElement{ShaderStageType::Vertex, name, UniformBufferLayoutElementType::Matrix44, 1, vsOffset});
+        vsOffset += sizeof(Effekseer::Matrix44);
+    };
+
+    storeMatrix("CBVS0.mCamera");
+    storeMatrix("CBVS0.mCameraProj");
+    storeVector("CBVS0.mUVInversed");
+    storeVector("CBVS0.flipbookParameter1");
+    storeVector("CBVS0.flipbookParameter2");
+}
+
+void AddPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout)
+{
+    using namespace Effekseer::Backend;
+
+    int psOffset = 0;
+
+    auto storeVector = [&](const char* name)
+    {
+        uniformLayout.emplace_back(
+            UniformLayoutElement{ShaderStageType::Pixel, name, UniformBufferLayoutElementType::Vector4, 1, psOffset});
+        psOffset += sizeof(float[4]);
+    };
+
+    storeVector("CBPS0.fLightDirection");
+    storeVector("CBPS0.fLightColor");
+    storeVector("CBPS0.fLightAmbient");
+    storeVector("CBPS0.fFlipbookParameter");
+    storeVector("CBPS0.fUVDistortionParameter");
+    storeVector("CBPS0.fBlendTextureParameter");
+    storeVector("CBPS0.fCameraFrontDirection");
+    storeVector("CBPS0.fFalloffParameter");
+    storeVector("CBPS0.fFalloffBeginColor");
+    storeVector("CBPS0.fFalloffEndColor");
+    storeVector("CBPS0.fEmissiveScaling");
+    storeVector("CBPS0.fEdgeColor");
+    storeVector("CBPS0.fEdgeParameter");
+    storeVector("CBPS0.softParticleParam");
+    storeVector("CBPS0.reconstructionParam1");
+    storeVector("CBPS0.reconstructionParam2");
+    storeVector("CBPS0.mUVInversedBack");
+    storeVector("CBPS0.miscFlags");
+}
+
+void AddDistortionPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout)
+{
+    using namespace Effekseer::Backend;
+
+    int psOffset = 0;
+
+    auto storeVector = [&](const char* name)
+    {
+        uniformLayout.emplace_back(
+            UniformLayoutElement{ShaderStageType::Pixel, name, UniformBufferLayoutElementType::Vector4, 1, psOffset});
+        psOffset += sizeof(float[4]);
+    };
+
+    storeVector("CBPS0.g_scale");
+    storeVector("CBPS0.mUVInversedBack");
+    storeVector("CBPS0.fFlipbookParameter");
+    storeVector("CBPS0.fUVDistortionParameter");
+    storeVector("CBPS0.fBlendTextureParameter");
+    storeVector("CBPS0.softParticleParam");
+    storeVector("CBPS0.reconstructionParam1");
+    storeVector("CBPS0.reconstructionParam2");
+    storeVector("CBPS0.miscFlags");
+}
+
+Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(EffekseerRenderer::RendererShaderType type)
+{
+    Effekseer::CustomVector<Effekseer::CustomString<char>> texLoc;
+
+    auto pushColor = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
+    { texLoc.emplace_back("Sampler_sampler_colorTex"); };
+
+    auto pushDepth = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
+    { texLoc.emplace_back("Sampler_sampler_depthTex"); };
+
+    auto pushBack = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
+    { texLoc.emplace_back("Sampler_sampler_backTex"); };
+
+    auto pushNormal = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
+    { texLoc.emplace_back("Sampler_sampler_normalTex"); };
+
+    auto pushAdvancedRendererParameterLoc = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc) -> void
+    {
+        texLoc.emplace_back("Sampler_sampler_alphaTex");
+        texLoc.emplace_back("Sampler_sampler_uvDistortionTex");
+        texLoc.emplace_back("Sampler_sampler_blendTex");
+        texLoc.emplace_back("Sampler_sampler_blendAlphaTex");
+        texLoc.emplace_back("Sampler_sampler_blendUVDistortionTex");
+    };
+
+    pushColor(texLoc);
+
+    if (type == EffekseerRenderer::RendererShaderType::Lit)
+    {
+        pushNormal(texLoc);
+    }
+    else if (type == EffekseerRenderer::RendererShaderType::BackDistortion)
+    {
+        pushBack(texLoc);
+    }
+    else if (type == EffekseerRenderer::RendererShaderType::AdvancedUnlit)
+    {
+        pushAdvancedRendererParameterLoc(texLoc);
+    }
+    else if (type == EffekseerRenderer::RendererShaderType::AdvancedLit)
+    {
+        pushNormal(texLoc);
+        pushAdvancedRendererParameterLoc(texLoc);
+    }
+    else if (type == EffekseerRenderer::RendererShaderType::AdvancedBackDistortion)
+    {
+        pushBack(texLoc);
+        pushAdvancedRendererParameterLoc(texLoc);
+    }
+    pushDepth(texLoc);
+
+    return texLoc;
 }
 
 } // namespace EffekseerRendererLLGI

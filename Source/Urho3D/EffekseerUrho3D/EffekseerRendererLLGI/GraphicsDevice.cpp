@@ -309,8 +309,8 @@ bool Texture::Init(const Effekseer::Backend::TextureParameter& param, const Effe
 	return true;
 }
 
-// bool Texture::Init(uint64_t id, std::function<void()> onDisposed)
-// {
+bool Texture::Init(uint64_t id, std::function<void()> onDisposed)
+{
 // 	auto texture = graphicsDevice_->GetGraphics()->CreateTexture(id);
 // 	if (texture == nullptr)
 // 	{
@@ -329,8 +329,9 @@ bool Texture::Init(const Effekseer::Backend::TextureParameter& param, const Effe
 // 	param_.MipLevelCount = texture_->GetMipmapCount();
 // 	param_.SampleCount = texture_->GetSamplingCount();
 // 	param_.Usage = Effekseer::Backend::TextureUsageType::External;
-// 	return true;
-// }
+//	return true;
+    return false;
+}
 
 bool Texture::Init(Urho3D::Texture2D* texture)
 {
@@ -441,11 +442,25 @@ bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, co
     return false;
 }
 
-bool Shader::Init(const char* vertexFilename, const char* pixelFilename)
+bool Shader::Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout)
 {
+    uniformLayout_ = layout;
+
+    assert(false);
+    return false;
+}
+
+bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout)
+{
+    uniformLayout_ = layout;
     vertexShader_ = graphicsDevice_->GetGraphics()->GetShader(Urho3D::VS, vertexFilename, "");
     pixelShader_ = graphicsDevice_->GetGraphics()->GetShader(Urho3D::PS, pixelFilename, "");
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
+}
+
+const Effekseer::Backend::UniformLayoutRef& Shader::GetUniformLayout() const
+{
+    return uniformLayout_;
 }
 
 GraphicsDevice::GraphicsDevice(Urho3D::Graphics* graphics)
@@ -605,6 +620,32 @@ Effekseer::Backend::ShaderRef GraphicsDevice::CreateShaderFromBinary(const void*
 	}
 
 	return ret;
+}
+
+Effekseer::Backend::ShaderRef GraphicsDevice::CreateShaderFromCodes(
+    const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes,
+    const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef layout)
+{
+    auto ret = Effekseer::MakeRefPtr<Shader>(this);
+
+    if (!ret->Init(vsCodes, psCodes, layout))
+    {
+        return nullptr;
+    }
+
+    return ret;
+}
+
+Effekseer::Backend::ShaderRef GraphicsDevice::CreateShaderFromFile(const char* vsFilename, const char* psFilename, Effekseer::Backend::UniformLayoutRef uniformLayout)
+{
+    auto ret = Effekseer::MakeRefPtr<Shader>(this);
+
+    if (!ret->Init(vsFilename, psFilename, uniformLayout))
+    {
+        return nullptr;
+    }
+
+    return ret;
 }
 
 } // namespace Backend

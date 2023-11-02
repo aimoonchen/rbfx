@@ -1,4 +1,4 @@
-﻿#include "TextureLoader.h"
+#include "TextureLoader.h"
 
 #ifndef __DISABLED_DEFAULT_TEXTURE_LOADER__
 #include "EffekseerRenderer.DDSTextureLoader.h"
@@ -88,6 +88,7 @@ public:
 		}
 		else if (data_texture[1] == 'P' && data_texture[2] == 'N' && data_texture[3] == 'G')
 		{
+            /*
 			if (pngTextureLoader_.Load(data_texture, size_texture, false))
 			{
 				// Newbackend
@@ -117,9 +118,11 @@ public:
 					return texture;
 				}
 			}
+            */
 		}
 		else if (data_texture[0] == 'D' && data_texture[1] == 'D' && data_texture[2] == 'S' && data_texture[3] == ' ')
 		{
+            /*
 			// Newbackend
 			if (ddsTextureLoader_.Load(data_texture, size_texture))
 			{
@@ -147,9 +150,11 @@ public:
 				texture->SetBackend(graphicsDevice_->CreateTexture(param, initialData));
 				return texture;
 			}
+            */
 		}
 		else
 		{
+            /*
 			if (tgaTextureLoader_.Load(data_texture, size_texture) == true)
 			{
 				// Newbackend
@@ -178,6 +183,7 @@ public:
 					return texture;
 				}
 			}
+            */
 		}
 
 		return nullptr;
