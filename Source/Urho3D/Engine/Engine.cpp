@@ -84,6 +84,7 @@
 #include "../Urho2D/Urho2D.h"
 #endif
 #include "../Engine/EngineEvents.h"
+#include "../EffekseerUrho3D/EffekseerSystem.h"
 #ifdef URHO3D_PARTICLE_GRAPH
 #include "../Particles/ParticleGraphSystem.h"
 #endif
@@ -458,6 +459,7 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
                 GetParameter(EP_SOUND_INTERPOLATION).GetBool()
             );
         }
+        context_->RegisterSubsystem(new EffekseerSystem(context_));
     }
 
     // Init FPU state of main thread

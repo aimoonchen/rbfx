@@ -1,8 +1,8 @@
 ﻿
 
-#include "EffekseerRendererLLGI.RenderState.h"
+#include "EffekseerUrho3D.RenderState.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 RenderState::RenderState(RendererImplemented* renderer)
@@ -78,4 +78,4 @@ void RenderState::Update(bool forced)
 	m_active = m_next;
 }
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D

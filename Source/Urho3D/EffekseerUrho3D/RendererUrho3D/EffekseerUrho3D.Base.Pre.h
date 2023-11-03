@@ -4,7 +4,7 @@
 
 #include <Effekseer.h>
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 class Renderer;

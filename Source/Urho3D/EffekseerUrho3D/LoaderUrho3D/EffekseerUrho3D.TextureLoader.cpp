@@ -1,20 +1,26 @@
-// #include <Image.hpp>
-// #include <ImageTexture.hpp>
-// #include <ResourceLoader.hpp>
+#include "../RendererUrho3D/GraphicsDevice.h"
 #include "../../Core/Context.h"
 #include "../../Graphics/Texture2D.h"
 #include "../../Resource/ResourceCache.h"
-#include "../../Cocos2D/Urho3DContext.h"
 #include "EffekseerUrho3D.TextureLoader.h"
-#include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
+//#include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../Utils/EffekseerUrho3D.Utils.h"
 
 namespace EffekseerUrho3D
 {
 
+TextureLoader::TextureLoader(Urho3D::Context* context,
+    ::Effekseer::Backend::GraphicsDeviceRef graphicsDevice,
+    ::Effekseer::ColorSpaceType colorSpaceType)
+    : context_{ context }
+    , graphicsDevice_{ graphicsDevice }
+    , colorSpaceType_{ colorSpaceType }
+{
+}
+
 Effekseer::TextureRef TextureLoader::Load(const char16_t* path, Effekseer::TextureType textureType)
 {
-	static auto* cache = GetUrho3DContext()->GetSubsystem<Urho3D::ResourceCache>();
+	static auto* cache = context_->GetSubsystem<Urho3D::ResourceCache>();
 	auto urho3dPath = ToGdString(path);
 	auto texture = cache->GetResource<Urho3D::Texture2D>(urho3dPath);
 	// Load by Godot
@@ -28,10 +34,10 @@ Effekseer::TextureRef TextureLoader::Load(const char16_t* path, Effekseer::Textu
 // 	auto texture = (godot::ImageTexture*)resource.ptr();
 // 	texture->set_flags(godot::Texture::FLAG_MIPMAPS);
 
-	auto backend = Effekseer::MakeRefPtr<Texture>();
-	backend->size_[0] = (int32_t)texture->GetWidth();
-	backend->size_[1] = (int32_t)texture->GetHeight();
-	backend->urho3d_texture_ = texture;
+	auto backend = ::Effekseer::MakeRefPtr<Backend::Texture>(graphicsDevice_.DownCast<Backend::GraphicsDevice>().Get());
+	backend->param_.Size[0] = (int32_t)texture->GetWidth();
+	backend->param_.Size[1] = (int32_t)texture->GetHeight();
+	backend->texture_.reset(texture);
 	//backend->godotTexture_ = resource;
 	//backend->textureRid_ = resource->get_rid();
 

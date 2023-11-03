@@ -69,7 +69,8 @@
 #include "Urho3D/Resource/ResourceCache.h"
 
 #include <SDL.h>
-
+#include "../EffekseerUrho3D/EffekseerEffect.h"
+#include "../EffekseerUrho3D/EffekseerEmitter.h"
 #include "../DebugNew.h"
 
 namespace Urho3D
@@ -729,6 +730,8 @@ void RegisterGraphicsLibrary(Context* context)
     Geometry::RegisterObject(context);
     Viewport::RegisterObject(context);
     OcclusionBuffer::RegisterObject(context);
+    EffekseerEffect::RegisterObject(context);
+    EffekseerEmitter::RegisterObject(context);
     ReflectionProbe::RegisterObject(context);
     ReflectionProbeManager::RegisterObject(context);
 }

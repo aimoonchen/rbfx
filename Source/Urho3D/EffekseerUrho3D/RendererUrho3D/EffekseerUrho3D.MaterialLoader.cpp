@@ -1,6 +1,6 @@
-#include "EffekseerRendererLLGI.MaterialLoader.h"
-#include "EffekseerRendererLLGI.ModelRenderer.h"
-#include "EffekseerRendererLLGI.Shader.h"
+#include "EffekseerUrho3D.MaterialLoader.h"
+#include "EffekseerUrho3D.ModelRenderer.h"
+#include "EffekseerUrho3D.Shader.h"
 #include <iostream>
 #include <string>
 
@@ -8,7 +8,7 @@
 
 #undef min
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 static const int LLGI_InstanceCount = 40;
@@ -387,4 +387,4 @@ void MaterialLoader::Unload(::Effekseer::MaterialRef data)
 	data->RefractionModelUserPtr = nullptr;
 }
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D

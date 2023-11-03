@@ -11,7 +11,7 @@
 #include "../Graphics/Graphics.h"
 //#include "../Cocos2D/Urho3DContext.h"
 
-#include "EffekseerRendererLLGI/EffekseerRendererLLGI.Renderer.h"
+#include "RendererUrho3D/EffekseerUrho3D.Renderer.h"
 #include "LoaderUrho3D/EffekseerUrho3D.TextureLoader.h"
 #include "LoaderUrho3D/EffekseerUrho3D.ModelLoader.h"
 //#include "LoaderUrho3D/EffekseerUrho3D.MaterialLoader.h"
@@ -76,27 +76,27 @@ EffekseerSystem::EffekseerSystem(Urho3D::Context* context)
 //	SetUrho3DContext(context);
 
 	m_manager = Effekseer::Manager::Create(instanceMaxCount);
+    m_renderer = EffekseerUrho3D::Renderer::Create(context->GetSubsystem<Graphics>(), squareMaxCount);
+    m_renderer->SetProjectionMatrix(Effekseer::Matrix44().Indentity());
+    distorting_callback_ = CreateDistortingCallback(m_renderer, command_list_);
+
 	m_manager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 #ifndef __EMSCRIPTEN__
 	m_manager->LaunchWorkerThreads(2);
 #endif
-	m_manager->SetTextureLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::TextureLoader>());
-	m_manager->SetModelLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::ModelLoader>());
-	m_manager->SetMaterialLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::MaterialLoader>());
-	m_manager->SetCurveLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::CurveLoader>());
-	//m_manager->SetSoundLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::SoundLoader>(sound));
-
-	m_renderer = EffekseerRendererLLGI::Renderer::Create(context, squareMaxCount);
-	m_renderer->SetProjectionMatrix(Effekseer::Matrix44().Indentity());
-	distorting_callback_ = CreateDistortingCallback(m_renderer, command_list_);
-
 	m_manager->SetSpriteRenderer(m_renderer->CreateSpriteRenderer());
 	m_manager->SetRibbonRenderer(m_renderer->CreateRibbonRenderer());
 	m_manager->SetTrackRenderer(m_renderer->CreateTrackRenderer());
 	m_manager->SetRingRenderer(m_renderer->CreateRingRenderer());
-	m_manager->SetModelRenderer(m_renderer->CreateModelRenderer());
+//	m_manager->SetModelRenderer(m_renderer->CreateModelRenderer());
 	//m_manager->SetSoundPlayer(Effekseer::MakeRefPtr<EffekseerUrho3D::SoundPlayer>(sound));
 
+    m_manager->SetTextureLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::TextureLoader>(context, m_renderer->GetGraphicsDevice()));
+    m_manager->SetModelLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::ModelLoader>(context));
+    //	m_manager->SetMaterialLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::MaterialLoader>());
+    m_manager->SetCurveLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::CurveLoader>());
+    // m_manager->SetSoundLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::SoundLoader>(sound));
+    
 	// SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(EffekseerSystem, HandleUpdate));
     SubscribeToEvent(E_RENDERUPDATE, URHO3D_HANDLER(EffekseerSystem, HandleRenderUpdate));
 	

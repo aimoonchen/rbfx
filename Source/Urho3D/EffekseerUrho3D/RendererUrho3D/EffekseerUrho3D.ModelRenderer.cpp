@@ -1,13 +1,13 @@
 
-#include "EffekseerRendererLLGI.RenderState.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerUrho3D.RenderState.h"
+#include "EffekseerUrho3D.RendererImplemented.h"
 
-#include "EffekseerRendererLLGI.ModelRenderer.h"
-#include "EffekseerRendererLLGI.Shader.h"
+#include "EffekseerUrho3D.ModelRenderer.h"
+#include "EffekseerUrho3D.Shader.h"
 
 #include "GraphicsDevice.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 const int LLGI_InstanceCount = 40;
 
@@ -224,4 +224,4 @@ void ModelRenderer::EndRendering(const efkModelNodeParam& parameter, void* userD
 		m_renderer, shader_ad_lit_, shader_ad_unlit_, shader_ad_distortion_, m_shader_lighting_texture_normal, m_shader_texture, m_shader_distortion_texture, parameter, userData);
 }
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D

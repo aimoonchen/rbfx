@@ -6,7 +6,7 @@
 // #include <Camera2D.hpp>
 // #include <Node.hpp>
 #include "Effekseer.h"
-#include "EffekseerRendererLLGI/EffekseerRendererLLGI.Renderer.h"
+#include "RendererUrho3D/EffekseerUrho3D.Renderer.h"
 #include "SoundUrho3D/EffekseerUrho3D.SoundPlayer.h"
 #include "../Core/Object.h"
 namespace EffekseerUrho3D

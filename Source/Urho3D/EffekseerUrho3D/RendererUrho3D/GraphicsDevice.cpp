@@ -8,7 +8,7 @@
 #include "../../Graphics/IndexBuffer.h"
 #include "../../Graphics/Texture2D.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 namespace Backend
 {
@@ -189,7 +189,7 @@ void IndexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 Texture::Texture(GraphicsDevice* graphicsDevice)
 	: graphicsDevice_(graphicsDevice)
 {
-	ES_SAFE_ADDREF(graphicsDevice_);
+	//ES_SAFE_ADDREF(graphicsDevice_);
 	graphicsDevice_->Register(this);
 }
 
@@ -200,7 +200,7 @@ Texture::~Texture()
 		onDisposed_();
 	}
 	graphicsDevice_->Unregister(this);
-	ES_SAFE_RELEASE(graphicsDevice_);
+	//ES_SAFE_RELEASE(graphicsDevice_);
 }
 
 bool Texture::Init(const Effekseer::Backend::TextureParameter& param, const Effekseer::CustomVector<uint8_t>& initialData)
@@ -649,4 +649,4 @@ Effekseer::Backend::ShaderRef GraphicsDevice::CreateShaderFromFile(const char* v
 }
 
 } // namespace Backend
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D

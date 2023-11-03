@@ -50,6 +50,7 @@
 #endif
 
 #include "AmbientOcclusionPass.h"
+#include "../EffekseerUrho3D/EffekseerSystem.h"
 #include "../DebugNew.h"
 
 namespace Urho3D
@@ -483,6 +484,12 @@ void DefaultRenderPipelineView::Render()
         renderBufferManager_->SetOutputRenderTargets();
         debug->SetView(camera);
         debug->Render();
+    }
+
+    // TODO: draw effect
+    if (!frameInfo_.renderTarget_)
+    {
+        GetSubsystem<EffekseerSystem>()->Render();
     }
 
     OnRenderEnd(this, frameInfo_);

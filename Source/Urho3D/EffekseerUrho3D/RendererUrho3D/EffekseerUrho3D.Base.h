@@ -2,7 +2,7 @@
 #ifndef __EFFEKSEERRENDERER_LLGI_BASE_H__
 #define __EFFEKSEERRENDERER_LLGI_BASE_H__
 
-#include "EffekseerRendererLLGI.Base.Pre.h"
+#include "EffekseerUrho3D.Base.Pre.h"
 
 #include <Effekseer.h>
 
@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 class RendererImplemented;
@@ -35,6 +35,6 @@ class RingRenderer;
 class ModelRenderer;
 class TrackRenderer;
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_BASE_H__

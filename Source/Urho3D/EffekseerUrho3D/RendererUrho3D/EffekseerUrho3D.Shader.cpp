@@ -1,8 +1,8 @@
 
-#include "EffekseerRendererLLGI.Shader.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerUrho3D.Shader.h"
+#include "EffekseerUrho3D.RendererImplemented.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 Shader::Shader(Backend::GraphicsDeviceRef graphicsDevice,
@@ -56,4 +56,4 @@ void Shader::SetConstantBuffer()
 {
 }
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D

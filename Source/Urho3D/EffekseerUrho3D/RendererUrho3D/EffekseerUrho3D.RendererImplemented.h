@@ -5,15 +5,15 @@
 #include "../EffekseerRendererCommon/EffekseerRenderer.CommonUtils.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.RenderStateBase.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.StandardRenderer.h"
-#include "EffekseerRendererLLGI.Base.h"
-#include "EffekseerRendererLLGI.Renderer.h"
+#include "EffekseerUrho3D.Base.h"
+#include "EffekseerUrho3D.Renderer.h"
 // #include <LLGI.CommandList.h>
 // #include <LLGI.Graphics.h>
 // #include <LLGI.PipelineState.h>
 // #include <LLGI.Texture.h>
 #include "../../RenderPipeline/RenderPipelineDefs.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 using Vertex = EffekseerRenderer::SimpleVertex;
@@ -227,6 +227,6 @@ void AddDistortionPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend:
 
 Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(EffekseerRenderer::RendererShaderType type);
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__

@@ -3,12 +3,12 @@
 #define __EFFEKSEERRENDERER_LLGI_MODEL_RENDERER_H__
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.ModelRendererBase.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerUrho3D.RendererImplemented.h"
 
 // #include <LLGI.Buffer.h>
 // #include <LLGI.Graphics.h>
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 typedef ::Effekseer::ModelRenderer::NodeParameter efkModelNodeParam;
@@ -51,6 +51,6 @@ public:
 	void EndRendering(const efkModelNodeParam& parameter, void* userData) override;
 };
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_MODEL_RENDERER_H__

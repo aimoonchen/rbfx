@@ -4,7 +4,7 @@
 
 //#include "../3rdParty/LLGI/src/LLGI.Compiler.h"
 #include "../Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerUrho3D.RendererImplemented.h"
 
 #include <Effekseer.h>
 #include <memory>
@@ -15,7 +15,7 @@ class Material;
 class CompiledMaterialBinary;
 } // namespace Effekseer
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 class MaterialLoader : public ::Effekseer::MaterialLoader
@@ -46,6 +46,6 @@ public:
 	void Unload(::Effekseer::MaterialRef data) override;
 };
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_MATERIALLOADER_H__

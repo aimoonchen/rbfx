@@ -3,7 +3,7 @@
 // #include "../../3rdParty/LLGI/src/DX12/LLGI.GraphicsDX12.h"
 // #include "../../3rdParty/LLGI/src/DX12/LLGI.TextureDX12.h"
 // #include "../EffekseerMaterialCompiler/DirectX12/EffekseerMaterialCompilerDX12.h"
-// #include "../EffekseerRendererLLGI/EffekseerRendererLLGI.RendererImplemented.h"
+// #include "../EffekseerUrho3D/EffekseerUrho3D.RendererImplemented.h"
 // 
 // namespace Sprite_Unlit_VS_Ad
 // {
@@ -126,7 +126,7 @@
 // 	auto graphics = new LLGI::GraphicsDX12(
 // 		device, getScreenFunc, []() -> void {}, commandQueue, swapBufferCount);
 // 
-// 	auto ret = Effekseer::MakeRefPtr<EffekseerRendererLLGI::Backend::GraphicsDevice>(graphics);
+// 	auto ret = Effekseer::MakeRefPtr<EffekseerUrho3D::Backend::GraphicsDevice>(graphics);
 // 	ES_SAFE_RELEASE(graphics);
 // 	return ret;
 // }
@@ -138,7 +138,7 @@
 // 										bool isReversedDepth,
 // 										int32_t squareMaxCount)
 // {
-// 	auto renderer = ::Effekseer::MakeRefPtr<::EffekseerRendererLLGI::RendererImplemented>(squareMaxCount);
+// 	auto renderer = ::Effekseer::MakeRefPtr<::EffekseerUrho3D::RendererImplemented>(squareMaxCount);
 // 
 // 	auto allocate_ = [](std::vector<LLGI::DataStructure>& ds, const unsigned char* data, int32_t size) -> void {
 // 		ds.resize(1);
@@ -190,7 +190,7 @@
 // 
 // 	key.DepthFormat = LLGI::ConvertFormat(depthFormat);
 // 
-// 	auto gd = graphicsDevice.DownCast<EffekseerRendererLLGI::Backend::GraphicsDevice>();
+// 	auto gd = graphicsDevice.DownCast<EffekseerUrho3D::Backend::GraphicsDevice>();
 // 
 // 	if (renderer->Initialize(gd, key, isReversedDepth))
 // 	{
@@ -223,7 +223,7 @@
 // 
 // Effekseer::Backend::TextureRef CreateTexture(::Effekseer::Backend::GraphicsDeviceRef graphicsDevice, ID3D12Resource* texture)
 // {
-// 	auto g = static_cast<::EffekseerRendererLLGI::Backend::GraphicsDevice*>(graphicsDevice.Get());
+// 	auto g = static_cast<::EffekseerUrho3D::Backend::GraphicsDevice*>(graphicsDevice.Get());
 // 	return g->CreateTexture((uint64_t)texture, [] {});
 // }
 // 
@@ -231,7 +231,7 @@
 // {
 // 	if (texture != nullptr)
 // 	{
-// 		auto t = texture.DownCast<::EffekseerRendererLLGI::Backend::Texture>();
+// 		auto t = texture.DownCast<::EffekseerUrho3D::Backend::Texture>();
 // 		auto lt = static_cast<LLGI::TextureDX12*>(t->GetTexture().get());
 // 		return TextureProperty{lt->Get()};
 // 	}
@@ -245,7 +245,7 @@
 // {
 // 	if (commandList != nullptr)
 // 	{
-// 		auto cl = commandList.DownCast<::EffekseerRendererLLGI::CommandList>();
+// 		auto cl = commandList.DownCast<::EffekseerUrho3D::CommandList>();
 // 		auto clDx12 = static_cast<LLGI::CommandListDX12*>(cl->GetInternal());
 // 		return CommandListProperty{clDx12->GetCommandList()};
 // 	}
@@ -264,24 +264,24 @@
 // 		LLGI::PlatformContextDX12 context;
 // 		context.commandList = dx12CommandList;
 // 
-// 		auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 		auto c = static_cast<EffekseerUrho3D::CommandList*>(commandList.Get());
 // 		c->GetInternal()->BeginWithPlatform(&context);
-// 		c->SetState(EffekseerRendererLLGI::CommandListState::RunningWithPlatformCommandList);
+// 		c->SetState(EffekseerUrho3D::CommandListState::RunningWithPlatformCommandList);
 // 	}
 // 	else
 // 	{
-// 		auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 		auto c = static_cast<EffekseerUrho3D::CommandList*>(commandList.Get());
 // 		c->GetInternal()->Begin();
-// 		c->SetState(EffekseerRendererLLGI::CommandListState::Running);
+// 		c->SetState(EffekseerUrho3D::CommandListState::Running);
 // 	}
 // }
 // 
 // void EndCommandList(Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList)
 // {
 // 	assert(commandList != nullptr);
-// 	auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 	auto c = static_cast<EffekseerUrho3D::CommandList*>(commandList.Get());
 // 
-// 	if (c->GetState() == EffekseerRendererLLGI::CommandListState::RunningWithPlatformCommandList)
+// 	if (c->GetState() == EffekseerUrho3D::CommandListState::RunningWithPlatformCommandList)
 // 	{
 // 		c->GetInternal()->EndWithPlatform();
 // 	}
@@ -294,7 +294,7 @@
 // void ExecuteCommandList(Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList)
 // {
 // 	assert(commandList != nullptr);
-// 	auto c = static_cast<EffekseerRendererLLGI::CommandList*>(commandList.Get());
+// 	auto c = static_cast<EffekseerUrho3D::CommandList*>(commandList.Get());
 // 	c->GetGraphics()->Execute(c->GetInternal());
 // }
 // 

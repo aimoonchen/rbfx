@@ -5,7 +5,7 @@
 #include "../EffekseerRendererCommon/EffekseerRenderer.ShaderBase.h"
 #include "GraphicsDevice.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 class Shader : public ::EffekseerRenderer::ShaderBase
@@ -86,6 +86,6 @@ public:
 	void SetConstantBuffer();
 };
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_SHADER_H__

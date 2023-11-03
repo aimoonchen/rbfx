@@ -3,10 +3,10 @@
 #define __EFFEKSEERRENDERER_LLGI_RENDERSTATE_H__
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.RenderStateBase.h"
-#include "EffekseerRendererLLGI.Base.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerUrho3D.Base.h"
+#include "EffekseerUrho3D.RendererImplemented.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 class RenderState : public ::EffekseerRenderer::RenderStateBase
@@ -28,6 +28,6 @@ public:
 	void Update(bool forced);
 };
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_RENDERSTATE_H__

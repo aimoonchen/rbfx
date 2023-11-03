@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <set>
 #include "../../Graphics/GraphicsDefs.h"
+#include "../LoaderUrho3D/EffekseerUrho3D.TextureLoader.h"
 
 namespace Urho3D
 {
@@ -30,7 +31,7 @@ struct DataStructure
     int32_t Size;
 };
 }
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 namespace Backend
 {
@@ -145,6 +146,7 @@ class Texture
 	ea::shared_ptr<Urho3D::Texture2D> texture_;
 	GraphicsDevice* graphicsDevice_ = nullptr;
 	std::function<void()> onDisposed_;
+    friend class EffekseerUrho3D::TextureLoader;
 
 public:
 	Texture(GraphicsDevice* graphicsDevice);
@@ -263,6 +265,6 @@ public:
 
 } // namespace Backend
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif

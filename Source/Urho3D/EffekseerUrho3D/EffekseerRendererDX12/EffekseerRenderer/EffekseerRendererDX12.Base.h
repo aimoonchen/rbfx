@@ -1,4 +1,4 @@
-﻿
+
 #ifndef __EFFEKSEERRENDERER_DX12_BASE_H__
 #define __EFFEKSEERRENDERER_DX12_BASE_H__
 
@@ -6,6 +6,6 @@
 
 #include "EffekseerRendererDX12.Base.Pre.h"
 
-#include "../../EffekseerRendererLLGI/EffekseerRendererLLGI.Base.h"
+#include "../../RendererUrho3D/EffekseerUrho3D.Base.h"
 
 #endif

@@ -1,12 +1,12 @@
 
 
-#include "EffekseerRendererLLGI.Renderer.h"
-#include "EffekseerRendererLLGI.RenderState.h"
-#include "EffekseerRendererLLGI.RendererImplemented.h"
+#include "EffekseerUrho3D.Renderer.h"
+#include "EffekseerUrho3D.RenderState.h"
+#include "EffekseerUrho3D.RendererImplemented.h"
 
-#include "EffekseerRendererLLGI.MaterialLoader.h"
-#include "EffekseerRendererLLGI.ModelRenderer.h"
-#include "EffekseerRendererLLGI.Shader.h"
+#include "EffekseerUrho3D.MaterialLoader.h"
+#include "EffekseerUrho3D.ModelRenderer.h"
+#include "EffekseerUrho3D.Shader.h"
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.RibbonRendererBase.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.RingRendererBase.h"
@@ -24,7 +24,7 @@
 #include "../../Graphics/Texture2D.h"
 #include "../../RenderPipeline/StaticPipelineStateCache.h"
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 bool PiplineStateKey::operator<(const PiplineStateKey& v) const
@@ -124,10 +124,10 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 //----------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------
-RendererRef Renderer::Create(Urho3D::Graphics* graphics, int32_t squareMaxCount)
+RendererRef Renderer::Create(Urho3D::Graphics* graphics, int32_t squareMaxCount, bool isReversedDepth)
 {
-    auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(graphics, squareMaxCount);
-    if (renderer->Initialize(graphics, false))
+    auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(squareMaxCount);
+    if (renderer->Initialize(graphics, isReversedDepth))
     {
         return renderer;
     }
@@ -606,7 +606,7 @@ void RendererImplemented::SetRestorationOfStatesFlag(bool flag)
 // 	}
 // 	else
 // 	{
-// 		auto gd = graphicsDevice_.DownCast<EffekseerRendererLLGI::Backend::GraphicsDevice>();
+// 		auto gd = graphicsDevice_.DownCast<EffekseerUrho3D::Backend::GraphicsDevice>();
 // 		auto pipelineState = LLGI::CreateSharedPtr(gd->GetGraphics()->CreateRenderPassPipelineState(key));
 // 		if (pipelineState != nullptr)
 // 		{
@@ -1136,4 +1136,4 @@ Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(Effek
     return texLoc;
 }
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D

@@ -3,14 +3,14 @@
 #define __EFFEKSEERRENDERER_LLGI_RENDERER_H__
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.Renderer.h"
-#include "EffekseerRendererLLGI.Base.h"
+#include "EffekseerUrho3D.Base.h"
 
 #include "GraphicsDevice.h"
 // #include <LLGI.Buffer.h>
 // #include <LLGI.CommandList.h>
 // #include <LLGI.Graphics.h>
 
-namespace EffekseerRendererLLGI
+namespace EffekseerUrho3D
 {
 
 struct FixedShader
@@ -57,7 +57,7 @@ protected:
 public:
 	virtual Urho3D::Graphics* GetGraphics() const = 0;
 
-    static RendererRef Create(Urho3D::Graphics* graphics, int32_t squareMaxCount);
+    static RendererRef Create(Urho3D::Graphics* graphics, int32_t squareMaxCount, bool isReversedDepth = false);
 };
 
 // class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject
@@ -172,6 +172,6 @@ public:
 	}
 };
 
-} // namespace EffekseerRendererLLGI
+} // namespace EffekseerUrho3D
 
 #endif // __EFFEKSEERRENDERER_LLGI_RENDERER_H__
