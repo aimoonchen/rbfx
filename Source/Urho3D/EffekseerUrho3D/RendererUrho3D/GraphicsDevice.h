@@ -64,38 +64,24 @@ std::vector<uint8_t> Serialize(const std::vector<LLGI::DataStructure>& data);
 
 std::vector<LLGI::DataStructure> Deserialize(const void* data, int32_t size);
 
-class DeviceObject
-{
-private:
-public:
-	virtual void OnLostDevice();
-
-	virtual void OnResetDevice();
-};
-
 class VertexBuffer
-	: public DeviceObject,
-	  public Effekseer::Backend::VertexBuffer
+	: public Effekseer::Backend::VertexBuffer
 {
 private:
 	ea::shared_ptr<Urho3D::VertexBuffer> buffer_;
-	GraphicsDevice* graphicsDevice_ = nullptr;
+    Urho3D::Context* context_ = nullptr;
 	//int32_t size_ = 0;
 	bool isDynamic_ = false;
     int32_t stride_ = 0;
 
 public:
-	VertexBuffer(GraphicsDevice* graphicsDevice);
+	VertexBuffer(Urho3D::Context* context);
 
 	~VertexBuffer() override;
 
 	bool Allocate(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic);
 
 	void Deallocate();
-
-	void OnLostDevice() override;
-
-	void OnResetDevice() override;
 
 	bool Init(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic);
 
@@ -108,26 +94,21 @@ public:
 };
 
 class IndexBuffer
-	: public DeviceObject,
-	  public Effekseer::Backend::IndexBuffer
+	: public Effekseer::Backend::IndexBuffer
 {
 private:
 	ea::shared_ptr<Urho3D::IndexBuffer> buffer_;
-	GraphicsDevice* graphicsDevice_ = nullptr;
+    Urho3D::Context* context_ = nullptr;
 	int32_t stride_ = 0;
 
 public:
-	IndexBuffer(GraphicsDevice* graphicsDevice);
+	IndexBuffer(Urho3D::Context* context);
 
 	~IndexBuffer() override;
 
 	bool Allocate(int32_t elementCount, int32_t stride);
 
 	void Deallocate();
-
-	void OnLostDevice() override;
-
-	void OnResetDevice() override;
 
 	bool Init(int32_t elementCount, int32_t stride);
 
@@ -139,34 +120,8 @@ public:
 	}
 };
 
-class Texture
-	: public DeviceObject,
-	  public Effekseer::Backend::Texture
-{
-	ea::shared_ptr<Urho3D::Texture2D> texture_;
-	GraphicsDevice* graphicsDevice_ = nullptr;
-	std::function<void()> onDisposed_;
-    friend class EffekseerUrho3D::TextureLoader;
-
-public:
-	Texture(GraphicsDevice* graphicsDevice);
-	~Texture() override;
-
-	bool Init(const Effekseer::Backend::TextureParameter& param, const Effekseer::CustomVector<uint8_t>& initialData);
-
-	bool Init(uint64_t id, std::function<void()> onDisposed);
-
-	bool Init(Urho3D::Texture2D* texture);
-
-	ea::shared_ptr<Urho3D::Texture2D>& GetTexture()
-	{
-		return texture_;
-	}
-};
-
 class VertexLayout
-	: public DeviceObject,
-	  public Effekseer::Backend::VertexLayout
+	: public Effekseer::Backend::VertexLayout
 {
 public:
 	class Element
@@ -196,8 +151,7 @@ public:
 };
 
 class Shader
-	: public DeviceObject,
-	  public Effekseer::Backend::Shader
+	: public Effekseer::Backend::Shader
 {
 private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
@@ -227,7 +181,6 @@ class GraphicsDevice
 	: public Effekseer::Backend::GraphicsDevice
 {
 private:
-	std::set<DeviceObject*> objects_;
     Urho3D::Graphics* graphics_;
 
 public:
@@ -235,15 +188,7 @@ public:
 
 	~GraphicsDevice() override;
 
-	void LostDevice();
-
-	void ResetDevice();
-
 	Urho3D::Graphics* GetGraphics();
-
-	void Register(DeviceObject* deviceObject);
-
-	void Unregister(DeviceObject* deviceObject);
 
 	Effekseer::Backend::VertexBufferRef CreateVertexBuffer(int32_t size, const void* initialData, bool isDynamic) override;
 

@@ -1,4 +1,4 @@
-﻿
+
 #ifndef __EFFEKSEERRENDERER_LLGI_BASE_H__
 #define __EFFEKSEERRENDERER_LLGI_BASE_H__
 
@@ -26,7 +26,6 @@ class RendererImplemented;
 
 class RenderStateBase;
 
-class DeviceObject;
 class Shader;
 
 class SpriteRenderer;

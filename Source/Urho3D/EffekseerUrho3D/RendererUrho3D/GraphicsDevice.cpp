@@ -3,6 +3,7 @@
 // #include <LLGI.Texture.h>
 #include "../EffekseerRendererCommon/EffekseerRenderer.Renderer.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.CommonUtils.h"
+#include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../../Graphics/Graphics.h"
 #include "../../Graphics/VertexBuffer.h"
 #include "../../Graphics/IndexBuffer.h"
@@ -66,31 +67,19 @@ std::vector<LLGI::DataStructure> Deserialize(const void* data, int32_t size)
 	return ret;
 }
 
-void DeviceObject::OnLostDevice()
+VertexBuffer::VertexBuffer(Urho3D::Context* context)
+	: context_(context)
 {
-}
-
-void DeviceObject::OnResetDevice()
-{
-}
-
-VertexBuffer::VertexBuffer(GraphicsDevice* graphicsDevice)
-	: graphicsDevice_(graphicsDevice)
-{
-	ES_SAFE_ADDREF(graphicsDevice_);
-	graphicsDevice_->Register(this);
 }
 
 VertexBuffer::~VertexBuffer()
 {
-	graphicsDevice_->Unregister(this);
-	ES_SAFE_RELEASE(graphicsDevice_);
 }
 
 bool VertexBuffer::Allocate(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic)
 {
 	//buffer_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateBuffer(LLGI::BufferUsageType::Vertex | LLGI::BufferUsageType::MapWrite, size));
-    buffer_ = ea::make_shared<Urho3D::VertexBuffer>(graphicsDevice_->GetGraphics()->GetContext());
+    buffer_ = ea::make_shared<Urho3D::VertexBuffer>(context_);
     buffer_->SetSize(count, elements, isDynamic);
     stride_ = buffer_->GetVertexSize();
     return true;
@@ -99,16 +88,6 @@ bool VertexBuffer::Allocate(int32_t count, const ea::vector<Urho3D::VertexElemen
 void VertexBuffer::Deallocate()
 {
 	buffer_.reset();
-}
-
-void VertexBuffer::OnLostDevice()
-{
-	//Deallocate();
-}
-
-void VertexBuffer::OnResetDevice()
-{
-	//Allocate(size_, isDynamic_);
 }
 
 bool VertexBuffer::Init(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic)
@@ -129,23 +108,19 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
     buffer_->SetUnpackedData((const Urho3D::Vector4*)src, offset / stride_, size / stride_);
 }
 
-IndexBuffer::IndexBuffer(GraphicsDevice* graphicsDevice)
-	: graphicsDevice_(graphicsDevice)
+IndexBuffer::IndexBuffer(Urho3D::Context* context)
+	: context_(context)
 {
-	ES_SAFE_ADDREF(graphicsDevice_);
-	graphicsDevice_->Register(this);
 }
 
 IndexBuffer::~IndexBuffer()
 {
-	graphicsDevice_->Unregister(this);
-	ES_SAFE_RELEASE(graphicsDevice_);
 }
 
 bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride)
 {
 	//buffer_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateBuffer(LLGI::BufferUsageType::Index | LLGI::BufferUsageType::MapWrite, stride * elementCount));
-    buffer_ = ea::make_shared<Urho3D::IndexBuffer>(graphicsDevice_->GetGraphics()->GetContext());
+    buffer_ = ea::make_shared<Urho3D::IndexBuffer>(context_);
     buffer_->SetSize(elementCount, stride > 2/*, isDynamic*/);
 	elementCount_ = elementCount;
 	strideType_ = stride == 4 ? Effekseer::Backend::IndexBufferStrideType::Stride4 : Effekseer::Backend::IndexBufferStrideType::Stride2;
@@ -156,16 +131,6 @@ bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride)
 void IndexBuffer::Deallocate()
 {
 	buffer_.reset();
-}
-
-void IndexBuffer::OnLostDevice()
-{
-	//Deallocate();
-}
-
-void IndexBuffer::OnResetDevice()
-{
-	//Allocate(elementCount_, stride_);
 }
 
 bool IndexBuffer::Init(int32_t elementCount, int32_t stride)
@@ -184,172 +149,6 @@ void IndexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		buffer_->Unlock();
 // 	}
     buffer_->SetUnpackedData((const unsigned int*)src, offset / stride_, size / stride_);
-}
-
-Texture::Texture(GraphicsDevice* graphicsDevice)
-	: graphicsDevice_(graphicsDevice)
-{
-	//ES_SAFE_ADDREF(graphicsDevice_);
-	graphicsDevice_->Register(this);
-}
-
-Texture::~Texture()
-{
-	if (onDisposed_)
-	{
-		onDisposed_();
-	}
-	graphicsDevice_->Unregister(this);
-	//ES_SAFE_RELEASE(graphicsDevice_);
-}
-
-bool Texture::Init(const Effekseer::Backend::TextureParameter& param, const Effekseer::CustomVector<uint8_t>& initialData)
-{
-	int mw = std::max(param.Size[0], param.Size[1]);
-	int count = 1;
-
-	while (mw > 1)
-	{
-		mw = mw << 1;
-		count++;
-	}
-
-// 	LLGI::TextureInitializationParameter texParam;
-// 	texParam.Size = LLGI::Vec2I(param.Size[0], param.Size[1]);
-// 	texParam.MipMapCount = param.MipLevelCount < 1 ? count : param.MipLevelCount;
-// 
-// 	// TODO : Fix it
-// 	texParam.MipMapCount = 1;
-    auto MipMapCount = 1;
-    auto format = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM;
-
-	if (param.Format == Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::R8_UNORM)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_R8_UNORM;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::R16G16_FLOAT)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_RG16_FLOAT;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::R16G16B16A16_FLOAT)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA16_FLOAT;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::R32G32B32A32_FLOAT)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA32_FLOAT;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::BC1)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::BC2)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::BC3)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM_SRGB)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::B8G8R8A8_UNORM_SRGB)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM_SRGB;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::BC1_SRGB)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BC1_UNORM_SRGB;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::BC2_SRGB)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BC2_UNORM_SRGB;
-	}
-	else if (param.Format == Effekseer::Backend::TextureFormatType::BC3_SRGB)
-	{
-		format = Urho3D::TextureFormat::TEX_FORMAT_BC3_UNORM_SRGB;
-	}
-	else
-	{
-		// not supported
-		Effekseer::Log(Effekseer::LogType::Error, "The format is not supported.(" + std::to_string(static_cast<int>(param.Format)) + ")");
-		return false;
-	}
-
-// 	auto texture = graphicsDevice_->GetGraphics()->CreateTexture(texParam);
-// 	auto buf = texture->Lock();
-// 
-// 	if (initialData.size() > 0)
-// 	{
-// 		memcpy(buf, initialData.data(), initialData.size());
-// 	}
-// 
-// 	texture->Unlock();
-// 
-// 	texture_ = LLGI::CreateSharedPtr(texture);
-    auto w = param.Size[0];
-    auto h = param.Size[1];
-    texture_ = ea::make_shared<Urho3D::Texture2D>(graphicsDevice_->GetGraphics()->GetContext());
-    texture_->SetSize(w, h, format);
-    texture_->SetNumLevels(MipMapCount);
-    if (initialData.size() > 0) {
-        texture_->SetData(0, 0, 0, w, h, initialData.data());
-    }
-	param_ = param;
-	return true;
-}
-
-bool Texture::Init(uint64_t id, std::function<void()> onDisposed)
-{
-// 	auto texture = graphicsDevice_->GetGraphics()->CreateTexture(id);
-// 	if (texture == nullptr)
-// 	{
-// 		return false;
-// 	}
-// 
-// 	texture_ = LLGI::CreateSharedPtr(texture);
-// 	onDisposed_ = onDisposed;
-// 
-// 	param_.Format = Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM;
-// 	param_.Dimension = 2;
-// 	param_.Size = {
-// 		texture->GetSizeAs2D().X,
-// 		texture->GetSizeAs2D().Y,
-// 		0};
-// 	param_.MipLevelCount = texture_->GetMipmapCount();
-// 	param_.SampleCount = texture_->GetSamplingCount();
-// 	param_.Usage = Effekseer::Backend::TextureUsageType::External;
-//	return true;
-    return false;
-}
-
-bool Texture::Init(Urho3D::Texture2D* texture)
-{
-// 	LLGI::SafeAddRef(texture);
-// 	texture_ = LLGI::CreateSharedPtr(texture);
-    texture_.reset(texture);
-
-	param_.Format = Effekseer::Backend::TextureFormatType::R8G8B8A8_UNORM;
-	param_.Dimension = 2;
-	param_.Size = {
-		texture->GetWidth(),
-		texture->GetHeight(),
-		0};
-	param_.MipLevelCount = texture_->GetLevels();
-	param_.SampleCount = texture_->GetMultiSample();
-	param_.Usage = Effekseer::Backend::TextureUsageType::External;
-
-	return true;
 }
 
 bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount)
@@ -420,12 +219,10 @@ Shader::Shader(GraphicsDevice* graphicsDevice)
 	: graphicsDevice_(graphicsDevice)
 {
 	ES_SAFE_ADDREF(graphicsDevice_);
-	graphicsDevice_->Register(this);
 }
 
 Shader ::~Shader()
 {
-	graphicsDevice_->Unregister(this);
 	Effekseer::SafeRelease(graphicsDevice_);
 }
 
@@ -474,35 +271,9 @@ GraphicsDevice::~GraphicsDevice()
 	//ES_SAFE_RELEASE(graphics_);
 }
 
-void GraphicsDevice::LostDevice()
-{
-	for (auto& o : objects_)
-	{
-		o->OnLostDevice();
-	}
-}
-
-void GraphicsDevice::ResetDevice()
-{
-	for (auto& o : objects_)
-	{
-		o->OnResetDevice();
-	}
-}
-
 Urho3D::Graphics* GraphicsDevice::GetGraphics()
 {
 	return graphics_;
-}
-
-void GraphicsDevice::Register(DeviceObject* deviceObject)
-{
-	objects_.insert(deviceObject);
-}
-
-void GraphicsDevice::Unregister(DeviceObject* deviceObject)
-{
-	objects_.erase(deviceObject);
 }
 
 Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t size, const void* initialData, bool isDynamic)
@@ -530,7 +301,7 @@ Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t s
         {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 6, false}
     };
 
-	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(this);
+	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(graphics_->GetContext());
     auto stride = isDynamic ? EffekseerRenderer::GetMaximumVertexSizeInAllTypes() : (int32_t)sizeof(Effekseer::Model::Vertex);
 	if (!ret->Init(size / stride, isDynamic ? spriteLayout : modelLayout, isDynamic))
 	{
@@ -547,7 +318,7 @@ Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t s
 
 Effekseer::Backend::IndexBufferRef GraphicsDevice::CreateIndexBuffer(int32_t elementCount, const void* initialData, Effekseer::Backend::IndexBufferStrideType stride)
 {
-	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(this);
+	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(graphics_->GetContext());
 
 	if (!ret->Init(elementCount, stride == Effekseer::Backend::IndexBufferStrideType::Stride4 ? 4 : 2))
 	{
@@ -564,9 +335,9 @@ Effekseer::Backend::IndexBufferRef GraphicsDevice::CreateIndexBuffer(int32_t ele
 
 Effekseer::Backend::TextureRef GraphicsDevice::CreateTexture(const Effekseer::Backend::TextureParameter& param, const Effekseer::CustomVector<uint8_t>& initialData)
 {
-	auto ret = Effekseer::MakeRefPtr<Texture>(this);
-
-	if (!ret->Init(param, initialData))
+	auto ret = Effekseer::MakeRefPtr<::EffekseerUrho3D::Texture>();
+    
+	if (!ret->Init(graphics_->GetContext(), param, initialData))
 	{
 		return nullptr;
 	}
@@ -576,7 +347,7 @@ Effekseer::Backend::TextureRef GraphicsDevice::CreateTexture(const Effekseer::Ba
 
 Effekseer::Backend::TextureRef GraphicsDevice::CreateTexture(uint64_t id, const std::function<void()>& onDisposed)
 {
-	auto ret = Effekseer::MakeRefPtr<Texture>(this);
+	auto ret = Effekseer::MakeRefPtr<::EffekseerUrho3D::Texture>();
 
 	if (!ret->Init(id, onDisposed))
 	{
@@ -588,7 +359,7 @@ Effekseer::Backend::TextureRef GraphicsDevice::CreateTexture(uint64_t id, const 
 
 Effekseer::Backend::TextureRef GraphicsDevice::CreateTexture(Urho3D::Texture2D* texture)
 {
-	auto ret = Effekseer::MakeRefPtr<Texture>(this);
+	auto ret = Effekseer::MakeRefPtr<::EffekseerUrho3D::Texture>();
 
 	if (!ret->Init(texture))
 	{

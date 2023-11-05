@@ -33,8 +33,6 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 
 class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
-	friend class DeviceObject;
-
 protected:
 	std::map<PiplineStateKey, Urho3D::PipelineState*> piplineStates_;
 	Urho3D::VertexBuffer* currentVertexBuffer_ = nullptr;
@@ -65,8 +63,6 @@ protected:
 	::Effekseer::CoordinateSystem m_coordinateSystem;
 
 	::EffekseerRenderer::RenderStateBase* m_renderState;
-
-	std::set<DeviceObject*> m_deviceObjects;
 
 	EffekseerRenderer::DistortingCallback* m_distortingCallback;
 
@@ -162,14 +158,14 @@ public:
 	/**
 		@brief	テクスチャ読込クラスを生成する。
 	*/
-	::Effekseer::TextureLoaderRef CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
+	::Effekseer::TextureLoaderRef CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override { return nullptr; };
 
 	/**
 		@brief	モデル読込クラスを生成する。
 	*/
-	::Effekseer::ModelLoaderRef CreateModelLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
+	::Effekseer::ModelLoaderRef CreateModelLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override { return nullptr; };
 
-	::Effekseer::MaterialLoaderRef CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
+    ::Effekseer::MaterialLoaderRef CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override { return nullptr; };
 
 	void SetBackgroundInternal(Urho3D::Texture2D* background);
 

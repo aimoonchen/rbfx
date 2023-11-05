@@ -7,6 +7,7 @@
 #include "EffekseerUrho3D.MaterialLoader.h"
 #include "EffekseerUrho3D.ModelRenderer.h"
 #include "EffekseerUrho3D.Shader.h"
+#include "EffekseerUrho3D.RenderResources.h"
 
 #include "../EffekseerRendererCommon/EffekseerRenderer.RibbonRendererBase.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.RingRendererBase.h"
@@ -703,20 +704,20 @@ int32_t RendererImplemented::GetSquareMaxCount() const
 	return ::Effekseer::TrackRendererRef(new ::EffekseerRenderer::TrackRendererBase<RendererImplemented, false>(this));
 }
 
-::Effekseer::TextureLoaderRef RendererImplemented::CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface)
-{
-	return ::EffekseerRenderer::CreateTextureLoader(graphicsDevice_, fileInterface, ::Effekseer::ColorSpaceType::Gamma);
-}
-
-::Effekseer::ModelLoaderRef RendererImplemented::CreateModelLoader(::Effekseer::FileInterfaceRef fileInterface)
-{
-	return ::Effekseer::MakeRefPtr<EffekseerRenderer::ModelLoader>(graphicsDevice_, fileInterface);
-}
-
-::Effekseer::MaterialLoaderRef RendererImplemented::CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface)
-{
-	return ::Effekseer::MakeRefPtr<MaterialLoader>(graphicsDevice_, fileInterface, platformType_, materialCompiler_);
-}
+// ::Effekseer::TextureLoaderRef RendererImplemented::CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface)
+// {
+// 	return ::EffekseerRenderer::CreateTextureLoader(graphicsDevice_, fileInterface, ::Effekseer::ColorSpaceType::Gamma);
+// }
+// 
+// ::Effekseer::ModelLoaderRef RendererImplemented::CreateModelLoader(::Effekseer::FileInterfaceRef fileInterface)
+// {
+// 	return ::Effekseer::MakeRefPtr<EffekseerRenderer::ModelLoader>(graphicsDevice_, fileInterface);
+// }
+// 
+// ::Effekseer::MaterialLoaderRef RendererImplemented::CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface)
+// {
+// 	return ::Effekseer::MakeRefPtr<MaterialLoader>(graphicsDevice_, fileInterface, platformType_, materialCompiler_);
+// }
 
 void RendererImplemented::SetBackgroundInternal(Urho3D::Texture2D* background)
 {
@@ -726,7 +727,7 @@ void RendererImplemented::SetBackgroundInternal(Urho3D::Texture2D* background)
 	}
 	else
 	{
-		auto texture = static_cast<Backend::Texture*>(m_backgroundLLGI.Get());
+		auto texture = static_cast<EffekseerUrho3D::Texture*>(m_backgroundLLGI.Get());
 		texture->Init(background);
 	}
 
@@ -986,7 +987,7 @@ void RendererImplemented::SetTextures(Shader* shader, Effekseer::Backend::Textur
         if (textures[i] == nullptr) {
             GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
         } else {
-            auto texture = static_cast<Backend::Texture*>(textures[i].Get());
+            auto texture = static_cast<EffekseerUrho3D::Texture*>(textures[i].Get());
             GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
         }
     }

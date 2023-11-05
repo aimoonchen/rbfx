@@ -1,9 +1,8 @@
-#include "../RendererUrho3D/GraphicsDevice.h"
 #include "../../Core/Context.h"
 #include "../../Graphics/Texture2D.h"
 #include "../../Resource/ResourceCache.h"
 #include "EffekseerUrho3D.TextureLoader.h"
-//#include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
+#include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../Utils/EffekseerUrho3D.Utils.h"
 
 namespace EffekseerUrho3D
@@ -34,7 +33,7 @@ Effekseer::TextureRef TextureLoader::Load(const char16_t* path, Effekseer::Textu
 // 	auto texture = (godot::ImageTexture*)resource.ptr();
 // 	texture->set_flags(godot::Texture::FLAG_MIPMAPS);
 
-	auto backend = ::Effekseer::MakeRefPtr<Backend::Texture>(graphicsDevice_.DownCast<Backend::GraphicsDevice>().Get());
+	auto backend = ::Effekseer::MakeRefPtr<Texture>();
 	backend->param_.Size[0] = (int32_t)texture->GetWidth();
 	backend->param_.Size[1] = (int32_t)texture->GetHeight();
 	backend->texture_.reset(texture);
