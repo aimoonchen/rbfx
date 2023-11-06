@@ -68,6 +68,8 @@ protected:
 
 	::Effekseer::Backend::TextureRef m_backgroundLLGI;
 
+    std::vector<::Effekseer::Backend::TextureRef> m_currentTextures_;
+
 	Effekseer::RenderMode m_renderMode = Effekseer::RenderMode::Normal;
 
 	Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList_ = nullptr;

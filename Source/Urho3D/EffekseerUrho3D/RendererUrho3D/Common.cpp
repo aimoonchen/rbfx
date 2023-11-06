@@ -40,11 +40,9 @@ Effekseer::RefPtr<EffekseerRenderer::CommandList> CreateCommandList(::Effekseer:
 	auto g = static_cast<Urho3D::Graphics*>(gd->GetGraphics());
 // 	auto mp = static_cast<::EffekseerUrho3D::SingleFrameMemoryPool*>(memoryPool.Get());
 // 	auto commandList = g->CreateCommandList(mp->GetInternal());
-    auto drawQueue = g->GetSubsystem<Urho3D::RenderDevice>()->GetDefaultQueue();
-    drawQueue->Reset();
-	auto ret = Effekseer::MakeRefPtr<EffekseerUrho3D::CommandList>(g, drawQueue/*, mp->GetInternal()*/);
+    return Effekseer::MakeRefPtr<EffekseerUrho3D::CommandList>(g, g->GetSubsystem<Urho3D::RenderDevice>()->GetDefaultQueue()/*, mp->GetInternal()*/);
 //	ES_SAFE_RELEASE(commandList);
-	return ret;
+//	return ret;
 }
 
 // Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> CreateSingleFrameMemoryPool(::Effekseer::Backend::GraphicsDeviceRef graphicsDevice)

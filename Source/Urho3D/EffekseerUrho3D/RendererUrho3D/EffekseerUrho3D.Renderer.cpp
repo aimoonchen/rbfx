@@ -20,7 +20,8 @@
 
 #include "../../Graphics/GraphicsUtils.h"
 #include "../../RenderAPI/PipelineState.h"
-#include "../../RenderApi/RenderContext.h"
+#include "../../RenderAPI/RenderDevice.h"
+#include "../../RenderAPI/RenderContext.h"
 #include "../../Graphics/Graphics.h"
 #include "../../Graphics/Texture2D.h"
 #include "../../RenderPipeline/StaticPipelineStateCache.h"
@@ -392,12 +393,12 @@ static const char* kShaderName[] = {
 };
 
 static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
-    {"effekseer/builtin/sprite_unlit_vs", "effekseer/builtin/model_unlit_ps"}, // RendererShaderType::Unlit
-    {"effekseer/builtin/sprite_lit_vs", "effekseer/builtin/model_lit_ps"}, // RendererShaderType::Lit
-    {"effekseer/builtin/sprite_distortion_vs", "effekseer/builtin/model_distortion_ps"}, // RendererShaderType::BackDistortion
-    {"effekseer/builtin/ad_sprite_unlit_vs", "effekseer/builtin/ad_model_unlit_ps"}, // RendererShaderType::AdvancedUnlit
-    {"effekseer/builtin/ad_sprite_lit_vs", "effekseer/builtin/ad_model_lit_ps"}, // RendererShaderType::AdvancedLit
-    {"effekseer/builtin/ad_sprite_distortion_vs", "effekseer/builtin/ad_model_distortion_ps"} // RendererShaderType::AdvancedBackDistortion
+    {"v2/effekseer/builtin/sprite_unlit_vs",            "v2/effekseer/builtin/model_unlit_ps"}, // RendererShaderType::Unlit
+    {"v2/effekseer/builtin/sprite_lit_vs",              "v2/effekseer/builtin/model_lit_ps"}, // RendererShaderType::Lit
+    {"v2/effekseer/builtin/sprite_distortion_vs",       "v2/effekseer/builtin/model_distortion_ps"}, // RendererShaderType::BackDistortion
+    {"v2/effekseer/builtin/ad_sprite_unlit_vs",         "v2/effekseer/builtin/ad_model_unlit_ps"}, // RendererShaderType::AdvancedUnlit
+    {"v2/effekseer/builtin/ad_sprite_lit_vs",           "v2/effekseer/builtin/ad_model_lit_ps"}, // RendererShaderType::AdvancedLit
+    {"v2/effekseer/builtin/ad_sprite_distortion_vs",    "v2/effekseer/builtin/ad_model_distortion_ps"} // RendererShaderType::AdvancedBackDistortion
 };
 
 bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
@@ -621,10 +622,12 @@ bool RendererImplemented::BeginRendering()
 {
 	assert(graphicsDevice_ != nullptr);
 
-	if (commandList_ == nullptr)
-	{
-		return false;
-	}
+    auto cl = commandList_.DownCast<::EffekseerUrho3D::CommandList>();
+    cl->GetInternal()->Reset();
+// 	if (commandList_ == nullptr)
+// 	{
+// 		return false;
+// 	}
 
 	impl->CalculateCameraProjectionMatrix();
 
@@ -642,10 +645,10 @@ bool RendererImplemented::EndRendering()
 {
 	assert(graphicsDevice_ != nullptr);
 
-	if (commandList_ == nullptr)
-	{
-		return false;
-	}
+// 	if (commandList_ == nullptr)
+// 	{
+// 		return false;
+// 	}
 
 	// reset renderer
 	m_standardRenderer->ResetAndRenderingIfRequired();
@@ -780,9 +783,10 @@ void RendererImplemented::SetLayout(Shader* shader)
 // TODO: don't copy uniform
 void RendererImplemented::StoreUniforms(bool transpose)
 {
-    for (size_t i = 0; i < currentShader->GetUniformLayout()->GetElements().size(); i++)
+    const auto& elements = currentShader->GetUniformLayout()->GetElements();
+    for (size_t i = 0; i < elements.size(); i++)
     {
-        const auto& element = currentShader->GetUniformLayout()->GetElements()[i];
+        const auto& element = elements[i];
 
         const char* uniformBuffer = nullptr;
 
@@ -825,6 +829,21 @@ void RendererImplemented::StoreUniforms(bool transpose)
             assert(0);
         }
     }
+
+    const auto& uniformLayout = currentShader->GetUniformLayout();
+    if (uniformLayout == nullptr) {
+        return;
+    }
+    const auto& samplerNames = uniformLayout->GetTextures();
+    auto count = m_currentTextures_.size();
+    for (int32_t i = 0; i < count; i++) {
+        if (m_currentTextures_[i] == nullptr) {
+            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
+        } else {
+            auto texture = static_cast<EffekseerUrho3D::Texture*>(m_currentTextures_[i].Get());
+            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
+        }
+    }
 }
 
 void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
@@ -853,10 +872,10 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 // 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
 	}
 
-    StoreUniforms(false);
-
 	auto piplineState = GetOrCreatePiplineState();
 	GetCurrentCommandList()->SetPipelineState(piplineState);
+
+    StoreUniforms(false);
 
 	impl->drawcallCount++;
 	impl->drawvertexCount += spriteCount * 4;
@@ -875,8 +894,9 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
 		GetCurrentCommandList()->Draw(0, spriteCount * 4);
 	}
-
-// 	LLGI::SafeRelease(constantBufferVS);
+    auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
+    // 	LLGI::SafeRelease(constantBufferVS);
 // 	LLGI::SafeRelease(constantBufferPS);
 }
 
@@ -911,10 +931,10 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 // 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
 	}
 
-    StoreUniforms(false);
-
 	auto piplineState = GetOrCreatePiplineState();
 	GetCurrentCommandList()->SetPipelineState(piplineState);
+
+    StoreUniforms(false);
 
 	impl->drawcallCount++;
 	impl->drawvertexCount += vertexCount * instanceCount;
@@ -923,6 +943,8 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
     GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
 	GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
 
+    auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
 // 	LLGI::SafeRelease(constantBufferVS);
 // 	LLGI::SafeRelease(constantBufferPS);
 }
@@ -977,20 +999,31 @@ void RendererImplemented::SetTextures(Shader* shader, Effekseer::Backend::Textur
 // 			GetCurrentCommandList()->SetTexture(t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
 // 		}
 // 	}
-    const auto& uniformLayout = shader->GetUniformLayout();
-    if (uniformLayout == nullptr)
-    {
-        return;
-    }
-    const auto& samplerNames = uniformLayout->GetTextures();
+
+    m_currentTextures_.resize(count);
     for (int32_t i = 0; i < count; i++) {
-        if (textures[i] == nullptr) {
-            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
-        } else {
-            auto texture = static_cast<EffekseerUrho3D::Texture*>(textures[i].Get());
-            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
+        if (textures[i] != nullptr) {
+            m_currentTextures_[i] = textures[i];
+        }
+        else {
+            m_currentTextures_[i].Reset();
         }
     }
+
+//     const auto& uniformLayout = shader->GetUniformLayout();
+//     if (uniformLayout == nullptr)
+//     {
+//         return;
+//     }
+//     const auto& samplerNames = uniformLayout->GetTextures();
+//     for (int32_t i = 0; i < count; i++) {
+//         if (textures[i] == nullptr) {
+//             GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
+//         } else {
+//             auto texture = static_cast<EffekseerUrho3D::Texture*>(textures[i].Get());
+//             GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
+//         }
+//     }
 }
 
 void RendererImplemented::ResetRenderState()
