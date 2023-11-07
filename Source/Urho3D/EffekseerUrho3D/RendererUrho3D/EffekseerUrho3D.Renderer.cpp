@@ -222,16 +222,16 @@ Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
 	for (size_t i = 0; i < elements.size(); i++) {
         const auto& element = elements[i].Format;
         auto& layout = desc.inputLayout_.elements_[i];
-        layout.bufferStride_    = stride;// currentVertexBuffer_->GetVertexSize();
-        layout.elementSemantic_ = element.semantic_;
-        layout.elementType_     = element.type_;
-        layout.elementOffset_   = element.offset_;
-// 		piplineState->VertexLayouts[i] = currentShader->GetVertexLayouts()->GetElements()[i].Format;
-// 		piplineState->VertexLayoutNames[i] = currentShader->GetVertexLayouts()->GetElements()[i].Name;
-// 		piplineState->VertexLayoutSemantics[i] = currentShader->GetVertexLayouts()->GetElements()[i].Semantic;
+        layout.bufferIndex_             = 0;
+        layout.bufferStride_            = stride;// currentVertexBuffer_->GetVertexSize();
+        layout.elementOffset_           = element.offset_;
+        layout.instanceStepRate_        = element.stepRate_;
+        
+        layout.elementType_             = element.type_;
+        layout.elementSemantic_         = element.semantic_;
+        layout.elementSemanticIndex_    = element.index_;
 	}
-//	piplineState->VertexLayoutCount = static_cast<int32_t>(currentShader->GetVertexLayouts()->GetElements().size());
-    
+
     desc.primitiveType_ = currentTopologyType_;
 
     desc.depthCompareFunction_ = key.state.DepthTest ? (isReversedDepth_ ? Urho3D::CompareMode::CMP_GREATEREQUAL : Urho3D::CompareMode::CMP_LESSEQUAL) : Urho3D::CompareMode::CMP_ALWAYS;
