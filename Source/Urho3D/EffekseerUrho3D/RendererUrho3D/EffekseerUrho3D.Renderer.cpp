@@ -147,7 +147,43 @@ Urho3D::DrawCommandQueue* RendererImplemented::GetCurrentCommandList()
 	assert(0);
 	return nullptr;
 }
+// TODO: remove this fuction, implemented in EffekseerRenderer::StandardRenderer
+static int32_t GetCurrentStride(const EffekseerRenderer::StandardRendererState& state)
+{
+    const auto renderingMode = state.Collector.ShaderType;
+    size_t stride = 0;
+    if (renderingMode == EffekseerRenderer::RendererShaderType::Material)
+    {
+        stride = sizeof(EffekseerRenderer::DynamicVertex);
+        stride += (state.CustomData1Count + state.CustomData2Count) * sizeof(float);
+    }
+    else if (renderingMode == EffekseerRenderer::RendererShaderType::Lit)
+    {
+        stride = sizeof(EffekseerRenderer::LightingVertex);
+    }
+    else if (renderingMode == EffekseerRenderer::RendererShaderType::BackDistortion)
+    {
+        stride = sizeof(EffekseerRenderer::LightingVertex);
+    }
+    else if (renderingMode == EffekseerRenderer::RendererShaderType::Unlit)
+    {
+        stride = sizeof(EffekseerRenderer::SimpleVertex);
+    }
+    else if (renderingMode == EffekseerRenderer::RendererShaderType::AdvancedLit)
+    {
+        stride = sizeof(EffekseerRenderer::AdvancedLightingVertex);
+    }
+    else if (renderingMode == EffekseerRenderer::RendererShaderType::AdvancedBackDistortion)
+    {
+        stride = sizeof(EffekseerRenderer::AdvancedLightingVertex);
+    }
+    else if (renderingMode == EffekseerRenderer::RendererShaderType::AdvancedUnlit)
+    {
+        stride = sizeof(EffekseerRenderer::AdvancedSimpleVertex);
+    }
 
+    return static_cast<int32_t>(stride);
+}
 Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
 {
 	PiplineStateKey key;
@@ -180,14 +216,16 @@ Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
     desc.vertexShader_ = currentShader->GetVertexShader();
     desc.pixelShader_ = currentShader->GetPixelShader();
 
-    desc.inputLayout_.size_ = static_cast<int32_t>(currentShader->GetVertexLayouts()->GetElements().size());
-	for (size_t i = 0; i < currentShader->GetVertexLayouts()->GetElements().size(); i++)
-	{
-        const auto& element = currentShader->GetVertexLayouts()->GetElements()[i].Format;
-        desc.inputLayout_.elements_[i].bufferStride_ = currentVertexBuffer_->GetVertexSize();
-        desc.inputLayout_.elements_[i].elementSemantic_ = element.semantic_;
-        desc.inputLayout_.elements_[i].elementType_ = element.type_;
-        desc.inputLayout_.elements_[i].elementOffset_ = element.offset_;
+    const auto& elements = currentShader->GetVertexLayouts()->GetElements();
+    desc.inputLayout_.size_ = static_cast<int32_t>(elements.size());
+    int32_t stride = currentShader->GetVertexSize();//GetCurrentStride();// 
+	for (size_t i = 0; i < elements.size(); i++) {
+        const auto& element = elements[i].Format;
+        auto& layout = desc.inputLayout_.elements_[i];
+        layout.bufferStride_    = stride;// currentVertexBuffer_->GetVertexSize();
+        layout.elementSemantic_ = element.semantic_;
+        layout.elementType_     = element.type_;
+        layout.elementOffset_   = element.offset_;
 // 		piplineState->VertexLayouts[i] = currentShader->GetVertexLayouts()->GetElements()[i].Format;
 // 		piplineState->VertexLayoutNames[i] = currentShader->GetVertexLayouts()->GetElements()[i].Name;
 // 		piplineState->VertexLayoutSemantics[i] = currentShader->GetVertexLayouts()->GetElements()[i].Semantic;
@@ -885,14 +923,16 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 // 		GetCurrentCommandList()->SetVertexBuffer(
 // 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-		GetCurrentCommandList()->Draw(0, spriteCount * 2);
+		//GetCurrentCommandList()->Draw(0, spriteCount * 2);
+        GetCurrentCommandList()->DrawIndexed(0, spriteCount * 6, vertexOffset / 4 * 6);
 	}
 	else
 	{
 // 		GetCurrentCommandList()->SetVertexBuffer(
 // 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-		GetCurrentCommandList()->Draw(0, spriteCount * 4);
+		//GetCurrentCommandList()->Draw(0, spriteCount * 4);
+        GetCurrentCommandList()->DrawIndexed(0, spriteCount * 8, vertexOffset / 4 * 8);
 	}
     auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
     renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
@@ -941,7 +981,8 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 
 	//GetCurrentCommandList()->SetVertexBuffer(currentVertexBuffer_, currentVertexBufferStride_, 0);
     GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-	GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
+	//GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
+    GetCurrentCommandList()->DrawIndexedInstanced(0, indexCount, 0, instanceCount);
 
     auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
     renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());

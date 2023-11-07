@@ -34,7 +34,7 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 protected:
-	std::map<PiplineStateKey, Urho3D::PipelineState*> piplineStates_;
+	std::map<PiplineStateKey, Urho3D::SharedPtr<Urho3D::PipelineState>> piplineStates_;
 	Urho3D::VertexBuffer* currentVertexBuffer_ = nullptr;
 	int32_t currentVertexBufferStride_ = 0;
 	Urho3D::PrimitiveType currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;

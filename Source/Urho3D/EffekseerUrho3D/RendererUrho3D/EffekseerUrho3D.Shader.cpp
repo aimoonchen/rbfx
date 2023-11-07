@@ -14,6 +14,11 @@ Shader::Shader(Backend::GraphicsDeviceRef graphicsDevice,
 	, m_vertexConstantBuffer(nullptr)
 	, m_pixelConstantBuffer(nullptr)
 {
+    const auto& elements = vertexLayout_->GetElements();
+    for (size_t i = 0; i < elements.size(); i++) {
+        const auto& element = elements[i].Format;
+        vertexSize_ += Urho3D::ELEMENT_TYPESIZES[element.type_];
+    }
 }
 
 Shader::~Shader()

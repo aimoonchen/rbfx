@@ -105,7 +105,9 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		memcpy(dst + offset, src, size);
 // 		buffer_->Unlock();
 // 	}
-    buffer_->SetUnpackedData((const Urho3D::Vector4*)src, offset / stride_, size / stride_);
+
+    //buffer_->SetUnpackedData((const Urho3D::Vector4*)src, offset / stride_, size / stride_);
+    buffer_->UpdateRange(src, offset, size);
 }
 
 IndexBuffer::IndexBuffer(Urho3D::Context* context)
@@ -123,7 +125,7 @@ bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride)
     buffer_ = ea::make_shared<Urho3D::IndexBuffer>(context_);
     buffer_->SetSize(elementCount, stride > 2/*, isDynamic*/);
 	elementCount_ = elementCount;
-	strideType_ = stride == 4 ? Effekseer::Backend::IndexBufferStrideType::Stride4 : Effekseer::Backend::IndexBufferStrideType::Stride2;
+	strideType_ = (stride == 4) ? Effekseer::Backend::IndexBufferStrideType::Stride4 : Effekseer::Backend::IndexBufferStrideType::Stride2;
 
 	return buffer_ != nullptr;
 }
@@ -148,7 +150,8 @@ void IndexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		memcpy(dst + offset, src, size);
 // 		buffer_->Unlock();
 // 	}
-    buffer_->SetUnpackedData((const unsigned int*)src, offset / stride_, size / stride_);
+    //buffer_->SetUnpackedData((const unsigned int*)src, offset / stride_, size / stride_);
+    buffer_->UpdateRange(src, offset, size);
 }
 
 bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount)
@@ -177,7 +180,7 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
         {"Input_AlphaThreshold",        Urho3D::SEM_TEXCOORD},
     };
 	elements_.resize(elementCount);
-
+    int32_t offset = 0;
 	for (int32_t i = 0; i < elementCount; i++)
 	{
         const auto& e = elements[i];
@@ -198,7 +201,10 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
 //             attrib = Urho3D::SEM_TEXCOORD;
 //             index = e.SemanticIndex;
 //         }
-        elements_[i].Format = Urho3D::VertexElement(type, attrib, index, false);
+
+        elements_[i].Format = Urho3D::VertexElement(type, attrib, index, 0);
+        elements_[i].Format.offset_ = offset;
+        offset += Urho3D::ELEMENT_TYPESIZES[type];
 // 		elements_[i].Name = elements[i].SemanticName;
 // 		elements_[i].Semantic = elements[i].SemanticIndex;
 	}

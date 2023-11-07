@@ -16,7 +16,7 @@ private:
 	Backend::ShaderRef shaderOverride_;
 
 	Backend::VertexLayoutRef vertexLayout_;
-
+    int32_t vertexSize_{ 0 };
 	void* m_vertexConstantBuffer;
 	void* m_pixelConstantBuffer;
 	int32_t vertexConstantBufferSize = 0;
@@ -62,6 +62,7 @@ public:
 	{
 		return vertexLayout_;
 	}
+    int32_t GetVertexSize() const { return vertexSize_; }
     const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;
 	void SetVertexConstantBufferSize(int32_t size);
 	void SetPixelConstantBufferSize(int32_t size);
