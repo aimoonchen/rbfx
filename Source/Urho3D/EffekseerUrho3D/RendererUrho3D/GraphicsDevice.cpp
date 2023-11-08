@@ -309,7 +309,7 @@ Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t s
 
 	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(graphics_->GetContext());
     auto stride = isDynamic ? EffekseerRenderer::GetMaximumVertexSizeInAllTypes() : (int32_t)sizeof(Effekseer::Model::Vertex);
-	if (!ret->Init(size / stride, isDynamic ? spriteLayout : modelLayout, isDynamic))
+	if (!ret->Init(size / stride, isDynamic ? spriteLayout : modelLayout, /*isDynamic*/false))
 	{
 		return nullptr;
 	}

@@ -202,6 +202,16 @@ void InitializeLayoutElements(ea::vector<Diligent::LayoutElement>& result,
             return; \
         }
 
+// TODO: for effekseer, remove this
+const ea::array<ea::string, 6> effekseerSemantic{
+        "Input_Pos",
+        "Input_Normal",
+        "Input_Binormal",
+        "Input_Tangent",
+        "Input_Texcoord",
+        "Input_Color"
+};
+
 ea::pair<VertexShaderAttributeVector, StringVector> GetGLVertexAttributes(GLuint programObject)
 {
     GLint numActiveAttribs = 0;
@@ -214,13 +224,31 @@ ea::pair<VertexShaderAttributeVector, StringVector> GetGLVertexAttributes(GLuint
 
     VertexShaderAttributeVector result;
     StringVector resultNames;
+    unsigned texcoord_index = 0;
     for (int attribIndex = 0; attribIndex < numActiveAttribs; ++attribIndex)
     {
         GLint attributeSize = 0;
         GLenum attributeType = 0;
         glGetActiveAttrib(
             programObject, attribIndex, maxNameLength, nullptr, &attributeSize, &attributeType, attributeName.data());
-
+        // TODO: for effekseer
+        if (attributeName.starts_with("Input_")) {
+            const int location = glGetAttribLocation(programObject, attributeName.c_str());
+            if (location == -1)
+                continue;
+            VertexElementSemantic semantic = MAX_VERTEX_ELEMENT_SEMANTICS;
+            for (unsigned index = 0; index < URHO3D_ARRAYSIZE(effekseerSemantic); ++index) {
+                const unsigned semanticPos = attributeName.find(effekseerSemantic[index]);
+                if (semanticPos == ea::string::npos)
+                    continue;
+                semantic = static_cast<VertexElementSemantic>(index);
+                break;
+            }
+            semantic = (semantic == MAX_VERTEX_ELEMENT_SEMANTICS) ? SEM_TEXCOORD : semantic;
+            result.push_back({ semantic, (semantic == Urho3D::SEM_TEXCOORD) ? texcoord_index++ : 0, static_cast<unsigned>(location)});
+            resultNames.push_back(attributeName);
+            continue;
+        }
         if (const auto element = ParseVertexAttribute(attributeName.c_str()))
         {
             const int location = glGetAttribLocation(programObject, attributeName.c_str());
