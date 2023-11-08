@@ -691,7 +691,7 @@ bool RendererImplemented::EndRendering()
 	// reset renderer
 	m_standardRenderer->ResetAndRenderingIfRequired();
 
-	currentndexBuffer_ = nullptr;
+	currentIndexBuffer_ = nullptr;
 
 	return true;
 }
@@ -802,8 +802,8 @@ void RendererImplemented::SetVertexBuffer(const Effekseer::Backend::VertexBuffer
 void RendererImplemented::SetIndexBuffer(const Effekseer::Backend::IndexBufferRef& indexBuffer)
 {
 	auto ib = static_cast<Backend::IndexBuffer*>(indexBuffer.Get());
-	currentndexBuffer_ = indexBuffer;
-	GetCurrentCommandList()->SetIndexBuffer(ib->GetBuffer()/*, ib->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride2 ? 2 : 4*/);
+    currentIndexBuffer_ = ib->GetBuffer();
+	//GetCurrentCommandList()->SetIndexBuffer(ib->GetBuffer()/*, ib->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride2 ? 2 : 4*/);
 }
 
 void RendererImplemented::SetLayout(Shader* shader)
@@ -923,6 +923,7 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 // 		GetCurrentCommandList()->SetVertexBuffer(
 // 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
+        GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
 		//GetCurrentCommandList()->Draw(0, spriteCount * 2);
         GetCurrentCommandList()->DrawIndexed(0, spriteCount * 6, vertexOffset / 4 * 6);
 	}
@@ -931,6 +932,7 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 // 		GetCurrentCommandList()->SetVertexBuffer(
 // 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
+        GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
 		//GetCurrentCommandList()->Draw(0, spriteCount * 4);
         GetCurrentCommandList()->DrawIndexed(0, spriteCount * 8, vertexOffset / 4 * 8);
 	}
@@ -981,6 +983,7 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 
 	//GetCurrentCommandList()->SetVertexBuffer(currentVertexBuffer_, currentVertexBufferStride_, 0);
     GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
+    GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
 	//GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
     GetCurrentCommandList()->DrawIndexedInstanced(0, indexCount, 0, instanceCount);
 

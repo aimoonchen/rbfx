@@ -35,7 +35,7 @@ class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 protected:
 	std::map<PiplineStateKey, Urho3D::SharedPtr<Urho3D::PipelineState>> piplineStates_;
-	Urho3D::VertexBuffer* currentVertexBuffer_ = nullptr;
+	Urho3D::VertexBuffer* currentVertexBuffer_{ nullptr };
 	int32_t currentVertexBufferStride_ = 0;
 	Urho3D::PrimitiveType currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
 
@@ -50,7 +50,7 @@ protected:
 	Backend::GraphicsDeviceRef graphicsDevice_ = nullptr;
 	//std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
 
-	Effekseer::Backend::IndexBufferRef currentndexBuffer_;
+    Urho3D::IndexBuffer* currentIndexBuffer_{ nullptr };
 	Effekseer::Backend::IndexBufferRef indexBuffer_;
 	Effekseer::Backend::IndexBufferRef indexBufferForWireframe_;
 	int32_t m_squareMaxCount;
