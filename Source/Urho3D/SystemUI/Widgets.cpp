@@ -282,7 +282,7 @@ bool EditResourceRef(StringHash& type, ea::string& name, const StringVector* all
     }
 
     ui::SetNextItemWidth(ui::GetContentRegionAvail().x);
-    if (ui::InputText("##Name", &name, ImGuiInputTextFlags_EnterReturnsTrue))
+    if (ui::InputText("##Name", &name, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_NoUndoRedo))
         modified = true;
 
     if (allowedTypes != nullptr)
@@ -521,7 +521,7 @@ bool EditStringVector(StringVector& value, bool resizable)
         }
 
         ui::SetNextItemWidth(ui::GetContentRegionAvail().x);
-        if (ui::InputText("", &element, ImGuiInputTextFlags_EnterReturnsTrue))
+        if (ui::InputText("", &element, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_NoUndoRedo))
             return true;
 
         ++index;
@@ -545,7 +545,8 @@ bool EditStringVector(StringVector& value, bool resizable)
 
         ui::SetNextItemWidth(ui::GetContentRegionAvail().x);
 
-        const bool isTextClicked = ui::InputText("", &newElement, ImGuiInputTextFlags_EnterReturnsTrue);
+        const bool isTextClicked =
+            ui::InputText("", &newElement, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_NoUndoRedo);
 
         if (isButtonClicked || isTextClicked)
         {
@@ -705,6 +706,18 @@ bool EditVariantVector3(Variant& var, const EditVariantOptions& options)
     return false;
 }
 
+bool EditVariantIntVector3(Variant& var, const EditVariantOptions& options)
+{
+    IntVector3 value = var.GetIntVector3();
+    ui::SetNextItemWidth(ui::GetContentRegionAvail().x);
+    if (ui::DragInt3("", &value.x_, options.step_, static_cast<int>(options.min_), static_cast<int>(options.max_)))
+    {
+        var = value;
+        return true;
+    }
+    return false;
+}
+
 bool EditVariantVector4(Variant& var, const EditVariantOptions& options)
 {
     Vector4 value = var.GetVector4();
@@ -766,7 +779,7 @@ bool EditVariantString(Variant& var, const EditVariantOptions& options)
 {
     ea::string value = var.GetString();
     ui::SetNextItemWidth(ui::GetContentRegionAvail().x);
-    if (ui::InputText("", &value, ImGuiInputTextFlags_EnterReturnsTrue))
+    if (ui::InputText("", &value, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_NoUndoRedo))
     {
         var = value;
         return true;
@@ -947,6 +960,8 @@ bool EditVariant(Variant& var, const EditVariantOptions& options)
 
     case VAR_INTVECTOR2:
         return EditVariantIntVector2(var, options);
+    case VAR_INTVECTOR3:
+        return EditVariantIntVector3(var, options);
 
     // case VAR_MATRIX3:
     // case VAR_MATRIX3X4:
