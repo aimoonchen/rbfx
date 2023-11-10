@@ -1,13 +1,16 @@
 #include "GraphicsDevice.h"
+#include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 // #include <LLGI.Shader.h>
 // #include <LLGI.Texture.h>
 #include "../EffekseerRendererCommon/EffekseerRenderer.Renderer.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.CommonUtils.h"
 #include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../../Graphics/Graphics.h"
+#include "../../Resource/ResourceCache.h"
 #include "../../Graphics/VertexBuffer.h"
 #include "../../Graphics/IndexBuffer.h"
 #include "../../Graphics/Texture2D.h"
+#include "../../RenderAPI/RenderDevice.h"
 
 namespace EffekseerUrho3D
 {
@@ -80,7 +83,8 @@ bool VertexBuffer::Allocate(int32_t count, const ea::vector<Urho3D::VertexElemen
 {
 	//buffer_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateBuffer(LLGI::BufferUsageType::Vertex | LLGI::BufferUsageType::MapWrite, size));
     buffer_ = ea::make_shared<Urho3D::VertexBuffer>(context_);
-    buffer_->SetSize(count, elements, isDynamic);
+    buffer_->SetShadowed(isDynamic);
+    buffer_->SetSize(count, elements);
     stride_ = buffer_->GetVertexSize();
     return true;
 }
@@ -248,16 +252,56 @@ bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, co
 bool Shader::Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout)
 {
     uniformLayout_ = layout;
-
-    assert(false);
     return false;
 }
 
 bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout)
 {
     uniformLayout_ = layout;
-    vertexShader_ = graphicsDevice_->GetGraphics()->GetShader(Urho3D::VS, vertexFilename, "");
-    pixelShader_ = graphicsDevice_->GetGraphics()->GetShader(Urho3D::PS, pixelFilename, "");
+
+    auto graphic = graphicsDevice_->GetGraphics();
+    auto cache = graphic->GetSubsystem<Urho3D::ResourceCache>();
+    auto pDevice = graphic->GetSubsystem<Urho3D::RenderDevice>()->GetRenderDevice();
+
+    auto get_source_code = [cache](const char* filename, ea::string& sourceCode, ea::string& shaderName) {
+        auto pFile = cache->GetFile(filename);
+        unsigned dataSize = pFile->GetSize();
+        sourceCode.resize(dataSize + 1);
+        sourceCode[dataSize] = '\0';
+        if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
+            return false;
+        ea::string_view strView = filename;
+        auto p0 = strView.find_last_of('/');
+        auto p1 = strView.find('.');
+        shaderName = strView.substr(p0 + 1, p1 - p0 - 1);
+    };
+    
+    Diligent::ShaderCreateInfo ShaderCI;
+    // Tell the system that the shader source code is in HLSL.
+    // For OpenGL, the engine will convert this into GLSL under the hood.
+    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
+    // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+    ShaderCI.Desc.UseCombinedTextureSamplers = true;
+    ea::string sourceCode;
+    ea::string shaderName;
+    get_source_code(vertexFilename, sourceCode, shaderName);
+    // Create a vertex shader
+    {
+        ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+        ShaderCI.EntryPoint = "main";
+        ShaderCI.Desc.Name = shaderName.data();
+        ShaderCI.Source = sourceCode.data();
+        pDevice->CreateShader(ShaderCI, &vertexShader_);
+    }
+    get_source_code(pixelFilename, sourceCode, shaderName);
+    // Create a pixel shader
+    {
+        ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+        ShaderCI.EntryPoint = "main";
+        ShaderCI.Desc.Name = shaderName.data();
+        ShaderCI.Source = sourceCode.data();
+        pDevice->CreateShader(ShaderCI, &pixelShader_);
+    }
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
@@ -285,31 +329,31 @@ Urho3D::Graphics* GraphicsDevice::GetGraphics()
 Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t size, const void* initialData, bool isDynamic)
 {
     static ea::vector<Urho3D::VertexElement> modelLayout{
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0, false},
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL, 0, false},
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_BINORMAL, 0, false},
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_TANGENT, 0, false},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0, false},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0, false}
+        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION},
+        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL},
+        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_BINORMAL},
+        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_TANGENT},
+        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD},
+        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR}
     };
 
     static ea::vector<Urho3D::VertexElement> spriteLayout{
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0, false},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL, 0, false},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_BINORMAL, 0, false},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT, 0, false},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0, false},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1, false},
-        {Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 2, false},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 3, false},
-        {Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 4, false},
-        {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5, false},
-        {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 6, false}
+        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION},
+        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR},
+        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL},
+        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT},
+        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD},
+        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1},
+        {Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 2},
+        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 3},
+        {Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 4},
+        {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5},
+        {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 6}
     };
 
 	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(graphics_->GetContext());
     auto stride = isDynamic ? EffekseerRenderer::GetMaximumVertexSizeInAllTypes() : (int32_t)sizeof(Effekseer::Model::Vertex);
-	if (!ret->Init(size / stride, isDynamic ? spriteLayout : modelLayout, /*isDynamic*/false))
+	if (!ret->Init(size / stride, isDynamic ? spriteLayout : modelLayout, isDynamic))
 	{
 		return nullptr;
 	}

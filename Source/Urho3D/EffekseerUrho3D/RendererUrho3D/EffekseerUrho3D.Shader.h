@@ -41,7 +41,7 @@ public:
 	}
 
 public:
-    Urho3D::ShaderVariation* GetVertexShader() const
+    Diligent::IShader* GetVertexShader() const
 	{
 		if (shaderOverride_ != nullptr)
 		{
@@ -49,7 +49,7 @@ public:
 		}
 		return shader_->GetVertexShader();
 	}
-	Urho3D::ShaderVariation* GetPixelShader() const
+    Diligent::IShader* GetPixelShader() const
 	{
 		if (shaderOverride_ != nullptr)
 		{

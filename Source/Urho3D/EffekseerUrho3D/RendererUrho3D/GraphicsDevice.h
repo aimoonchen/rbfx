@@ -8,8 +8,14 @@
 // #include <LLGI.Graphics.h>
 #include <assert.h>
 #include <set>
+#include <Diligent/Common/interface/RefCntAutoPtr.hpp>
 #include "../../Graphics/GraphicsDefs.h"
 #include "../LoaderUrho3D/EffekseerUrho3D.TextureLoader.h"
+
+namespace Diligent
+{
+    struct IShader;
+}
 
 namespace Urho3D
 {
@@ -155,8 +161,8 @@ class Shader
 {
 private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
-	Urho3D::ShaderVariation* vertexShader_ = nullptr;
-    Urho3D::ShaderVariation* pixelShader_ = nullptr;
+    Diligent::RefCntAutoPtr<Diligent::IShader> vertexShader_;
+    Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader_;
 
     Effekseer::Backend::UniformLayoutRef uniformLayout_ = nullptr;
 
@@ -166,11 +172,11 @@ public:
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize);
     bool Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout);
     bool Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout);
-    Urho3D::ShaderVariation* GetVertexShader() const
+    Diligent::IShader* GetVertexShader() const
 	{
 		return vertexShader_;
 	}
-    Urho3D::ShaderVariation* GetPixelShader() const
+    Diligent::IShader* GetPixelShader() const
 	{
 		return pixelShader_;
 	}

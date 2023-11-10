@@ -16,8 +16,8 @@
 #include "../EffekseerRendererCommon/ModelLoader.h"
 #include "../EffekseerRendererCommon/TextureLoader.h"
 
-#include <iostream>
-
+//#include <iostream>
+#include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include "../../Graphics/GraphicsUtils.h"
 #include "../../RenderAPI/PipelineState.h"
 #include "../../RenderAPI/RenderDevice.h"
@@ -184,20 +184,54 @@ static int32_t GetCurrentStride(const EffekseerRenderer::StandardRendererState& 
 
     return static_cast<int32_t>(stride);
 }
-Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
+Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
 {
-	PiplineStateKey key;
-	key.state = m_renderState->GetActiveState();
-	key.shader = currentShader;
-	key.topologyType = currentTopologyType_;
-	//key.renderPassPipelineState = currentRenderPassPipelineState_.get();
+    PiplineStateKey key;
+    key.state = m_renderState->GetActiveState();
+    key.shader = currentShader;
+    key.topologyType = currentTopologyType_;
+    // key.renderPassPipelineState = currentRenderPassPipelineState_.get();
 
-	auto it = piplineStates_.find(key);
-	if (it != piplineStates_.end())
-	{
-		return it->second;
-	}
+    auto it = piplineStates_.find(key);
+    if (it != piplineStates_.end())
+    {
+        return it->second;
+    }
 
+    Diligent::GraphicsPipelineStateCreateInfo PSOCreateInfo;
+
+    // Pipeline state name is used by the engine to report issues.
+    // It is always a good idea to give objects descriptive names.
+    PSOCreateInfo.PSODesc.Name = "Simple triangle PSO";
+
+    // This is a graphics pipeline
+    PSOCreateInfo.PSODesc.PipelineType = Diligent::PIPELINE_TYPE_GRAPHICS;
+
+    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    auto swapChain = renderDevice->GetSwapChain();
+    // This tutorial will render to a single render target
+    PSOCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
+    // Set render target format which is the format of the swap chain's color buffer
+    PSOCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain->GetDesc().ColorBufferFormat;
+    // Use the depth buffer format from the swap chain
+    PSOCreateInfo.GraphicsPipeline.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
+    // Primitive topology defines what kind of primitives will be rendered by this pipeline state
+    PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    // No back face culling for this tutorial
+    PSOCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+    // Disable depth testing
+    PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = Diligent::False;
+
+    PSOCreateInfo.pVS = currentShader->GetVertexShader();
+    PSOCreateInfo.pPS = currentShader->GetPixelShader();
+
+    Diligent::RefCntAutoPtr<Diligent::IPipelineState> piplineState;
+    auto device = renderDevice->GetRenderDevice();
+    device->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
+    piplineStates_[key] = piplineState;
+
+    return piplineState;
+    /*
     Urho3D::GraphicsPipelineStateDesc desc;
     Urho3D::InitializeInputLayout(desc.inputLayout_, { currentVertexBuffer_ });
     desc.colorWriteEnabled_ = true;
@@ -213,8 +247,8 @@ Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
 // 		piplineState->DepthFunc = LLGI::DepthFuncType::LessEqual;
 // 	}
 
-    desc.vertexShader_ = currentShader->GetVertexShader();
-    desc.pixelShader_ = currentShader->GetPixelShader();
+//     desc.vertexShader_ = currentShader->GetVertexShader();
+//     desc.pixelShader_ = currentShader->GetPixelShader();
 
     const auto& elements = currentShader->GetVertexLayouts()->GetElements();
     desc.inputLayout_.size_ = static_cast<int32_t>(elements.size());
@@ -366,6 +400,7 @@ Urho3D::PipelineState* RendererImplemented::GetOrCreatePiplineState()
 	piplineStates_[key] = piplineState;
 
 	return piplineState;
+    */
 }
 
 RendererImplemented::RendererImplemented(int32_t squareMaxCount)
@@ -431,12 +466,12 @@ static const char* kShaderName[] = {
 };
 
 static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
-    {"v2/effekseer/builtin/sprite_unlit_vs",            "v2/effekseer/builtin/model_unlit_ps"}, // RendererShaderType::Unlit
-    {"v2/effekseer/builtin/sprite_lit_vs",              "v2/effekseer/builtin/model_lit_ps"}, // RendererShaderType::Lit
-    {"v2/effekseer/builtin/sprite_distortion_vs",       "v2/effekseer/builtin/model_distortion_ps"}, // RendererShaderType::BackDistortion
-    {"v2/effekseer/builtin/ad_sprite_unlit_vs",         "v2/effekseer/builtin/ad_model_unlit_ps"}, // RendererShaderType::AdvancedUnlit
-    {"v2/effekseer/builtin/ad_sprite_lit_vs",           "v2/effekseer/builtin/ad_model_lit_ps"}, // RendererShaderType::AdvancedLit
-    {"v2/effekseer/builtin/ad_sprite_distortion_vs",    "v2/effekseer/builtin/ad_model_distortion_ps"} // RendererShaderType::AdvancedBackDistortion
+    {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.hlsl",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.hlsl"}, // RendererShaderType::Unlit
+    {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.hlsl",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.hlsl"}, // RendererShaderType::Lit
+    {"Shaders/HLSL/effekseer/builtin/sprite_distortion_vs.hlsl",       "Shaders/HLSL/effekseer/builtin/model_distortion_ps.hlsl"}, // RendererShaderType::BackDistortion
+    {"Shaders/HLSL/effekseer/builtin/ad_sprite_unlit_vs.hlsl",         "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.hlsl"}, // RendererShaderType::AdvancedUnlit
+    {"Shaders/HLSL/effekseer/builtin/ad_sprite_lit_vs.hlsl",           "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.hlsl"}, // RendererShaderType::AdvancedLit
+    {"Shaders/HLSL/effekseer/builtin/ad_sprite_distortion_vs.hlsl",    "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.hlsl"} // RendererShaderType::AdvancedBackDistortion
 };
 
 bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
@@ -889,56 +924,71 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 	// constant buffer
 // 	LLGI::Buffer* constantBufferVS = nullptr;
 // 	LLGI::Buffer* constantBufferPS = nullptr;
-
-	auto cl = commandList_.DownCast<CommandList>();
-
-	if (currentShader->GetVertexConstantBufferSize() > 0)
-	{
+// 
+// 	auto cl = commandList_.DownCast<CommandList>();
+// 
+// 	if (currentShader->GetVertexConstantBufferSize() > 0)
+// 	{
 // 		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
 // 		assert(constantBufferVS != nullptr);
 // 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
 // 		constantBufferVS->Unlock();
 // 		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
-	}
-
-	if (currentShader->GetPixelConstantBufferSize() > 0)
-	{
+// 	}
+// 
+// 	if (currentShader->GetPixelConstantBufferSize() > 0)
+// 	{
 // 		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
 // 		assert(constantBufferPS != nullptr);
 // 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
 // 		constantBufferPS->Unlock();
 // 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
-	}
-
+// 	}
+    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    auto renderContext = renderDevice->GetImmediateContext();
+    const Diligent::Uint64 offset = 0;
+    Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
+    renderContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+    renderContext->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 	auto piplineState = GetOrCreatePiplineState();
-	GetCurrentCommandList()->SetPipelineState(piplineState);
+    renderContext->SetPipelineState(piplineState);
+    //renderContext->CommitShaderResources(piplineState, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    //StoreUniforms(false);
 
-    StoreUniforms(false);
-
-	impl->drawcallCount++;
+    impl->drawcallCount++;
 	impl->drawvertexCount += spriteCount * 4;
 
-	if (m_renderMode == Effekseer::RenderMode::Normal)
+    Diligent::DrawIndexedAttribs DrawAttrs; // This is an indexed draw call
+    DrawAttrs.IndexType = currentIndexBuffer_->GetStride() > 2 ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
+
+    if (m_renderMode == Effekseer::RenderMode::Normal)
 	{
 // 		GetCurrentCommandList()->SetVertexBuffer(
 // 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
-        GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-        GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
-		//GetCurrentCommandList()->Draw(0, spriteCount * 2);
-        GetCurrentCommandList()->DrawIndexed(0, spriteCount * 6, vertexOffset / 4 * 6);
+//         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
+//         GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
+// 		//GetCurrentCommandList()->Draw(0, spriteCount * 2);
+//         GetCurrentCommandList()->DrawIndexed(vertexOffset / 4 * 6, spriteCount * 6);
+        DrawAttrs.FirstIndexLocation = vertexOffset / 4 * 6;
+        DrawAttrs.NumIndices = spriteCount * 6;
 	}
 	else
 	{
 // 		GetCurrentCommandList()->SetVertexBuffer(
 // 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
-        GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-        GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
-		//GetCurrentCommandList()->Draw(0, spriteCount * 4);
-        GetCurrentCommandList()->DrawIndexed(0, spriteCount * 8, vertexOffset / 4 * 8);
+
+//         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
+//         GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
+// 		//GetCurrentCommandList()->Draw(0, spriteCount * 4);
+//         GetCurrentCommandList()->DrawIndexed(vertexOffset / 4 * 8, spriteCount * 8);
+        DrawAttrs.FirstIndexLocation = vertexOffset / 4 * 8;
+        DrawAttrs.NumIndices = spriteCount * 8;
 	}
-    auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
-    renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
-    // 	LLGI::SafeRelease(constantBufferVS);
+    // Verify the state of vertex and index buffers
+    DrawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+    renderContext->DrawIndexed(DrawAttrs);
+
+// 	LLGI::SafeRelease(constantBufferVS);
 // 	LLGI::SafeRelease(constantBufferPS);
 }
 
@@ -952,43 +1002,55 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 	// constant buffer
 // 	LLGI::Buffer* constantBufferVS = nullptr;
 // 	LLGI::Buffer* constantBufferPS = nullptr;
-
-	auto cl = commandList_.DownCast<CommandList>();
-
-	if (currentShader->GetVertexConstantBufferSize() > 0)
-	{
+// 
+// 	auto cl = commandList_.DownCast<CommandList>();
+// 
+// 	if (currentShader->GetVertexConstantBufferSize() > 0)
+// 	{
 // 		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
 // 		assert(constantBufferVS != nullptr);
 // 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
 // 		constantBufferVS->Unlock();
 // 		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
-	}
-
-	if (currentShader->GetPixelConstantBufferSize() > 0)
-	{
+// 	}
+// 
+// 	if (currentShader->GetPixelConstantBufferSize() > 0)
+// 	{
 // 		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
 // 		assert(constantBufferPS != nullptr);
 // 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
 // 		constantBufferPS->Unlock();
 // 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
-	}
-
+// 	}
+    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    auto renderContext = renderDevice->GetImmediateContext();
+    const Diligent::Uint64 offset = 0;
+    Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
+    renderContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+    renderContext->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 	auto piplineState = GetOrCreatePiplineState();
-	GetCurrentCommandList()->SetPipelineState(piplineState);
+    renderContext->SetPipelineState(piplineState);
 
-    StoreUniforms(false);
+    //StoreUniforms(false);
 
 	impl->drawcallCount++;
 	impl->drawvertexCount += vertexCount * instanceCount;
 
-	//GetCurrentCommandList()->SetVertexBuffer(currentVertexBuffer_, currentVertexBufferStride_, 0);
-    GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-    GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
-	//GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
-    GetCurrentCommandList()->DrawIndexedInstanced(0, indexCount, 0, instanceCount);
+    Diligent::DrawIndexedAttribs DrawAttrs; // This is an indexed draw call
+    DrawAttrs.IndexType = currentIndexBuffer_->GetStride() > 2 ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
+    DrawAttrs.NumIndices = indexCount;
+    DrawAttrs.NumInstances = instanceCount;
+    DrawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+    renderContext->DrawIndexed(DrawAttrs);
 
-    auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
-    renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
+	//GetCurrentCommandList()->SetVertexBuffer(currentVertexBuffer_, currentVertexBufferStride_, 0);
+//     GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
+//     GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
+// 	//GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
+//     GetCurrentCommandList()->DrawIndexedInstanced(0, indexCount, 0, instanceCount);
+
+//     auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+//     renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
 // 	LLGI::SafeRelease(constantBufferVS);
 // 	LLGI::SafeRelease(constantBufferPS);
 }

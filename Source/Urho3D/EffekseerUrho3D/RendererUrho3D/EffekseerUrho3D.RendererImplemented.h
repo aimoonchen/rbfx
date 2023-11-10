@@ -13,6 +13,11 @@
 // #include <LLGI.Texture.h>
 #include "../../RenderPipeline/RenderPipelineDefs.h"
 
+namespace Diligent
+{
+    struct IPipelineState;
+}
+
 namespace EffekseerUrho3D
 {
 
@@ -34,7 +39,7 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 protected:
-	std::map<PiplineStateKey, Urho3D::SharedPtr<Urho3D::PipelineState>> piplineStates_;
+	std::map<PiplineStateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
 	Urho3D::VertexBuffer* currentVertexBuffer_{ nullptr };
 	int32_t currentVertexBufferStride_ = 0;
 	Urho3D::PrimitiveType currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
@@ -76,7 +81,7 @@ protected:
 
 	Urho3D::DrawCommandQueue* GetCurrentCommandList();
 
-    Urho3D::PipelineState* GetOrCreatePiplineState();
+    Diligent::IPipelineState* GetOrCreatePiplineState();
 
 public:
 	//! shaders (todo implemented)
