@@ -29,7 +29,7 @@ class PiplineStateKey
 public:
 	Shader* shader = nullptr;
 	EffekseerRenderer::RenderStateBase::State state;
-	Urho3D::PrimitiveType topologyType;
+	Diligent::PRIMITIVE_TOPOLOGY topologyType;
 	//LLGI::RenderPassPipelineState* renderPassPipelineState = nullptr;
 	bool operator<(const PiplineStateKey& v) const;
 };
@@ -42,7 +42,7 @@ protected:
 	std::map<PiplineStateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
 	Urho3D::VertexBuffer* currentVertexBuffer_{ nullptr };
 	int32_t currentVertexBufferStride_ = 0;
-	Urho3D::PrimitiveType currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
+	Diligent::PRIMITIVE_TOPOLOGY currentTopologyType_ = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 	//std::unordered_map<LLGI::RenderPassPipelineStateKey, std::shared_ptr<LLGI::RenderPassPipelineState>, LLGI::RenderPassPipelineStateKey::Hash> renderpassPipelineStates_;
 
@@ -53,6 +53,7 @@ protected:
 	*/
 
 	Backend::GraphicsDeviceRef graphicsDevice_ = nullptr;
+    Diligent::IDeviceContext* deviceContext_{ nullptr };
 	//std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
 
     Urho3D::IndexBuffer* currentIndexBuffer_{ nullptr };
@@ -219,7 +220,7 @@ public:
 		return ::Effekseer::ReferenceObject::Release();
 	}
     // TODO: for rbfx
-    void StoreUniforms(bool transpose);
+    void CommitUniformAndTextures();
 };
 
 void AddVertexUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout);

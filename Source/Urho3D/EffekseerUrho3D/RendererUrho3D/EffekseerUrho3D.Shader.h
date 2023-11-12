@@ -57,32 +57,20 @@ public:
 		}
 		return shader_->GetPixelShader();
 	}
-
-	const Backend::VertexLayoutRef& GetVertexLayouts()
-	{
-		return vertexLayout_;
-	}
+    Diligent::IBuffer* GetVertexUniformBuffer() const { return shader_->GetVertexUniformBuffer(); }
+    Diligent::IBuffer* GetPixelUniformBuffer() const { return shader_->GetPixelUniformBuffer(); }
+    void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb) const { return shader_->SetShaderResourceBinding(srb); }
+    Diligent::IShaderResourceBinding* GetShaderResourceBinding() const { return shader_->GetShaderResourceBinding(); }
+	const Backend::VertexLayoutRef& GetVertexLayouts() { return vertexLayout_; }
     int32_t GetVertexSize() const { return vertexSize_; }
     const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;
 	void SetVertexConstantBufferSize(int32_t size);
 	void SetPixelConstantBufferSize(int32_t size);
-	int32_t GetVertexConstantBufferSize()
-	{
-		return vertexConstantBufferSize;
-	}
-	int32_t GetPixelConstantBufferSize()
-	{
-		return pixelConstantBufferSize;
-	}
+	int32_t GetVertexConstantBufferSize() { return vertexConstantBufferSize; }
+	int32_t GetPixelConstantBufferSize() { return pixelConstantBufferSize; }
 
-	void* GetVertexConstantBuffer()
-	{
-		return m_vertexConstantBuffer;
-	}
-	void* GetPixelConstantBuffer()
-	{
-		return m_pixelConstantBuffer;
-	}
+	void* GetVertexConstantBuffer() { return m_vertexConstantBuffer; }
+	void* GetPixelConstantBuffer() { return m_pixelConstantBuffer; }
 
 	void SetConstantBuffer();
 };

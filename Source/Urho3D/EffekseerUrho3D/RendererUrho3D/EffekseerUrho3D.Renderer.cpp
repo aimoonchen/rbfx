@@ -219,15 +219,123 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     // No back face culling for this tutorial
     PSOCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
-    // Disable depth testing
-    PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = Diligent::False;
+    // Depth testing
+    auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
+    depthStencilDesc.DepthEnable = key.state.DepthTest;
+    depthStencilDesc.DepthWriteEnable = key.state.DepthWrite;
+    depthStencilDesc.DepthFunc = isReversedDepth_ ? Diligent::COMPARISON_FUNC_GREATER_EQUAL : Diligent::COMPARISON_FUNC_LESS_EQUAL;
+
+    auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
+    if (key.state.CullingType == ::Effekseer::CullingType::Back)
+    {
+        rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_FRONT : Diligent::CULL_MODE_BACK;
+    }
+    else if (key.state.CullingType == ::Effekseer::CullingType::Front)
+    {
+        rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_BACK : Diligent::CULL_MODE_FRONT;
+    }
+    else if (key.state.CullingType == ::Effekseer::CullingType::Double)
+    {
+        rasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+    }
+
+    PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = currentTopologyType_;
 
     PSOCreateInfo.pVS = currentShader->GetVertexShader();
     PSOCreateInfo.pPS = currentShader->GetPixelShader();
 
+    const auto& elements = currentShader->GetVertexLayouts()->GetElements();
+    auto& inputLayout = PSOCreateInfo.GraphicsPipeline.InputLayout;
+    inputLayout.NumElements = elements.size();
+    inputLayout.LayoutElements = elements.data();
+//     ea::vector<Diligent::LayoutElement> layoutElement;
+//     layoutElement.resize(elements.size());
+//     for (size_t i = 0; i < elements.size(); i++) {
+//         layoutElement[i] = elements[i].Format;
+//     }
+
+
+    auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
+    blendDesc.BlendEnable = true;
+    blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+    blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+    blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
+
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Opacity)
+    {
+        blendDesc.BlendEnable = false;
+        blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
+        blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
+        blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+    }
+
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Blend)
+    {
+        if (GetImpl()->IsPremultipliedAlphaEnabled)
+        {
+            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+            blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
+            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+            blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+            blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+            blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+        }
+        else
+        {
+            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+            blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+        }
+    }
+
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Add)
+    {
+        if (GetImpl()->IsPremultipliedAlphaEnabled)
+        {
+            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+            blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
+            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ONE;
+            blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ZERO;
+            blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+        }
+        else
+        {
+            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ONE;
+        }
+    }
+
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Sub)
+    {
+        blendDesc.DestBlend = Diligent::BLEND_FACTOR_ONE;
+        blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+        blendDesc.BlendOp = Diligent::BLEND_OPERATION_REV_SUBTRACT;
+        blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ZERO;
+        blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+        blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
+    }
+
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Mul)
+    {
+        blendDesc.DestBlend = Diligent::BLEND_FACTOR_SRC_COLOR;
+        blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ZERO;
+        blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+        blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ZERO;
+        blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+        blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
+    }
+
+
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> piplineState;
     auto device = renderDevice->GetRenderDevice();
     device->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
+    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "CBVS0")->Set(currentShader->GetVertexUniformBuffer());
+    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "CBPS0")->Set(currentShader->GetPixelUniformBuffer());
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> SRB;
+    piplineState->CreateShaderResourceBinding(&SRB, true);
+    currentShader->SetShaderResourceBinding(SRB);
     piplineStates_[key] = piplineState;
 
     return piplineState;
@@ -237,15 +345,6 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     desc.colorWriteEnabled_ = true;
 
 //	auto piplineState = GetGraphics()->CreatePiplineState();
-
-// 	if (isReversedDepth_)
-// 	{
-// 		piplineState->DepthFunc = LLGI::DepthFuncType::GreaterEqual;
-// 	}
-// 	else
-// 	{
-// 		piplineState->DepthFunc = LLGI::DepthFuncType::LessEqual;
-// 	}
 
 //     desc.vertexShader_ = currentShader->GetVertexShader();
 //     desc.pixelShader_ = currentShader->GetPixelShader();
@@ -266,108 +365,6 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
         layout.elementSemanticIndex_    = element.index_;
 	}
 
-    desc.primitiveType_ = currentTopologyType_;
-
-    desc.depthCompareFunction_ = key.state.DepthTest ? (isReversedDepth_ ? Urho3D::CompareMode::CMP_GREATEREQUAL : Urho3D::CompareMode::CMP_LESSEQUAL) : Urho3D::CompareMode::CMP_ALWAYS;
-    desc.depthWriteEnabled_ = key.state.DepthWrite;
-
-// 	if (isReversedDepth_)
-// 	{
-		if (key.state.CullingType == ::Effekseer::CullingType::Back)
-		{
-            desc.cullMode_ = isReversedDepth_ ? Urho3D::CullMode::CULL_CW : Urho3D::CullMode::CULL_CCW;
-		}
-		else if (key.state.CullingType == ::Effekseer::CullingType::Front)
-		{
-            desc.cullMode_ = isReversedDepth_ ? Urho3D::CullMode::CULL_CCW : Urho3D::CullMode::CULL_CW;
-		}
-		else if (key.state.CullingType == ::Effekseer::CullingType::Double)
-		{
-            desc.cullMode_ = Urho3D::CullMode::CULL_NONE;
-		}
-// 	}
-// 	else
-// 	{
-// 		piplineState->Culling = (LLGI::CullingMode)key.state.CullingType;
-// 	}
-
-// 	piplineState->IsBlendEnabled = true;
-// 	piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::One;
-// 	piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 	piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Max;
-
-	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Opacity)
-	{
-// 		piplineState->IsBlendEnabled = false;
-// 		piplineState->IsBlendEnabled = true;
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::One;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_REPLACE;
-	}
-
-	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Blend)
-	{
-		if (GetImpl()->IsPremultipliedAlphaEnabled)
-		{
-// 			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-// 			piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
-// 			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 			piplineState->BlendDstFunc = LLGI::BlendFuncType::OneMinusSrcAlpha;
-// 			piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::One;
-// 			piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::OneMinusSrcAlpha;
-            desc.blendMode_ = Urho3D::BlendMode::BLEND_PREMULALPHA;
-		}
-		else
-		{
-// 			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-// 			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-//             piplineState->BlendDstFunc = LLGI::BlendFuncType::OneMinusSrcAlpha;
-            desc.blendMode_ = Urho3D::BlendMode::BLEND_ALPHA;
-		}
-	}
-
-	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Add)
-	{
-// 		if (GetImpl()->IsPremultipliedAlphaEnabled)
-// 		{
-// 			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-// 			piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
-// 			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 			piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
-// 			piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
-// 			piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 		}
-// 		else
-// 		{
-// 			piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-// 			piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 			piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
-// 		}
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_ADDALPHA;
-	}
-
-	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Sub)
-	{
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::One;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::SrcAlpha;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::ReverseSub;
-// 		piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_SUBTRACT;
-	}
-
-	if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Mul)
-	{
-// 		piplineState->BlendDstFunc = LLGI::BlendFuncType::SrcColor;
-// 		piplineState->BlendSrcFunc = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendEquationRGB = LLGI::BlendEquationType::Add;
-// 		piplineState->BlendSrcFuncAlpha = LLGI::BlendFuncType::Zero;
-// 		piplineState->BlendDstFuncAlpha = LLGI::BlendFuncType::One;
-// 		piplineState->BlendEquationAlpha = LLGI::BlendEquationType::Add;
-        desc.blendMode_ = Urho3D::BlendMode::BLEND_MULTIPLY;
-	}
     const auto& uniformLayout = currentShader->GetUniformLayout();
     if (uniformLayout != nullptr) {
         Urho3D::TextureAddressMode ws[2]{};
@@ -479,6 +476,8 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 									 bool isReversedDepth)
 {
 	graphicsDevice_ = graphicsDevice;
+    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    deviceContext_ = renderDevice->GetImmediateContext();
 //	ChangeRenderPassPipelineState(key);
 	isReversedDepth_ = isReversedDepth;
 
@@ -845,61 +844,37 @@ void RendererImplemented::SetLayout(Shader* shader)
 {
 	if (m_renderMode == Effekseer::RenderMode::Normal)
 	{
-		currentTopologyType_ = Urho3D::PrimitiveType::TRIANGLE_LIST;
+		currentTopologyType_ = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	}
 	else
 	{
-		currentTopologyType_ = Urho3D::PrimitiveType::LINE_LIST;
+		currentTopologyType_ = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_LIST;
 	}
 }
 
-// TODO: don't copy uniform
-void RendererImplemented::StoreUniforms(bool transpose)
+void RendererImplemented::CommitUniformAndTextures()
 {
-    const auto& elements = currentShader->GetUniformLayout()->GetElements();
-    for (size_t i = 0; i < elements.size(); i++)
+    if (currentShader->GetVertexConstantBufferSize() > 0)
     {
-        const auto& element = elements[i];
-
-        const char* uniformBuffer = nullptr;
-
-        if (element.Stage == Effekseer::Backend::ShaderStageType::Vertex)
+        Diligent::PVoid pMappedData{nullptr};
+        auto buffer = currentShader->GetVertexUniformBuffer();
+        deviceContext_->MapBuffer(buffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, pMappedData);
+        if (pMappedData)
         {
-            uniformBuffer = (const char*)currentShader->GetVertexConstantBuffer();
+            memcpy(pMappedData, currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
+            deviceContext_->UnmapBuffer(buffer, Diligent::MAP_WRITE);
         }
-        else if (element.Stage == Effekseer::Backend::ShaderStageType::Pixel)
-        {
-            uniformBuffer = (const char*)currentShader->GetPixelConstantBuffer();
-        }
+    }
 
-        if (uniformBuffer != nullptr)
+    if (currentShader->GetPixelConstantBufferSize() > 0)
+    {
+        Diligent::PVoid pMappedData{nullptr};
+        auto buffer = currentShader->GetPixelUniformBuffer();
+        deviceContext_->MapBuffer(buffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, pMappedData);
+        if (pMappedData)
         {
-            if (element.Type == Effekseer::Backend::UniformBufferLayoutElementType::Vector4)
-            {
-//                 const auto& buffer = uniformBuffer->GetBuffer();
-//                 assert(buffer.size() >= element.Offset + sizeof(float) * 4);
-//                 GLExt::glUniform4fv(
-//                     loc, element.Count, reinterpret_cast<const GLfloat*>(buffer.data() + element.Offset));
-                GetCurrentCommandList()->AddShaderParameter(element.Name.c_str(), ea::span((Urho3D::Vector4*)(uniformBuffer + element.Offset), element.Count));
-            }
-            else if (element.Type == Effekseer::Backend::UniformBufferLayoutElementType::Matrix44)
-            {
-//                 const auto& buffer = uniformBuffer->GetBuffer();
-//                 assert(buffer.size() >= element.Offset + sizeof(float) * 4 * 4);
-//                 GLExt::glUniformMatrix4fv(loc, element.Count, transpose ? GL_TRUE : GL_FALSE,
-//                     reinterpret_cast<const GLfloat*>(buffer.data() + element.Offset));
-                GetCurrentCommandList()->AddShaderParameter(element.Name.c_str(), ea::span((Urho3D::Matrix4*)(uniformBuffer + element.Offset), element.Count));
-            }
-            else
-            {
-                // Unimplemented
-                assert(0);
-            }
-        }
-        else
-        {
-            // Invalid
-            assert(0);
+            memcpy(pMappedData, currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
+            deviceContext_->UnmapBuffer(buffer, Diligent::MAP_WRITE);
         }
     }
 
@@ -909,51 +884,30 @@ void RendererImplemented::StoreUniforms(bool transpose)
     }
     const auto& samplerNames = uniformLayout->GetTextures();
     auto count = m_currentTextures_.size();
+    auto srb = currentShader->GetShaderResourceBinding();
     for (int32_t i = 0; i < count; i++) {
         if (m_currentTextures_[i] == nullptr) {
-            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
+            srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(nullptr);
         } else {
             auto texture = static_cast<EffekseerUrho3D::Texture*>(m_currentTextures_[i].Get());
-            GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
+            const auto& handles = texture->GetTexture()->GetHandles();
+            srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(handles.texture_);
         }
     }
 }
 
 void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 {
-	// constant buffer
-// 	LLGI::Buffer* constantBufferVS = nullptr;
-// 	LLGI::Buffer* constantBufferPS = nullptr;
-// 
-// 	auto cl = commandList_.DownCast<CommandList>();
-// 
-// 	if (currentShader->GetVertexConstantBufferSize() > 0)
-// 	{
-// 		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
-// 		assert(constantBufferVS != nullptr);
-// 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
-// 		constantBufferVS->Unlock();
-// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
-// 	}
-// 
-// 	if (currentShader->GetPixelConstantBufferSize() > 0)
-// 	{
-// 		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
-// 		assert(constantBufferPS != nullptr);
-// 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
-// 		constantBufferPS->Unlock();
-// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
-// 	}
-    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
-    auto renderContext = renderDevice->GetImmediateContext();
+    CommitUniformAndTextures();
+
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
-    renderContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
-    renderContext->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-	auto piplineState = GetOrCreatePiplineState();
-    renderContext->SetPipelineState(piplineState);
-    //renderContext->CommitShaderResources(piplineState, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    //StoreUniforms(false);
+    deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+    deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+    auto piplineState = GetOrCreatePiplineState();
+    deviceContext_->SetPipelineState(piplineState);
+    deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
     impl->drawcallCount++;
 	impl->drawvertexCount += spriteCount * 4;
@@ -963,33 +917,17 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 
     if (m_renderMode == Effekseer::RenderMode::Normal)
 	{
-// 		GetCurrentCommandList()->SetVertexBuffer(
-// 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
-//         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-//         GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
-// 		//GetCurrentCommandList()->Draw(0, spriteCount * 2);
-//         GetCurrentCommandList()->DrawIndexed(vertexOffset / 4 * 6, spriteCount * 6);
         DrawAttrs.FirstIndexLocation = vertexOffset / 4 * 6;
         DrawAttrs.NumIndices = spriteCount * 6;
 	}
 	else
 	{
-// 		GetCurrentCommandList()->SetVertexBuffer(
-// 			currentVertexBuffer_, currentVertexBufferStride_, vertexOffset * currentVertexBufferStride_);
-
-//         GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-//         GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
-// 		//GetCurrentCommandList()->Draw(0, spriteCount * 4);
-//         GetCurrentCommandList()->DrawIndexed(vertexOffset / 4 * 8, spriteCount * 8);
         DrawAttrs.FirstIndexLocation = vertexOffset / 4 * 8;
         DrawAttrs.NumIndices = spriteCount * 8;
 	}
     // Verify the state of vertex and index buffers
     DrawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-    renderContext->DrawIndexed(DrawAttrs);
-
-// 	LLGI::SafeRelease(constantBufferVS);
-// 	LLGI::SafeRelease(constantBufferPS);
+    deviceContext_->DrawIndexed(DrawAttrs);
 }
 
 void RendererImplemented::DrawPolygon(int32_t vertexCount, int32_t indexCount)
@@ -999,39 +937,16 @@ void RendererImplemented::DrawPolygon(int32_t vertexCount, int32_t indexCount)
 
 void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t indexCount, int32_t instanceCount)
 {
-	// constant buffer
-// 	LLGI::Buffer* constantBufferVS = nullptr;
-// 	LLGI::Buffer* constantBufferPS = nullptr;
-// 
-// 	auto cl = commandList_.DownCast<CommandList>();
-// 
-// 	if (currentShader->GetVertexConstantBufferSize() > 0)
-// 	{
-// 		constantBufferVS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetVertexConstantBufferSize());
-// 		assert(constantBufferVS != nullptr);
-// 		memcpy(constantBufferVS->Lock(), currentShader->GetVertexConstantBuffer(), currentShader->GetVertexConstantBufferSize());
-// 		constantBufferVS->Unlock();
-// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferVS, 0);
-// 	}
-// 
-// 	if (currentShader->GetPixelConstantBufferSize() > 0)
-// 	{
-// 		constantBufferPS = cl->GetMemoryPool()->CreateConstantBuffer(currentShader->GetPixelConstantBufferSize());
-// 		assert(constantBufferPS != nullptr);
-// 		memcpy(constantBufferPS->Lock(), currentShader->GetPixelConstantBuffer(), currentShader->GetPixelConstantBufferSize());
-// 		constantBufferPS->Unlock();
-// 		GetCurrentCommandList()->SetConstantBuffer(constantBufferPS, 1);
-// 	}
-    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
-    auto renderContext = renderDevice->GetImmediateContext();
+    CommitUniformAndTextures();
+    
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
-    renderContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
-    renderContext->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-	auto piplineState = GetOrCreatePiplineState();
-    renderContext->SetPipelineState(piplineState);
+    deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+    deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
-    //StoreUniforms(false);
+    auto piplineState = GetOrCreatePiplineState();
+    deviceContext_->SetPipelineState(piplineState);
+    deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
 	impl->drawcallCount++;
 	impl->drawvertexCount += vertexCount * instanceCount;
@@ -1041,18 +956,7 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
     DrawAttrs.NumIndices = indexCount;
     DrawAttrs.NumInstances = instanceCount;
     DrawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-    renderContext->DrawIndexed(DrawAttrs);
-
-	//GetCurrentCommandList()->SetVertexBuffer(currentVertexBuffer_, currentVertexBufferStride_, 0);
-//     GetCurrentCommandList()->SetVertexBuffers({ currentVertexBuffer_ });
-//     GetCurrentCommandList()->SetIndexBuffer(currentIndexBuffer_);
-// 	//GetCurrentCommandList()->Draw(indexCount / 3, instanceCount);
-//     GetCurrentCommandList()->DrawIndexedInstanced(0, indexCount, 0, instanceCount);
-
-//     auto renderDevice = GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
-//     renderDevice->GetRenderContext()->Execute(GetCurrentCommandList());
-// 	LLGI::SafeRelease(constantBufferVS);
-// 	LLGI::SafeRelease(constantBufferPS);
+    deviceContext_->DrawIndexed(DrawAttrs);
 }
 
 void RendererImplemented::BeginShader(Shader* shader)

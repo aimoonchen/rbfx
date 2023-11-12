@@ -15,6 +15,8 @@
 namespace Diligent
 {
     struct IShader;
+    struct IBuffer;
+    struct IShaderResourceBinding;
 }
 
 namespace Urho3D
@@ -130,17 +132,17 @@ class VertexLayout
 	: public Effekseer::Backend::VertexLayout
 {
 public:
-	class Element
-	{
-	public:
-		//LLGI::VertexLayoutFormat Format;
-        Urho3D::VertexElement Format;
-// 		std::string Name;
-// 		int32_t Semantic;
-	};
+// 	class Element
+// 	{
+// 	public:
+// 		//LLGI::VertexLayoutFormat Format;
+//         Diligent::LayoutElement Format;
+// // 		std::string Name;
+// // 		int32_t Semantic;
+// 	};
 
 private:
-	Effekseer::CustomVector<Element> elements_;
+	Effekseer::CustomVector<Diligent::LayoutElement> elements_;
 
 public:
 	VertexLayout() = default;
@@ -150,7 +152,7 @@ public:
 
 	void MakeGenerated();
 
-	const Effekseer::CustomVector<Element>& GetElements() const
+	const Effekseer::CustomVector<Diligent::LayoutElement>& GetElements() const
 	{
 		return elements_;
 	}
@@ -163,23 +165,25 @@ private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
     Diligent::RefCntAutoPtr<Diligent::IShader> vertexShader_;
     Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader_;
-
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> vertexUniformBuffer_;
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> pixelUniformBuffer_;
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding_;
     Effekseer::Backend::UniformLayoutRef uniformLayout_ = nullptr;
-
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const char* name, int32_t size);
 public:
 	Shader(GraphicsDevice* graphicsDevice);
 	~Shader() override;
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize);
     bool Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout);
     bool Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout);
-    Diligent::IShader* GetVertexShader() const
-	{
-		return vertexShader_;
-	}
-    Diligent::IShader* GetPixelShader() const
-	{
-		return pixelShader_;
-	}
+    Diligent::IShader* GetVertexShader() const { return vertexShader_; }
+    Diligent::IShader* GetPixelShader() const { return pixelShader_; }
+    Diligent::IBuffer* GetVertexUniformBuffer() const { return vertexUniformBuffer_; }
+    Diligent::IBuffer* GetPixelUniformBuffer() const { return pixelUniformBuffer_; }
+    void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb);
+    Diligent::IShaderResourceBinding* GetShaderResourceBinding() const { return shaderResourceBinding_; }
+    void CreateVertexUniformBuffer(int32_t size);
+    void CreatePixelUniformBuffer(int32_t size);
     const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;
 };
 

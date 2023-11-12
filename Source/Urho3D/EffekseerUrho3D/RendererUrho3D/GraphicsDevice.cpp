@@ -160,13 +160,13 @@ void IndexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 
 bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount)
 {
-    std::array<Urho3D::VertexElementType, 6> formatMap{};
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32_FLOAT)]          = Urho3D::VertexElementType::TYPE_FLOAT;
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32_FLOAT)]       = Urho3D::VertexElementType::TYPE_VECTOR2;
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32_FLOAT)]    = Urho3D::VertexElementType::TYPE_VECTOR3;
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32A32_FLOAT)] = Urho3D::VertexElementType::TYPE_VECTOR4;
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM)]     = Urho3D::VertexElementType::TYPE_UBYTE4_NORM;
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UINT)]      = Urho3D::VertexElementType::TYPE_UBYTE4;
+    ea::array<ea::pair<int32_t, Diligent::VALUE_TYPE>, 6> formatMap{};
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32_FLOAT)]          = { 1, Diligent::VALUE_TYPE::VT_FLOAT32 };
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32_FLOAT)]       = { 2, Diligent::VALUE_TYPE::VT_FLOAT32 };
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32_FLOAT)]    = { 3, Diligent::VALUE_TYPE::VT_FLOAT32 };
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32A32_FLOAT)] = { 4, Diligent::VALUE_TYPE::VT_FLOAT32 };
+	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM)]     = { 1, Diligent::VALUE_TYPE::VT_UINT32 };
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UINT)]      = { 1, Diligent::VALUE_TYPE::VT_UINT32 };
 
     ea::unordered_map<ea::string, Urho3D::VertexElementSemantic> semanticMap{
         {"Input_Pos",                   Urho3D::SEM_POSITION},
@@ -188,27 +188,10 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
 	for (int32_t i = 0; i < elementCount; i++)
 	{
         const auto& e = elements[i];
-        Urho3D::VertexElementType type = formatMap[static_cast<int32_t>(elements[i].Format)];
-        Urho3D::VertexElementSemantic attrib = semanticMap[e.Name.c_str()];
-        unsigned char index = (e.SemanticName == "TEXCOORD") ? e.SemanticIndex : 0;
-//         if (e.SemanticName == "POSITION") {
-//             attrib = Urho3D::SEM_POSITION;
-//         } else if (e.SemanticName == "NORMAL") {
-//             switch (e.SemanticIndex) {
-//             case 0: attrib = Urho3D::SEM_COLOR; break;
-//             case 1: attrib = Urho3D::SEM_NORMAL; break;
-//             case 2: attrib = Urho3D::SEM_TANGENT; break;
-//             case 3: attrib = Urho3D::SEM_BINORMAL; break;
-//             default: assert(0); break;
-//             }
-//         } else if (e.SemanticName == "TEXCOORD") {
-//             attrib = Urho3D::SEM_TEXCOORD;
-//             index = e.SemanticIndex;
-//         }
-
-        elements_[i].Format = Urho3D::VertexElement(type, attrib, index, 0);
-        elements_[i].Format.offset_ = offset;
-        offset += Urho3D::ELEMENT_TYPESIZES[type];
+        const auto& type = formatMap[static_cast<int32_t>(e.Format)];
+        elements_[i] = Diligent::LayoutElement(i, (e.SemanticName == "TEXCOORD") ? e.SemanticIndex : 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM));
+//         elements_[i].Format.offset_ = offset;
+//         offset += Urho3D::ELEMENT_TYPESIZES[type];
 // 		elements_[i].Name = elements[i].SemanticName;
 // 		elements_[i].Semantic = elements[i].SemanticIndex;
 	}
@@ -274,6 +257,7 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
         auto p0 = strView.find_last_of('/');
         auto p1 = strView.find('.');
         shaderName = strView.substr(p0 + 1, p1 - p0 - 1);
+        return true;
     };
     
     Diligent::ShaderCreateInfo ShaderCI;
@@ -284,8 +268,8 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
     ShaderCI.Desc.UseCombinedTextureSamplers = true;
     ea::string sourceCode;
     ea::string shaderName;
-    get_source_code(vertexFilename, sourceCode, shaderName);
     // Create a vertex shader
+    if (get_source_code(vertexFilename, sourceCode, shaderName))
     {
         ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
         ShaderCI.EntryPoint = "main";
@@ -293,8 +277,8 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
         ShaderCI.Source = sourceCode.data();
         pDevice->CreateShader(ShaderCI, &vertexShader_);
     }
-    get_source_code(pixelFilename, sourceCode, shaderName);
     // Create a pixel shader
+    if (get_source_code(pixelFilename, sourceCode, shaderName))
     {
         ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
         ShaderCI.EntryPoint = "main";
@@ -305,9 +289,42 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
+void Shader::SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb)
+{
+    shaderResourceBinding_ = srb;
+}
+
 const Effekseer::Backend::UniformLayoutRef& Shader::GetUniformLayout() const
 {
     return uniformLayout_;
+}
+
+Diligent::RefCntAutoPtr<Diligent::IBuffer> Shader::create_uniform_buffer(const char* name, int32_t size)
+{
+    Diligent::BufferDesc CBDesc;
+    CBDesc.Name = name;
+    CBDesc.Size = size;
+    CBDesc.Usage = Diligent::USAGE_DYNAMIC;
+    CBDesc.BindFlags = Diligent::BIND_UNIFORM_BUFFER;
+    CBDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
+
+    auto graphic = graphicsDevice_->GetGraphics();
+    auto cache = graphic->GetSubsystem<Urho3D::ResourceCache>();
+    auto pDevice = graphic->GetSubsystem<Urho3D::RenderDevice>()->GetRenderDevice();
+
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> pBuffer;
+    pDevice->CreateBuffer(CBDesc, nullptr, &pBuffer);
+    return pBuffer;
+}
+
+void Shader::CreateVertexUniformBuffer(int32_t size)
+{
+    vertexUniformBuffer_ = create_uniform_buffer("VS constants CB", size);
+}
+
+void Shader::CreatePixelUniformBuffer(int32_t size)
+{
+    pixelUniformBuffer_ = create_uniform_buffer("PS constants CB", size);
 }
 
 GraphicsDevice::GraphicsDevice(Urho3D::Graphics* graphics)
