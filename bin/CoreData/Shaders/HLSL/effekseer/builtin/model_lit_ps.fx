@@ -31,12 +31,12 @@ cbuffer PS_ConstantBuffer : register(b1)
     float4 _225_miscFlags : packoffset(c17);
 };
 
-Texture2D<float4> _colorTex : register(t0);
-SamplerState sampler_colorTex : register(s0);
-Texture2D<float4> _normalTex : register(t1);
-SamplerState sampler_normalTex : register(s1);
-Texture2D<float4> _depthTex : register(t2);
-SamplerState sampler_depthTex : register(s2);
+Texture2D<float4> colorTex : register(t0);
+SamplerState colorTex_sampler : register(s0);
+Texture2D<float4> normalTex : register(t1);
+SamplerState normalTex_sampler : register(s1);
+Texture2D<float4> depthTex : register(t2);
+SamplerState depthTex_sampler : register(s2);
 
 static float4 gl_FragCoord;
 static float4 Input_Color;
@@ -131,10 +131,10 @@ float4 ConvertToScreen(float4 c, bool isValid)
 float4 _main(PS_Input Input)
 {
     bool convertColorSpace = _225_miscFlags.x != 0.0f;
-    float4 param = _colorTex.Sample(sampler_colorTex, Input.UV);
+    float4 param = colorTex.Sample(colorTex_sampler, Input.UV);
     bool param_1 = convertColorSpace;
     float4 Output = ConvertFromSRGBTexture(param, param_1) * Input.Color;
-    float3 texNormal = (_normalTex.Sample(sampler_normalTex, Input.UV).xyz - 0.5f.xxx) * 2.0f;
+    float3 texNormal = (normalTex.Sample(normalTex_sampler, Input.UV).xyz - 0.5f.xxx) * 2.0f;
     float3 localNormal = normalize(mul(texNormal, float3x3(float3(Input.WorldT), float3(Input.WorldB), float3(Input.WorldN))));
     float diffuse = max(dot(_225_fLightDirection.xyz, localNormal), 0.0f);
     float4 _300 = Output;
@@ -153,7 +153,7 @@ float4 _main(PS_Input Input)
     screenUV.y = _225_mUVInversedBack.x + (_225_mUVInversedBack.y * screenUV.y);
     if (_225_softParticleParam.w != 0.0f)
     {
-        float backgroundZ = _depthTex.Sample(sampler_depthTex, screenUV).x;
+        float backgroundZ = depthTex.Sample(depthTex_sampler, screenUV).x;
         float param_2 = backgroundZ;
         float param_3 = screenPos.z;
         float4 param_4 = _225_softParticleParam;

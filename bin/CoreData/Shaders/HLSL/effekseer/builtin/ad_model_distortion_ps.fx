@@ -35,22 +35,22 @@ cbuffer PS_ConstantBuffer : register(b1)
     float4 _393_reconstructionParam2 : packoffset(c7);
 };
 
-Texture2D<float4> _uvDistortionTex : register(t3);
-SamplerState sampler_uvDistortionTex : register(s3);
-Texture2D<float4> _colorTex : register(t0);
-SamplerState sampler_colorTex : register(s0);
-Texture2D<float4> _alphaTex : register(t2);
-SamplerState sampler_alphaTex : register(s2);
-Texture2D<float4> _blendUVDistortionTex : register(t6);
-SamplerState sampler_blendUVDistortionTex : register(s6);
-Texture2D<float4> _blendTex : register(t4);
-SamplerState sampler_blendTex : register(s4);
-Texture2D<float4> _blendAlphaTex : register(t5);
-SamplerState sampler_blendAlphaTex : register(s5);
-Texture2D<float4> _backTex : register(t1);
-SamplerState sampler_backTex : register(s1);
-Texture2D<float4> _depthTex : register(t7);
-SamplerState sampler_depthTex : register(s7);
+Texture2D<float4> uvDistortionTex : register(t3);
+SamplerState uvDistortionTex_sampler : register(s3);
+Texture2D<float4> colorTex : register(t0);
+SamplerState colorTex_sampler : register(s0);
+Texture2D<float4> alphaTex : register(t2);
+SamplerState alphaTex_sampler : register(s2);
+Texture2D<float4> blendUVDistortionTex : register(t6);
+SamplerState blendUVDistortionTex_sampler : register(s6);
+Texture2D<float4> blendTex : register(t4);
+SamplerState blendTex_sampler : register(s4);
+Texture2D<float4> blendAlphaTex : register(t5);
+SamplerState blendAlphaTex_sampler : register(s5);
+Texture2D<float4> backTex : register(t1);
+SamplerState backTex_sampler : register(s1);
+Texture2D<float4> depthTex : register(t7);
+SamplerState depthTex_sampler : register(s7);
 
 static float4 gl_FragCoord;
 static float4 Input_UV_Others;
@@ -225,24 +225,24 @@ float4 _main(PS_Input Input)
     float2 param_1 = advancedParam.UVDistortionUV;
     float2 param_2 = _393_fUVDistortionParameter.zw;
     bool param_3 = false;
-    float2 UVOffset = UVDistortionOffset(_uvDistortionTex, sampler_uvDistortionTex, param_1, param_2, param_3);
+    float2 UVOffset = UVDistortionOffset(uvDistortionTex, uvDistortionTex_sampler, param_1, param_2, param_3);
     UVOffset *= _393_fUVDistortionParameter.x;
-    float4 Output = _colorTex.Sample(sampler_colorTex, float2(Input.UV_Others.xy) + UVOffset);
+    float4 Output = colorTex.Sample(colorTex_sampler, float2(Input.UV_Others.xy) + UVOffset);
     Output.w *= Input.Color.w;
     float4 param_4 = Output;
     float param_5 = advancedParam.FlipbookRate;
     bool param_6 = false;
-    ApplyFlipbook(param_4, _colorTex, sampler_colorTex, _393_fFlipbookParameter, Input.Color, advancedParam.FlipbookNextIndexUV + UVOffset, param_5, param_6);
+    ApplyFlipbook(param_4, colorTex, colorTex_sampler, _393_fFlipbookParameter, Input.Color, advancedParam.FlipbookNextIndexUV + UVOffset, param_5, param_6);
     Output = param_4;
-    float4 AlphaTexColor = _alphaTex.Sample(sampler_alphaTex, advancedParam.AlphaUV + UVOffset);
+    float4 AlphaTexColor = alphaTex.Sample(alphaTex_sampler, advancedParam.AlphaUV + UVOffset);
     Output.w *= (AlphaTexColor.x * AlphaTexColor.w);
     float2 param_7 = advancedParam.BlendUVDistortionUV;
     float2 param_8 = _393_fUVDistortionParameter.zw;
     bool param_9 = false;
-    float2 BlendUVOffset = UVDistortionOffset(_blendUVDistortionTex, sampler_blendUVDistortionTex, param_7, param_8, param_9);
+    float2 BlendUVOffset = UVDistortionOffset(blendUVDistortionTex, blendUVDistortionTex_sampler, param_7, param_8, param_9);
     BlendUVOffset *= _393_fUVDistortionParameter.y;
-    float4 BlendTextureColor = _blendTex.Sample(sampler_blendTex, advancedParam.BlendUV + BlendUVOffset);
-    float4 BlendAlphaTextureColor = _blendAlphaTex.Sample(sampler_blendAlphaTex, advancedParam.BlendAlphaUV + BlendUVOffset);
+    float4 BlendTextureColor = blendTex.Sample(blendTex_sampler, advancedParam.BlendUV + BlendUVOffset);
+    float4 BlendAlphaTextureColor = blendAlphaTex.Sample(blendAlphaTex_sampler, advancedParam.BlendAlphaUV + BlendUVOffset);
     BlendTextureColor.w *= (BlendAlphaTextureColor.x * BlendAlphaTextureColor.w);
     float4 param_10 = Output;
     ApplyTextureBlending(param_10, BlendTextureColor, _393_fBlendTextureParameter.x);
@@ -260,7 +260,7 @@ float4 _main(PS_Input Input)
     uv.x = (uv.x + 1.0f) * 0.5f;
     uv.y = 1.0f - ((uv.y + 1.0f) * 0.5f);
     uv.y = _393_mUVInversedBack.x + (_393_mUVInversedBack.y * uv.y);
-    float3 color = float3(_backTex.Sample(sampler_backTex, uv).xyz);
+    float3 color = float3(backTex.Sample(backTex_sampler, uv).xyz);
     Output.x = color.x;
     Output.y = color.y;
     Output.z = color.z;
@@ -269,7 +269,7 @@ float4 _main(PS_Input Input)
     screenUV.y = 1.0f - screenUV.y;
     if (_393_softParticleParam.w != 0.0f)
     {
-        float backgroundZ = _depthTex.Sample(sampler_depthTex, screenUV).x;
+        float backgroundZ = depthTex.Sample(depthTex_sampler, screenUV).x;
         float param_11 = backgroundZ;
         float param_12 = screenPos.z;
         float4 param_13 = _393_softParticleParam;

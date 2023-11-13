@@ -18,7 +18,7 @@ namespace Diligent
     struct IBuffer;
     struct IShaderResourceBinding;
 }
-
+extern const unsigned EFFEKSEER_ELEMENT_TYPESIZES[];
 namespace Urho3D
 {
 class Graphics;
@@ -143,7 +143,7 @@ public:
 
 private:
 	Effekseer::CustomVector<Diligent::LayoutElement> elements_;
-
+    Effekseer::CustomVector<Effekseer::Backend::VertexLayoutElement> effekseerElements_;
 public:
 	VertexLayout() = default;
 	~VertexLayout() = default;

@@ -20,12 +20,12 @@ cbuffer PS_ConstantBuffer : register(b1)
     float4 _155_reconstructionParam2 : packoffset(c7);
 };
 
-Texture2D<float4> _colorTex : register(t0);
-SamplerState sampler_colorTex : register(s0);
-Texture2D<float4> _backTex : register(t1);
-SamplerState sampler_backTex : register(s1);
-Texture2D<float4> _depthTex : register(t2);
-SamplerState sampler_depthTex : register(s2);
+Texture2D<float4> colorTex : register(t0);
+SamplerState colorTex_sampler : register(s0);
+Texture2D<float4> backTex : register(t1);
+SamplerState backTex_sampler : register(s1);
+Texture2D<float4> depthTex : register(t2);
+SamplerState depthTex_sampler : register(s2);
 
 static float4 gl_FragCoord;
 static float2 Input_UV;
@@ -68,7 +68,7 @@ float SoftParticle(float backgroundZ, float meshZ, float4 softparticleParam, flo
 
 float4 _main(PS_Input Input)
 {
-    float4 Output = _colorTex.Sample(sampler_colorTex, Input.UV);
+    float4 Output = colorTex.Sample(colorTex_sampler, Input.UV);
     Output.w *= Input.Color.w;
     float2 pos = Input.PosP.xy / Input.PosP.w.xx;
     float2 posR = Input.ProjTangent.xy / Input.ProjTangent.w.xx;
@@ -79,7 +79,7 @@ float4 _main(PS_Input Input)
     uv.x = (uv.x + 1.0f) * 0.5f;
     uv.y = 1.0f - ((uv.y + 1.0f) * 0.5f);
     uv.y = _155_mUVInversedBack.x + (_155_mUVInversedBack.y * uv.y);
-    float3 color = float3(_backTex.Sample(sampler_backTex, uv).xyz);
+    float3 color = float3(backTex.Sample(backTex_sampler, uv).xyz);
     Output.x = color.x;
     Output.y = color.y;
     Output.z = color.z;
@@ -88,7 +88,7 @@ float4 _main(PS_Input Input)
     screenUV.y = 1.0f - screenUV.y;
     if (_155_softParticleParam.w != 0.0f)
     {
-        float backgroundZ = _depthTex.Sample(sampler_depthTex, screenUV).x;
+        float backgroundZ = depthTex.Sample(depthTex_sampler, screenUV).x;
         float param = backgroundZ;
         float param_1 = screenPos.z;
         float4 param_2 = _155_softParticleParam;

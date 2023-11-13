@@ -12,6 +12,20 @@
 #include "../../Graphics/Texture2D.h"
 #include "../../RenderAPI/RenderDevice.h"
 
+
+const unsigned EFFEKSEER_ELEMENT_TYPESIZES[] = {
+    0, // VT_UNDEFINED = 0, ///< Undefined type
+    1, // VT_INT8, ///< Signed 8-bit integer
+    2, // VT_INT16, ///< Signed 16-bit integer
+    sizeof(int), // VT_INT32, ///< Signed 32-bit integer
+    1, // VT_UINT8, ///< Unsigned 8-bit integer
+    2, // VT_UINT16, ///< Unsigned 16-bit integer
+    sizeof(unsigned), // VT_UINT32, ///< Unsigned 32-bit integer
+    2, // VT_FLOAT16, ///< Half-precision 16-bit floating point
+    sizeof(float), // VT_FLOAT32, ///< Full-precision 32-bit floating point
+    sizeof(double), // VT_FLOAT64, ///< Double-precision 64-bit floating point
+    0, // VT_NUM_TYPES ///< Helper value storing total number of types in the enumeration
+};
 namespace EffekseerUrho3D
 {
 namespace Backend
@@ -165,35 +179,27 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
     formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32_FLOAT)]       = { 2, Diligent::VALUE_TYPE::VT_FLOAT32 };
     formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32_FLOAT)]    = { 3, Diligent::VALUE_TYPE::VT_FLOAT32 };
     formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32A32_FLOAT)] = { 4, Diligent::VALUE_TYPE::VT_FLOAT32 };
-	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM)]     = { 1, Diligent::VALUE_TYPE::VT_UINT32 };
-    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UINT)]      = { 1, Diligent::VALUE_TYPE::VT_UINT32 };
+	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM)]     = { 4, Diligent::VALUE_TYPE::VT_UINT8 };
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UINT)]      = { 4, Diligent::VALUE_TYPE::VT_UINT8 };
 
-    ea::unordered_map<ea::string, Urho3D::VertexElementSemantic> semanticMap{
-        {"Input_Pos",                   Urho3D::SEM_POSITION},
-        {"Input_Color",                 Urho3D::SEM_COLOR},
-        {"Input_Normal",                Urho3D::SEM_NORMAL},
-        {"Input_Binormal",              Urho3D::SEM_BINORMAL},
-        {"Input_Tangent",               Urho3D::SEM_TANGENT},
-        {"Input_UV",                    Urho3D::SEM_TEXCOORD},
-        {"Input_UV1",                   Urho3D::SEM_TEXCOORD},
-        {"Input_UV2",                   Urho3D::SEM_TEXCOORD},
-        {"Input_Alpha_Dist_UV",         Urho3D::SEM_TEXCOORD},
-        {"Input_BlendUV",               Urho3D::SEM_TEXCOORD},
-        {"Input_Blend_Alpha_Dist_UV",   Urho3D::SEM_TEXCOORD},
-        {"Input_FlipbookIndex",         Urho3D::SEM_TEXCOORD},
-        {"Input_AlphaThreshold",        Urho3D::SEM_TEXCOORD},
-    };
 	elements_.resize(elementCount);
-    int32_t offset = 0;
-	for (int32_t i = 0; i < elementCount; i++)
-	{
+    effekseerElements_.resize(elementCount);
+    uint32_t offset = 0;
+    uint32_t stride = 0;
+    for (int32_t i = 0; i < elementCount; i++) {
         const auto& e = elements[i];
         const auto& type = formatMap[static_cast<int32_t>(e.Format)];
-        elements_[i] = Diligent::LayoutElement(i, (e.SemanticName == "TEXCOORD") ? e.SemanticIndex : 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM));
-//         elements_[i].Format.offset_ = offset;
-//         offset += Urho3D::ELEMENT_TYPESIZES[type];
-// 		elements_[i].Name = elements[i].SemanticName;
-// 		elements_[i].Semantic = elements[i].SemanticIndex;
+        stride += EFFEKSEER_ELEMENT_TYPESIZES[type.second] * type.first;
+        effekseerElements_[i] = elements[i];
+    }
+	for (int32_t i = 0; i < elementCount; i++) {
+        const auto& e = effekseerElements_[i];
+        const auto& type = formatMap[static_cast<int32_t>(e.Format)];
+        // dx12
+        elements_[i] = Diligent::LayoutElement("TEXCOORD", i, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
+        //elements_[i] = Diligent::LayoutElement(e.SemanticName.c_str(), e.SemanticIndex, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
+        //elements_[i] = Diligent::LayoutElement(i, (e.SemanticName == "TEXCOORD") ? e.SemanticIndex + 1 : 1, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_INSTANCE, 1);
+        offset += EFFEKSEER_ELEMENT_TYPESIZES[type.second] * type.first;
 	}
 
 	return true;

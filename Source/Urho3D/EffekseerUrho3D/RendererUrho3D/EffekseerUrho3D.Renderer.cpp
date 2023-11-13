@@ -202,7 +202,7 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
 
     // Pipeline state name is used by the engine to report issues.
     // It is always a good idea to give objects descriptive names.
-    PSOCreateInfo.PSODesc.Name = "Simple triangle PSO";
+    PSOCreateInfo.PSODesc.Name = "Effekseer PSO";
 
     // This is a graphics pipeline
     PSOCreateInfo.PSODesc.PipelineType = Diligent::PIPELINE_TYPE_GRAPHICS;
@@ -254,6 +254,38 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
 //         layoutElement[i] = elements[i].Format;
 //     }
 
+    ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
+    ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
+    const auto& uniformLayout = currentShader->GetUniformLayout();
+    if (uniformLayout != nullptr) {
+        Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
+        ws[(int)Effekseer::TextureWrapType::Clamp] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
+        ws[(int)Effekseer::TextureWrapType::Repeat] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP;
+
+        Diligent::FILTER_TYPE fs[2]{};
+        fs[(int)Effekseer::TextureFilterType::Linear] = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
+        fs[(int)Effekseer::TextureFilterType::Nearest] = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
+
+        const auto& samplerNames = uniformLayout->GetTextures();
+        auto samplerCount = samplerNames.size();
+        const auto& state = key.state;
+        Vars.reserve(samplerCount);
+        ImtblSamplers.reserve(samplerCount);
+        for (int i = 0; i < samplerCount; i++) {
+            auto filterMode = fs[(int)state.TextureFilterTypes[i]];
+            auto addressMode = ws[(int)state.TextureWrapTypes[i]];
+            Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(), Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+            ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(),
+                Diligent::SamplerDesc{ filterMode, filterMode, filterMode, addressMode, addressMode, addressMode }
+            );
+        }
+    }
+    auto& resourceLayout = PSOCreateInfo.PSODesc.ResourceLayout;
+    resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+    resourceLayout.Variables = Vars.data();
+    resourceLayout.NumVariables = Vars.size();
+    resourceLayout.ImmutableSamplers = ImtblSamplers.data();
+    resourceLayout.NumImmutableSamplers = ImtblSamplers.size();
 
     auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
     blendDesc.BlendEnable = true;
@@ -326,7 +358,6 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
         blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
         blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
     }
-
 
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> piplineState;
     auto device = renderDevice->GetRenderDevice();
@@ -462,13 +493,22 @@ static const char* kShaderName[] = {
     "AdvancedBackDistortion", // RendererShaderType::AdvancedBackDistortion
 };
 
+// static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
+//     {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.hlsl",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.hlsl"}, // RendererShaderType::Unlit
+//     {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.hlsl",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.hlsl"}, // RendererShaderType::Lit
+//     {"Shaders/HLSL/effekseer/builtin/sprite_distortion_vs.hlsl",       "Shaders/HLSL/effekseer/builtin/model_distortion_ps.hlsl"}, // RendererShaderType::BackDistortion
+//     {"Shaders/HLSL/effekseer/builtin/ad_sprite_unlit_vs.hlsl",         "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.hlsl"}, // RendererShaderType::AdvancedUnlit
+//     {"Shaders/HLSL/effekseer/builtin/ad_sprite_lit_vs.hlsl",           "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.hlsl"}, // RendererShaderType::AdvancedLit
+//     {"Shaders/HLSL/effekseer/builtin/ad_sprite_distortion_vs.hlsl",    "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.hlsl"} // RendererShaderType::AdvancedBackDistortion
+// };
+
 static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
-    {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.hlsl",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.hlsl"}, // RendererShaderType::Unlit
-    {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.hlsl",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.hlsl"}, // RendererShaderType::Lit
-    {"Shaders/HLSL/effekseer/builtin/sprite_distortion_vs.hlsl",       "Shaders/HLSL/effekseer/builtin/model_distortion_ps.hlsl"}, // RendererShaderType::BackDistortion
-    {"Shaders/HLSL/effekseer/builtin/ad_sprite_unlit_vs.hlsl",         "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.hlsl"}, // RendererShaderType::AdvancedUnlit
-    {"Shaders/HLSL/effekseer/builtin/ad_sprite_lit_vs.hlsl",           "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.hlsl"}, // RendererShaderType::AdvancedLit
-    {"Shaders/HLSL/effekseer/builtin/ad_sprite_distortion_vs.hlsl",    "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.hlsl"} // RendererShaderType::AdvancedBackDistortion
+    {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.fx",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.fx"}, // RendererShaderType::Unlit
+    {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.fx",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.fx"}, // RendererShaderType::Lit
+    {"Shaders/HLSL/effekseer/builtin/sprite_distortion_vs.fx",       "Shaders/HLSL/effekseer/builtin/model_distortion_ps.fx"}, // RendererShaderType::BackDistortion
+    {"Shaders/HLSL/effekseer/builtin/ad_sprite_unlit_vs.fx",         "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.fx"}, // RendererShaderType::AdvancedUnlit
+    {"Shaders/HLSL/effekseer/builtin/ad_sprite_lit_vs.fx",           "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.fx"}, // RendererShaderType::AdvancedLit
+    {"Shaders/HLSL/effekseer/builtin/ad_sprite_distortion_vs.fx",    "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.fx"} // RendererShaderType::AdvancedBackDistortion
 };
 
 bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
@@ -898,14 +938,13 @@ void RendererImplemented::CommitUniformAndTextures()
 
 void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 {
+    auto piplineState = GetOrCreatePiplineState();
     CommitUniformAndTextures();
 
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
     deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
     deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-
-    auto piplineState = GetOrCreatePiplineState();
     deviceContext_->SetPipelineState(piplineState);
     deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
@@ -937,14 +976,13 @@ void RendererImplemented::DrawPolygon(int32_t vertexCount, int32_t indexCount)
 
 void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t indexCount, int32_t instanceCount)
 {
+    auto piplineState = GetOrCreatePiplineState();
     CommitUniformAndTextures();
     
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
     deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
     deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-
-    auto piplineState = GetOrCreatePiplineState();
     deviceContext_->SetPipelineState(piplineState);
     deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
@@ -1131,24 +1169,24 @@ Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(Effek
     Effekseer::CustomVector<Effekseer::CustomString<char>> texLoc;
 
     auto pushColor = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("Sampler_sampler_colorTex"); };
+    { texLoc.emplace_back("colorTex"); };
 
     auto pushDepth = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("Sampler_sampler_depthTex"); };
+    { texLoc.emplace_back("depthTex"); };
 
     auto pushBack = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("Sampler_sampler_backTex"); };
+    { texLoc.emplace_back("backTex"); };
 
     auto pushNormal = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("Sampler_sampler_normalTex"); };
+    { texLoc.emplace_back("normalTex"); };
 
     auto pushAdvancedRendererParameterLoc = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc) -> void
     {
-        texLoc.emplace_back("Sampler_sampler_alphaTex");
-        texLoc.emplace_back("Sampler_sampler_uvDistortionTex");
-        texLoc.emplace_back("Sampler_sampler_blendTex");
-        texLoc.emplace_back("Sampler_sampler_blendAlphaTex");
-        texLoc.emplace_back("Sampler_sampler_blendUVDistortionTex");
+        texLoc.emplace_back("alphaTex");
+        texLoc.emplace_back("uvDistortionTex");
+        texLoc.emplace_back("blendTex");
+        texLoc.emplace_back("blendAlphaTex");
+        texLoc.emplace_back("blendUVDistortionTex");
     };
 
     pushColor(texLoc);
