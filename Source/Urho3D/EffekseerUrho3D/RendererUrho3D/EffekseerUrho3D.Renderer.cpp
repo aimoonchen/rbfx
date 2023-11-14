@@ -215,31 +215,27 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     PSOCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain->GetDesc().ColorBufferFormat;
     // Use the depth buffer format from the swap chain
     PSOCreateInfo.GraphicsPipeline.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
-    // Primitive topology defines what kind of primitives will be rendered by this pipeline state
-    PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    // No back face culling for this tutorial
-    PSOCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+    
+    PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = currentTopologyType_;
+
+    auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
+    rasterizerDesc.ScissorEnable = Diligent::False;
+
+    if (key.state.CullingType == ::Effekseer::CullingType::Back) {
+        rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_FRONT : Diligent::CULL_MODE_BACK;
+    }
+    else if (key.state.CullingType == ::Effekseer::CullingType::Front) {
+        rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_BACK : Diligent::CULL_MODE_FRONT;
+    }
+    else if (key.state.CullingType == ::Effekseer::CullingType::Double) {
+        rasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+    }
+
     // Depth testing
     auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
     depthStencilDesc.DepthEnable = key.state.DepthTest;
     depthStencilDesc.DepthWriteEnable = key.state.DepthWrite;
     depthStencilDesc.DepthFunc = isReversedDepth_ ? Diligent::COMPARISON_FUNC_GREATER_EQUAL : Diligent::COMPARISON_FUNC_LESS_EQUAL;
-
-    auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
-    if (key.state.CullingType == ::Effekseer::CullingType::Back)
-    {
-        rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_FRONT : Diligent::CULL_MODE_BACK;
-    }
-    else if (key.state.CullingType == ::Effekseer::CullingType::Front)
-    {
-        rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_BACK : Diligent::CULL_MODE_FRONT;
-    }
-    else if (key.state.CullingType == ::Effekseer::CullingType::Double)
-    {
-        rasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
-    }
-
-    PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = currentTopologyType_;
 
     PSOCreateInfo.pVS = currentShader->GetVertexShader();
     PSOCreateInfo.pPS = currentShader->GetPixelShader();
@@ -248,11 +244,6 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     auto& inputLayout = PSOCreateInfo.GraphicsPipeline.InputLayout;
     inputLayout.NumElements = elements.size();
     inputLayout.LayoutElements = elements.data();
-//     ea::vector<Diligent::LayoutElement> layoutElement;
-//     layoutElement.resize(elements.size());
-//     for (size_t i = 0; i < elements.size(); i++) {
-//         layoutElement[i] = elements[i].Format;
-//     }
 
     ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
     ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
@@ -293,54 +284,44 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
     blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
 
-    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Opacity)
-    {
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Opacity) {
         blendDesc.BlendEnable = false;
         blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
         blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
         blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
     }
 
-    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Blend)
-    {
-        if (GetImpl()->IsPremultipliedAlphaEnabled)
-        {
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Blend) {
+        if (GetImpl()->IsPremultipliedAlphaEnabled) {
             blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
             blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
             blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
             blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
             blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-        }
-        else
-        {
+        } else {
             blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
             blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
         }
     }
 
-    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Add)
-    {
-        if (GetImpl()->IsPremultipliedAlphaEnabled)
-        {
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Add) {
+        if (GetImpl()->IsPremultipliedAlphaEnabled) {
             blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
             blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
             blendDesc.DestBlend = Diligent::BLEND_FACTOR_ONE;
             blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ZERO;
             blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-        }
-        else
-        {
+        } else {
             blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
             blendDesc.DestBlend = Diligent::BLEND_FACTOR_ONE;
         }
     }
 
-    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Sub)
-    {
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Sub) {
         blendDesc.DestBlend = Diligent::BLEND_FACTOR_ONE;
         blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
         blendDesc.BlendOp = Diligent::BLEND_OPERATION_REV_SUBTRACT;
@@ -349,8 +330,7 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
         blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
     }
 
-    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Mul)
-    {
+    if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Mul) {
         blendDesc.DestBlend = Diligent::BLEND_FACTOR_SRC_COLOR;
         blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ZERO;
         blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
@@ -362,73 +342,14 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> piplineState;
     auto device = renderDevice->GetRenderDevice();
     device->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
-    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "CBVS0")->Set(currentShader->GetVertexUniformBuffer());
-    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "CBPS0")->Set(currentShader->GetPixelUniformBuffer());
+    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer")->Set(currentShader->GetVertexUniformBuffer());
+    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")->Set(currentShader->GetPixelUniformBuffer());
     Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> SRB;
     piplineState->CreateShaderResourceBinding(&SRB, true);
     currentShader->SetShaderResourceBinding(SRB);
     piplineStates_[key] = piplineState;
 
     return piplineState;
-    /*
-    Urho3D::GraphicsPipelineStateDesc desc;
-    Urho3D::InitializeInputLayout(desc.inputLayout_, { currentVertexBuffer_ });
-    desc.colorWriteEnabled_ = true;
-
-//	auto piplineState = GetGraphics()->CreatePiplineState();
-
-//     desc.vertexShader_ = currentShader->GetVertexShader();
-//     desc.pixelShader_ = currentShader->GetPixelShader();
-
-    const auto& elements = currentShader->GetVertexLayouts()->GetElements();
-    desc.inputLayout_.size_ = static_cast<int32_t>(elements.size());
-    int32_t stride = currentShader->GetVertexSize();//GetCurrentStride();// 
-	for (size_t i = 0; i < elements.size(); i++) {
-        const auto& element = elements[i].Format;
-        auto& layout = desc.inputLayout_.elements_[i];
-        layout.bufferIndex_             = 0;
-        layout.bufferStride_            = stride;// currentVertexBuffer_->GetVertexSize();
-        layout.elementOffset_           = element.offset_;
-        layout.instanceStepRate_        = element.stepRate_;
-        
-        layout.elementType_             = element.type_;
-        layout.elementSemantic_         = element.semantic_;
-        layout.elementSemanticIndex_    = element.index_;
-	}
-
-    const auto& uniformLayout = currentShader->GetUniformLayout();
-    if (uniformLayout != nullptr) {
-        Urho3D::TextureAddressMode ws[2]{};
-        ws[(int)Effekseer::TextureWrapType::Clamp] = Urho3D::TextureAddressMode::ADDRESS_CLAMP;
-        ws[(int)Effekseer::TextureWrapType::Repeat] = Urho3D::TextureAddressMode::ADDRESS_WRAP;
-
-        Urho3D::TextureFilterMode fs[2]{};
-        fs[(int)Effekseer::TextureFilterType::Linear] = Urho3D::TextureFilterMode::FILTER_BILINEAR;
-        fs[(int)Effekseer::TextureFilterType::Nearest] = Urho3D::TextureFilterMode::FILTER_NEAREST;
-        
-        const auto& samplerNames = uniformLayout->GetTextures();
-        auto samplerCount = samplerNames.size();
-        const auto& state = key.state;
-        for (int i = 0; i < samplerCount; i++) {
-            auto ssd = Urho3D::SamplerStateDesc::Default();
-            ssd.filterMode_ = fs[(int)state.TextureFilterTypes[i]];
-            ssd.addressMode_.fill(ws[(int)state.TextureWrapTypes[i]]);
-            desc.samplers_.Add(samplerNames[i].c_str(), ssd);
-        }
-    }
-
-//     piplineState->SetRenderPassPipelineState(currentRenderPassPipelineState_.get());
-// 
-// 	if (!piplineState->Compile())
-// 	{
-// 		assert(0);
-// 	}
-
-    auto piplineState = GetGraphics()->GetSubsystem<Urho3D::PipelineStateCache>()->GetGraphicsPipelineState(desc);
-	piplineStates_[key] = piplineState;
-
-	return piplineState;
-    */
 }
 
 RendererImplemented::RendererImplemented(int32_t squareMaxCount)
@@ -493,15 +414,6 @@ static const char* kShaderName[] = {
     "AdvancedBackDistortion", // RendererShaderType::AdvancedBackDistortion
 };
 
-// static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
-//     {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.hlsl",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.hlsl"}, // RendererShaderType::Unlit
-//     {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.hlsl",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.hlsl"}, // RendererShaderType::Lit
-//     {"Shaders/HLSL/effekseer/builtin/sprite_distortion_vs.hlsl",       "Shaders/HLSL/effekseer/builtin/model_distortion_ps.hlsl"}, // RendererShaderType::BackDistortion
-//     {"Shaders/HLSL/effekseer/builtin/ad_sprite_unlit_vs.hlsl",         "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.hlsl"}, // RendererShaderType::AdvancedUnlit
-//     {"Shaders/HLSL/effekseer/builtin/ad_sprite_lit_vs.hlsl",           "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.hlsl"}, // RendererShaderType::AdvancedLit
-//     {"Shaders/HLSL/effekseer/builtin/ad_sprite_distortion_vs.hlsl",    "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.hlsl"} // RendererShaderType::AdvancedBackDistortion
-// };
-
 static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
     {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.fx",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.fx"}, // RendererShaderType::Unlit
     {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.fx",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.fx"}, // RendererShaderType::Lit
@@ -563,13 +475,8 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
     const auto texLocAdDist = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedBackDistortion);
 
     Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement> uniformLayoutElementsLitUnlit;
-    AddVertexUniformLayout(uniformLayoutElementsLitUnlit);
-    AddPixelUniformLayout(uniformLayoutElementsLitUnlit);
-
     Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement> uniformLayoutElementsDist;
-    AddVertexUniformLayout(uniformLayoutElementsDist);
-    AddDistortionPixelUniformLayout(uniformLayoutElementsDist);
-    //
+
 	auto unlit_vs_shader_data = Backend::Serialize(fixedShader_.SpriteUnlit_VS);
 	auto unlit_ps_shader_data = Backend::Serialize(fixedShader_.ModelUnlit_PS);
     auto pathIndex = (int)EffekseerRenderer::RendererShaderType::Unlit;
@@ -930,8 +837,8 @@ void RendererImplemented::CommitUniformAndTextures()
             srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(nullptr);
         } else {
             auto texture = static_cast<EffekseerUrho3D::Texture*>(m_currentTextures_[i].Get());
-            const auto& handles = texture->GetTexture()->GetHandles();
-            srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(handles.texture_);
+            const auto& srv = texture->GetTexture()->GetHandles().srv_;
+            srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(srv);
         }
     }
 }
@@ -1023,145 +930,20 @@ void RendererImplemented::SetPixelBufferToShader(const void* data, int32_t size,
 
 void RendererImplemented::SetTextures(Shader* shader, Effekseer::Backend::TextureRef* textures, int32_t count)
 {
-// 	auto state = GetRenderState()->GetActiveState();
-//     Urho3D::TextureAddressMode ws[2];
-// 	ws[(int)Effekseer::TextureWrapType::Clamp] = Urho3D::TextureAddressMode::ADDRESS_CLAMP;
-// 	ws[(int)Effekseer::TextureWrapType::Repeat] = Urho3D::TextureAddressMode::ADDRESS_WRAP;
-// 
-// 	Urho3D::TextureFilterMode fs[2];
-// 	fs[(int)Effekseer::TextureFilterType::Linear] = Urho3D::TextureFilterMode::FILTER_BILINEAR;
-// 	fs[(int)Effekseer::TextureFilterType::Nearest] = Urho3D::TextureFilterMode::FILTER_NEAREST;
-// 
-// 	for (int32_t i = 0; i < count; i++)
-// 	{
-// 		if (textures[i] == nullptr)
-// 		{
-// 			GetCurrentCommandList()->SetTexture(nullptr, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
-// 			GetCurrentCommandList()->SetTexture(nullptr, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
-// 		}
-// 		else
-// 		{
-// 			auto texture = static_cast<Backend::Texture*>(textures[i].Get());
-// 			auto t = texture->GetTexture().get();
-// 			GetCurrentCommandList()->SetTexture(t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
-// 			GetCurrentCommandList()->SetTexture(t, ws[(int)state.TextureWrapTypes[i]], fs[(int)state.TextureFilterTypes[i]], i);
-// 		}
-// 	}
-
     m_currentTextures_.resize(count);
     for (int32_t i = 0; i < count; i++) {
         if (textures[i] != nullptr) {
             m_currentTextures_[i] = textures[i];
-        }
-        else {
+        } else {
             m_currentTextures_[i].Reset();
         }
     }
-
-//     const auto& uniformLayout = shader->GetUniformLayout();
-//     if (uniformLayout == nullptr)
-//     {
-//         return;
-//     }
-//     const auto& samplerNames = uniformLayout->GetTextures();
-//     for (int32_t i = 0; i < count; i++) {
-//         if (textures[i] == nullptr) {
-//             GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), nullptr);
-//         } else {
-//             auto texture = static_cast<EffekseerUrho3D::Texture*>(textures[i].Get());
-//             GetCurrentCommandList()->AddShaderResource(samplerNames[i].c_str(), texture->GetTexture().get());
-//         }
-//     }
 }
 
 void RendererImplemented::ResetRenderState()
 {
 	m_renderState->GetActiveState().Reset();
 	m_renderState->Update(true);
-}
-
-void AddVertexUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout)
-{
-    using namespace Effekseer::Backend;
-
-    int vsOffset = 0;
-
-    auto storeVector = [&](const char* name)
-    {
-        uniformLayout.emplace_back(
-            UniformLayoutElement{ShaderStageType::Vertex, name, UniformBufferLayoutElementType::Vector4, 1, vsOffset});
-        vsOffset += sizeof(float[4]);
-    };
-
-    auto storeMatrix = [&](const char* name)
-    {
-        uniformLayout.emplace_back(
-            UniformLayoutElement{ShaderStageType::Vertex, name, UniformBufferLayoutElementType::Matrix44, 1, vsOffset});
-        vsOffset += sizeof(Effekseer::Matrix44);
-    };
-
-    storeMatrix("CBVS0.mCamera");
-    storeMatrix("CBVS0.mCameraProj");
-    storeVector("CBVS0.mUVInversed");
-    storeVector("CBVS0.flipbookParameter1");
-    storeVector("CBVS0.flipbookParameter2");
-}
-
-void AddPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout)
-{
-    using namespace Effekseer::Backend;
-
-    int psOffset = 0;
-
-    auto storeVector = [&](const char* name)
-    {
-        uniformLayout.emplace_back(
-            UniformLayoutElement{ShaderStageType::Pixel, name, UniformBufferLayoutElementType::Vector4, 1, psOffset});
-        psOffset += sizeof(float[4]);
-    };
-
-    storeVector("CBPS0.fLightDirection");
-    storeVector("CBPS0.fLightColor");
-    storeVector("CBPS0.fLightAmbient");
-    storeVector("CBPS0.fFlipbookParameter");
-    storeVector("CBPS0.fUVDistortionParameter");
-    storeVector("CBPS0.fBlendTextureParameter");
-    storeVector("CBPS0.fCameraFrontDirection");
-    storeVector("CBPS0.fFalloffParameter");
-    storeVector("CBPS0.fFalloffBeginColor");
-    storeVector("CBPS0.fFalloffEndColor");
-    storeVector("CBPS0.fEmissiveScaling");
-    storeVector("CBPS0.fEdgeColor");
-    storeVector("CBPS0.fEdgeParameter");
-    storeVector("CBPS0.softParticleParam");
-    storeVector("CBPS0.reconstructionParam1");
-    storeVector("CBPS0.reconstructionParam2");
-    storeVector("CBPS0.mUVInversedBack");
-    storeVector("CBPS0.miscFlags");
-}
-
-void AddDistortionPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout)
-{
-    using namespace Effekseer::Backend;
-
-    int psOffset = 0;
-
-    auto storeVector = [&](const char* name)
-    {
-        uniformLayout.emplace_back(
-            UniformLayoutElement{ShaderStageType::Pixel, name, UniformBufferLayoutElementType::Vector4, 1, psOffset});
-        psOffset += sizeof(float[4]);
-    };
-
-    storeVector("CBPS0.g_scale");
-    storeVector("CBPS0.mUVInversedBack");
-    storeVector("CBPS0.fFlipbookParameter");
-    storeVector("CBPS0.fUVDistortionParameter");
-    storeVector("CBPS0.fBlendTextureParameter");
-    storeVector("CBPS0.softParticleParam");
-    storeVector("CBPS0.reconstructionParam1");
-    storeVector("CBPS0.reconstructionParam2");
-    storeVector("CBPS0.miscFlags");
 }
 
 Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(EffekseerRenderer::RendererShaderType type)
