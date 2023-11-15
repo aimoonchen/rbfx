@@ -40,7 +40,7 @@ class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 protected:
 	std::map<PiplineStateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
-	Urho3D::VertexBuffer* currentVertexBuffer_{ nullptr };
+    Diligent::IBuffer* currentVertexBuffer_{ nullptr };
 	int32_t currentVertexBufferStride_ = 0;
 	Diligent::PRIMITIVE_TOPOLOGY currentTopologyType_ = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
@@ -56,7 +56,7 @@ protected:
     Diligent::IDeviceContext* deviceContext_{ nullptr };
 	//std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
 
-    Urho3D::IndexBuffer* currentIndexBuffer_{ nullptr };
+    Backend::IndexBuffer* currentIndexBuffer_{ nullptr };
 	Effekseer::Backend::IndexBufferRef indexBuffer_;
 	Effekseer::Backend::IndexBufferRef indexBufferForWireframe_;
 	int32_t m_squareMaxCount;
@@ -186,7 +186,7 @@ public:
 		return m_standardRenderer;
 	}
 
-	void SetVertexBuffer(Urho3D::VertexBuffer* vertexBuffer, int32_t stride);
+	void SetVertexBuffer(Diligent::IBuffer* vertexBuffer, int32_t stride);
 
 	void SetVertexBuffer(const Effekseer::Backend::VertexBufferRef& vertexBuffer, int32_t stride);
 	void SetIndexBuffer(const Effekseer::Backend::IndexBufferRef& indexBuffer);

@@ -4,8 +4,10 @@
 //-----------------------------------------------------------------------------------
 #include "../Utils/EffekseerUrho3D.Utils.h"
 #include "EffekseerUrho3D.RenderResources.h"
+#include "../../Core/Context.h"
 #include "../../Graphics/Texture2D.h"
 #include "../../RenderAPI/RenderAPIDefs.h"
+#include "../../RenderAPI/RenderDevice.h"
 #include "../EffekseerSystem.h"
 //-----------------------------------------------------------------------------------
 //
@@ -187,27 +189,15 @@ Model::~Model()
 
 void Model::UploadToEngine()
 {
-    static ea::vector<Urho3D::VertexElement> layout;
-    if (layout.empty()) {
-        layout.push_back(Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION, 0, false));
-        layout.push_back(Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL, 0, false));
-        layout.push_back(Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_BINORMAL, 0, false));
-        layout.push_back(Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_TANGENT, 0, false));
-        layout.push_back(Urho3D::VertexElement(Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 0, false));
-        layout.push_back(Urho3D::VertexElement(Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR, 0, false));
-    }
-    //auto context = GetUrho3DContext();
-    auto context = Urho3D::EffekseerSystem::get_instance()->GetContext();
+    const auto context = Urho3D::EffekseerSystem::get_instance()->GetContext();
     for (int32_t f = 0; f < GetFrameCount(); f++) {
         auto& modelFrame = models_[f];
-        auto vb = Effekseer::MakeRefPtr<Backend::VertexBuffer>(context);
-        vb->Init(GetVertexCount(f), layout, false);
-        vb->UpdateData(modelFrame.vertexes.data(), modelFrame.vertexes.size() * sizeof(Effekseer::Model::Vertex), 0);
+        auto vb = Effekseer::MakeRefPtr<Backend::VertexBuffer>(context->GetSubsystem<Urho3D::RenderDevice>());
+        vb->Init(GetVertexCount(f), false, modelFrame.vertexes.data(), modelFrame.vertexes.size() * sizeof(Effekseer::Model::Vertex));
         modelFrame.vertexBuffer = vb;
-        auto ib = Effekseer::MakeRefPtr<Backend::IndexBuffer>(context);
+        auto ib = Effekseer::MakeRefPtr<Backend::IndexBuffer>(context->GetSubsystem<Urho3D::RenderDevice>());
         int32_t stride = 4;
-        ib->Init(3 * GetFaceCount(f), stride);
-        ib->UpdateData(modelFrame.faces.data(), modelFrame.faces.size() * stride, 0);
+        ib->Init(3 * GetFaceCount(f), stride, modelFrame.faces.data(), modelFrame.faces.size() * stride);
         modelFrame.indexBuffer = ib;
     }
 

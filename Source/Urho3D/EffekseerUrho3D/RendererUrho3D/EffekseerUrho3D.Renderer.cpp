@@ -767,7 +767,7 @@ void RendererImplemented::SetDistortingCallback(EffekseerRenderer::DistortingCal
 	m_distortingCallback = callback;
 }
 
-void RendererImplemented::SetVertexBuffer(Urho3D::VertexBuffer* vertexBuffer, int32_t stride)
+void RendererImplemented::SetVertexBuffer(Diligent::IBuffer* vertexBuffer, int32_t stride)
 {
 	currentVertexBuffer_ = vertexBuffer;
 	currentVertexBufferStride_ = stride;
@@ -782,9 +782,7 @@ void RendererImplemented::SetVertexBuffer(const Effekseer::Backend::VertexBuffer
 
 void RendererImplemented::SetIndexBuffer(const Effekseer::Backend::IndexBufferRef& indexBuffer)
 {
-	auto ib = static_cast<Backend::IndexBuffer*>(indexBuffer.Get());
-    currentIndexBuffer_ = ib->GetBuffer();
-	//GetCurrentCommandList()->SetIndexBuffer(ib->GetBuffer()/*, ib->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride2 ? 2 : 4*/);
+    currentIndexBuffer_ = static_cast<Backend::IndexBuffer*>(indexBuffer.Get());
 }
 
 void RendererImplemented::SetLayout(Shader* shader)
@@ -849,9 +847,9 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
     CommitUniformAndTextures();
 
     const Diligent::Uint64 offset = 0;
-    Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
+    Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_ };
     deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
-    deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetBuffer(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     deviceContext_->SetPipelineState(piplineState);
     deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
@@ -859,7 +857,8 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 	impl->drawvertexCount += spriteCount * 4;
 
     Diligent::DrawIndexedAttribs DrawAttrs; // This is an indexed draw call
-    DrawAttrs.IndexType = currentIndexBuffer_->GetStride() > 2 ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
+
+    DrawAttrs.IndexType = (currentIndexBuffer_->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride4) ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
 
     if (m_renderMode == Effekseer::RenderMode::Normal)
 	{
@@ -887,9 +886,9 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
     CommitUniformAndTextures();
     
     const Diligent::Uint64 offset = 0;
-    Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_->GetHandle() };
+    Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_ };
     deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
-    deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetHandle(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetBuffer(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     deviceContext_->SetPipelineState(piplineState);
     deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
@@ -897,7 +896,7 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 	impl->drawvertexCount += vertexCount * instanceCount;
 
     Diligent::DrawIndexedAttribs DrawAttrs; // This is an indexed draw call
-    DrawAttrs.IndexType = currentIndexBuffer_->GetStride() > 2 ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
+    DrawAttrs.IndexType = (currentIndexBuffer_->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride4) ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
     DrawAttrs.NumIndices = indexCount;
     DrawAttrs.NumInstances = instanceCount;
     DrawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;

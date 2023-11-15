@@ -1,5 +1,6 @@
 #include "GraphicsDevice.h"
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
+#include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 // #include <LLGI.Shader.h>
 // #include <LLGI.Texture.h>
 #include "../EffekseerRendererCommon/EffekseerRenderer.Renderer.h"
@@ -7,8 +8,6 @@
 #include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../../Graphics/Graphics.h"
 #include "../../Resource/ResourceCache.h"
-#include "../../Graphics/VertexBuffer.h"
-#include "../../Graphics/IndexBuffer.h"
 #include "../../Graphics/Texture2D.h"
 #include "../../RenderAPI/RenderDevice.h"
 
@@ -84,8 +83,8 @@ std::vector<LLGI::DataStructure> Deserialize(const void* data, int32_t size)
 	return ret;
 }
 
-VertexBuffer::VertexBuffer(Urho3D::Context* context)
-	: context_(context)
+VertexBuffer::VertexBuffer(Urho3D::RenderDevice* device)
+    : renderDevice_{ device }
 {
 }
 
@@ -93,27 +92,35 @@ VertexBuffer::~VertexBuffer()
 {
 }
 
-bool VertexBuffer::Allocate(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic)
+bool VertexBuffer::Allocate(int32_t size, bool isDynamic, const void* initData, int32_t initSize)
 {
 	//buffer_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateBuffer(LLGI::BufferUsageType::Vertex | LLGI::BufferUsageType::MapWrite, size));
-    buffer_ = ea::make_shared<Urho3D::VertexBuffer>(context_);
-    buffer_->SetShadowed(isDynamic);
-    buffer_->SetSize(count, elements);
-    stride_ = buffer_->GetVertexSize();
-    return true;
+    Diligent::BufferDesc VertBuffDesc;
+    VertBuffDesc.Name = "Effekseer vertex buffer";
+    VertBuffDesc.BindFlags = Diligent::BIND_VERTEX_BUFFER;
+    VertBuffDesc.Usage = isDynamic ? Diligent::USAGE_DYNAMIC : Diligent::USAGE_DEFAULT;
+    if (isDynamic) {
+        VertBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
+    }
+    VertBuffDesc.Size = size;
+    Diligent::BufferData VBData;
+    VBData.pData = initData;
+    VBData.DataSize = initSize;
+    renderDevice_->GetRenderDevice()->CreateBuffer(VertBuffDesc, initData ? &VBData : nullptr, &buffer_);
+    return buffer_ != nullptr;
 }
 
 void VertexBuffer::Deallocate()
 {
-	buffer_.reset();
+	buffer_ = nullptr;
 }
 
-bool VertexBuffer::Init(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic)
+bool VertexBuffer::Init(int32_t size, bool isDynamic, const void* initData, int32_t initSize)
 {
-	//size_ = size;
+	size_ = size;
 	isDynamic_ = isDynamic;
 
-	return Allocate(count, elements, isDynamic_);
+	return Allocate(size_, isDynamic_, initData, initSize);
 }
 
 void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
@@ -123,13 +130,17 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		memcpy(dst + offset, src, size);
 // 		buffer_->Unlock();
 // 	}
-
-    //buffer_->SetUnpackedData((const Urho3D::Vector4*)src, offset / stride_, size / stride_);
-    buffer_->UpdateRange(src, offset, size);
+    void* dst = nullptr;
+    renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE/*Diligent::MAP_FLAG_DISCARD*/, dst);
+    if (dst) {
+        memcpy((uint8_t*)dst + offset, src, size);
+        renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
+    }
+    //renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 }
 
-IndexBuffer::IndexBuffer(Urho3D::Context* context)
-	: context_(context)
+IndexBuffer::IndexBuffer(Urho3D::RenderDevice* device)
+    : renderDevice_{ device }
 {
 }
 
@@ -137,11 +148,18 @@ IndexBuffer::~IndexBuffer()
 {
 }
 
-bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride)
+bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride, const void* initData, int32_t initSize)
 {
 	//buffer_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateBuffer(LLGI::BufferUsageType::Index | LLGI::BufferUsageType::MapWrite, stride * elementCount));
-    buffer_ = ea::make_shared<Urho3D::IndexBuffer>(context_);
-    buffer_->SetSize(elementCount, stride > 2/*, isDynamic*/);
+    Diligent::BufferDesc IndBuffDesc;
+    IndBuffDesc.Name = "Effekseer index buffer";
+    IndBuffDesc.Usage = Diligent::USAGE_DEFAULT; //Diligent::USAGE_IMMUTABLE;
+    IndBuffDesc.BindFlags = Diligent::BIND_INDEX_BUFFER;
+    IndBuffDesc.Size = stride * elementCount;
+    Diligent::BufferData IBData;
+    IBData.pData = initData;
+    IBData.DataSize = initSize;
+    renderDevice_->GetRenderDevice()->CreateBuffer(IndBuffDesc, initData ? &IBData : nullptr, &buffer_);
 	elementCount_ = elementCount;
 	strideType_ = (stride == 4) ? Effekseer::Backend::IndexBufferStrideType::Stride4 : Effekseer::Backend::IndexBufferStrideType::Stride2;
 
@@ -150,15 +168,15 @@ bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride)
 
 void IndexBuffer::Deallocate()
 {
-	buffer_.reset();
+	buffer_ = nullptr;
 }
 
-bool IndexBuffer::Init(int32_t elementCount, int32_t stride)
+bool IndexBuffer::Init(int32_t elementCount, int32_t stride, const void* initData, int32_t initSize)
 {
 	elementCount_ = elementCount;
 	stride_ = stride;
 
-	return Allocate(elementCount_, stride_);
+	return Allocate(elementCount_, stride_, initData, initSize);
 }
 
 void IndexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
@@ -168,8 +186,7 @@ void IndexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		memcpy(dst + offset, src, size);
 // 		buffer_->Unlock();
 // 	}
-    //buffer_->SetUnpackedData((const unsigned int*)src, offset / stride_, size / stride_);
-    buffer_->UpdateRange(src, offset, size);
+    renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 }
 
 bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements, int32_t elementCount)
@@ -351,39 +368,11 @@ Urho3D::Graphics* GraphicsDevice::GetGraphics()
 
 Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t size, const void* initialData, bool isDynamic)
 {
-    static ea::vector<Urho3D::VertexElement> modelLayout{
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION},
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL},
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_BINORMAL},
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_TANGENT},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR}
-    };
+	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(graphics_->GetContext()->GetSubsystem<Urho3D::RenderDevice>());
 
-    static ea::vector<Urho3D::VertexElement> spriteLayout{
-        {Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_COLOR},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_NORMAL},
-        {Urho3D::TYPE_UBYTE4_NORM, Urho3D::SEM_TANGENT},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 1},
-        {Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 2},
-        {Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD, 3},
-        {Urho3D::TYPE_VECTOR4, Urho3D::SEM_TEXCOORD, 4},
-        {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 5},
-        {Urho3D::TYPE_FLOAT, Urho3D::SEM_TEXCOORD, 6}
-    };
-
-	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(graphics_->GetContext());
-    auto stride = isDynamic ? EffekseerRenderer::GetMaximumVertexSizeInAllTypes() : (int32_t)sizeof(Effekseer::Model::Vertex);
-	if (!ret->Init(size / stride, isDynamic ? spriteLayout : modelLayout, isDynamic))
+    if (!ret->Init(size, isDynamic, initialData, size))
 	{
 		return nullptr;
-	}
-
-	if (initialData != nullptr)
-	{
-		ret->UpdateData(initialData, size, 0);
 	}
 
 	return ret;
@@ -391,16 +380,12 @@ Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t s
 
 Effekseer::Backend::IndexBufferRef GraphicsDevice::CreateIndexBuffer(int32_t elementCount, const void* initialData, Effekseer::Backend::IndexBufferStrideType stride)
 {
-	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(graphics_->GetContext());
+	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(graphics_->GetContext()->GetSubsystem<Urho3D::RenderDevice>());
 
-	if (!ret->Init(elementCount, stride == Effekseer::Backend::IndexBufferStrideType::Stride4 ? 4 : 2))
+    int32_t strideSize = Effekseer::Backend::IndexBufferStrideType::Stride4 ? 4 : 2;
+	if (!ret->Init(elementCount, strideSize, initialData, elementCount * strideSize))
 	{
 		return nullptr;
-	}
-
-	if (initialData != nullptr)
-	{
-		ret->UpdateData(initialData, elementCount * (stride == Effekseer::Backend::IndexBufferStrideType::Stride4 ? 4 : 2), 0);
 	}
 
 	return ret;

@@ -23,8 +23,7 @@ namespace Urho3D
 {
 class Graphics;
 class ShaderVariation;
-class VertexBuffer;
-class IndexBuffer;
+class RenderDevice;
 class Texture2D;
 class DrawCommandQueue;
 class PipelineState;
@@ -76,28 +75,27 @@ class VertexBuffer
 	: public Effekseer::Backend::VertexBuffer
 {
 private:
-	ea::shared_ptr<Urho3D::VertexBuffer> buffer_;
-    Urho3D::Context* context_ = nullptr;
-	//int32_t size_ = 0;
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> buffer_;
+    Urho3D::RenderDevice* renderDevice_ = nullptr;
+	int32_t size_ = 0;
 	bool isDynamic_ = false;
-    int32_t stride_ = 0;
 
 public:
-	VertexBuffer(Urho3D::Context* context);
+	VertexBuffer(Urho3D::RenderDevice* device);
 
 	~VertexBuffer() override;
 
-	bool Allocate(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic);
+	bool Allocate(int32_t size, bool isDynamic, const void* initData = nullptr, int32_t initSize = 0);
 
 	void Deallocate();
 
-	bool Init(int32_t count, const ea::vector<Urho3D::VertexElement>& elements, bool isDynamic);
+	bool Init(int32_t size, bool isDynamic, const void* initData = nullptr, int32_t initSize = 0);
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
-    Urho3D::VertexBuffer* GetBuffer()
+    Diligent::IBuffer* GetBuffer()
 	{
-		return buffer_.get();
+		return buffer_;
 	}
 };
 
@@ -105,26 +103,26 @@ class IndexBuffer
 	: public Effekseer::Backend::IndexBuffer
 {
 private:
-	ea::shared_ptr<Urho3D::IndexBuffer> buffer_;
-    Urho3D::Context* context_ = nullptr;
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> buffer_;
+    Urho3D::RenderDevice* renderDevice_ = nullptr;
 	int32_t stride_ = 0;
 
 public:
-	IndexBuffer(Urho3D::Context* context);
+	IndexBuffer(Urho3D::RenderDevice* device);
 
 	~IndexBuffer() override;
 
-	bool Allocate(int32_t elementCount, int32_t stride);
+	bool Allocate(int32_t elementCount, int32_t stride, const void* initData = nullptr, int32_t initSize = 0);
 
 	void Deallocate();
 
-	bool Init(int32_t elementCount, int32_t stride);
+	bool Init(int32_t elementCount, int32_t stride, const void* initData = nullptr, int32_t initSize = 0);
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
 
-    Urho3D::IndexBuffer* GetBuffer()
+    Diligent::IBuffer* GetBuffer()
 	{
-		return buffer_.get();
+		return buffer_;
 	}
 };
 
