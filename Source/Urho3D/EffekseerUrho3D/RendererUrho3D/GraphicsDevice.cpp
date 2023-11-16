@@ -130,13 +130,16 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		memcpy(dst + offset, src, size);
 // 		buffer_->Unlock();
 // 	}
-    void* dst = nullptr;
-    renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE/*Diligent::MAP_FLAG_DISCARD*/, dst);
-    if (dst) {
-        memcpy((uint8_t*)dst + offset, src, size);
-        renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
+    if (isDynamic_) {
+        void* dst = nullptr;
+        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE/*Diligent::MAP_FLAG_DISCARD*/, dst);
+        if (dst) {
+            memcpy((uint8_t*)dst + offset, src, size);
+            renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
+        }
+    } else {
+        renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
-    //renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 }
 
 IndexBuffer::IndexBuffer(Urho3D::RenderDevice* device)
@@ -265,9 +268,8 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
 {
     uniformLayout_ = layout;
 
-    auto graphic = graphicsDevice_->GetGraphics();
-    auto cache = graphic->GetSubsystem<Urho3D::ResourceCache>();
-    auto pDevice = graphic->GetSubsystem<Urho3D::RenderDevice>()->GetRenderDevice();
+    auto renderDevice = graphicsDevice_->GetRenderDevice();
+    auto cache = renderDevice->GetSubsystem<Urho3D::ResourceCache>();
 
     auto get_source_code = [cache](const char* filename, ea::string& sourceCode, ea::string& shaderName) {
         auto pFile = cache->GetFile(filename);
@@ -298,7 +300,7 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
         ShaderCI.EntryPoint = "main";
         ShaderCI.Desc.Name = shaderName.data();
         ShaderCI.Source = sourceCode.data();
-        pDevice->CreateShader(ShaderCI, &vertexShader_);
+        renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &vertexShader_);
     }
     // Create a pixel shader
     if (get_source_code(pixelFilename, sourceCode, shaderName))
@@ -307,7 +309,7 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
         ShaderCI.EntryPoint = "main";
         ShaderCI.Desc.Name = shaderName.data();
         ShaderCI.Source = sourceCode.data();
-        pDevice->CreateShader(ShaderCI, &pixelShader_);
+        renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &pixelShader_);
     }
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
@@ -331,12 +333,9 @@ Diligent::RefCntAutoPtr<Diligent::IBuffer> Shader::create_uniform_buffer(const c
     CBDesc.BindFlags = Diligent::BIND_UNIFORM_BUFFER;
     CBDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
 
-    auto graphic = graphicsDevice_->GetGraphics();
-    auto cache = graphic->GetSubsystem<Urho3D::ResourceCache>();
-    auto pDevice = graphic->GetSubsystem<Urho3D::RenderDevice>()->GetRenderDevice();
-
+    auto renderDevice = graphicsDevice_->GetRenderDevice();
     Diligent::RefCntAutoPtr<Diligent::IBuffer> pBuffer;
-    pDevice->CreateBuffer(CBDesc, nullptr, &pBuffer);
+    renderDevice->GetRenderDevice()->CreateBuffer(CBDesc, nullptr, &pBuffer);
     return pBuffer;
 }
 
@@ -350,8 +349,8 @@ void Shader::CreatePixelUniformBuffer(int32_t size)
     pixelUniformBuffer_ = create_uniform_buffer("PS constants CB", size);
 }
 
-GraphicsDevice::GraphicsDevice(Urho3D::Graphics* graphics)
-	: graphics_(graphics)
+GraphicsDevice::GraphicsDevice(Urho3D::RenderDevice* renderDevice)
+	: renderDevice_(renderDevice)
 {
 	//ES_SAFE_ADDREF(graphics_);
 }
@@ -361,33 +360,39 @@ GraphicsDevice::~GraphicsDevice()
 	//ES_SAFE_RELEASE(graphics_);
 }
 
-Urho3D::Graphics* GraphicsDevice::GetGraphics()
+Urho3D::RenderDevice* GraphicsDevice::GetRenderDevice()
 {
-	return graphics_;
+	return renderDevice_;
 }
 
 Effekseer::Backend::VertexBufferRef GraphicsDevice::CreateVertexBuffer(int32_t size, const void* initialData, bool isDynamic)
 {
-	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(graphics_->GetContext()->GetSubsystem<Urho3D::RenderDevice>());
+	auto ret = Effekseer::MakeRefPtr<VertexBuffer>(renderDevice_);
 
-    if (!ret->Init(size, isDynamic, initialData, size))
+    if (!ret->Init(size, isDynamic))
 	{
 		return nullptr;
 	}
-
+    if (initialData != nullptr)
+    {
+        ret->UpdateData(initialData, size, 0);
+    }
 	return ret;
 }
 
 Effekseer::Backend::IndexBufferRef GraphicsDevice::CreateIndexBuffer(int32_t elementCount, const void* initialData, Effekseer::Backend::IndexBufferStrideType stride)
 {
-	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(graphics_->GetContext()->GetSubsystem<Urho3D::RenderDevice>());
+	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(renderDevice_);
 
-    int32_t strideSize = Effekseer::Backend::IndexBufferStrideType::Stride4 ? 4 : 2;
-	if (!ret->Init(elementCount, strideSize, initialData, elementCount * strideSize))
+    int32_t strideSize = (stride == Effekseer::Backend::IndexBufferStrideType::Stride4) ? 4 : 2;
+	if (!ret->Init(elementCount, strideSize))
 	{
 		return nullptr;
 	}
-
+    if (initialData != nullptr)
+    {
+        ret->UpdateData(initialData, elementCount * strideSize, 0);
+    }
 	return ret;
 }
 
@@ -395,7 +400,7 @@ Effekseer::Backend::TextureRef GraphicsDevice::CreateTexture(const Effekseer::Ba
 {
 	auto ret = Effekseer::MakeRefPtr<::EffekseerUrho3D::Texture>();
     
-	if (!ret->Init(graphics_->GetContext(), param, initialData))
+	if (!ret->Init(renderDevice_->GetContext(), param, initialData))
 	{
 		return nullptr;
 	}

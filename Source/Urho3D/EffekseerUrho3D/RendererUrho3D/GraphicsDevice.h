@@ -189,14 +189,14 @@ class GraphicsDevice
 	: public Effekseer::Backend::GraphicsDevice
 {
 private:
-    Urho3D::Graphics* graphics_;
+    Urho3D::RenderDevice* renderDevice_;
 
 public:
-	GraphicsDevice(Urho3D::Graphics* graphics);
+	GraphicsDevice(Urho3D::RenderDevice* renderDevice);
 
 	~GraphicsDevice() override;
 
-	Urho3D::Graphics* GetGraphics();
+	Urho3D::RenderDevice* GetRenderDevice();
 
 	Effekseer::Backend::VertexBufferRef CreateVertexBuffer(int32_t size, const void* initialData, bool isDynamic) override;
 

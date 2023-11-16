@@ -80,7 +80,7 @@ protected:
 
 	Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList_ = nullptr;
 
-	Urho3D::DrawCommandQueue* GetCurrentCommandList();
+    Urho3D::DrawCommandQueue* GetCurrentCommandList();
 
     Diligent::IPipelineState* GetOrCreatePiplineState();
 
@@ -102,7 +102,7 @@ public:
 
 	bool Initialize(Backend::GraphicsDeviceRef graphicsDevice, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth);
 
-	bool Initialize(Urho3D::Graphics* graphics, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth);
+	bool Initialize(Urho3D::RenderDevice* renderDevice, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth);
 
 	void SetRestorationOfStatesFlag(bool flag) override;
 
@@ -124,9 +124,9 @@ public:
 		return graphicsDevice_;
 	}
 
-	Urho3D::Graphics* GetGraphics() const override
+	Urho3D::RenderDevice* GetRenderDevice() const override
 	{
-		return graphicsDevice_->GetGraphics();
+		return graphicsDevice_->GetRenderDevice();
 	}
 
 	Effekseer::Backend::IndexBufferRef GetIndexBuffer();

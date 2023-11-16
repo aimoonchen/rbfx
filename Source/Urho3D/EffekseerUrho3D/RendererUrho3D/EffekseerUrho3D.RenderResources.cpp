@@ -189,15 +189,22 @@ Model::~Model()
 
 void Model::UploadToEngine()
 {
+    return;
     const auto context = Urho3D::EffekseerSystem::get_instance()->GetContext();
     for (int32_t f = 0; f < GetFrameCount(); f++) {
         auto& modelFrame = models_[f];
         auto vb = Effekseer::MakeRefPtr<Backend::VertexBuffer>(context->GetSubsystem<Urho3D::RenderDevice>());
-        vb->Init(GetVertexCount(f), false, modelFrame.vertexes.data(), modelFrame.vertexes.size() * sizeof(Effekseer::Model::Vertex));
+        vb->Init(GetVertexCount(f), false);
+        if (vb != nullptr) {
+            vb->UpdateData(modelFrame.vertexes.data(), modelFrame.vertexes.size() * sizeof(Effekseer::Model::Vertex), 0);
+        }
         modelFrame.vertexBuffer = vb;
         auto ib = Effekseer::MakeRefPtr<Backend::IndexBuffer>(context->GetSubsystem<Urho3D::RenderDevice>());
         int32_t stride = 4;
-        ib->Init(3 * GetFaceCount(f), stride, modelFrame.faces.data(), modelFrame.faces.size() * stride);
+        ib->Init(3 * GetFaceCount(f), stride);
+        if (ib != nullptr) {
+            ib->UpdateData(modelFrame.faces.data(), modelFrame.faces.size() * stride, 0);
+        }
         modelFrame.indexBuffer = ib;
     }
 
