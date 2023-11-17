@@ -51,7 +51,7 @@ endmacro()
 define_engine_source_files (Container Core IO Math)
 
 define_engine_source_files (Audio Engine Graphics Input Plugins RenderAPI RenderPipeline Resource Scene Script Shader UI Utility)
-define_engine_source_files (EffekseerUrho3D)
+define_engine_source_files (Cocos2D GUI FairyGUI EffekseerUrho3D)
 list (REMOVE_ITEM SOURCE_FILES BindAll.cpp)     # Utility file for BindTool.
 
 if (URHO3D_PARTICLE_GRAPH)
@@ -132,6 +132,12 @@ group_sources()
 
 if (APPLE AND NOT IOS)
     list (APPEND SOURCE_FILES IO/MacFileWatcher.m)
+endif ()
+
+if (IOS)
+    list (APPEND SOURCE_FILES Cocos2D/platform/apple/CCDevice-apple.h)
+    list (APPEND SOURCE_FILES Cocos2D/platform/apple/CCDevice-apple.mm)
+    list (APPEND SOURCE_FILES Cocos2D/platform/ios/CCDevice-ios.mm)
 endif ()
 
 add_library(Urho3D ${SOURCE_FILES} ${HEADER_FILES} $<$<CXX_COMPILER_ID:MSVC>:${rbfx_SOURCE_DIR}/script/rbfx.natvis>)
@@ -256,6 +262,9 @@ elseif (TARGET Bullet)
         target_link_libraries(Urho3D PUBLIC Bullet)
     endif ()
 endif ()
+
+target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Cocos2D>)
+target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/FairyGUI>)
 
 foreach (dep ${PUBLIC_THIRD_PARTY_DEPENDENCIES})
     if (TARGET "${dep}")
