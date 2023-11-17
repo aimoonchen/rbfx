@@ -76,85 +76,105 @@ ModelRenderer::~ModelRenderer()
 	//LLGI::SafeRelease(graphicsDevice_);
 }
 
+static const char* kShaderName[] = {
+    "ModelUnlit",                   // RendererShaderType::Unlit
+    "ModelLit",                     // RendererShaderType::Lit
+    "ModelBackDistortion",          // RendererShaderType::BackDistortion
+    "ModelAdvancedUnlit",           // RendererShaderType::AdvancedUnlit
+    "ModelAdvancedLit",             // RendererShaderType::AdvancedLit
+    "ModelAdvancedBackDistortion",  // RendererShaderType::AdvancedBackDistortion
+};
+
+static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
+    {"Shaders/HLSL/effekseer/builtin/model_unlit_vs.fx",         "Shaders/HLSL/effekseer/builtin/model_unlit_ps.fx"},                   // RendererShaderType::Unlit
+    {"Shaders/HLSL/effekseer/builtin/model_lit_vs.fx",           "Shaders/HLSL/effekseer/builtin/model_lit_ps.fx"},                       // RendererShaderType::Lit
+    {"Shaders/HLSL/effekseer/builtin/model_distortion_vs.fx",    "Shaders/HLSL/effekseer/builtin/model_distortion_ps.fx"},         // RendererShaderType::BackDistortion
+    {"Shaders/HLSL/effekseer/builtin/ad_model_unlit_vs.fx",      "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.fx"},             // RendererShaderType::AdvancedUnlit
+    {"Shaders/HLSL/effekseer/builtin/ad_model_lit_vs.fx",        "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.fx"},                 // RendererShaderType::AdvancedLit
+    {"Shaders/HLSL/effekseer/builtin/ad_model_distortion_vs.fx", "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.fx"}    // RendererShaderType::AdvancedBackDistortion
+};
 ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShader* fixedShader)
 {
 
 	assert(renderer != nullptr);
-	assert(renderer->GetGraphics() != nullptr);
+	assert(renderer->GetRenderDevice() != nullptr);
 
 	auto graphicsDevice = renderer->GetGraphicsDevice();
 	auto vl = EffekseerRenderer::GetModelRendererVertexLayout(renderer->GetGraphicsDevice()).DownCast<Backend::VertexLayout>();
 	vl->MakeGenerated();
 
+    const auto texLocUnlit = GetTextureLocations(EffekseerRenderer::RendererShaderType::Unlit);
+    const auto texLocLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedLit);
+    const auto texLocDist = GetTextureLocations(EffekseerRenderer::RendererShaderType::BackDistortion);
+    const auto texLocAdUnlit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedUnlit);
+    const auto texLocAdLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedLit);
+    const auto texLocAdDist = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedBackDistortion);
+
+    Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement> uniformLayoutElementsPlaceHold;
+
 	auto lit_vs_shader_data = Backend::Serialize(fixedShader->ModelLit_VS);
 	auto lit_ps_shader_data = Backend::Serialize(fixedShader->ModelLit_PS);
-
+    auto pathIndex = (int)EffekseerRenderer::RendererShaderType::Lit;
 	Shader* shader_lighting_texture_normal = Shader::Create(graphicsDevice,
-															graphicsDevice->CreateShaderFromBinary(
-																lit_vs_shader_data.data(),
-																(int32_t)lit_vs_shader_data.size(),
-																lit_ps_shader_data.data(),
-																(int32_t)lit_ps_shader_data.size()),
+                                                            graphicsDevice.DownCast<Backend::GraphicsDevice>()->CreateShaderFromFile(
+                                                                kShaderFilepath[pathIndex][0],
+                                                                kShaderFilepath[pathIndex][1],
+                                                                Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocLit, uniformLayoutElementsPlaceHold)),
 															vl,
 															"ModelRendererLightingTextureNormal");
 
 	auto unlit_vs_shader_data = Backend::Serialize(fixedShader->ModelUnlit_VS);
 	auto unlit_ps_shader_data = Backend::Serialize(fixedShader->ModelUnlit_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::Unlit;
 	Shader* shader_texture = Shader::Create(graphicsDevice,
-											graphicsDevice->CreateShaderFromBinary(
-												unlit_vs_shader_data.data(),
-												(int32_t)unlit_vs_shader_data.size(),
-												unlit_ps_shader_data.data(),
-												(int32_t)unlit_ps_shader_data.size()),
+                                            graphicsDevice.DownCast<Backend::GraphicsDevice>()->CreateShaderFromFile(
+                                                kShaderFilepath[pathIndex][0],
+                                                kShaderFilepath[pathIndex][1],
+                                                Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocUnlit, uniformLayoutElementsPlaceHold)),
 											vl,
 											"ModelRendererTexture");
 
 	auto dist_vs_shader_data = Backend::Serialize(fixedShader->ModelDistortion_VS);
 	auto dist_ps_shader_data = Backend::Serialize(fixedShader->ModelDistortion_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::BackDistortion;
 	auto shader_distortion_texture = Shader::Create(graphicsDevice,
-													graphicsDevice->CreateShaderFromBinary(
-														dist_vs_shader_data.data(),
-														(int32_t)dist_vs_shader_data.size(),
-														dist_ps_shader_data.data(),
-														(int32_t)dist_ps_shader_data.size()),
+                                                    graphicsDevice.DownCast<Backend::GraphicsDevice>()->CreateShaderFromFile(
+                                                        kShaderFilepath[pathIndex][0],
+                                                        kShaderFilepath[pathIndex][1],
+                                                        Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocDist, uniformLayoutElementsPlaceHold)),
 													vl,
 													"ModelRendererDistortionTexture");
 
 	auto ad_lit_vs_shader_data = Backend::Serialize(fixedShader->AdvancedModelLit_VS);
 	auto ad_lit_ps_shader_data = Backend::Serialize(fixedShader->AdvancedModelLit_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::AdvancedLit;
 	Shader* shader_ad_lit = Shader::Create(graphicsDevice,
-										   graphicsDevice->CreateShaderFromBinary(
-											   ad_lit_vs_shader_data.data(),
-											   (int32_t)ad_lit_vs_shader_data.size(),
-											   ad_lit_ps_shader_data.data(),
-											   (int32_t)ad_lit_ps_shader_data.size()),
+                                           graphicsDevice.DownCast<Backend::GraphicsDevice>()->CreateShaderFromFile(
+                                                kShaderFilepath[pathIndex][0],
+                                                kShaderFilepath[pathIndex][1],
+                                                Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdLit, uniformLayoutElementsPlaceHold)),
 										   vl,
 										   "ModelRendererLightingTextureNormal");
 
 	auto ad_unlit_vs_shader_data = Backend::Serialize(fixedShader->AdvancedModelUnlit_VS);
 	auto ad_unlit_ps_shader_data = Backend::Serialize(fixedShader->AdvancedModelUnlit_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::AdvancedUnlit;
 	Shader* shader_ad_unlit = Shader::Create(graphicsDevice,
-											 graphicsDevice->CreateShaderFromBinary(
-												 ad_unlit_vs_shader_data.data(),
-												 (int32_t)ad_unlit_vs_shader_data.size(),
-												 ad_unlit_ps_shader_data.data(),
-												 (int32_t)ad_unlit_ps_shader_data.size()),
+                                            graphicsDevice.DownCast<Backend::GraphicsDevice>()->CreateShaderFromFile(
+                                                kShaderFilepath[pathIndex][0],
+                                                kShaderFilepath[pathIndex][1],
+                                                Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdUnlit, uniformLayoutElementsPlaceHold)),
 											 vl,
 											 "ModelRendererTexture");
 
 	auto ad_dist_vs_shader_data = Backend::Serialize(fixedShader->AdvancedModelDistortion_VS);
 	auto ad_dist_ps_shader_data = Backend::Serialize(fixedShader->AdvancedModelDistortion_PS);
-
+    pathIndex = (int)EffekseerRenderer::RendererShaderType::AdvancedBackDistortion;
 	auto shader_ad_distortion = Shader::Create(graphicsDevice,
-											   graphicsDevice->CreateShaderFromBinary(
-												   ad_dist_vs_shader_data.data(),
-												   (int32_t)ad_dist_vs_shader_data.size(),
-												   ad_dist_ps_shader_data.data(),
-												   (int32_t)ad_dist_ps_shader_data.size()),
+                                               graphicsDevice.DownCast<Backend::GraphicsDevice>()->CreateShaderFromFile(
+                                                   kShaderFilepath[pathIndex][0],
+                                                   kShaderFilepath[pathIndex][1],
+                                                   Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdDist, uniformLayoutElementsPlaceHold)),
 											   vl,
 											   "ModelRendererDistortionTexture");
 

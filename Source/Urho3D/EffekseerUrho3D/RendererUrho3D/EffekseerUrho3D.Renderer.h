@@ -55,9 +55,9 @@ protected:
 	}
 
 public:
-	virtual Urho3D::Graphics* GetGraphics() const = 0;
+	virtual Urho3D::RenderDevice* GetRenderDevice() const = 0;
 
-    static RendererRef Create(Urho3D::Graphics* graphics, int32_t squareMaxCount, bool isReversedDepth = false);
+    static RendererRef Create(Urho3D::RenderDevice* renderDevice, int32_t squareMaxCount, bool isReversedDepth = false);
 };
 
 // class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject

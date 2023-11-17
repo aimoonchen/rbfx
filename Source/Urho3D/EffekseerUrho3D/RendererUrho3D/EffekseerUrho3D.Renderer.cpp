@@ -126,10 +126,10 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 //----------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------
-RendererRef Renderer::Create(Urho3D::Graphics* graphics, int32_t squareMaxCount, bool isReversedDepth)
+RendererRef Renderer::Create(Urho3D::RenderDevice* renderDevice, int32_t squareMaxCount, bool isReversedDepth)
 {
     auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(squareMaxCount);
-    if (renderer->Initialize(graphics, isReversedDepth))
+    if (renderer->Initialize(renderDevice, isReversedDepth))
     {
         return renderer;
     }
@@ -207,7 +207,7 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     // This is a graphics pipeline
     PSOCreateInfo.PSODesc.PipelineType = Diligent::PIPELINE_TYPE_GRAPHICS;
 
-    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    auto renderDevice = graphicsDevice_->GetRenderDevice();
     auto swapChain = renderDevice->GetSwapChain();
     // This tutorial will render to a single render target
     PSOCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
@@ -395,10 +395,10 @@ void RendererImplemented::OnResetDevice()
 {
 }
 
-bool RendererImplemented::Initialize(Urho3D::Graphics* graphics, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth)
+bool RendererImplemented::Initialize(Urho3D::RenderDevice* renderDevice, /*LLGI::RenderPassPipelineStateKey key, */bool isReversedDepth)
 {
 
-	auto gd = Effekseer::MakeRefPtr<Backend::GraphicsDevice>(graphics);
+	auto gd = Effekseer::MakeRefPtr<Backend::GraphicsDevice>(renderDevice);
 
 	auto ret = Initialize(gd, /*key, */isReversedDepth);
 
@@ -428,7 +428,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 									 bool isReversedDepth)
 {
 	graphicsDevice_ = graphicsDevice;
-    auto renderDevice = graphicsDevice_->GetGraphics()->GetSubsystem<Urho3D::RenderDevice>();
+    auto renderDevice = graphicsDevice_->GetRenderDevice();
     deviceContext_ = renderDevice->GetImmediateContext();
 //	ChangeRenderPassPipelineState(key);
 	isReversedDepth_ = isReversedDepth;
@@ -641,8 +641,8 @@ bool RendererImplemented::BeginRendering()
 {
 	assert(graphicsDevice_ != nullptr);
 
-    auto cl = commandList_.DownCast<::EffekseerUrho3D::CommandList>();
-    cl->GetInternal()->Reset();
+//    auto cl = commandList_.DownCast<::EffekseerUrho3D::CommandList>();
+//    cl->GetInternal()->Reset();
 // 	if (commandList_ == nullptr)
 // 	{
 // 		return false;
