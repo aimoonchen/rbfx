@@ -30,7 +30,7 @@ THE SOFTWARE.
 #include "base/CCEventCustom.h"
 #include "base/CCDirector.h"
 #include "base/CCEventDispatcher.h"
-#include "renderer/backend/Device.h"
+//#include "renderer/backend/Device.h"
 
 NS_CC_BEGIN
 
@@ -56,7 +56,7 @@ Configuration::Configuration()
 , _maxDirLightInShader(1)
 , _maxPointLightInShader(1)
 , _maxSpotLightInShader(1)
-, _animate3DQuality(Animate3DQuality::QUALITY_LOW)
+//, _animate3DQuality(Animate3DQuality::QUALITY_LOW)
 {
     _loadedEvent = new (std::nothrow) EventCustom(CONFIG_FILE_LOADED);
 }
@@ -110,50 +110,50 @@ std::string Configuration::getInfo() const
 
 void Configuration::gatherGPUInfo()
 {
-    auto _deviceInfo = backend::Device::getInstance()->getDeviceInfo();
-    _valueDict["vendor"] = Value(_deviceInfo->getVendor());
-    _valueDict["renderer"] = Value(_deviceInfo->getRenderer());
-    _valueDict["version"] = Value(_deviceInfo->getVersion());
-    
-    _valueDict["max_texture_size"] = Value(_deviceInfo->getMaxTextureSize());
-    _valueDict["max_vertex_attributes"] = Value(_deviceInfo->getMaxAttributes());
-    _valueDict["max_texture_units"] = Value(_deviceInfo->getMaxTextureUnits());
-    _valueDict["max_samples_allowed"] = Value(_deviceInfo->getMaxSamplesAllowed());
+//     auto _deviceInfo = backend::Device::getInstance()->getDeviceInfo();
+//     _valueDict["vendor"] = Value(_deviceInfo->getVendor());
+//     _valueDict["renderer"] = Value(_deviceInfo->getRenderer());
+//     _valueDict["version"] = Value(_deviceInfo->getVersion());
+//     
+//     _valueDict["max_texture_size"] = Value(_deviceInfo->getMaxTextureSize());
+//     _valueDict["max_vertex_attributes"] = Value(_deviceInfo->getMaxAttributes());
+//     _valueDict["max_texture_units"] = Value(_deviceInfo->getMaxTextureUnits());
+//     _valueDict["max_samples_allowed"] = Value(_deviceInfo->getMaxSamplesAllowed());
     
     _supportsNPOT = true;
     _valueDict["supports_NPOT"] = Value(_supportsNPOT);
     
-    _supportsETC1 = _deviceInfo->checkForFeatureSupported(backend::FeatureType::ETC1);
+    _supportsETC1 = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::ETC1);
     _valueDict["supports_ETC1"] = Value(_supportsETC1);
     
-    _supportsS3TC = _deviceInfo->checkForFeatureSupported(backend::FeatureType::S3TC);
+    _supportsS3TC = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::S3TC);
     _valueDict["supports_S3TC"] = Value(_supportsS3TC);
     
-    _supportsATITC = _deviceInfo->checkForFeatureSupported(backend::FeatureType::AMD_COMPRESSED_ATC);
+    _supportsATITC = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::AMD_COMPRESSED_ATC);
     _valueDict["supports_ATITC"] = Value(_supportsATITC);
     
-    _supportsPVRTC = _deviceInfo->checkForFeatureSupported(backend::FeatureType::PVRTC);
+    _supportsPVRTC = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::PVRTC);
     _valueDict["supports_PVRTC"] = Value(_supportsPVRTC);
     
-    _supportsBGRA8888 = _deviceInfo->checkForFeatureSupported(backend::FeatureType::IMG_FORMAT_BGRA8888);
+    _supportsBGRA8888 = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::IMG_FORMAT_BGRA8888);
     _valueDict["supports_BGRA8888"] = Value(_supportsBGRA8888);
     
-    _supportsDiscardFramebuffer = _deviceInfo->checkForFeatureSupported(backend::FeatureType::DISCARD_FRAMEBUFFER);
+    _supportsDiscardFramebuffer = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::DISCARD_FRAMEBUFFER);
     _valueDict["supports_discard_framebuffer"] = Value(_supportsDiscardFramebuffer);
     
-    _supportsOESPackedDepthStencil = _deviceInfo->checkForFeatureSupported(backend::FeatureType::PACKED_DEPTH_STENCIL);
+    _supportsOESPackedDepthStencil = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::PACKED_DEPTH_STENCIL);
     _valueDict["supports_OES_packed_depth_stencil"] = Value(_supportsOESPackedDepthStencil);
     
-    _supportsShareableVAO = _deviceInfo->checkForFeatureSupported(backend::FeatureType::VAO);
+    _supportsShareableVAO = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::VAO);
     _valueDict["supports_vertex_array_object"] = Value(_supportsShareableVAO);
     
-    _supportsOESMapBuffer = _deviceInfo->checkForFeatureSupported(backend::FeatureType::MAPBUFFER);
+    _supportsOESMapBuffer = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::MAPBUFFER);
     _valueDict["supports_OES_map_buffer"] = Value(_supportsOESMapBuffer);
     
-    _supportsOESDepth24 = _deviceInfo->checkForFeatureSupported(backend::FeatureType::DEPTH24);
+    _supportsOESDepth24 = true;// _deviceInfo->checkForFeatureSupported(backend::FeatureType::DEPTH24);
     _valueDict["supports_OES_depth24"] = Value(_supportsOESDepth24);
     
-    _glExtensions = _deviceInfo->getExtension();
+//    _glExtensions = _deviceInfo->getExtension();
 }
 
 Configuration* Configuration::getInstance()
@@ -184,8 +184,7 @@ bool Configuration::checkForGLExtension(const std::string &searchName) const
 //
 int Configuration::getMaxTextureSize() const
 {
-    auto _deviceInfo = backend::Device::getInstance()->getDeviceInfo();
-    return _deviceInfo->getMaxTextureSize();
+    return 4096;
 }
 
 int Configuration::getMaxModelviewStackDepth() const
@@ -195,8 +194,7 @@ int Configuration::getMaxModelviewStackDepth() const
 
 int Configuration::getMaxTextureUnits() const
 {
-    auto _deviceInfo = backend::Device::getInstance()->getDeviceInfo();
-    return _deviceInfo->getMaxTextureUnits();
+    return 8;
 }
 
 bool Configuration::supportsNPOT() const
@@ -285,10 +283,10 @@ int Configuration::getMaxSupportSpotLightInShader() const
     return _maxSpotLightInShader;
 }
 
-Animate3DQuality Configuration::getAnimate3DQuality() const
-{
-    return _animate3DQuality;
-}
+// Animate3DQuality Configuration::getAnimate3DQuality() const
+// {
+//     return _animate3DQuality;
+// }
 
 //
 // generic getters for properties
@@ -380,19 +378,19 @@ void Configuration::loadConfigFile(const std::string& filename)
     else
         _valueDict[name] = Value(_maxSpotLightInShader);
     
-    name = "cocos2d.x.3d.animate_quality";
-    if (_valueDict.find(name) != _valueDict.end())
-        _animate3DQuality = (Animate3DQuality)_valueDict[name].asInt();
-    else
-        _valueDict[name] = Value((int)_animate3DQuality);
+//     name = "cocos2d.x.3d.animate_quality";
+//     if (_valueDict.find(name) != _valueDict.end())
+//         _animate3DQuality = (Animate3DQuality)_valueDict[name].asInt();
+//     else
+//         _valueDict[name] = Value((int)_animate3DQuality);
     
     Director::getInstance()->getEventDispatcher()->dispatchEvent(_loadedEvent);
 }
 
-int Configuration::getMaxAttributes() const
-{
-    auto _deviceInfo = backend::Device::getInstance()->getDeviceInfo();
-    return _deviceInfo->getMaxAttributes();
-}
+// int Configuration::getMaxAttributes() const
+// {
+//     auto _deviceInfo = backend::Device::getInstance()->getDeviceInfo();
+//     return _deviceInfo->getMaxAttributes();
+// }
 
 NS_CC_END

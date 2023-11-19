@@ -580,12 +580,12 @@ void ProgressTimer::draw(Renderer *renderer, const Mat4 &transform, uint32_t fla
     {
         if (!_reverseDirection)
         {
-            _customCommand.init(_globalZOrder, _sprite->getBlendFunc());
+            _customCommand.init(renderer->GetRenderDevice(), _globalZOrder, _sprite->getBlendFunc());
             renderer->addCommand(&_customCommand);
         }
         else
         {
-            _customCommand.init(_globalZOrder, _sprite->getBlendFunc());
+            _customCommand.init(renderer->GetRenderDevice(), _globalZOrder, _sprite->getBlendFunc());
             renderer->addCommand(&_customCommand);
 
             _customCommand2.init(_globalZOrder, _sprite->getBlendFunc());

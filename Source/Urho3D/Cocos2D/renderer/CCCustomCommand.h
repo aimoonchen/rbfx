@@ -25,6 +25,13 @@
 #pragma once
 
 #include "renderer/CCRenderCommand.h"
+#include <Diligent/Common/interface/RefCntAutoPtr.hpp>
+namespace Diligent
+{
+struct IShader;
+struct IBuffer;
+struct IShaderResourceBinding;
+} // namespace Diligent
 
 /**
  * @addtogroup renderer
@@ -80,19 +87,19 @@ public:
 	@param modelViewTransform When in 3D mode, depth sorting needs modelViewTransform.
 	@param flags Use to identify that the render command is 3D mode or not.
 	*/
-    void init(float globalZOrder, const Mat4& modelViewTransform, unsigned int flags);
+    void init(Urho3D::RenderDevice* device, float globalZOrder, const Mat4& modelViewTransform, unsigned int flags);
     
     /**
     Init function. The render command will be in 2D mode.
     @param globalZOrder GlobalZOrder of the render command.
     */
-    void init(float globalZOrder);
+    void init(Urho3D::RenderDevice* device, float globalZOrder);
     /**
     Init function. The render command will be in 2D mode.
     @param globalZOrder GlobalZOrder of the render command.
     @param blendFunc blend function of the render command.
     */
-    void init(float globalZOrder, const BlendFunc& blendFunc);
+    void init(Urho3D::RenderDevice* device, float globalZOrder, const BlendFunc& blendFunc);
 
     /**
     Create a vertex buffer of the custom command. The buffer size is (vertexSize * capacity).
@@ -160,14 +167,14 @@ public:
     /**
     Set the vertex buffer. The existing vertex buffer will be replaced if exist.
     */
-    void setVertexBuffer(backend::Buffer* vertexBuffer);
-    inline backend::Buffer* getVertexBuffer() const { return _vertexBuffer; }
+    void setVertexBuffer(Diligent::IBuffer* vertexBuffer);
+    inline Diligent::IBuffer* getVertexBuffer() const { return _vertexBuffer; }
 
     /**
     Set the index buffer. The existing index buffer will be replaced if exist.
     */
-    void setIndexBuffer(backend::Buffer* indexBuffer, IndexFormat indexFormat);
-    inline backend::Buffer* getIndexBuffer() const { return _indexBuffer; }
+    void setIndexBuffer(Diligent::IBuffer* indexBuffer, IndexFormat indexFormat);
+    inline Diligent::IBuffer* getIndexBuffer() const { return _indexBuffer; }
 
     /**
     Set the drawing information if the drawing type is ARRAY.
@@ -213,8 +220,8 @@ public:
 protected:
     std::size_t computeIndexSize() const;
 
-    backend::Buffer* _vertexBuffer = nullptr;
-    backend::Buffer* _indexBuffer = nullptr;
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> _vertexBuffer;
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> _indexBuffer;
     
     std::size_t _vertexDrawStart = 0;
     std::size_t _vertexDrawCount = 0;
@@ -236,6 +243,8 @@ protected:
 
     CallBackFunc _beforeCallback = nullptr;
     CallBackFunc _afterCallback = nullptr;
+    //
+    Urho3D::RenderDevice* _device{ nullptr };
 };
 
 NS_CC_END

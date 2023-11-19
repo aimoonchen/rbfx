@@ -33,6 +33,11 @@
 #include "renderer/CCRenderCommand.h"
 #include "renderer/backend/Types.h"
 
+namespace Urho3D
+{
+    class RenderDevice;
+}
+
 /**
  * @addtogroup renderer
  * @{
@@ -138,10 +143,10 @@ public:
     /**Reserved for material id, which means that the command could not be batched.*/
     static const int MATERIAL_ID_DO_NOT_BATCH = 0;
     /**Constructor.*/
-    Renderer();
+    Renderer(Urho3D::RenderDevice* device);
     /**Destructor.*/
     ~Renderer();
-
+    Urho3D::RenderDevice* GetRenderDevice() const { return _device; }
     //TODO: manage GLView inside Render itself
     void init();
 
@@ -422,7 +427,7 @@ protected:
          * Create a new vertex buffer and a index buffer and push it to cache.
          * @note Should invoke firstly.
          */
-        void init();
+        void init(Urho3D::RenderDevice* device);
 
         /**
          * Reset avalable buffer index to zero.
@@ -435,15 +440,16 @@ protected:
          */
         void prepareNextBuffer();
 
-        backend::Buffer* getVertexBuffer() const; ///< Get the vertex buffer.
-        backend::Buffer* getIndexBuffer() const; ///< Get the index buffer.
+        Diligent::IBuffer* getVertexBuffer() const; ///< Get the vertex buffer.
+        Diligent::IBuffer* getIndexBuffer() const; ///< Get the index buffer.
 
     private:
         void createBuffer();
 
         int _currentBufferIndex = 0;
-        std::vector<backend::Buffer*> _vertexBufferPool;
-        std::vector<backend::Buffer*> _indexBufferPool;
+        std::vector<Diligent::IBuffer*> _vertexBufferPool;
+        std::vector<Diligent::IBuffer*> _indexBufferPool;
+        Urho3D::RenderDevice* _device{ nullptr };
     };
 
     inline GroupCommandManager * getGroupCommandManager() const { return _groupCommandManager; }
@@ -499,8 +505,8 @@ protected:
     //for TrianglesCommand
     V3F_C4B_T2F _verts[VBO_SIZE];
     unsigned short _indices[INDEX_VBO_SIZE];
-    backend::Buffer* _vertexBuffer = nullptr;
-    backend::Buffer* _indexBuffer = nullptr;
+    Diligent::IBuffer* _vertexBuffer = nullptr;
+    Diligent::IBuffer* _indexBuffer = nullptr;
     TriangleCommandBufferManager _triangleCommandBufferManager;
     
     backend::CommandBuffer* _commandBuffer = nullptr;
@@ -559,6 +565,20 @@ protected:
     };
 
     std::deque<StateBlock> _stateBlockStack;
+    //
+    Urho3D::RenderDevice* _device{ nullptr };
+    struct StateKey {
+        Diligent::IShader* vsShader{ nullptr };
+        Diligent::IShader* psShader{ nullptr };
+        backend::BlendDescriptor blendDescriptor;
+        Diligent::PRIMITIVE_TOPOLOGY topologyType;
+        bool depthTestEnabled = false;
+        bool stencilTestEnabled = false;
+        bool needClearStencil = false;
+        float clearStencilValue = 0.0f;
+        bool operator<(const StateKey& v) const;
+    };
+    std::map<StateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
 };
 
 NS_CC_END

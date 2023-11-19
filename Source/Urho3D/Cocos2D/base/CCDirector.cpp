@@ -120,7 +120,7 @@ bool Director::init()
     // FPS
     _lastUpdate = std::chrono::steady_clock::now();
     
-    _console = new (std::nothrow) Console;
+    //_console = new (std::nothrow) Console;
 
     // scheduler
     _scheduler = new (std::nothrow) Scheduler();
