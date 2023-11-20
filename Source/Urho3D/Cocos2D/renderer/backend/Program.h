@@ -28,18 +28,20 @@
 #include "base/CCRef.h"
 #include "platform/CCPlatformMacros.h"
 #include "Types.h"
-#include "ShaderCache.h"
+//#include "ShaderCache.h"
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 namespace Urho3D
 {
-class Graphics;
-class ShaderProgram;
-class ShaderVariation;
 class Texture2D;
+class RenderDevice;
 } // namespace Urho3D
+namespace Diligent
+{
+class IShader;
+}
 CC_BACKEND_BEGIN
 
 class ShaderModule;
@@ -49,6 +51,29 @@ class ShaderModule;
  * @{
  */
 
+enum Uniform : uint32_t
+{
+    MVP_MATRIX,
+    TEXTURE,
+    TEXTURE1,
+    TEXTURE2,
+    TEXTURE3,
+    TEXT_COLOR,
+    EFFECT_TYPE,
+    EFFECT_COLOR,
+    UNIFORM_MAX // Maximum uniforms
+};
+
+enum Attribute : uint32_t
+{
+    POSITION,
+    COLOR,
+    TEXCOORD,
+    TEXCOORD1,
+    TEXCOORD2,
+    TEXCOORD3,
+    ATTRIBUTE_MAX // Maximum attributes
+};
 
 /**
  * A program.
@@ -67,7 +92,7 @@ public:
      * @param uniform Specifies the uniform name.
      * @return The uniform location.
      */
-    virtual UniformLocation getUniformLocation(const std::string& uniform) const;
+    virtual UniformLocation getUniformLocation(const ea::string& uniform) const;
 
     /**
      * Get uniform location by engine built-in uniform enum name.
@@ -112,13 +137,13 @@ public:
      * Get vertex shader.
      * @return Vertex shader.
      */
-    const std::string& getVertexShader() const { return _vertexShader; }
+    const ea::string& getVertexShader() const { return _vertexShader; }
 
     /**
      * Get fragment shader.
      * @ Fragment shader.
      */
-    const std::string& getFragmentShader() const { return _fragmentShader; }
+    const ea::string& getFragmentShader() const { return _fragmentShader; }
     
     /**
      * Get engine built-in program type.
@@ -146,7 +171,7 @@ public:
      * @return The uniformInfos.
      */
     //virtual const std::unordered_map<std::string, UniformInfo>& getAllActiveUniformInfo(ShaderStage stage) const = 0;
-    
+    void applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[]);
 //protected:
     /**
      * Set engin built-in program type.
@@ -158,7 +183,7 @@ public:
      * @param vs Specifes the vertex shader source.
      * @param fs Specifes the fragment shader source.
      */
-    Program(const std::string& vs, const std::string& fs);
+    Program(Urho3D::RenderDevice* renderDevice, const ea::string& vs, const ea::string& fs);
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     /**
@@ -188,14 +213,13 @@ public:
 #endif
     friend class ProgramCache;
     
-    std::string _vertexShader; ///< Vertex shader.
-    std::string _fragmentShader; ///< Fragment shader.
+    ea::string _vertexShader; ///< Vertex shader.
+    ea::string _fragmentShader; ///< Fragment shader.
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
 
-    Urho3D::Graphics* graphics_{nullptr};
-    //Urho3D::ShaderProgram* m_program{nullptr};
-    Urho3D::ShaderVariation* m_vs{nullptr};
-    Urho3D::ShaderVariation* m_fs{nullptr};
+    Urho3D::RenderDevice* _device{nullptr};
+    Diligent::IShader* _vsShader{nullptr};
+    Diligent::IShader* _fsShader{nullptr};
     UniformLocation* _builtinUniformLocation[UNIFORM_MAX]{nullptr};
     std::size_t _uniformBufferSize = 0;
     std::unordered_map<uint16_t, UniformLocation> _activeUniform;

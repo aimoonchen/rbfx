@@ -24,13 +24,64 @@
  
 #include "Program.h"
 #include "ProgramCache.h"
-
+#include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
+#include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
+#include "../../../RenderAPI/RenderDevice.h"
+#include "../../../Resource/ResourceCache.h"
 CC_BACKEND_BEGIN
 
-Program::Program(const std::string& vs, const std::string& fs)
-: _vertexShader(vs)
-, _fragmentShader(fs)
+Program::Program(Urho3D::RenderDevice* renderDevice, const ea::string& vs, const ea::string& fs)
+    : _device{ renderDevice }
+    , _vertexShader(vs)
+    , _fragmentShader(fs)
 {
+    auto cache = _device->GetSubsystem<Urho3D::ResourceCache>();
+    Diligent::ShaderCreateInfo ShaderCI;
+    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+    // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+    ShaderCI.Desc.UseCombinedTextureSamplers = true;
+    ea::string shaderName = fs.substr(0, fs.find_last_of("_frag"));
+    // Create a vertex shader
+    ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+    ShaderCI.EntryPoint = "main";
+    ShaderCI.Desc.Name = shaderName.data();
+    ShaderCI.Source = vs.data();
+    renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &_vsShader);
+    // Create a pixel shader
+    ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+    ShaderCI.EntryPoint = "main";
+    ShaderCI.Desc.Name = shaderName.data();
+    ShaderCI.Source = fs.data();
+    renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &_fsShader);
+}
+
+UniformLocation Program::getUniformLocation(backend::Uniform name) const
+{
+    if (_builtinUniformLocation[name])
+    {
+        return *_builtinUniformLocation[name];
+    }
+    else
+    {
+        // assert(false);
+        return {};
+    }
+}
+
+void Program::applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[])
+{
+    for (auto& it : _activeUniform)
+    {
+        const auto& uniform = it.second;
+//         if (uniform.sampler)
+//         {
+//             graphics_->SetTexture(uniform.stage, textures[uniform.stage]);
+//         }
+//         else
+//         {
+//             graphics_->SetShaderParameter(uniform.handle, (const float*)(buffer + uniform.offset), uniform.count);
+//         }
+    }
 }
 
 void Program::setProgramType(ProgramType type)

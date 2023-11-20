@@ -38,6 +38,8 @@
 
 #include "../../Math/MathDefs.h"
 
+#include <Diligent/Graphics/GraphicsEngine/interface/InputLayout.h>
+
 NS_CC_BEGIN
 
 static inline Tex2F v2ToTex2F(const Vec2 &v)
@@ -93,7 +95,14 @@ DrawNode* DrawNode::create(float defaultLineWidth)
     
     return ret;
 }
-
+static ea::vector<Diligent::LayoutElement> get_vertex_layout()
+{
+    return ea::vector<Diligent::LayoutElement>{
+        Diligent::LayoutElement{0, 0, 2, Diligent::VT_FLOAT32, false},
+        Diligent::LayoutElement{1, 0, 4, Diligent::VT_UINT8, true},
+        Diligent::LayoutElement{2, 0, 2, Diligent::VT_FLOAT32, false}
+    };
+}
 void DrawNode::ensureCapacity(int count)
 {
     CCASSERT(count>=0, "capacity must be >= 0");
@@ -103,7 +112,7 @@ void DrawNode::ensureCapacity(int count)
         _bufferCapacity += MAX(_bufferCapacity, count);
         _buffer = (V2F_C4B_T2F*)realloc(_buffer, _bufferCapacity*sizeof(V2F_C4B_T2F));
         
-        _customCommand.createVertexBuffer(sizeof(V2F_C4B_T2F), _bufferCapacity, CustomCommand::BufferUsage::STATIC);
+        _customCommand.createVertexBuffer(sizeof(V2F_C4B_T2F), _bufferCapacity, CustomCommand::BufferUsage::STATIC, get_vertex_layout());
         _customCommand.updateVertexBuffer(_buffer, _bufferCapacity*sizeof(V2F_C4B_T2F));
     }
 }
@@ -117,7 +126,7 @@ void DrawNode::ensureCapacityGLPoint(int count)
         _bufferCapacityGLPoint += MAX(_bufferCapacityGLPoint, count);
         _bufferGLPoint = (V2F_C4B_T2F*)realloc(_bufferGLPoint, _bufferCapacityGLPoint*sizeof(V2F_C4B_T2F));
         
-        _customCommandGLPoint.createVertexBuffer(sizeof(V2F_C4B_T2F), _bufferCapacityGLPoint, CustomCommand::BufferUsage::STATIC);
+        _customCommandGLPoint.createVertexBuffer(sizeof(V2F_C4B_T2F), _bufferCapacityGLPoint, CustomCommand::BufferUsage::STATIC, get_vertex_layout());
         _customCommandGLPoint.updateVertexBuffer(_bufferGLPoint, _bufferCapacityGLPoint*sizeof(V2F_C4B_T2F));
     }
 }
@@ -131,7 +140,7 @@ void DrawNode::ensureCapacityGLLine(int count)
         _bufferCapacityGLLine += MAX(_bufferCapacityGLLine, count);
         _bufferGLLine = (V2F_C4B_T2F*)realloc(_bufferGLLine, _bufferCapacityGLLine*sizeof(V2F_C4B_T2F));
         
-        _customCommandGLLine.createVertexBuffer(sizeof(V2F_C4B_T2F), _bufferCapacityGLLine, CustomCommand::BufferUsage::STATIC);
+        _customCommandGLLine.createVertexBuffer(sizeof(V2F_C4B_T2F), _bufferCapacityGLLine, CustomCommand::BufferUsage::STATIC, get_vertex_layout());
         _customCommandGLLine.updateVertexBuffer(_bufferGLLine, _bufferCapacityGLLine*sizeof(V2F_C4B_T2F));
     }
 }
@@ -243,7 +252,7 @@ void DrawNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
     {
         updateBlendState(_customCommand);
         updateUniforms(transform, _customCommand);
-        _customCommand.init(_globalZOrder);
+        _customCommand.init(renderer->GetRenderDevice(), _globalZOrder);
         renderer->addCommand(&_customCommand);
     }
     
@@ -251,7 +260,7 @@ void DrawNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
     {
         updateBlendState(_customCommandGLPoint);
         updateUniforms(transform, _customCommandGLPoint);
-        _customCommandGLPoint.init(_globalZOrder);
+        _customCommandGLPoint.init(renderer->GetRenderDevice(), _globalZOrder);
         renderer->addCommand(&_customCommandGLPoint);
     }
     
@@ -260,7 +269,7 @@ void DrawNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
         updateBlendState(_customCommandGLLine);
         updateUniforms(transform, _customCommandGLLine);
         _customCommandGLLine.setLineWidth(_lineWidth);
-        _customCommandGLLine.init(_globalZOrder);
+        _customCommandGLLine.init(renderer->GetRenderDevice(), _globalZOrder);
         renderer->addCommand(&_customCommandGLLine);
     }
 }

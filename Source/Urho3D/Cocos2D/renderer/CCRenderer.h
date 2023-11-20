@@ -409,7 +409,7 @@ public:
 
     /** returns whether or not a rectangle is visible or not */
     bool checkVisibility(const Mat4& transform, const Size& size);
-    
+
 protected:
     friend class Director;
     friend class GroupCommand;
@@ -484,7 +484,7 @@ protected:
      * @param pipelineDescriptor Specifies the pipeline descriptor.
      * @param renderPassDescriptor Specifies the render pass descriptor.
      */
-    void setRenderPipeline(const PipelineDescriptor&, const backend::RenderPassDescriptor&);
+    void setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor&);
 
     void pushStateBlock();
 
@@ -572,6 +572,7 @@ protected:
         Diligent::IShader* psShader{ nullptr };
         backend::BlendDescriptor blendDescriptor;
         Diligent::PRIMITIVE_TOPOLOGY topologyType;
+        CullMode cullMode{ CullMode::NONE };
         bool depthTestEnabled = false;
         bool stencilTestEnabled = false;
         bool needClearStencil = false;

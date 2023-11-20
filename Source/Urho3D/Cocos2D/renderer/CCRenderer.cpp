@@ -680,7 +680,7 @@ void Renderer::drawCustomCommand(RenderCommand *command)
     _commandBuffer->setProgramState(cmd->getPipelineDescriptor().programState);
     
     auto drawType = cmd->getDrawType();
-    _commandBuffer->setLineWidth(cmd->getLineWidth());
+    //_commandBuffer->setLineWidth(cmd->getLineWidth());
     if (CustomCommand::DrawType::ELEMENT == drawType)
     {
         //_commandBuffer->setIndexBuffer(cmd->getIndexBuffer());
@@ -784,6 +784,8 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
         return psShader < v.psShader;
     if (blendDescriptor.blendEnabled != v.blendDescriptor.blendEnabled)
         return blendDescriptor.blendEnabled < v.blendDescriptor.blendEnabled;
+    if (cullMode != v.cullMode)
+        return cullMode < v.cullMode;
     if (depthTestEnabled != v.depthTestEnabled)
         return v.depthTestEnabled;
     if (stencilTestEnabled != v.stencilTestEnabled)
@@ -807,15 +809,28 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
     return false;
 }
 
-void Renderer::setRenderPipeline(const PipelineDescriptor& pipelineDescriptor, const backend::RenderPassDescriptor& renderPassDescriptor)
+void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor& renderPassDescriptor)
 {
+    const auto& pipelineDescriptor = command->getPipelineDescriptor();
     StateKey key;
     key.blendDescriptor = pipelineDescriptor.blendDescriptor;
     key.depthTestEnabled = renderPassDescriptor.depthTestEnabled;
     key.stencilTestEnabled = renderPassDescriptor.stencilTestEnabled;
     key.needClearStencil = renderPassDescriptor.needClearStencil;
     key.clearStencilValue = renderPassDescriptor.clearStencilValue;
-    key.topologyType = currentTopologyType_;
+    key.cullMode = _cullMode;
+    Diligent::PRIMITIVE_TOPOLOGY topologyType{ Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_UNDEFINED };
+    auto pt = static_cast<CustomCommand*>(command)->getPrimitiveType();
+    switch (pt) {
+    case backend::PrimitiveType::POINT: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_POINT_LIST; break;
+    case backend::PrimitiveType::LINE: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_LIST; break;
+    case backend::PrimitiveType::LINE_STRIP: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_STRIP; break;
+    case backend::PrimitiveType::TRIANGLE: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; break;
+    case backend::PrimitiveType::TRIANGLE_STRIP: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP; break;
+    default:
+        break;
+    }
+    key.topologyType = topologyType;
     Diligent::IPipelineState* piplineState{ nullptr };
     auto it = piplineStates_.find(key);
     if (it != piplineStates_.end()) {
@@ -829,32 +844,27 @@ void Renderer::setRenderPipeline(const PipelineDescriptor& pipelineDescriptor, c
         PSOCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
         PSOCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain->GetDesc().ColorBufferFormat;
         PSOCreateInfo.GraphicsPipeline.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
-        PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = currentTopologyType_;
+        PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = topologyType;
 
         auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
         rasterizerDesc.ScissorEnable = Diligent::False;
-        if (key.state.CullingType == ::Effekseer::CullingType::Back)
-        {
-            rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_FRONT : Diligent::CULL_MODE_BACK;
-        }
-        else if (key.state.CullingType == ::Effekseer::CullingType::Front)
-        {
-            rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_BACK : Diligent::CULL_MODE_FRONT;
-        }
-        else if (key.state.CullingType == ::Effekseer::CullingType::Double)
-        {
+        if (key.cullMode == backend::CullMode::BACK) {
+            rasterizerDesc.CullMode = Diligent::CULL_MODE_BACK;
+        } else if (key.cullMode == backend::CullMode::FRONT) {
+            rasterizerDesc.CullMode = Diligent::CULL_MODE_FRONT;
+        } else if (key.cullMode == backend::CullMode::NONE) {
             rasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
         }
 
         // Depth testing
         auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
-        depthStencilDesc.DepthEnable = key.state.DepthTest;
-        depthStencilDesc.DepthWriteEnable = key.state.DepthWrite;
-        depthStencilDesc.DepthFunc =
-            isReversedDepth_ ? Diligent::COMPARISON_FUNC_GREATER_EQUAL : Diligent::COMPARISON_FUNC_LESS_EQUAL;
+        depthStencilDesc.DepthEnable = key.depthTestEnabled;
+        depthStencilDesc.DepthWriteEnable = false;
+        depthStencilDesc.DepthFunc = Diligent::COMPARISON_FUNC_LESS_EQUAL;
 
-        PSOCreateInfo.pVS = currentShader->GetVertexShader();
-        PSOCreateInfo.pPS = currentShader->GetPixelShader();
+        auto program = pipelineDescriptor.programState->getProgram();
+        PSOCreateInfo.pVS = program->_vsShader;
+        PSOCreateInfo.pPS = program->_fsShader;
 
         const auto& elements = currentShader->GetVertexLayouts()->GetElements();
         auto& inputLayout = PSOCreateInfo.GraphicsPipeline.InputLayout;
@@ -963,7 +973,7 @@ void Renderer::beginRenderPass(RenderCommand* cmd)
      _commandBuffer->setCullMode(_cullMode);
      _commandBuffer->setWinding(_winding);
      _commandBuffer->setScissorRect(_scissorState.isEnabled, _scissorState.rect.x, _scissorState.rect.y, _scissorState.rect.width, _scissorState.rect.height);
-     setRenderPipeline(cmd->getPipelineDescriptor(), _renderPassDescriptor);
+     setRenderPipeline(cmd, _renderPassDescriptor);
 
     _commandBuffer->setStencilReferenceValue(_stencilRef);
 }

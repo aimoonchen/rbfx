@@ -31,7 +31,10 @@
 
 #include <string>
 #include <unordered_map>
-
+namespace Urho3D
+{
+    class RenderDevice;
+}
 CC_BACKEND_BEGIN
 /**
  * @addtogroup _backend
@@ -86,7 +89,7 @@ protected:
     /**
      * Pre-load programs into cache.
      */
-    bool init();
+    bool init(Urho3D::RenderDevice* renderDevice);
 
     /// Add built-in program
     void addProgram(ProgramType type);
@@ -94,6 +97,7 @@ protected:
     static std::unordered_map<backend::ProgramType, backend::Program*> _cachedPrograms; ///< The cached program object.
     static std::unordered_map<std::string, backend::Program*> _cachedCustomPrograms; ///< The cached custom program object.
     static ProgramCache *_sharedProgramCache; ///< A shared instance of the program cache.
+    Urho3D::RenderDevice* _device{ nullptr };
 };
 
 //end of _backend group

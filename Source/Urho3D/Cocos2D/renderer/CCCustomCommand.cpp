@@ -67,10 +67,10 @@ void CustomCommand::init(Urho3D::RenderDevice* device, float globalZOrder, const
     blendDescriptor.destinationRGBBlendFactor = blendDescriptor.destinationAlphaBlendFactor = blendFunc.dst;
 }
 
-void CustomCommand::createVertexBuffer(std::size_t vertexSize, std::size_t capacity, BufferUsage usage)
+void CustomCommand::createVertexBuffer(std::size_t vertexSize, std::size_t capacity, BufferUsage usage, ea::vector<Diligent::LayoutElement> layout)
 {
 //    CC_SAFE_RELEASE(_vertexBuffer);
-    
+    _vertexLayout = std::move(layout);
     _vertexCapacity = capacity;
     _vertexDrawCount = capacity;
     
