@@ -538,7 +538,7 @@ void ScrollPane::lockFooter(int size)
         _tweenChange.setZero();
         float max = sp_getField(_overlapSize, _refreshBarAxis);
         if (max == 0)
-            max = MAX(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), 0);
+            max = std::max(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), (float)0);
         else
             max += _footerLockedSize;
         sp_setField(_tweenChange, _refreshBarAxis, -max - sp_getField(_tweenStart, _refreshBarAxis));
@@ -647,8 +647,8 @@ void ScrollPane::setSize(float wv, float hv)
     _viewSize.width -= (_owner->_margin.left + _owner->_margin.right);
     _viewSize.height -= (_owner->_margin.top + _owner->_margin.bottom);
 
-    _viewSize.width = MAX(1, _viewSize.width);
-    _viewSize.height = MAX(1, _viewSize.height);
+    _viewSize.width = std::max((float)1, _viewSize.width);
+    _viewSize.height = std::max((float)1, _viewSize.height);
     _pageSize = _viewSize;
 
     adjustMaskContainer();
@@ -750,14 +750,14 @@ void ScrollPane::handleSizeChanged()
         if (_contentSize.height == 0)
             _vtScrollBar->setDisplayPerc(0);
         else
-            _vtScrollBar->setDisplayPerc(MIN(1, _viewSize.height / _contentSize.height));
+            _vtScrollBar->setDisplayPerc(std::min((float)1, _viewSize.height / _contentSize.height));
     }
     if (_hzScrollBar != nullptr)
     {
         if (_contentSize.width == 0)
             _hzScrollBar->setDisplayPerc(0);
         else
-            _hzScrollBar->setDisplayPerc(MIN(1, _viewSize.width / _contentSize.width));
+            _hzScrollBar->setDisplayPerc(std::min((float)1, _viewSize.width / _contentSize.width));
     }
 
     updateScrollBarVisible();
@@ -787,11 +787,11 @@ void ScrollPane::handleSizeChanged()
         _footer->handlePositionChanged();
 
     if (_scrollType == ScrollType::HORIZONTAL || _scrollType == ScrollType::BOTH)
-        _overlapSize.width = ceil(MAX(0, _contentSize.width - _viewSize.width));
+        _overlapSize.width = ceil(std::max((float)0, _contentSize.width - _viewSize.width));
     else
         _overlapSize.width = 0;
     if (_scrollType == ScrollType::VERTICAL || _scrollType == ScrollType::BOTH)
-        _overlapSize.height = ceil(MAX(0, _contentSize.height - _viewSize.height));
+        _overlapSize.height = ceil(std::max((float)0, _contentSize.height - _viewSize.height));
     else
         _overlapSize.height = 0;
 
@@ -799,7 +799,7 @@ void ScrollPane::handleSizeChanged()
     _yPos = clampf(_yPos, 0, _overlapSize.height);
     float max = sp_getField(_overlapSize, _refreshBarAxis);
     if (max == 0)
-        max = MAX(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), 0);
+        max = std::max(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), (float)0);
     else
         max += _footerLockedSize;
     if (_refreshBarAxis == 0)
@@ -1158,7 +1158,7 @@ float ScrollPane::alignByPage(float pos, int axis, bool inertialScrolling)
     {
         page = floor(-pos / pageSize);
         float change = inertialScrolling ? (pos - sp_getField(_containerPos, axis)) : (pos - sp_getField(_container->getPosition2(), axis));
-        float testPageSize = MIN(pageSize, contentSize - (page + 1) * pageSize);
+        float testPageSize = std::min(pageSize, contentSize - (page + 1) * pageSize);
         float delta = -pos - page * pageSize;
 
         if (std::abs(change) > pageSize)
@@ -1227,7 +1227,7 @@ float ScrollPane::updateTargetAndDuration(float pos, int axis)
             ratio = pow((v2 - 500) / 500, 2);
 #else
         const cocos2d::Size& winSize = Director::getInstance()->getWinSizeInPixels();
-        v2 *= 1136.0f / MAX(winSize.width, winSize.height);
+        v2 *= 1136.0f / std::max(winSize.width, winSize.height);
 
         if (_pageMode)
         {
@@ -1332,7 +1332,7 @@ void ScrollPane::checkRefreshBar()
             if (max > 0)
                 sp_setField(vec, _refreshBarAxis, pos + sp_getField(_contentSize, _refreshBarAxis));
             else
-                sp_setField(vec, _refreshBarAxis, MAX(MIN(pos + sp_getField(_viewSize, _refreshBarAxis), sp_getField(_viewSize, _refreshBarAxis) - _footerLockedSize), sp_getField(_viewSize, _refreshBarAxis) - sp_getField(_contentSize, _refreshBarAxis)));
+                sp_setField(vec, _refreshBarAxis, std::max(std::min(pos + sp_getField(_viewSize, _refreshBarAxis), sp_getField(_viewSize, _refreshBarAxis) - _footerLockedSize), sp_getField(_viewSize, _refreshBarAxis) - sp_getField(_contentSize, _refreshBarAxis)));
             _footer->setPosition(vec.x, vec.y);
 
             vec = _footer->getSize();
@@ -1410,7 +1410,7 @@ float ScrollPane::runTween(int axis, float dt)
         {
             float max = sp_getField(_overlapSize, _refreshBarAxis);
             if (max == 0)
-                max = MAX(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), 0);
+                max = std::max(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), (float)0);
             else
                 max += _footerLockedSize;
             threshold2 = -max;
@@ -1571,18 +1571,18 @@ void ScrollPane::onTouchMove(EventContext* context)
             if (!_bouncebackEffect)
                 _container->setPositionY2(0);
             else if (_header != nullptr && _header->maxSize.height != 0)
-                _container->setPositionY2(((int)MIN(newPos.y * 0.5f, _header->maxSize.height)));
+                _container->setPositionY2(((int)std::min(newPos.y * 0.5f, _header->maxSize.height)));
             else
-                _container->setPositionY2(((int)MIN(newPos.y * 0.5f, _viewSize.height * PULL_RATIO)));
+                _container->setPositionY2(((int)std::min(newPos.y * 0.5f, _viewSize.height * PULL_RATIO)));
         }
         else if (newPos.y < -_overlapSize.height)
         {
             if (!_bouncebackEffect)
                 _container->setPositionY2(-_overlapSize.height);
             else if (_footer != nullptr && _footer->maxSize.height > 0)
-                _container->setPositionY2(((int)MAX((newPos.y + _overlapSize.height) * 0.5f, -_footer->maxSize.height) - _overlapSize.height));
+                _container->setPositionY2(((int)std::max((newPos.y + _overlapSize.height) * 0.5f, -_footer->maxSize.height) - _overlapSize.height));
             else
-                _container->setPositionY2(((int)MAX((newPos.y + _overlapSize.height) * 0.5f, -_viewSize.height * PULL_RATIO) - _overlapSize.height));
+                _container->setPositionY2(((int)std::max((newPos.y + _overlapSize.height) * 0.5f, -_viewSize.height * PULL_RATIO) - _overlapSize.height));
         }
         else
             _container->setPositionY2(newPos.y);
@@ -1595,18 +1595,18 @@ void ScrollPane::onTouchMove(EventContext* context)
             if (!_bouncebackEffect)
                 _container->setPositionX(0);
             else if (_header != nullptr && _header->maxSize.width != 0)
-                _container->setPositionX((int)MIN(newPos.x * 0.5f, _header->maxSize.width));
+                _container->setPositionX((int)std::min(newPos.x * 0.5f, _header->maxSize.width));
             else
-                _container->setPositionX((int)MIN(newPos.x * 0.5f, _viewSize.width * PULL_RATIO));
+                _container->setPositionX((int)std::min(newPos.x * 0.5f, _viewSize.width * PULL_RATIO));
         }
         else if (newPos.x < 0 - _overlapSize.width)
         {
             if (!_bouncebackEffect)
                 _container->setPositionX(-_overlapSize.width);
             else if (_footer != nullptr && _footer->maxSize.width > 0)
-                _container->setPositionX((int)MAX((newPos.x + _overlapSize.width) * 0.5f, -_footer->maxSize.width) - _overlapSize.width);
+                _container->setPositionX((int)std::max((newPos.x + _overlapSize.width) * 0.5f, -_footer->maxSize.width) - _overlapSize.width);
             else
-                _container->setPositionX((int)MAX((newPos.x + _overlapSize.width) * 0.5f, -_viewSize.width * PULL_RATIO) - _overlapSize.width);
+                _container->setPositionX((int)std::max((newPos.x + _overlapSize.width) * 0.5f, -_viewSize.width * PULL_RATIO) - _overlapSize.width);
         }
         else
             _container->setPositionX(newPos.x);
@@ -1713,7 +1713,7 @@ void ScrollPane::onTouchEnd(EventContext* context)
         {
             float max = sp_getField(_overlapSize, _refreshBarAxis);
             if (max == 0)
-                max = MAX(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), 0);
+                max = std::max(sp_getField(_contentSize, _refreshBarAxis) + _footerLockedSize - sp_getField(_viewSize, _refreshBarAxis), (float)0);
             else
                 max += _footerLockedSize;
             sp_setField(endPos, _refreshBarAxis, -max);

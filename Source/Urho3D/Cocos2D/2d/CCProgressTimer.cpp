@@ -36,7 +36,6 @@ THE SOFTWARE.
 #include "base/ccUtils.h"
 #include "renderer/ccShaders.h"
 #include "renderer/backend/ProgramState.h"
-
 NS_CC_BEGIN
 
 #define kProgressTextureCoordsCount 4
@@ -297,7 +296,14 @@ void ProgressTimer::setMidpoint(const Vec2& midPoint)
 {
     _midpoint = midPoint.getClampPoint(Vec2::ZERO, Vec2(1, 1));
 }
-
+static ea::vector<Diligent::LayoutElement> get_vertex_layout()
+{
+    return ea::vector<Diligent::LayoutElement>{
+        Diligent::LayoutElement{0, 0, 3, Diligent::VT_FLOAT32, false},
+        Diligent::LayoutElement{1, 0, 4, Diligent::VT_UINT8, true},
+        Diligent::LayoutElement{2, 0, 2, Diligent::VT_FLOAT32, false}
+    };
+}
 ///
 //    Update does the work of mapping the texture onto the triangles
 //    It now doesn't occur the cost of free/alloc data every update cycle.
@@ -396,7 +402,7 @@ void ProgressTimer::updateRadial()
     {
         sameIndexCount = false;
         _vertexData.resize(index + 3);
-        _customCommand.createVertexBuffer(sizeof(_vertexData[0]), (unsigned int)_vertexData.size(),  CustomCommand::BufferUsage::DYNAMIC);
+        _customCommand.createVertexBuffer(sizeof(_vertexData[0]), (unsigned int)_vertexData.size(),  CustomCommand::BufferUsage::DYNAMIC, get_vertex_layout());
     }
 
     if (_indexData.size() != 3 + 3 * index)
@@ -485,7 +491,7 @@ void ProgressTimer::updateBar()
         if (_vertexData.size() != 4)
         {
             _vertexData.resize(4);
-            _customCommand.createVertexBuffer(sizeof(_vertexData[0]),(unsigned int) _vertexData.size(), CustomCommand::BufferUsage::DYNAMIC);
+            _customCommand.createVertexBuffer(sizeof(_vertexData[0]),(unsigned int) _vertexData.size(), CustomCommand::BufferUsage::DYNAMIC, get_vertex_layout());
         }
 
         //    TOPLEFT
@@ -510,8 +516,8 @@ void ProgressTimer::updateBar()
     } else {
         if(_vertexData.size() != 8) {
             _vertexData.resize(8);
-            _customCommand.createVertexBuffer(sizeof(_vertexData[0]), (unsigned int)(_vertexData.size() / 2), CustomCommand::BufferUsage::DYNAMIC);
-            _customCommand2.createVertexBuffer(sizeof(_vertexData[0]), (unsigned int)(_vertexData.size() / 2), CustomCommand::BufferUsage::DYNAMIC);
+            _customCommand.createVertexBuffer(sizeof(_vertexData[0]), (unsigned int)(_vertexData.size() / 2), CustomCommand::BufferUsage::DYNAMIC, get_vertex_layout());
+            _customCommand2.createVertexBuffer(sizeof(_vertexData[0]), (unsigned int)(_vertexData.size() / 2), CustomCommand::BufferUsage::DYNAMIC, get_vertex_layout());
             //    TOPLEFT 1
             _vertexData[0].texCoords = textureCoordFromAlphaPoint(Vec2(0,1));
             _vertexData[0].vertices = vertexFromAlphaPoint(Vec2(0,1));
@@ -580,12 +586,12 @@ void ProgressTimer::draw(Renderer *renderer, const Mat4 &transform, uint32_t fla
     {
         if (!_reverseDirection)
         {
-            _customCommand.init(renderer->GetRenderDevice(), _globalZOrder, _sprite->getBlendFunc());
+            _customCommand.init(_globalZOrder, _sprite->getBlendFunc());
             renderer->addCommand(&_customCommand);
         }
         else
         {
-            _customCommand.init(renderer->GetRenderDevice(), _globalZOrder, _sprite->getBlendFunc());
+            _customCommand.init(_globalZOrder, _sprite->getBlendFunc());
             renderer->addCommand(&_customCommand);
 
             _customCommand2.init(_globalZOrder, _sprite->getBlendFunc());

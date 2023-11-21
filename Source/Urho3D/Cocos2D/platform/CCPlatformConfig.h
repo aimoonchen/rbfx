@@ -109,13 +109,13 @@ THE SOFTWARE.
     #define CC_PLATFORM_PC
 #endif
 
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    #define CC_USE_METAL
-#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-    #define CC_USE_GLES
-#else
-    #define CC_USE_GL
-#endif
+// #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+//     #define CC_USE_METAL
+// #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+//     #define CC_USE_GLES
+// #else
+//     #define CC_USE_GL
+// #endif
 
 /// @endcond
 #endif  // __BASE_CC_PLATFORM_CONFIG_H__

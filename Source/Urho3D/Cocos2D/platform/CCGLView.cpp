@@ -130,12 +130,12 @@ void GLView::updateDesignResolutionSize()
         
         if (_resolutionPolicy == ResolutionPolicy::NO_BORDER)
         {
-            _scaleX = _scaleY = MAX(_scaleX, _scaleY);
+            _scaleX = _scaleY = std::max(_scaleX, _scaleY);
         }
         
         else if (_resolutionPolicy == ResolutionPolicy::SHOW_ALL)
         {
-            _scaleX = _scaleY = MIN(_scaleX, _scaleY);
+            _scaleX = _scaleY = std::min(_scaleX, _scaleY);
         }
         
         else if ( _resolutionPolicy == ResolutionPolicy::FIXED_HEIGHT) {

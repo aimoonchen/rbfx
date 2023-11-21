@@ -304,8 +304,8 @@ int GComponent::moveChild(GObject* child, int oldIndex, int index)
     {
         if (_childrenRenderOrder == ChildrenRenderOrder::ASCENT)
         {
-            int fromIndex = MIN(index, oldIndex);
-            int toIndex = MIN(max(index, oldIndex), cnt - 1);
+            int fromIndex = std::min(index, oldIndex);
+            int toIndex = std::min(max(index, oldIndex), cnt - 1);
             for (int i = fromIndex; i <= toIndex; i++)
             {
                 GObject* g = _children.at(i);
@@ -315,8 +315,8 @@ int GComponent::moveChild(GObject* child, int oldIndex, int index)
         }
         else if (_childrenRenderOrder == ChildrenRenderOrder::DESCENT)
         {
-            int fromIndex = MIN(index, oldIndex);
-            int toIndex = MIN(max(index, oldIndex), cnt - 1);
+            int fromIndex = std::min(index, oldIndex);
+            int toIndex = std::min(max(index, oldIndex), cnt - 1);
             for (int i = fromIndex; i <= toIndex; i++)
             {
                 GObject* g = _children.at(i);
@@ -809,7 +809,7 @@ void GComponent::buildNativeDisplayList()
 
     case ChildrenRenderOrder::ARCH:
     {
-        int ai = MIN(_apexIndex, cnt);
+        int ai = std::min(_apexIndex, cnt);
         for (int i = 0; i < ai; i++)
         {
             GObject* child = _children.at(i);
@@ -1003,7 +1003,7 @@ GObject* GComponent::hitTest(const Vec2& worldPoint, const Camera* camera)
 
     case ChildrenRenderOrder::ARCH:
     {
-        int ai = MIN(_apexIndex, cnt);
+        int ai = std::min(_apexIndex, cnt);
         for (int i = ai; i < cnt; i++)
         {
             GObject* child = _children.at(i);

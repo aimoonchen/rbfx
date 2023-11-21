@@ -1,11 +1,12 @@
 #include "TranslationHelper.h"
 #include "PackageItem.h"
 #include "UIPackage.h"
-#if defined(ENGINEX_VERSION)
-#include "pugixml/pugixml_imp.hpp"
-#else
-#include "tinyxml2/tinyxml2.h"
-#endif
+// #if defined(ENGINEX_VERSION)
+// #include "pugixml/pugixml_imp.hpp"
+// #else
+// #include "tinyxml2/tinyxml2.h"
+// #endif
+#include <PugiXml/pugixml.hpp>
 #include "utils/ByteBuffer.h"
 
 USING_NS_CC;
@@ -19,7 +20,7 @@ void TranslationHelper::loadFromXML(const char* xmlString, size_t nBytes)
 {
     strings.clear();
 
-#if defined(ENGINEX_VERSION)
+//#if defined(ENGINEX_VERSION)
     pugi::xml_document doc;
     if (doc.load_buffer(xmlString, nBytes)) {
         auto root = doc.document_element();
@@ -40,30 +41,30 @@ void TranslationHelper::loadFromXML(const char* xmlString, size_t nBytes)
             ele = ele.next_sibling("string");
         }
     }
-#else
-    tinyxml2::XMLDocument* xml = new tinyxml2::XMLDocument();
-    xml->Parse(xmlString, nBytes);
-
-    tinyxml2::XMLElement* root = xml->RootElement();
-    tinyxml2::XMLElement* ele = root->FirstChildElement("string");
-    while (ele)
-    {
-        std::string key = ele->Attribute("name");
-        std::string text = ele->GetText();
-        size_t i = key.find("-");
-        if (i == std::string::npos)
-            continue;
-
-        std::string key2 = key.substr(0, i);
-        std::string key3 = key.substr(i + 1);
-        std::unordered_map<std::string, std::string>& col = strings[key2];
-        col[key3] = text;
-
-        ele = ele->NextSiblingElement("string");
-    }
-
-    delete xml;
-#endif
+// #else
+//     tinyxml2::XMLDocument* xml = new tinyxml2::XMLDocument();
+//     xml->Parse(xmlString, nBytes);
+// 
+//     tinyxml2::XMLElement* root = xml->RootElement();
+//     tinyxml2::XMLElement* ele = root->FirstChildElement("string");
+//     while (ele)
+//     {
+//         std::string key = ele->Attribute("name");
+//         std::string text = ele->GetText();
+//         size_t i = key.find("-");
+//         if (i == std::string::npos)
+//             continue;
+// 
+//         std::string key2 = key.substr(0, i);
+//         std::string key3 = key.substr(i + 1);
+//         std::unordered_map<std::string, std::string>& col = strings[key2];
+//         col[key3] = text;
+// 
+//         ele = ele->NextSiblingElement("string");
+//     }
+// 
+//     delete xml;
+// #endif
 }
 
 void TranslationHelper::translateComponent(PackageItem* item)

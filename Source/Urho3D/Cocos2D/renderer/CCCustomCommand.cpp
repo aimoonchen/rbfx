@@ -27,6 +27,8 @@
 // #include "renderer/backend/Buffer.h"
 // #include "renderer/backend/Device.h"
 #include "base/ccUtils.h"
+#include "base/CCDirector.h"
+#include "renderer/CCRenderer.h"
 
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
@@ -36,6 +38,8 @@ NS_CC_BEGIN
 CustomCommand::CustomCommand()
 {
     _type = RenderCommand::Type::CUSTOM_COMMAND;
+    auto renderer = Director::getInstance()->getRenderer();
+    _device = renderer->GetRenderDevice();
 }
 
 CustomCommand::~CustomCommand()
@@ -44,21 +48,18 @@ CustomCommand::~CustomCommand()
 //     CC_SAFE_RELEASE(_indexBuffer);
 }
 
-void CustomCommand::init(Urho3D::RenderDevice* device, float depth, const cocos2d::Mat4 &modelViewTransform, unsigned int flags)
+void CustomCommand::init(float depth, const cocos2d::Mat4 &modelViewTransform, unsigned int flags)
 {
     RenderCommand::init(depth, modelViewTransform, flags);
-    _device = device;
 }
 
-void CustomCommand::init(Urho3D::RenderDevice* device, float globalZOrder)
+void CustomCommand::init(float globalZOrder)
 {
-    _device = device;
     _globalOrder = globalZOrder;
 }
 
-void CustomCommand::init(Urho3D::RenderDevice* device, float globalZOrder, const BlendFunc& blendFunc)
+void CustomCommand::init(float globalZOrder, const BlendFunc& blendFunc)
 {
-    _device = device;
     _globalOrder = globalZOrder;
 
     auto& blendDescriptor = _pipelineDescriptor.blendDescriptor;

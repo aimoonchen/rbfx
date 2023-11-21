@@ -83,6 +83,7 @@ THE SOFTWARE.
 // #include "base/CCController.h"
 #include "base/CCEventTouch.h"
 #include "base/CCEventType.h"
+#include "base/CCStencilStateManager.h"
 
 // math
 #include "math/CCAffineTransform.h"
@@ -90,7 +91,7 @@ THE SOFTWARE.
 #include "math/CCVertex.h"
 #include "math/Mat4.h"
 #include "math/MathUtil.h"
-#include "math/Quaternion.h"
+#include "math/Quat.h"
 #include "math/Vec2.h"
 #include "math/Vec3.h"
 #include "math/Vec4.h"

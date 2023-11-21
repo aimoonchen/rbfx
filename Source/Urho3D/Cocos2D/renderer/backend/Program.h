@@ -92,7 +92,7 @@ public:
      * @param uniform Specifies the uniform name.
      * @return The uniform location.
      */
-    virtual UniformLocation getUniformLocation(const ea::string& uniform) const;
+    virtual UniformLocation getUniformLocation(const std::string& uniform) const;
 
     /**
      * Get uniform location by engine built-in uniform enum name.
@@ -137,13 +137,13 @@ public:
      * Get vertex shader.
      * @return Vertex shader.
      */
-    const ea::string& getVertexShader() const { return _vertexShader; }
+    const std::string& getVertexShader() const { return _vertexShader; }
 
     /**
      * Get fragment shader.
      * @ Fragment shader.
      */
-    const ea::string& getFragmentShader() const { return _fragmentShader; }
+    const std::string& getFragmentShader() const { return _fragmentShader; }
     
     /**
      * Get engine built-in program type.
@@ -183,7 +183,7 @@ public:
      * @param vs Specifes the vertex shader source.
      * @param fs Specifes the fragment shader source.
      */
-    Program(Urho3D::RenderDevice* renderDevice, const ea::string& vs, const ea::string& fs);
+    Program(const std::string& vs, const std::string& fs, const char* shaderName = "");
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     /**
@@ -213,8 +213,8 @@ public:
 #endif
     friend class ProgramCache;
     
-    ea::string _vertexShader; ///< Vertex shader.
-    ea::string _fragmentShader; ///< Fragment shader.
+    std::string _vertexShader; ///< Vertex shader.
+    std::string _fragmentShader; ///< Fragment shader.
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
 
     Urho3D::RenderDevice* _device{nullptr};

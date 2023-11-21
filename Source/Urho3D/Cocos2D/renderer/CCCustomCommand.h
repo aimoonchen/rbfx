@@ -26,6 +26,7 @@
 
 #include "renderer/CCRenderCommand.h"
 #include <Diligent/Common/interface/RefCntAutoPtr.hpp>
+#include <Diligent/Graphics/GraphicsEngine/interface/InputLayout.h>
 namespace Diligent
 {
 struct IShader;
@@ -87,19 +88,19 @@ public:
 	@param modelViewTransform When in 3D mode, depth sorting needs modelViewTransform.
 	@param flags Use to identify that the render command is 3D mode or not.
 	*/
-    void init(Urho3D::RenderDevice* device, float globalZOrder, const Mat4& modelViewTransform, unsigned int flags);
+    void init(float globalZOrder, const Mat4& modelViewTransform, unsigned int flags);
     
     /**
     Init function. The render command will be in 2D mode.
     @param globalZOrder GlobalZOrder of the render command.
     */
-    void init(Urho3D::RenderDevice* device, float globalZOrder);
+    void init(float globalZOrder);
     /**
     Init function. The render command will be in 2D mode.
     @param globalZOrder GlobalZOrder of the render command.
     @param blendFunc blend function of the render command.
     */
-    void init(Urho3D::RenderDevice* device, float globalZOrder, const BlendFunc& blendFunc);
+    void init(float globalZOrder, const BlendFunc& blendFunc);
 
     /**
     Create a vertex buffer of the custom command. The buffer size is (vertexSize * capacity).
@@ -216,6 +217,8 @@ public:
     const CallBackFunc &getBeforeCallback() { return _beforeCallback; }
 
     const CallBackFunc &getAfterCallback() { return _afterCallback; }
+
+    const ea::vector<Diligent::LayoutElement>& getLayoutElement() const { return _vertexLayout; }
 
 protected:
     std::size_t computeIndexSize() const;

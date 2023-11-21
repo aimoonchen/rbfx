@@ -499,7 +499,7 @@ std::vector<Vec2> AutoPolygon::reduce(const std::vector<Vec2>& points, const Rec
         log("AUTOPOLYGON: cannot reduce points for %s e: %f",_filename.c_str(), epsilon);
         return points;
     }
-    float maxEp = MIN(rect.size.width, rect.size.height);
+    float maxEp = std::min(rect.size.width, rect.size.height);
     float ep = clampf(epsilon, 0.0, maxEp/_scaleFactor/2);
     std::vector<Vec2> result = rdp(points, ep);
     

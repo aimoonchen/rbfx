@@ -1,5 +1,5 @@
 #include "GRoot.h"
-#include "AudioEngine.h"
+//#include "AudioEngine.h"
 #include "UIConfig.h"
 #include "UIPackage.h"
 
@@ -535,9 +535,9 @@ bool GRoot::initWithScene(cocos2d::Scene* scene, int zOrder)
     _inputProcessor = new InputProcessor(this);
     _inputProcessor->setCaptureCallback(CC_CALLBACK_1(GRoot::onTouchEvent, this));
 
-#ifdef CC_PLATFORM_PC
-    _windowSizeListener = Director::getInstance()->getEventDispatcher()->addCustomEventListener(GLViewImpl::EVENT_WINDOW_RESIZED, CC_CALLBACK_0(GRoot::onWindowSizeChanged, this));
-#endif
+// #ifdef CC_PLATFORM_PC
+//     _windowSizeListener = Director::getInstance()->getEventDispatcher()->addCustomEventListener(GLViewImpl::EVENT_WINDOW_RESIZED, CC_CALLBACK_0(GRoot::onWindowSizeChanged, this));
+// #endif
     onWindowSizeChanged();
 
     scene->addChild(_displayObject, zOrder);

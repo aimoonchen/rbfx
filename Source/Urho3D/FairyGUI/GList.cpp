@@ -724,9 +724,9 @@ void GList::setSelectionOnEvent(GObject* item, InputEvent* evt)
             {
                 if (_lastSelectedIndex != -1)
                 {
-                    int min = MIN(_lastSelectedIndex, index);
-                    int max = MAX(_lastSelectedIndex, index);
-                    max = MIN(max, getNumItems() - 1);
+                    int min = std::min(_lastSelectedIndex, index);
+                    int max = std::max(_lastSelectedIndex, index);
+                    max = std::min(max, getNumItems() - 1);
                     if (_virtual)
                     {
                         for (int i = min; i <= max; i++)
@@ -790,9 +790,9 @@ void GList::resizeToFit(int itemCount, int minSize)
     {
         int lineCount = ceil((float)itemCount / _curLineItemCount);
         if (_layout == ListLayoutType::SINGLE_COLUMN || _layout == ListLayoutType::FLOW_HORIZONTAL)
-            setViewHeight(lineCount * _itemSize.y + MAX(0, lineCount - 1) * _lineGap);
+            setViewHeight(lineCount * _itemSize.y + std::max(0, lineCount - 1) * _lineGap);
         else
-            setViewWidth(lineCount * _itemSize.x + MAX(0, lineCount - 1) * _columnGap);
+            setViewWidth(lineCount * _itemSize.x + std::max(0, lineCount - 1) * _columnGap);
     }
     else if (itemCount == 0)
     {
@@ -1219,7 +1219,7 @@ void GList::doRefreshVirtualList()
     if (_realNumItems > 0)
     {
         int len = ceil((float)_realNumItems / _curLineItemCount) * _curLineItemCount;
-        int len2 = MIN(_curLineItemCount, _realNumItems);
+        int len2 = std::min(_curLineItemCount, _realNumItems);
         if (_layout == ListLayoutType::SINGLE_COLUMN || _layout == ListLayoutType::FLOW_HORIZONTAL)
         {
             for (int i = 0; i < len; i += _curLineItemCount)

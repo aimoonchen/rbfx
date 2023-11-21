@@ -37,7 +37,7 @@ namespace Urho3D {
 		void OnMouseMove(float x, float y);
         void OnKey(unsigned int key, bool isPress);
         void OnTextInput(const eastl::string& str);
-        static void UpdateIMEPosition(Urho3D::IntVector2 screenPosition);
+        static void UpdateIMEPosition(int px, int py);
 		// TODO : implement in lua
 // 		void CreateJoystick(fairygui::GComponent* view);
 // 		float GetJoystickRotation() const;
@@ -50,7 +50,7 @@ namespace Urho3D {
         bool focus_test(const IntVector2& curorPos);
         bool focus_test(float x, float y);
 		fairygui::GRoot* current_root_{ nullptr };
-		cocos2d::Renderer* cocos_renderder_{ nullptr };
+		//cocos2d::Renderer* cocos_renderder_{ nullptr };
         cocos2d::GLViewImpl* view_impl_{nullptr};
 		Context* context_{ nullptr };
 		float _scaleX{ 1.0f };

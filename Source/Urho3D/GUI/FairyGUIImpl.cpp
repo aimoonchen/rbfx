@@ -19,6 +19,7 @@
 #include "../Resource/ResourceCache.h"
 #include "../IO/FileSystem.h"
 #include "../FairyGUI/UIConfig.h"
+#include "../RenderAPI/RenderDevice.h"
 
 #include <SDL.h>
 
@@ -234,7 +235,7 @@ using namespace fairygui;
 // }
 
 namespace fairygui {
-    extern void (*updateIMEPosition)(Urho3D::IntVector2);
+    extern void (*updateIMEPosition)(int, int);
 }
 
 namespace Urho3D {
@@ -243,10 +244,10 @@ namespace Urho3D {
 	static cocos2d::Size smallResolutionSize = cocos2d::Size(480, 320);
 	static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
 	static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
-    void FairyGUIImpl::UpdateIMEPosition(Urho3D::IntVector2 screenPosition)
+    void FairyGUIImpl::UpdateIMEPosition(int px, int py)
     {
         //IntVector2 screenPosition = ElementToScreen(cursor_->GetPosition());
-        SDL_Rect rect = {screenPosition.x_, screenPosition.y_, 32, 32/*cursor_->GetSize().x_, cursor_->GetSize().y_*/};
+        SDL_Rect rect = { px, py, 32, 32/*cursor_->GetSize().x_, cursor_->GetSize().y_*/};
         SDL_SetTextInputRect(&rect);
     }
     FairyGUIImpl::~FairyGUIImpl()
@@ -261,7 +262,7 @@ namespace Urho3D {
 		context_ = context;
 		SetUrho3DContext(context);
 		
-		cocos_renderder_ = new cocos2d::Renderer();
+		//cocos_renderder_ = new cocos2d::Renderer(nullptr);
         auto frameSize = context_->GetSubsystem<Urho3D::Graphics>()->GetSize();
         view_impl_ = cocos2d::GLViewImpl::createWithRect("FairyGUI", cocos2d::Rect(0, 0, frameSize.x_, frameSize.y_));
 		//view_impl_->setFrameSize(frameSize.x_, frameSize.y_);
@@ -287,9 +288,9 @@ namespace Urho3D {
 		cocos2d::Director::getInstance()->setOpenGLView(view_impl_);
 		auto scene = cocos2d::Scene::create();
         scene->retain();
-//         auto test_sprite = cocos2d::Sprite::create("Textures/UrhoIcon.png");
-//         test_sprite->setPosition(cocos2d::Vec2(frameSize.x_ / 2, frameSize.y_ / 2));
-//         cocos_scene_->addChild(test_sprite);
+        auto test_sprite = cocos2d::Sprite::create("Textures/UrhoIcon.png");
+        test_sprite->setPosition(cocos2d::Vec2(frameSize.x_ / 2, frameSize.y_ / 2));
+        scene->addChild(test_sprite);
 //         cocos2d::TTFConfig fontConfig;
 //         fontConfig.fontFilePath = "fonts/FZY3JW.TTF";
 //         fontConfig.fontSize = 24;
@@ -311,9 +312,9 @@ namespace Urho3D {
 	}
 	void FairyGUIImpl::Render()
     {
-        context_->GetSubsystem<Urho3D::Graphics>()->SetUIMode(true);
+        //context_->GetSubsystem<Urho3D::Graphics>()->SetUIMode(true);
 		cocos2d::Director::getInstance()->drawScene();
-        context_->GetSubsystem<Urho3D::Graphics>()->SetUIMode(false);
+        //context_->GetSubsystem<Urho3D::Graphics>()->SetUIMode(false);
 	}
     void FairyGUIImpl::SetRoot(fairygui::GRoot* root)
     {

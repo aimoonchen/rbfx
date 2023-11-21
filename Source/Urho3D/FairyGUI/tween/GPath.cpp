@@ -202,7 +202,7 @@ void GPath::getPointsInSegment(int segmentIndex, float t0, float t1,
     else if (seg.type == GPathPoint::CurveType::Bezier || seg.type == GPathPoint::CurveType::CubicBezier)
     {
         points.push_back(onBezierCurve(seg.ptStart, seg.ptCount, t0));
-        int SmoothAmount = (int)MIN(seg.length * pointDensity, 50);
+        int SmoothAmount = (int)std::min(seg.length * pointDensity, (float)50);
         for (int j = 0; j <= SmoothAmount; j++)
         {
             float t = (float)j / SmoothAmount;
@@ -218,7 +218,7 @@ void GPath::getPointsInSegment(int segmentIndex, float t0, float t1,
     else
     {
         points.push_back(onCRSplineCurve(seg.ptStart, seg.ptCount, t0));
-        int SmoothAmount = (int)MIN(seg.length * pointDensity, 50);
+        int SmoothAmount = (int)std::min(seg.length * pointDensity, (float)50);
         for (int j = 0; j <= SmoothAmount; j++)
         {
             float t = (float)j / SmoothAmount;

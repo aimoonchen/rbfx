@@ -1,11 +1,12 @@
 #include "EaseManager.h"
 #include "cocos2d.h"
+#include "../Math/MathDefs.h"
 
 NS_FGUI_BEGIN
 USING_NS_CC;
 
-static const float _PiOver2 = (float)(M_PI * 0.5f);
-static const float _TwoPi = (float)(M_PI * 2);
+static const float _PiOver2 = (float)(Urho3D::M_PI * 0.5f);
+static const float _TwoPi = (float)(Urho3D::M_PI * 2);
 
 class Bounce
 {
@@ -26,7 +27,7 @@ float EaseManager::evaluate(EaseType easeType, float time, float duration, float
     case EaseType::SineOut:
         return (float)sin(time / duration * _PiOver2);
     case EaseType::SineInOut:
-        return -0.5f * ((float)cos(M_PI * time / duration) - 1);
+        return -0.5f * ((float)cos(Urho3D::M_PI * time / duration) - 1);
     case EaseType::QuadIn:
         time /= duration;
         return time * time;

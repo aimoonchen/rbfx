@@ -133,7 +133,8 @@ public:
     id getNSGLContext() override { return glfwGetNSGLContext(_mainWindow); } // stevetranby: added
 #endif // #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
-protected:
+//protected:
+public:
     GLViewImpl(bool initglfw = true);
     virtual ~GLViewImpl();
 
@@ -152,6 +153,7 @@ protected:
     void onGLFWMouseScrollCallback(double x, double y);
     void onGLFWKeyCallback(int key, int scancode, bool isPressed, int mods);
     void onGLFWCharCallback(unsigned int character);
+    void onGLFWCharCallback(const char* utf8String, size_t character);
     void onGLFWWindowPosCallback(int x, int y);
     void onGLFWframebuffersize(int w, int h);
     void onGLFWWindowSizeFunCallback(int width, int height);

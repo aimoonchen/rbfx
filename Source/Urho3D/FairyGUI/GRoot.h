@@ -8,6 +8,11 @@
 #include "cocos2d.h"
 #include "event/InputProcessor.h"
 
+namespace Urho3D
+{
+class FairyGUIImpl;
+}
+
 NS_FGUI_BEGIN
 
 class WeakPtr;
@@ -95,6 +100,7 @@ private:
     static float _soundVolumeScale;
 
     static GRoot* _inst;
+    friend class Urho3D::FairyGUIImpl;
 };
 
 NS_FGUI_END

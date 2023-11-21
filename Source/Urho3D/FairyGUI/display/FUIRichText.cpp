@@ -448,9 +448,9 @@ void FUIRichText::formarRenderers()
         for (auto& node : row)
         {
             HtmlElement* element = (HtmlElement*)node->getUserData();
-            lineHeight = MAX(node->getContentSize().height, lineHeight);
+            lineHeight = std::max(node->getContentSize().height, lineHeight);
             if (element->obj == nullptr)
-                lineTextHeight = MAX(node->getContentSize().height, lineTextHeight);
+                lineTextHeight = std::max(node->getContentSize().height, lineTextHeight);
         }
 
         nextPosY += lineHeight;
@@ -485,7 +485,7 @@ void FUIRichText::formarRenderers()
     if (textWidth == GUTTER_X + GUTTER_X)
         textWidth = 0;
     else if (_numLines > 1 || (_textFormat.align != TextHAlignment::LEFT && _overflow != Label::Overflow::NONE))
-        textWidth = MAX(_dimensions.width, textWidth);
+        textWidth = std::max(_dimensions.width, textWidth);
     if (nextPosY != GUTTER_Y)
         textHeight = nextPosY + GUTTER_Y;
     else

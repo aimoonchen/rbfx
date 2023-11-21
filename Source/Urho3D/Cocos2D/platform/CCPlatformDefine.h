@@ -50,6 +50,3 @@ THE SOFTWARE.
 #define CC_UNUSED_PARAM(unusedparam) (void)unusedparam
 
 #define CC_DLL
-
-#define MIN std::min
-#define MAX std::max

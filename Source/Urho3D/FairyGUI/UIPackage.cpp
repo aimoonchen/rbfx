@@ -4,6 +4,10 @@
 #include "event/HitTest.h"
 #include "utils/ByteBuffer.h"
 #include "utils/ToolSet.h"
+#include "../Graphics/Graphics.h"
+#include "../Graphics/Texture2D.h"
+#include "renderer/Texture2DUtils.h"
+#include "Urho3DContext.h"
 
 NS_FGUI_BEGIN
 USING_NS_CC;
@@ -21,7 +25,7 @@ std::unordered_map<std::string, UIPackage*> UIPackage::_packageInstById;
 std::unordered_map<std::string, UIPackage*> UIPackage::_packageInstByName;
 std::vector<UIPackage*> UIPackage::_packageList;
 
-Texture2D* UIPackage::_emptyTexture;
+Urho3D::Texture2D* UIPackage::_emptyTexture;
 
 struct AtlasSprite
 {
@@ -97,11 +101,14 @@ UIPackage* UIPackage::addPackage(const string& assetPath)
 
     if (_emptyTexture == nullptr)
     {
-        Image* emptyImage = new Image();
-        emptyImage->initWithRawData(emptyTextureData, 16, 2, 2, 4, false);
-        _emptyTexture = new Texture2D();
-        _emptyTexture->initWithImage(emptyImage);
-        delete emptyImage;
+//         Image* emptyImage = new Image();
+//         emptyImage->initWithRawData(emptyTextureData, 16, 2, 2, 4, false);
+//         _emptyTexture = new Texture2D();
+//         _emptyTexture->initWithImage(emptyImage);
+//         delete emptyImage;
+        _emptyTexture = new Urho3D::Texture2D(GetUrho3DContext());
+        _emptyTexture->SetSize(2, 2, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UINT);
+        _emptyTexture->SetData(0, 0, 0, 2, 2, emptyTextureData);
     }
 
     Data data;
@@ -601,29 +608,60 @@ void* UIPackage::getItemAsset(PackageItem* item)
 
 void UIPackage::loadAtlas(PackageItem* item)
 {
-    Image* image = new Image();
-#if COCOS2D_VERSION < 0x00031702
-    Image::setPNGPremultipliedAlphaEnabled(false);
-#endif
-    if (!image->initWithImageFile(item->file))
-    {
-        item->texture = _emptyTexture;
-        _emptyTexture->retain();
-        delete image;
-#if COCOS2D_VERSION < 0x00031702
-        Image::setPNGPremultipliedAlphaEnabled(true);
-#endif
-        CCLOGWARN("FairyGUI: texture '%s' not found in %s", item->file.c_str(), _name.c_str());
-        return;
-    }
-#if COCOS2D_VERSION < 0x00031702
-    Image::setPNGPremultipliedAlphaEnabled(true);
-#endif
-
-    Texture2D* tex = new Texture2D();
-    tex->initWithImage(image);
-    item->texture = tex;
-    delete image;
+//     Image* image = new Image();
+// #if COCOS2D_VERSION < 0x00031702
+//     Image::setPNGPremultipliedAlphaEnabled(false);
+// #endif
+//     if (!image->initWithImageFile(item->file))
+//     {
+//         item->texture = _emptyTexture;
+//         _emptyTexture->retain();
+//         delete image;
+// #if COCOS2D_VERSION < 0x00031702
+//         Image::setPNGPremultipliedAlphaEnabled(true);
+// #endif
+//         CCLOGWARN("FairyGUI: texture '%s' not found in %s", item->file.c_str(), _name.c_str());
+//         return;
+//     }
+// #if COCOS2D_VERSION < 0x00031702
+//     Image::setPNGPremultipliedAlphaEnabled(true);
+// #endif
+// 
+//     Texture2D* tex = new Texture2D();
+//     tex->initWithImage(image);
+//     item->texture = tex;
+//     delete image;
+// 
+//     string alphaFilePath;
+//     string ext = FileUtils::getInstance()->getFileExtension(item->file);
+//     size_t pos = item->file.find_last_of('.');
+//     if (pos != -1)
+//         alphaFilePath = item->file.substr(0, pos) + "!a" + ext;
+//     else
+//         alphaFilePath = item->file + "!a" + ext;
+// 
+//     bool hasAlphaTexture = ToolSet::isFileExist(alphaFilePath);
+//     if (hasAlphaTexture)
+//     {
+//         image = new Image();
+//         if (!image->initWithImageFile(alphaFilePath))
+//         {
+//             delete image;
+//             return;
+//         }
+// 
+// #if defined(ENGINEX_VERSION)
+//         if(image->getFileType() == Image::Format::ETC)
+//             tex->updateWithImage(image, Texture2D::getDefaultAlphaPixelFormat(), 1, TextureFormatEXT::ETC1_ALPHA);
+// #else
+//         tex = new Texture2D();
+//         tex->initWithImage(image);
+//         item->texture->setAlphaTexture(tex);
+//         tex->release();
+// #endif
+//         delete image;
+//     }
+    item->texture = GetUrho3DTexture(item->file);
 
     string alphaFilePath;
     string ext = FileUtils::getInstance()->getFileExtension(item->file);
@@ -632,28 +670,6 @@ void UIPackage::loadAtlas(PackageItem* item)
         alphaFilePath = item->file.substr(0, pos) + "!a" + ext;
     else
         alphaFilePath = item->file + "!a" + ext;
-
-    bool hasAlphaTexture = ToolSet::isFileExist(alphaFilePath);
-    if (hasAlphaTexture)
-    {
-        image = new Image();
-        if (!image->initWithImageFile(alphaFilePath))
-        {
-            delete image;
-            return;
-        }
-
-#if defined(ENGINEX_VERSION)
-        if(image->getFileType() == Image::Format::ETC)
-            tex->updateWithImage(image, Texture2D::getDefaultAlphaPixelFormat(), 1, TextureFormatEXT::ETC1_ALPHA);
-#else
-        tex = new Texture2D();
-        tex->initWithImage(image);
-        item->texture->setAlphaTexture(tex);
-        tex->release();
-#endif
-        delete image;
-    }
 }
 
 AtlasSprite* UIPackage::getSprite(const std::string& spriteId)
@@ -689,16 +705,16 @@ void UIPackage::loadImage(PackageItem* item)
         item->spriteFrame = new (std::nothrow) SpriteFrame();
         item->spriteFrame->initWithTexture(_emptyTexture, Rect());
     }
-    if (item->scaleByTile)
-    {
-#if COCOS2D_VERSION >= 0x00040000
-        Texture2D::TexParams tp(backend::SamplerFilter::LINEAR, backend::SamplerFilter::LINEAR,
-            backend::SamplerAddressMode::REPEAT, backend::SamplerAddressMode::REPEAT);
-#else
-        Texture2D::TexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT };
-#endif
-        item->spriteFrame->getTexture()->setTexParameters(tp);
-}
+//     if (item->scaleByTile)
+//     {
+// #if COCOS2D_VERSION >= 0x00040000
+//         Texture2D::TexParams tp(backend::SamplerFilter::LINEAR, backend::SamplerFilter::LINEAR,
+//             backend::SamplerAddressMode::REPEAT, backend::SamplerAddressMode::REPEAT);
+// #else
+//         Texture2D::TexParams tp = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT };
+// #endif
+//         item->spriteFrame->getTexture()->setTexParameters(tp);
+//     }
 }
 
 void UIPackage::loadMovieClip(PackageItem* item)
@@ -783,11 +799,11 @@ void UIPackage::loadFont(PackageItem* item)
     int xadvance = buffer->readInt();
     int lineHeight = buffer->readInt();
 
-    Texture2D* mainTexture = nullptr;
+    Urho3D::Texture2D* mainTexture = nullptr;
     AtlasSprite* mainSprite = nullptr;
 
     if (ttf && (mainSprite = getSprite(item->id)) != nullptr)
-        mainTexture = (Texture2D*)getItemAsset(mainSprite->atlas);
+        mainTexture = (Urho3D::Texture2D*)getItemAsset(mainSprite->atlas);
 
     buffer->seek(0, 1);
 
@@ -864,7 +880,7 @@ void UIPackage::loadFont(PackageItem* item)
 
                 if (fontSize == 0)
                     fontSize = bh;
-                lineHeight = MAX(fontSize, lineHeight);
+                lineHeight = std::max(fontSize, lineHeight);
             }
         }
 

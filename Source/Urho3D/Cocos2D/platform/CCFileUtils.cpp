@@ -536,14 +536,29 @@ bool FileUtils::writeToFile(const ValueMap& dict, const std::string &fullPath) c
 
 /* The subclass FileUtilsApple should override these two method. */
 ValueMap FileUtils::getValueMapFromFile(const std::string& /*filename*/) const {return ValueMap();}
-ValueMap FileUtils::getValueMapFromData(const char* /*filedata*/, int /*filesize*/) const {return ValueMap();}
-ValueVector FileUtils::getValueVectorFromFile(const std::string& /*filename*/) const {return ValueVector();}
+// ValueMap FileUtils::getValueMapFromData(const char* /*filedata*/, int /*filesize*/) const {return ValueMap();}
+// ValueVector FileUtils::getValueVectorFromFile(const std::string& /*filename*/) const {return ValueVector();}
 bool FileUtils::writeToFile(const ValueMap& /*dict*/, const std::string &/*fullPath*/) const {return false;}
 
 #endif /* (CC_TARGET_PLATFORM != CC_PLATFORM_IOS) && (CC_TARGET_PLATFORM != CC_PLATFORM_MAC) */
 
 // Implement FileUtils
 FileUtils* FileUtils::s_sharedFileUtils = nullptr;
+
+FileUtils* FileUtils::getInstance()
+{
+    if (s_sharedFileUtils == nullptr)
+    {
+        s_sharedFileUtils = new FileUtils();
+        if (!s_sharedFileUtils->init())
+        {
+                delete s_sharedFileUtils;
+                s_sharedFileUtils = nullptr;
+                CCLOG("ERROR: Could not init CCFileUtilsWin32");
+        }
+    }
+    return s_sharedFileUtils;
+}
 
 void FileUtils::destroyInstance()
 {

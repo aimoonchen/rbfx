@@ -22,7 +22,7 @@
 #include "math/Mat4.h"
 
 #include <cmath>
-#include "math/Quaternion.h"
+#include "math/Quat.h"
 #include "math/MathUtil.h"
 #include "base/ccMacros.h"
 

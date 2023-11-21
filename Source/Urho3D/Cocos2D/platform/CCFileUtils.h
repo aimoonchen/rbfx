@@ -475,7 +475,7 @@ public:
      *  Gets the writable path.
      *  @return  The path that can be write/read a file in
      */
-    virtual std::string getWritablePath() const = 0;
+    virtual std::string getWritablePath() const { return ""; }
 
     /**
      *  Sets writable path.
@@ -504,7 +504,7 @@ public:
     /** Converts the contents of a file to a ValueMap.
      *  This method is used internally.
      */
-    virtual ValueMap getValueMapFromData(const char* filedata, int filesize) const;
+    //virtual ValueMap getValueMapFromData(const char* filedata, int filesize) const;
 
     /**
     * write a ValueMap into a plist file
@@ -573,7 +573,7 @@ public:
     *@param fullPath The full path to the file you want to save a string
     *@return bool
     */
-    virtual bool writeValueMapToFile(const ValueMap& dict, const std::string& fullPath) const;
+    virtual bool writeValueMapToFile(const ValueMap& dict, const std::string& fullPath) const { return false; }
 
     /**
     * Write a ValueMap into a file, done async off the main cocos thread.
@@ -589,7 +589,7 @@ public:
     * function will be executed on the main cocos thread. It will have on boolean argument 
     * signifying if the write was successful.
     */
-    virtual void writeValueMapToFile(ValueMap dict, const std::string& fullPath, std::function<void(bool)> callback) const;
+    virtual void writeValueMapToFile(ValueMap dict, const std::string& fullPath, std::function<void(bool)> callback) const {}
 
     /**
     * write ValueVector into a plist file
@@ -598,7 +598,7 @@ public:
     *@param fullPath The full path to the file you want to save a string
     *@return bool
     */
-    virtual bool writeValueVectorToFile(const ValueVector& vecData, const std::string& fullPath) const;
+    virtual bool writeValueVectorToFile(const ValueVector& vecData, const std::string& fullPath) const { return false; }
 
     /**
     * Write a ValueVector into a file, done async off the main cocos thread.
@@ -614,7 +614,7 @@ public:
     * function will be executed on the main cocos thread. It will have on boolean argument 
     * signifying if the write was successful.
     */
-    virtual void writeValueVectorToFile(ValueVector vecData, const std::string& fullPath, std::function<void(bool)> callback) const;
+    virtual void writeValueVectorToFile(ValueVector vecData, const std::string& fullPath, std::function<void(bool)> callback) const {}
 
     /**
     * Windows fopen can't support UTF-8 filename
@@ -627,7 +627,7 @@ public:
 
     // Converts the contents of a file to a ValueVector.
     // This method is used internally.
-    virtual ValueVector getValueVectorFromFile(const std::string& filename) const;
+    //virtual ValueVector getValueVectorFromFile(const std::string& filename) const;
 
     /**
      *  Checks whether a file exists.
@@ -866,7 +866,7 @@ protected:
      *  @param filename The file (with absolute path) to look up for
      *  @return Returns true if the file found at the given absolute path, otherwise returns false
      */
-    virtual bool isFileExistInternal(const std::string& filename) const = 0;
+    virtual bool isFileExistInternal(const std::string& filename) const { return false; }
 
     /**
      *  Checks whether a directory exists without considering search paths and resolution orders.

@@ -863,6 +863,27 @@ void GLViewImpl::onGLFWCharCallback(unsigned int character)
     }
 }
 
+void GLViewImpl::onGLFWCharCallback(const char* utf8String, size_t len)
+{
+    static std::set<std::string> controlUnicode = {
+        "\xEF\x9C\x80", // up
+        "\xEF\x9C\x81", // down
+        "\xEF\x9C\x82", // left
+        "\xEF\x9C\x83", // right
+        "\xEF\x9C\xA8", // delete
+        "\xEF\x9C\xA9", // home
+        "\xEF\x9C\xAB", // end
+        "\xEF\x9C\xAC", // pageup
+        "\xEF\x9C\xAD", // pagedown
+        "\xEF\x9C\xB9" // clear
+    };
+    // Check for send control key
+    if (controlUnicode.find(utf8String) == controlUnicode.end())
+    {
+        IMEDispatcher::sharedDispatcher()->dispatchInsertText(utf8String, len);
+    }
+}
+
 void GLViewImpl::onGLFWWindowPosCallback(int /*x*/, int /*y*/)
 {
     Director::getInstance()->setViewport();

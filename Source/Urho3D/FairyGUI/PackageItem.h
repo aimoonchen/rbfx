@@ -38,7 +38,7 @@ public:
     std::vector<std::string>* highResolution;
 
     //atlas
-    cocos2d::Texture2D* texture;
+    Urho3D::Texture2D* texture;
 
     //image
     cocos2d::Rect* scale9Grid;

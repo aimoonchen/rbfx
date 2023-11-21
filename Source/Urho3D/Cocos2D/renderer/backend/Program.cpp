@@ -24,35 +24,50 @@
  
 #include "Program.h"
 #include "ProgramCache.h"
+#include "base/CCDirector.h"
+#include "renderer/CCRenderer.h"
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include "../../../RenderAPI/RenderDevice.h"
-#include "../../../Resource/ResourceCache.h"
 CC_BACKEND_BEGIN
 
-Program::Program(Urho3D::RenderDevice* renderDevice, const ea::string& vs, const ea::string& fs)
-    : _device{ renderDevice }
-    , _vertexShader(vs)
+Program::Program(const std::string& vs, const std::string& fs, const char* shaderName)
+    : _vertexShader(vs)
     , _fragmentShader(fs)
 {
-    auto cache = _device->GetSubsystem<Urho3D::ResourceCache>();
+    auto renderer = Director::getInstance()->getRenderer();
+    auto device = renderer->GetRenderDevice();
     Diligent::ShaderCreateInfo ShaderCI;
     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
     // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
     ShaderCI.Desc.UseCombinedTextureSamplers = true;
-    ea::string shaderName = fs.substr(0, fs.find_last_of("_frag"));
+    //auto shaderName = fs.substr(0, fs.find_last_of("_frag"));
     // Create a vertex shader
     ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
     ShaderCI.EntryPoint = "main";
-    ShaderCI.Desc.Name = shaderName.data();
+    ShaderCI.Desc.Name = shaderName;
     ShaderCI.Source = vs.data();
-    renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &_vsShader);
+    device->GetRenderDevice()->CreateShader(ShaderCI, &_vsShader);
     // Create a pixel shader
     ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
     ShaderCI.EntryPoint = "main";
-    ShaderCI.Desc.Name = shaderName.data();
+    ShaderCI.Desc.Name = shaderName;
     ShaderCI.Source = fs.data();
-    renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &_fsShader);
+    device->GetRenderDevice()->CreateShader(ShaderCI, &_fsShader);
+}
+
+UniformLocation Program::getUniformLocation(const std::string& uniformName) const {
+    /*
+    const auto& uniform = m_program->GetUniform(uniformName.c_str());
+    auto it = _activeUniform.find(uniform.handle);
+    if (it != _activeUniform.end()) {
+        return it->second;
+    }
+    else {
+        assert(false);
+    }
+    */
+    return {};
 }
 
 UniformLocation Program::getUniformLocation(backend::Uniform name) const

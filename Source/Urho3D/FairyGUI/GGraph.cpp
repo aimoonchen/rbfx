@@ -1,6 +1,7 @@
 #include "GGraph.h"
 #include "utils/ByteBuffer.h"
 #include "utils/ToolSet.h"
+#include "../Math/MathDefs.h"
 
 NS_FGUI_BEGIN
 USING_NS_CC;
@@ -158,9 +159,9 @@ void GGraph::updateShape()
         else
             _polygonPoints->clear();
 
-        float radius = MIN(getWidth(), getHeight()) * 0.5f;
+        float radius = std::min(getWidth(), getHeight()) * 0.5f;
         float angle = MATH_DEG_TO_RAD(_startAngle);
-        float deltaAngle = 2 * M_PI / _sides;
+        float deltaAngle = 2 * Urho3D::M_PI / _sides;
         float dist;
         for (int i = 0; i < _sides; i++)
         {

@@ -339,11 +339,11 @@ void SpriteFrameCache::addSpriteFramesWithFile(const std::string& plist, Urho3D:
     addSpriteFramesWithDictionary(dict, texture, plist);
 }
 
-void SpriteFrameCache::addSpriteFramesWithFileContent(const std::string& plist_content, Urho3D::Texture2D *texture)
-{
-    ValueMap dict = FileUtils::getInstance()->getValueMapFromData(plist_content.c_str(), static_cast<int>(plist_content.size()));
-    addSpriteFramesWithDictionary(dict, texture, "by#addSpriteFramesWithFileContent()");
-}
+// void SpriteFrameCache::addSpriteFramesWithFileContent(const std::string& plist_content, Urho3D::Texture2D *texture)
+// {
+//     ValueMap dict = FileUtils::getInstance()->getValueMapFromData(plist_content.c_str(), static_cast<int>(plist_content.size()));
+//     addSpriteFramesWithDictionary(dict, texture, "by#addSpriteFramesWithFileContent()");
+// }
 
 void SpriteFrameCache::addSpriteFramesWithFile(const std::string& plist, const std::string& textureFileName)
 {
@@ -476,16 +476,16 @@ void SpriteFrameCache::removeSpriteFramesFromFile(const std::string& plist)
     _spriteFramesCache.erasePlistIndex(plist);
 }
 
-void SpriteFrameCache::removeSpriteFramesFromFileContent(const std::string& plist_content)
-{
-    ValueMap dict = FileUtils::getInstance()->getValueMapFromData(plist_content.data(), static_cast<int>(plist_content.size()));
-    if (dict.empty())
-    {
-        CCLOG("cocos2d:SpriteFrameCache:removeSpriteFramesFromFileContent: create dict by fail.");
-        return;
-    }
-    removeSpriteFramesFromDictionary(dict);
-}
+// void SpriteFrameCache::removeSpriteFramesFromFileContent(const std::string& plist_content)
+// {
+//     ValueMap dict = FileUtils::getInstance()->getValueMapFromData(plist_content.data(), static_cast<int>(plist_content.size()));
+//     if (dict.empty())
+//     {
+//         CCLOG("cocos2d:SpriteFrameCache:removeSpriteFramesFromFileContent: create dict by fail.");
+//         return;
+//     }
+//     removeSpriteFramesFromDictionary(dict);
+// }
 
 void SpriteFrameCache::removeSpriteFramesFromDictionary(ValueMap& dictionary)
 {

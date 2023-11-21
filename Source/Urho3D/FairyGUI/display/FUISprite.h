@@ -58,7 +58,7 @@ private:
     cocos2d::V3F_C4B_T2F *_vertexData;
     unsigned short *_vertexIndex;
     
-    static cocos2d::Texture2D* _empty;
+    static Urho3D::Texture2D* _empty;
 };
 
 NS_FGUI_END

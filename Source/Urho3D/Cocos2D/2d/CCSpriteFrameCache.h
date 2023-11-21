@@ -195,7 +195,7 @@ public:
      * @param plist_content Plist file content string.
      * @param texture Texture pointer.
      */
-    void addSpriteFramesWithFileContent(const std::string& plist_content, Urho3D::Texture2D *texture);
+    //void addSpriteFramesWithFileContent(const std::string& plist_content, Urho3D::Texture2D *texture);
 
     /** Adds an sprite frame with a given name.
      If the name already exists, then the contents of the old name will be replaced with the new one.
@@ -251,7 +251,7 @@ public:
     * @param plist_content The string of the plist content that needs to removed.
     * @js NA
     */
-    void removeSpriteFramesFromFileContent(const std::string& plist_content);
+    //void removeSpriteFramesFromFileContent(const std::string& plist_content);
 
     /** Removes all Sprite Frames associated with the specified textures.
      * It is convenient to call this method when a specific texture needs to be removed.

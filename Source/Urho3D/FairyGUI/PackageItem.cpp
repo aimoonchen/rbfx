@@ -36,7 +36,7 @@ PackageItem::~PackageItem()
         bitmapFont->releaseAtlas();
     bitmapFont = nullptr;
     CC_SAFE_RELEASE(animation);
-    CC_SAFE_RELEASE(texture);
+    //CC_SAFE_RELEASE(texture);
     CC_SAFE_RELEASE(spriteFrame);
 
     CC_SAFE_DELETE(branches);

@@ -24,11 +24,12 @@
  
 #include "ProgramCache.h"
 //#include "Device.h"
-#include "ShaderModule.h"
+//#include "ShaderModule.h"
 #include "renderer/ccShaders.h"
+#include "renderer/CCRenderer.h"
 #include "base/ccMacros.h"
 #include "base/CCConfiguration.h"
-
+#include "base/CCDirector.h"
 namespace std
 {
     template <>
@@ -93,12 +94,13 @@ ProgramCache::~ProgramCache()
         CC_SAFE_RELEASE(program.second);
     }
     CCLOGINFO("deallocing ProgramCache: %p", this);
-    ShaderCache::destroyInstance();
+    //ShaderCache::destroyInstance();
 }
 
-bool ProgramCache::init(Urho3D::RenderDevice* renderDevice)
+bool ProgramCache::init()
 {
-    _device = renderDevice;
+    auto renderer = Director::getInstance()->getRenderer();
+    _device = renderer->GetRenderDevice();
     addProgram(ProgramType::POSITION_TEXTURE_COLOR);
     addProgram(ProgramType::ETC1);
     addProgram(ProgramType::LABEL_DISTANCE_NORMAL);
@@ -137,58 +139,58 @@ void ProgramCache::addProgram(ProgramType type)
     Program* program = nullptr;
     switch (type) {
         case ProgramType::POSITION_TEXTURE_COLOR:
-            program = new Program(_device, positionTextureColor_vert, positionTextureColor_frag);
+            program = new Program(positionTextureColor_vert, positionTextureColor_frag, "POSITION_TEXTURE_COLOR");
             break;
         case ProgramType::ETC1:
-            program = new Program(_device, positionTextureColor_vert, etc1_frag);
+            program = new Program(positionTextureColor_vert, etc1_frag, "ETC1");
             break;
         case ProgramType::LABEL_DISTANCE_NORMAL:
-            program = new Program(_device, positionTextureColor_vert, label_distanceNormal_frag);
+            program = new Program(positionTextureColor_vert, label_distanceNormal_frag, "LABEL_DISTANCE_NORMAL");
             break;
         case ProgramType::LABEL_NORMAL:
-            program = new Program(_device, positionTextureColor_vert, label_normal_frag);
+            program = new Program(positionTextureColor_vert, label_normal_frag, "LABEL_NORMAL");
             break;
         case ProgramType::LABLE_OUTLINE:
-            program = new Program(_device, positionTextureColor_vert, labelOutline_frag);
+            program = new Program(positionTextureColor_vert, labelOutline_frag, "LABLE_OUTLINE");
             break;
         case ProgramType::LABLE_DISTANCEFIELD_GLOW:
-            program = new Program(_device, positionTextureColor_vert, labelDistanceFieldGlow_frag);
+            program = new Program(positionTextureColor_vert, labelDistanceFieldGlow_frag, "LABLE_DISTANCEFIELD_GLOW");
             break;
         case ProgramType::POSITION_COLOR_LENGTH_TEXTURE:
-            program = new Program(_device, positionColorLengthTexture_vert, positionColorLengthTexture_frag);
+            program = new Program(positionColorLengthTexture_vert, positionColorLengthTexture_frag, "POSITION_COLOR_LENGTH_TEXTURE");
             break;
         case ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE:
-            program = new Program(_device, positionColorTextureAsPointsize_vert, positionColor_frag);
+            program = new Program(positionColorTextureAsPointsize_vert, positionColor_frag, "POSITION_COLOR_TEXTURE_AS_POINTSIZE");
             break;
         case ProgramType::POSITION_COLOR:
-            program = new Program(_device, positionColor_vert, positionColor_frag);
+            program = new Program(positionColor_vert, positionColor_frag, "POSITION_COLOR");
             break;
         case ProgramType::POSITION:
-            program = new Program(_device, position_vert, positionColor_frag);
+            program = new Program(position_vert, positionColor_frag, "POSITION");
             break;
         case ProgramType::LAYER_RADIA_GRADIENT:
-            program = new Program(_device, position_vert, layer_radialGradient_frag);
+            program = new Program(position_vert, layer_radialGradient_frag, "LAYER_RADIA_GRADIENT");
             break;
         case ProgramType::POSITION_TEXTURE:
-            program = new Program(_device, positionTexture_vert, positionTexture_frag);
+            program = new Program(positionTexture_vert, positionTexture_frag, "POSITION_TEXTURE");
             break;
         case ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST:
-            program = new Program(_device, positionTextureColor_vert, positionTextureColorAlphaTest_frag);
+            program = new Program(positionTextureColor_vert, positionTextureColorAlphaTest_frag, "POSITION_TEXTURE_COLOR_ALPHA_TEST");
             break;
         case ProgramType::POSITION_UCOLOR:
-            program = new Program(_device, positionUColor_vert, positionUColor_frag);
+            program = new Program(positionUColor_vert, positionUColor_frag, "POSITION_UCOLOR");
             break;
         case ProgramType::ETC1_GRAY:
-            program = new Program(_device, positionTextureColor_vert, etc1Gray_frag);
+            program = new Program(positionTextureColor_vert, etc1Gray_frag, "ETC1_GRAY");
             break;
         case ProgramType::GRAY_SCALE:
-            program = new Program(_device, positionTextureColor_vert, grayScale_frag);
+            program = new Program(positionTextureColor_vert, grayScale_frag, "GRAY_SCALE");
             break;
         case ProgramType::LINE_COLOR_3D:
-            program = new Program(_device, lineColor3D_vert, lineColor3D_frag);
+            program = new Program(lineColor3D_vert, lineColor3D_frag, "LINE_COLOR_3D");
             break;
         case ProgramType::CAMERA_CLEAR:
-            program = new Program(_device, cameraClear_vert, cameraClear_frag);
+            program = new Program(cameraClear_vert, cameraClear_frag, "CAMERA_CLEAR");
             break;
 //         case ProgramType::SKYBOX_3D:
 //             program = new Program(CC3D_skybox_vert, CC3D_skybox_frag);

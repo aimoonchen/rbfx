@@ -83,7 +83,7 @@ namespace {
 }
 
 //static field
-std::vector<ProgramState::AutoBindingResolver*> ProgramState::_customAutoBindingResolvers;
+//std::vector<ProgramState::AutoBindingResolver*> ProgramState::_customAutoBindingResolvers;
 
 TextureInfo::TextureInfo(const std::vector<uint32_t>& _slots, const std::vector<backend::TextureBackend*> _textures)
 : slot(_slots)
@@ -164,9 +164,9 @@ bool ProgramState::init(Program* program)
 {
     CC_SAFE_RETAIN(program);
     _program = program;
-    _vertexUniformBufferSize = _program->getUniformBufferSize(ShaderStage::VERTEX);
-    _vertexUniformBuffer = new char[_vertexUniformBufferSize];
-    memset(_vertexUniformBuffer, 0, _vertexUniformBufferSize);
+//     _vertexUniformBufferSize = _program->getUniformBufferSize(ShaderStage::VERTEX);
+//     _vertexUniformBuffer = new char[_vertexUniformBufferSize];
+//     memset(_vertexUniformBuffer, 0, _vertexUniformBufferSize);
 #ifdef CC_USE_METAL
     _fragmentUniformBufferSize = _program->getUniformBufferSize(ShaderStage::FRAGMENT);
     _fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
@@ -210,8 +210,8 @@ ProgramState::ProgramState()
 ProgramState::~ProgramState()
 {
     CC_SAFE_RELEASE(_program);
-    CC_SAFE_DELETE_ARRAY(_vertexUniformBuffer);
-    CC_SAFE_DELETE_ARRAY(_fragmentUniformBuffer);
+//     CC_SAFE_DELETE_ARRAY(_vertexUniformBuffer);
+//     CC_SAFE_DELETE_ARRAY(_fragmentUniformBuffer);
     
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     Director::getInstance()->getEventDispatcher()->removeEventListener(_backToForegroundListener);
@@ -222,17 +222,18 @@ ProgramState *ProgramState::clone() const
 {
     ProgramState *cp = new ProgramState();
     cp->_program = _program;
-    cp->_vertexUniformBufferSize = _vertexUniformBufferSize;
-    cp->_fragmentUniformBufferSize = _fragmentUniformBufferSize;
-    cp->_vertexTextureInfos = _vertexTextureInfos;
-    cp->_fragmentTextureInfos = _fragmentTextureInfos;
-    cp->_vertexUniformBuffer = new char[_vertexUniformBufferSize];
-    memcpy(cp->_vertexUniformBuffer, _vertexUniformBuffer, _vertexUniformBufferSize);
-    cp->_vertexLayout = _vertexLayout;
-#ifdef CC_USE_METAL
-    cp->_fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
-    memcpy(cp->_fragmentUniformBuffer, _fragmentUniformBuffer, _fragmentUniformBufferSize);
-#endif
+//     cp->_vertexUniformBufferSize = _vertexUniformBufferSize;
+//     cp->_fragmentUniformBufferSize = _fragmentUniformBufferSize;
+//     cp->_vertexTextureInfos = _vertexTextureInfos;
+//     cp->_fragmentTextureInfos = _fragmentTextureInfos;
+//     cp->_vertexUniformBuffer = new char[_vertexUniformBufferSize];
+//     memcpy(cp->_vertexUniformBuffer, _vertexUniformBuffer, _vertexUniformBufferSize);
+//     cp->_vertexLayout = _vertexLayout;
+// #ifdef CC_USE_METAL
+//     cp->_fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
+//     memcpy(cp->_fragmentUniformBuffer, _fragmentUniformBuffer, _fragmentUniformBufferSize);
+// #endif
+    cp->_uniformBuffer.resize(_uniformBuffer.size());
     CC_SAFE_RETAIN(cp->_program);
 
     return cp;
@@ -270,7 +271,7 @@ void ProgramState::setUniform(const backend::UniformLocation& uniformLocation, c
 //         default:
 //             break;
 //     }
-    memcpy(_uniformBuffer.data() + uniformLocation.offset, data, size);
+//    memcpy(_uniformBuffer.data() + uniformLocation.offset, data, size);
 }
 
 #ifdef CC_USE_METAL
@@ -399,7 +400,7 @@ void ProgramState::setTexture(const backend::UniformLocation& uniformLocation, u
 //         default:
 //             break;
 //     }
-    _textures[uniformLocation.stage] = texture;
+//    _textures[uniformLocation.stage] = texture;
 }
 
 void ProgramState::setTextureArray(const backend::UniformLocation& uniformLocation, const std::vector<uint32_t>& slots, const std::vector<Urho3D::Texture2D*> textures)
@@ -448,44 +449,44 @@ void ProgramState::setTextureArray(int location, const std::vector<uint32_t>& sl
 // #endif
 }
 
-void ProgramState::setParameterAutoBinding(const std::string &uniform, const std::string &autoBinding)
-{
-    _autoBindings.emplace(uniform, autoBinding);
-    applyAutoBinding(uniform, autoBinding);
-}
-
-void ProgramState::applyAutoBinding(const std::string &uniformName, const std::string &autoBinding)
-{
-    bool resolved = false;
-    for (const auto resolver : _customAutoBindingResolvers)
-    {
-        resolved = resolver->resolveAutoBinding(this, uniformName, autoBinding);
-        if (resolved) break;
-    }
-}
+// void ProgramState::setParameterAutoBinding(const std::string &uniform, const std::string &autoBinding)
+// {
+//     _autoBindings.emplace(uniform, autoBinding);
+//     applyAutoBinding(uniform, autoBinding);
+// }
+// 
+// void ProgramState::applyAutoBinding(const std::string &uniformName, const std::string &autoBinding)
+// {
+//     bool resolved = false;
+//     for (const auto resolver : _customAutoBindingResolvers)
+//     {
+//         resolved = resolver->resolveAutoBinding(this, uniformName, autoBinding);
+//         if (resolved) break;
+//     }
+// }
 
 ProgramState::AutoBindingResolver::AutoBindingResolver()
 {
-    _customAutoBindingResolvers.emplace_back(this);
+//    _customAutoBindingResolvers.emplace_back(this);
 }
 
 ProgramState::AutoBindingResolver::~AutoBindingResolver()
 {
-    auto &list = _customAutoBindingResolvers;
-    list.erase(std::remove(list.begin(), list.end(), this), list.end());
+//     auto &list = _customAutoBindingResolvers;
+//     list.erase(std::remove(list.begin(), list.end(), this), list.end());
 }
 
-void ProgramState::getVertexUniformBuffer(char** buffer, std::size_t& size) const
-{
-    *buffer = _vertexUniformBuffer;
-    size = _vertexUniformBufferSize;
-}
-
-void ProgramState::getFragmentUniformBuffer(char** buffer, std::size_t& size) const
-{
-    *buffer = _fragmentUniformBuffer;
-    size = _fragmentUniformBufferSize;
-}
+// void ProgramState::getVertexUniformBuffer(char** buffer, std::size_t& size) const
+// {
+//     *buffer = _vertexUniformBuffer;
+//     size = _vertexUniformBufferSize;
+// }
+// 
+// void ProgramState::getFragmentUniformBuffer(char** buffer, std::size_t& size) const
+// {
+//     *buffer = _fragmentUniformBuffer;
+//     size = _fragmentUniformBufferSize;
+// }
 
 CC_BACKEND_END
 

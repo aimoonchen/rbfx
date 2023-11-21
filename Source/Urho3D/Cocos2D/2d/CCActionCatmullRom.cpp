@@ -105,7 +105,7 @@ void PointArray::insertControlPoint(const Vec2& controlPoint, ssize_t index)
 
 const Vec2& PointArray::getControlPointAtIndex(ssize_t index) const
 {
-    index = MIN(static_cast<ssize_t>(_controlPoints.size())-1, MAX(index, (ssize_t)0));
+    index = std::min(static_cast<ssize_t>(_controlPoints.size())-1, std::max(index, (ssize_t)0));
     return _controlPoints.at(index);
 }
 

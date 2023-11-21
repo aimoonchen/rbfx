@@ -89,7 +89,7 @@ protected:
     /**
      * Pre-load programs into cache.
      */
-    bool init(Urho3D::RenderDevice* renderDevice);
+    bool init();
 
     /// Add built-in program
     void addProgram(ProgramType type);

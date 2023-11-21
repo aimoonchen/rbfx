@@ -53,6 +53,7 @@
 #include "../../Graphics/Graphics.h"
 #include "renderer/ccShaders.h"
 #include "renderer/backend/ProgramState.h"
+#include <Diligent/Graphics/GraphicsEngine/interface/Buffer.h>
 
 NS_CC_BEGIN
 
@@ -1730,7 +1731,12 @@ void Label::updateBuffer(TextureAtlas* textureAtlas, CustomCommand& customComman
 {
     if (textureAtlas->getTotalQuads() > customCommand.getVertexCapacity())
     {
-        customCommand.createVertexBuffer((unsigned int)sizeof(V3F_C4B_T2F_Quad), (unsigned int)textureAtlas->getTotalQuads(), CustomCommand::BufferUsage::DYNAMIC);
+        customCommand.createVertexBuffer((unsigned int)sizeof(V3F_C4B_T2F_Quad), (unsigned int)textureAtlas->getTotalQuads(), CustomCommand::BufferUsage::DYNAMIC,
+            {
+                Diligent::LayoutElement{0, 0, 3, Diligent::VT_FLOAT32, false},
+                Diligent::LayoutElement{1, 0, 4, Diligent::VT_UINT8, true},
+                Diligent::LayoutElement{2, 0, 2, Diligent::VT_FLOAT32, false}
+            });
         customCommand.createIndexBuffer(CustomCommand::IndexFormat::U_SHORT, (unsigned int)textureAtlas->getTotalQuads() * 6, CustomCommand::BufferUsage::DYNAMIC);
     }
     customCommand.updateVertexBuffer(textureAtlas->getQuads(), (unsigned int)(textureAtlas->getTotalQuads() * sizeof(V3F_C4B_T2F_Quad)));

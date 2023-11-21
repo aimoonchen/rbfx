@@ -32,7 +32,14 @@
 #include "platform/CCPlatformMacros.h"
 #include "renderer/CCRenderCommand.h"
 #include "renderer/backend/Types.h"
+#include <Diligent/Common/interface/RefCntAutoPtr.hpp>
+#include <Diligent/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 
+namespace Diligent
+{
+struct IPipelineState;
+struct IBuffer;
+}
 namespace Urho3D
 {
     class RenderDevice;
@@ -143,7 +150,7 @@ public:
     /**Reserved for material id, which means that the command could not be batched.*/
     static const int MATERIAL_ID_DO_NOT_BATCH = 0;
     /**Constructor.*/
-    Renderer(Urho3D::RenderDevice* device);
+    Renderer();
     /**Destructor.*/
     ~Renderer();
     Urho3D::RenderDevice* GetRenderDevice() const { return _device; }
@@ -579,7 +586,7 @@ protected:
         float clearStencilValue = 0.0f;
         bool operator<(const StateKey& v) const;
     };
-    std::map<StateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
+    ea::map<StateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
 };
 
 NS_CC_END

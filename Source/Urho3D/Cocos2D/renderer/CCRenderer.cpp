@@ -47,7 +47,9 @@
 //#include "renderer/backend/Backend.h"
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
+#include "../../Core/Context.h"
 #include "../../RenderAPI/RenderDevice.h"
+#include "Urho3DContext.h"
 
 NS_CC_BEGIN
 
@@ -158,9 +160,9 @@ static const int DEFAULT_RENDER_QUEUE = 0;
 //
 // constructors, destructor, init
 //
-Renderer::Renderer(Urho3D::RenderDevice* device)
-    : _device{ device }
+Renderer::Renderer()
 {
+    _device = GetUrho3DContext()->GetSubsystem<Urho3D::RenderDevice>();
     _groupCommandManager = new (std::nothrow) GroupCommandManager();
     
     _commandGroupStack.push(DEFAULT_RENDER_QUEUE);
@@ -640,7 +642,7 @@ void Renderer::drawBatchedTriangles()
         deviceContext->SetIndexBuffer(_indexBuffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
         auto& pipelineDescriptor = _triBatchesToDraw[i].cmd->getPipelineDescriptor();
-        _commandBuffer->setProgramState(pipelineDescriptor.programState);
+//        _commandBuffer->setProgramState(pipelineDescriptor.programState);
         Diligent::DrawIndexedAttribs DrawAttrs;
         DrawAttrs.IndexType = Diligent::VT_UINT16;
         DrawAttrs.FirstIndexLocation = _triBatchesToDraw[i].offset * sizeof(_indices[0]);
@@ -649,7 +651,7 @@ void Renderer::drawBatchedTriangles()
 //                                      backend::IndexFormat::U_SHORT,
 //                                      _triBatchesToDraw[i].indicesToDraw,
 //                                      _triBatchesToDraw[i].offset * sizeof(_indices[0]));
-        _commandBuffer->endRenderPass();
+//        _commandBuffer->endRenderPass();
 
         _drawnBatches++;
         _drawnVertices += _triBatchesToDraw[i].indicesToDraw;
@@ -677,7 +679,7 @@ void Renderer::drawCustomCommand(RenderCommand *command)
     Diligent::IBuffer* pBuffs[] = { cmd->getVertexBuffer() };
     deviceContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
     
-    _commandBuffer->setProgramState(cmd->getPipelineDescriptor().programState);
+ //   _commandBuffer->setProgramState(cmd->getPipelineDescriptor().programState);
     
     auto drawType = cmd->getDrawType();
     //_commandBuffer->setLineWidth(cmd->getLineWidth());
@@ -710,7 +712,7 @@ void Renderer::drawCustomCommand(RenderCommand *command)
         _drawnVertices += cmd->getVertexDrawCount();
     }
     _drawnBatches++;
-    _commandBuffer->endRenderPass();
+//    _commandBuffer->endRenderPass();
 
     if (cmd->getAfterCallback()) cmd->getAfterCallback()();
 }
@@ -866,39 +868,39 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         PSOCreateInfo.pVS = program->_vsShader;
         PSOCreateInfo.pPS = program->_fsShader;
 
-        const auto& elements = currentShader->GetVertexLayouts()->GetElements();
+        const auto& elements = static_cast<CustomCommand*>(command)->getLayoutElement();
         auto& inputLayout = PSOCreateInfo.GraphicsPipeline.InputLayout;
         inputLayout.NumElements = elements.size();
         inputLayout.LayoutElements = elements.data();
 
         ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
         ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
-        const auto& uniformLayout = currentShader->GetUniformLayout();
-        if (uniformLayout != nullptr)
-        {
-            Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
-            ws[(int)Effekseer::TextureWrapType::Clamp] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
-            ws[(int)Effekseer::TextureWrapType::Repeat] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP;
-
-            Diligent::FILTER_TYPE fs[2]{};
-            fs[(int)Effekseer::TextureFilterType::Linear] = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
-            fs[(int)Effekseer::TextureFilterType::Nearest] = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
-
-            const auto& samplerNames = uniformLayout->GetTextures();
-            auto samplerCount = samplerNames.size();
-            const auto& state = key.state;
-            Vars.reserve(samplerCount);
-            ImtblSamplers.reserve(samplerCount);
-            for (int i = 0; i < samplerCount; i++)
-            {
-                auto filterMode = fs[(int)state.TextureFilterTypes[i]];
-                auto addressMode = ws[(int)state.TextureWrapTypes[i]];
-                Vars.emplace_back(
-                    Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(), Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
-                ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(),
-                    Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
-            }
-        }
+//         const auto& uniformLayout = currentShader->GetUniformLayout();
+//         if (uniformLayout != nullptr)
+//         {
+//             Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
+//             ws[(int)Effekseer::TextureWrapType::Clamp] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
+//             ws[(int)Effekseer::TextureWrapType::Repeat] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP;
+// 
+//             Diligent::FILTER_TYPE fs[2]{};
+//             fs[(int)Effekseer::TextureFilterType::Linear] = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
+//             fs[(int)Effekseer::TextureFilterType::Nearest] = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
+// 
+//             const auto& samplerNames = uniformLayout->GetTextures();
+//             auto samplerCount = samplerNames.size();
+//             const auto& state = key.state;
+//             Vars.reserve(samplerCount);
+//             ImtblSamplers.reserve(samplerCount);
+//             for (int i = 0; i < samplerCount; i++)
+//             {
+//                 auto filterMode = fs[(int)state.TextureFilterTypes[i]];
+//                 auto addressMode = ws[(int)state.TextureWrapTypes[i]];
+//                 Vars.emplace_back(
+//                     Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(), Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+//                 ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(),
+//                     Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
+//             }
+//         }
         auto& resourceLayout = PSOCreateInfo.PSODesc.ResourceLayout;
         resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
         resourceLayout.Variables = Vars.data();
@@ -912,17 +914,8 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
         blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
 
-        if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Opacity)
-        {
-            blendDesc.BlendEnable = false;
-            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
-            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
-            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-        }
-
-        if (key.state.AlphaBlend == Effekseer::AlphaBlendType::Blend)
-        {
-            if (GetImpl()->IsPremultipliedAlphaEnabled)
+        if (key.blendDescriptor.blendEnabled) {
+            if (false)
             {
                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
                 blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
@@ -938,44 +931,50 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
             }
         }
+        else {
+            blendDesc.BlendEnable = false;
+            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
+            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
+            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+        }
 
         _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
-        piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer")
-            ->Set(currentShader->GetVertexUniformBuffer());
-        piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")
-            ->Set(currentShader->GetPixelUniformBuffer());
+//         piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer")
+//             ->Set(currentShader->GetVertexUniformBuffer());
+//         piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")
+//             ->Set(currentShader->GetPixelUniformBuffer());
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> SRB;
         piplineState->CreateShaderResourceBinding(&SRB, true);
-        currentShader->SetShaderResourceBinding(SRB);
+//        currentShader->SetShaderResourceBinding(SRB);
         piplineStates_[key] = piplineState;
     }
     _device->GetImmediateContext()->SetPipelineState(piplineState);
 
-    auto device = backend::Device::getInstance();
-    _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
-
-    backend::DepthStencilState* depthStencilState = nullptr;
-    auto needDepthStencilAttachment = renderPassDescriptor.depthTestEnabled || renderPassDescriptor.stencilTestEnabled;
-    if (needDepthStencilAttachment)
-    {
-        depthStencilState = device->createDepthStencilState(_depthStencilDescriptor);
-    }
-    _commandBuffer->setDepthStencilState(depthStencilState);
-#ifdef CC_USE_METAL
-    _commandBuffer->setRenderPipeline(_renderPipeline);
-#endif
+//     auto device = backend::Device::getInstance();
+//     _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
+// 
+//     backend::DepthStencilState* depthStencilState = nullptr;
+//     auto needDepthStencilAttachment = renderPassDescriptor.depthTestEnabled || renderPassDescriptor.stencilTestEnabled;
+//     if (needDepthStencilAttachment)
+//     {
+//         depthStencilState = device->createDepthStencilState(_depthStencilDescriptor);
+//     }
+//     _commandBuffer->setDepthStencilState(depthStencilState);
+// #ifdef CC_USE_METAL
+//     _commandBuffer->setRenderPipeline(_renderPipeline);
+// #endif
 }
 
 void Renderer::beginRenderPass(RenderCommand* cmd)
 {
-     _commandBuffer->beginRenderPass(_renderPassDescriptor);
-     _commandBuffer->setViewport(_viewport.x, _viewport.y, _viewport.w, _viewport.h);
-     _commandBuffer->setCullMode(_cullMode);
-     _commandBuffer->setWinding(_winding);
-     _commandBuffer->setScissorRect(_scissorState.isEnabled, _scissorState.rect.x, _scissorState.rect.y, _scissorState.rect.width, _scissorState.rect.height);
+//      _commandBuffer->beginRenderPass(_renderPassDescriptor);
+//      _commandBuffer->setViewport(_viewport.x, _viewport.y, _viewport.w, _viewport.h);
+//      _commandBuffer->setCullMode(_cullMode);
+//      _commandBuffer->setWinding(_winding);
+//      _commandBuffer->setScissorRect(_scissorState.isEnabled, _scissorState.rect.x, _scissorState.rect.y, _scissorState.rect.width, _scissorState.rect.height);
      setRenderPipeline(cmd, _renderPassDescriptor);
 
-    _commandBuffer->setStencilReferenceValue(_stencilRef);
+//    _commandBuffer->setStencilReferenceValue(_stencilRef);
 }
 
 void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment)

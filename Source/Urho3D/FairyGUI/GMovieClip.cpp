@@ -253,7 +253,7 @@ void ActionMovieClip::step(float dt)
             _frame++;
             if (_frame > frameCount - 1)
             {
-                _frame = MAX(0, frameCount - 2);
+                _frame = std::max(0, frameCount - 2);
                 _repeatedCount++;
                 _reversed = !_reversed;
             }
@@ -380,7 +380,7 @@ void ActionMovieClip::advance(float time)
                 _frame++;
                 if (_frame > frameCount - 1)
                 {
-                    _frame = MAX(0, frameCount - 2);
+                    _frame = std::max(0, frameCount - 2);
                     _repeatedCount++;
                     _reversed = !_reversed;
                 }

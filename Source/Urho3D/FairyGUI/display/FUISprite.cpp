@@ -1,4 +1,5 @@
 #include "FUISprite.h"
+#include "../Math/MathDefs.h"
 
 NS_FGUI_BEGIN
 USING_NS_CC;
@@ -7,7 +8,7 @@ USING_NS_CC;
 //  kProgressTextureCoords holds points {0,1} {0,0} {1,0} {1,1} we can represent it as bits
 const char kProgressTextureCoords = 0x4b;
 
-Texture2D* FUISprite::_empty = nullptr;
+Urho3D::Texture2D* FUISprite::_empty = nullptr;
 
 FUISprite::FUISprite()
     : _fillMethod(FillMethod::None),
@@ -109,7 +110,7 @@ void FUISprite::setGrayed(bool value)
         Sprite::updateShaders(positionTextureColor_vert, (isETC1) ? etc1_frag : positionTextureColor_frag);
     }
 #elif COCOS2D_VERSION >= 0x00040000
-    auto isETC1 = getTexture() && getTexture()->getAlphaTextureName();
+    auto isETC1 = false;// getTexture() && getTexture()->getAlphaTextureName();
     if (value) {
         Sprite::updateShaders(positionTextureColor_vert, (isETC1)?etc1Gray_frag:grayScale_frag);
     } else {
@@ -247,7 +248,7 @@ void FUISprite::updateColor(void)
 ///
 void FUISprite::updateRadial(void)
 {
-    float angle = 2.f * ((float)M_PI) * (_fillClockwise ? (1.0f - _fillAmount) : _fillAmount);
+    float angle = 2.f * ((float)Urho3D::M_PI) * (_fillClockwise ? (1.0f - _fillAmount) : _fillAmount);
 
     //    We find the vector to do a hit detection based on the percentage
     //    We know the first vector is the one @ 12 o'clock (top,mid) so we rotate

@@ -133,17 +133,17 @@ void FastSplitter::getKeyValuePair(char* keyBuf, ssize_t keyBufSize, char* value
         char* found = (char*)memchr(data, (int)'=', textLength);
         if (found)
         {
-            ssize_t len = MIN(keyBufSize - 1, found - data);
+            ssize_t len = std::min(keyBufSize - 1, found - data);
             memcpy(keyBuf, data, len);
             keyBuf[len] = '\0';
 
-            len = MIN(valueBufSize - 1, textLength - (found - data) - 1);
+            len = std::min(valueBufSize - 1, textLength - (found - data) - 1);
             memcpy(valueBuf, found + 1, len);
             valueBuf[len] = '\0';
         }
         else
         {
-            ssize_t len = MIN(valueBufSize - 1, textLength);
+            ssize_t len = std::min(valueBufSize - 1, textLength);
             memcpy(keyBuf, data, len);
             keyBuf[len] = '\0';
             valueBuf[0] = '\0';

@@ -677,7 +677,7 @@ void InputProcessor::onMouseScroll(cocos2d::EventMouse * event)
     TouchInfo* ti = getTouch(0);
     ti->pos = UIRoot->worldToRoot(pt);
     ti->touch = nullptr;
-    ti->mouseWheelDelta = MAX(event->getScrollX(), event->getScrollY());
+    ti->mouseWheelDelta = std::max(event->getScrollX(), event->getScrollY());
 
     updateRecentInput(ti, target);
     _activeProcessor = this;

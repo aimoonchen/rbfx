@@ -23,6 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
+#include "platform/CCPlatformConfig.h"
+#if CC_TARGET_PLATFORM == CC_PLATFORM_LINUX_
 #include "platform/CCDevice.h"
 #include "platform/CCFileUtils.h"
 
@@ -411,12 +413,12 @@ public:
         }
 
         //compute the final line width
-        iMaxLineWidth = MAX(iMaxLineWidth, textDefinition._dimensions.width);
+        iMaxLineWidth = std::max(iMaxLineWidth, textDefinition._dimensions.width);
 
         //compute the final line height
         int lineHeight = face->size->metrics.height>>6;
         int txtHeight = (lineHeight * textLines.size());
-        iMaxLineHeight = MAX(txtHeight, textDefinition._dimensions.height);
+        iMaxLineHeight = std::max(txtHeight, textDefinition._dimensions.height);
 
         _data = (unsigned char*)malloc(sizeof(unsigned char) * (iMaxLineWidth * iMaxLineHeight * 4));
         memset(_data,0, iMaxLineWidth * iMaxLineHeight*4);
@@ -515,3 +517,4 @@ void Device::vibrate(float /*duration*/)
 }
 
 NS_CC_END
+#endif

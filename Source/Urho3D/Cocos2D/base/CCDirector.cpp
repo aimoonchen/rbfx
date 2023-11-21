@@ -151,7 +151,7 @@ bool Director::init()
     initTextureCache();
     initMatrixStack();
 
-    _renderer = new (std::nothrow) Renderer;
+    _renderer = new (std::nothrow) Renderer();
 
     return true;
 }
@@ -351,7 +351,7 @@ void Director::calculateDeltaTime()
             _deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(now - _lastUpdate).count() / 1000000.0f;
             _lastUpdate = now;
         }
-        _deltaTime = MAX(0.0f, _deltaTime);
+        _deltaTime = std::max(0.0f, _deltaTime);
     }
 
 #if COCOS2D_DEBUG
