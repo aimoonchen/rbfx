@@ -23,21 +23,40 @@
  ****************************************************************************/
  
 const char* grayScale_frag = R"(
+// #ifdef GL_ES
+// precision mediump float;
+// #endif
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+// varying vec4 v_fragmentColor;
+// varying vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
+// uniform sampler2D u_texture;
 
-uniform sampler2D u_texture;
-
-void main(void)
+// void main(void)
+// {
+//     vec4 c = texture2D(u_texture, v_texCoord);
+//      c = v_fragmentColor * c;
+//     gl_FragColor.xyz = vec3(0.2126*c.r + 0.7152*c.g + 0.0722*c.b);
+//     gl_FragColor.w = c.w;
+// }
+Texture2D    g_Texture;
+SamplerState g_Texture_sampler;
+struct PSInput {
+    float4 Pos      : SV_POSITION;
+    float2 UV       : TEX_COORD;
+    float4 Color    : TEX_COOR1;
+};
+struct PSOutput {
+    float4 Color : SV_TARGET;
+};
+void main(in  PSInput  PSIn, out PSOutput PSOut)
 {
-    vec4 c = texture2D(u_texture, v_texCoord);
-     c = v_fragmentColor * c;
-    gl_FragColor.xyz = vec3(0.2126*c.r + 0.7152*c.g + 0.0722*c.b);
-    gl_FragColor.w = c.w;
+    float4 Color = PSIn.Color * g_Texture.Sample(g_Texture_sampler, PSIn.UV);
+#if CONVERT_PS_OUTPUT_TO_GAMMA
+    // Use fast approximation for gamma correction.
+    Color.rgb = pow(Color.rgb, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+#endif
+    Color.rgb = vec3(0.2126*Color.r + 0.7152*Color.g + 0.0722*Color.b);
+    PSOut.Color = Color;
 }
 )";

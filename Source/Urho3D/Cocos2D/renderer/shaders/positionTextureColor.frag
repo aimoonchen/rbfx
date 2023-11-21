@@ -24,17 +24,36 @@
  */
 
 const char* positionTextureColor_frag = R"(
-#ifdef GL_ES
-precision lowp float;
-#endif
+// #ifdef GL_ES
+// precision lowp float;
+// #endif
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
+// varying vec4 v_fragmentColor;
+// varying vec2 v_texCoord;
 
-uniform sampler2D u_texture;
+// uniform sampler2D u_texture;
 
-void main()
+// void main()
+// {
+//     gl_FragColor = v_fragmentColor * texture2D(u_texture, v_texCoord);
+// }
+Texture2D    g_Texture;
+SamplerState g_Texture_sampler;
+struct PSInput {
+    float4 Pos      : SV_POSITION;
+    float2 UV       : TEX_COORD;
+    float4 Color    : TEX_COOR1;
+};
+struct PSOutput {
+    float4 Color : SV_TARGET;
+};
+void main(in  PSInput  PSIn, out PSOutput PSOut)
 {
-    gl_FragColor = v_fragmentColor * texture2D(u_texture, v_texCoord);
+    float4 Color = PSIn.Color * g_Texture.Sample(g_Texture_sampler, PSIn.UV);
+#if CONVERT_PS_OUTPUT_TO_GAMMA
+    // Use fast approximation for gamma correction.
+    Color.rgb = pow(Color.rgb, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+#endif
+    PSOut.Color = Color;
 }
 )";

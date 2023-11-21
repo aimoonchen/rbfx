@@ -24,17 +24,29 @@
 
 const char* positionNoMVP_vert = R"(
 
-attribute vec4 a_position;
+// attribute vec4 a_position;
 
-#ifdef GL_ES
-varying lowp vec4 v_position;
-#else
-varying vec4 v_position;
-#endif
+// #ifdef GL_ES
+// varying lowp vec4 v_position;
+// #else
+// varying vec4 v_position;
+// #endif
 
-void main()
+// void main()
+// {
+//     gl_Position = a_position;
+//     v_position = a_position;
+// }
+struct VSInput {
+    float3 Pos      : ATTRIB0;
+};
+struct PSInput {
+    float4 Pos      : SV_POSITION;
+    float4 vPos     : TEX_COORD;
+};
+void main(in  VSInput VSIn, out PSInput PSIn)
 {
-    gl_Position = a_position;
-    v_position = a_position;
+    PSIn.Pos = VSIn.Pos;
+    PSIn.vPos = VSIn.Pos;
 }
 )";

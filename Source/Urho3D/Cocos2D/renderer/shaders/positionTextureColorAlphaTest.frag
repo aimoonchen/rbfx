@@ -23,27 +23,50 @@
  */
 
 const char* positionTextureColorAlphaTest_frag = R"(
+// #ifdef GL_ES
+// precision lowp float;
+// #endif
 
-#ifdef GL_ES
-precision lowp float;
-#endif
+// varying vec4 v_fragmentColor;
+// varying vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
+// uniform float u_alpha_value;
+// uniform sampler2D u_texture;
 
-uniform float u_alpha_value;
-uniform sampler2D u_texture;
+// void main()
+// {
+//     vec4 texColor = texture2D(u_texture, v_texCoord);
 
-void main()
+// // mimic: glAlphaFunc(GL_GREATER)
+// // pass if ( incoming_pixel >= u_alpha_value ) => fail if incoming_pixel < u_alpha_value
+
+//     if ( texColor.a <= u_alpha_value )
+//         discard;
+
+//     gl_FragColor = texColor * v_fragmentColor;
+// }
+cbuffer Constants {
+    float4 g_AlphaValue;
+};
+Texture2D    g_Texture;
+SamplerState g_Texture_sampler;
+struct PSInput {
+    float4 Pos      : SV_POSITION;
+    float2 UV       : TEX_COORD;
+    float4 Color    : TEX_COOR1;
+};
+struct PSOutput {
+    float4 Color : SV_TARGET;
+};
+void main(in  PSInput  PSIn, out PSOutput PSOut)
 {
-    vec4 texColor = texture2D(u_texture, v_texCoord);
-
-// mimic: glAlphaFunc(GL_GREATER)
-// pass if ( incoming_pixel >= u_alpha_value ) => fail if incoming_pixel < u_alpha_value
-
-    if ( texColor.a <= u_alpha_value )
+    float4 Color = g_Texture.Sample(g_Texture_sampler, PSIn.UV);
+    if (Color.a <= g_AlphaValue)
         discard;
-
-    gl_FragColor = texColor * v_fragmentColor;
+#if CONVERT_PS_OUTPUT_TO_GAMMA
+    // Use fast approximation for gamma correction.
+    Color.rgb = pow(Color.rgb, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+#endif
+    PSOut.Color = PSIn.Color * Color;
 }
 )";

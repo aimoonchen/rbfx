@@ -23,20 +23,34 @@
  ****************************************************************************/
 
 const char* position_vert = R"(
+// attribute vec4 a_position;
 
-attribute vec4 a_position;
+// #ifdef GL_ES
+// varying lowp vec4 v_position;
+// #else
+// varying vec4 v_position;
+// #endif
 
-#ifdef GL_ES
-varying lowp vec4 v_position;
-#else
-varying vec4 v_position;
-#endif
+// uniform mat4 u_MVPMatrix;
 
-uniform mat4 u_MVPMatrix;
-
-void main()
+// void main()
+// {
+//     gl_Position = u_MVPMatrix * a_position;
+//     v_position = a_position;
+// }
+cbuffer Constants {
+    float4x4 g_WorldViewProj;
+};
+struct VSInput {
+    float3 Pos      : ATTRIB0;
+};
+struct PSInput {
+    float4 Pos      : SV_POSITION;
+    float4 vPos     : TEX_COORD;
+};
+void main(in  VSInput VSIn, out PSInput PSIn)
 {
-    gl_Position = u_MVPMatrix * a_position;
-    v_position = a_position;
+    PSIn.Pos = mul( float4(VSIn.Pos,1.0), g_WorldViewProj);
+    PSIn.vPos = VSIn.Pos;
 }
 )";

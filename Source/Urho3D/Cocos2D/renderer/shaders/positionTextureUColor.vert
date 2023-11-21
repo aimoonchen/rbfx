@@ -24,21 +24,36 @@
  */
 
 const char* positionTextureUColor_vert = R"(
+// attribute vec4 a_position;
+// attribute vec2 a_texCoord;
 
-attribute vec4 a_position;
-attribute vec2 a_texCoord;
+// uniform mat4 u_MVPMatrix;
 
-uniform mat4 u_MVPMatrix;
+// #ifdef GL_ES
+// varying mediump vec2 v_texCoord;
+// #else
+// varying vec2 v_texCoord;
+// #endif
 
-#ifdef GL_ES
-varying mediump vec2 v_texCoord;
-#else
-varying vec2 v_texCoord;
-#endif
-
-void main()
+// void main()
+// {
+//     gl_Position = u_MVPMatrix * a_position;
+//     v_texCoord = a_texCoord;
+// }
+cbuffer Constants {
+    float4x4 g_WorldViewProj;
+};
+struct VSInput {
+    float3 Pos : ATTRIB0;
+    float2 UV  : ATTRIB1;
+};
+struct PSInput {
+    float4 Pos : SV_POSITION;
+    float2 UV  : TEX_COORD;
+};
+void main(in  VSInput VSIn, out PSInput PSIn)
 {
-    gl_Position = u_MVPMatrix * a_position;
-    v_texCoord = a_texCoord;
+    PSIn.Pos = mul( float4(VSIn.Pos,1.0), g_WorldViewProj);
+    PSIn.UV  = VSIn.UV;
 }
 )";
