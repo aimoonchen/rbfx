@@ -140,13 +140,13 @@ public:
      * Get vertex shader.
      * @return Vertex shader.
      */
-    const std::string& getVertexShader() const { return _vertexShader; }
+    //const std::string& getVertexShader() const { return _vertexShader; }
 
     /**
      * Get fragment shader.
      * @ Fragment shader.
      */
-    const std::string& getFragmentShader() const { return _fragmentShader; }
+    //const std::string& getFragmentShader() const { return _fragmentShader; }
     
     /**
      * Get engine built-in program type.
@@ -159,7 +159,7 @@ public:
      * @param stage Specifies the shader stage. The symbolic constant can be either VERTEX or FRAGMENT.
      * @return The uniform buffer size in bytes.
      */
-    virtual std::size_t getUniformBufferSize(ShaderStage stage) const { return _uniformBufferSize; };
+    virtual std::size_t getUniformBufferSize(ShaderStage stage) const;
 
     /**
      * Get a uniformInfo in given location from the specific shader stage.
@@ -217,8 +217,6 @@ public:
 #endif
     friend class ProgramCache;
     
-    std::string _vertexShader; ///< Vertex shader.
-    std::string _fragmentShader; ///< Fragment shader.
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
 
     Urho3D::RenderDevice* _device{nullptr};
@@ -228,7 +226,7 @@ public:
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _psConstants{ nullptr };
     UniformLocation _builtinUniformLocation[UNIFORM_MAX];
     std::size_t _uniformBufferSize = 0;
-    std::unordered_map<uint16_t, UniformLocation> _activeUniform;
+    std::unordered_map<std::string, UniformLocation> _customUniform;
 };
 
 //end of _backend group

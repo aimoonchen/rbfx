@@ -165,12 +165,15 @@ bool ProgramState::init(Program* program)
     CC_SAFE_RETAIN(program);
     _program = program;
     _vertexUniformBufferSize = _program->getUniformBufferSize(ShaderStage::VERTEX);
-    _vertexUniformBuffer = new char[_vertexUniformBufferSize];
-    memset(_vertexUniformBuffer, 0, _vertexUniformBufferSize);
-
+    if (_vertexUniformBufferSize > 0) {
+        _vertexUniformBuffer = ea::make_unique<char[]>(_vertexUniformBufferSize);
+        memset(_vertexUniformBuffer.get(), 0, _vertexUniformBufferSize);
+    }
     _fragmentUniformBufferSize = _program->getUniformBufferSize(ShaderStage::FRAGMENT);
-    _fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
-    memset(_fragmentUniformBuffer, 0, _fragmentUniformBufferSize);
+    if (_fragmentUniformBufferSize) {
+        _fragmentUniformBuffer = ea::make_unique<char[]>(_fragmentUniformBufferSize);
+        memset(_fragmentUniformBuffer.get(), 0, _fragmentUniformBufferSize);
+    }
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     _backToForegroundListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*){
@@ -209,8 +212,6 @@ ProgramState::ProgramState()
 ProgramState::~ProgramState()
 {
     CC_SAFE_RELEASE(_program);
-    CC_SAFE_DELETE_ARRAY(_vertexUniformBuffer);
-    CC_SAFE_DELETE_ARRAY(_fragmentUniformBuffer);
     
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     Director::getInstance()->getEventDispatcher()->removeEventListener(_backToForegroundListener);
@@ -225,11 +226,11 @@ ProgramState *ProgramState::clone() const
     cp->_fragmentUniformBufferSize = _fragmentUniformBufferSize;
 //     cp->_vertexTextureInfos = _vertexTextureInfos;
 //     cp->_fragmentTextureInfos = _fragmentTextureInfos;
-    cp->_vertexUniformBuffer = new char[_vertexUniformBufferSize];
-    memcpy(cp->_vertexUniformBuffer, _vertexUniformBuffer, _vertexUniformBufferSize);
+    cp->_vertexUniformBuffer = ea::make_unique<char[]>(_vertexUniformBufferSize);
+    memcpy(cp->_vertexUniformBuffer.get(), _vertexUniformBuffer.get(), _vertexUniformBufferSize);
 //    cp->_vertexLayout = _vertexLayout;
-    cp->_fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
-    memcpy(cp->_fragmentUniformBuffer, _fragmentUniformBuffer, _fragmentUniformBufferSize);
+    cp->_fragmentUniformBuffer = ea::make_unique<char[]>(_fragmentUniformBufferSize);
+    memcpy(cp->_fragmentUniformBuffer.get(), _fragmentUniformBuffer.get(), _fragmentUniformBufferSize);
 
     cp->_uniformBuffer.resize(_uniformBuffer.size());
     CC_SAFE_RETAIN(cp->_program);
@@ -358,7 +359,7 @@ void ProgramState::setVertexUniform(int location, const void* data, std::size_t 
 //         memcpy(_vertexUniformBuffer + location, data, size);
 //     }
 // #else
-    memcpy(_vertexUniformBuffer + location, data, size);
+    memcpy(_vertexUniformBuffer.get() + location, data, size);
 // #endif
 }
 
@@ -376,7 +377,7 @@ void ProgramState::setFragmentUniform(int location, const void* data, std::size_
 //     }
 //     else
 //     {
-        memcpy(_fragmentUniformBuffer + location, data, size);
+        memcpy(_fragmentUniformBuffer.get() + location, data, size);
 //     }
 // #endif
 }
@@ -398,7 +399,7 @@ void ProgramState::setTexture(const backend::UniformLocation& uniformLocation, u
 //         default:
 //             break;
 //     }
-//    _textures[uniformLocation.stage] = texture;
+    _textures[slot] = texture;
 }
 
 void ProgramState::setTextureArray(const backend::UniformLocation& uniformLocation, const std::vector<uint32_t>& slots, const std::vector<Urho3D::Texture2D*> textures)

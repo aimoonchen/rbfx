@@ -325,8 +325,8 @@ protected:
 
     backend::Program*                                       _program = nullptr;
 //     std::unordered_map<UniformLocation, UniformCallback, UniformLocation>   _callbackUniforms;
-    char* _vertexUniformBuffer = nullptr;
-    char* _fragmentUniformBuffer = nullptr;
+    ea::unique_ptr<char[]> _vertexUniformBuffer;
+    ea::unique_ptr<char[]> _fragmentUniformBuffer;
     std::size_t _vertexUniformBufferSize = 0;
     std::size_t _fragmentUniformBufferSize = 0;
 // 
