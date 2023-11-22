@@ -38,15 +38,15 @@ const char* positionNoMVP_vert = R"(
 //     v_position = a_position;
 // }
 struct VSInput {
-    float3 Pos      : ATTRIB0;
+    float3 a_position   : ATTRIB0;
 };
 struct PSInput {
-    float4 Pos      : SV_POSITION;
-    float4 vPos     : TEX_COORD;
+    float4 Pos          : SV_POSITION;
+    float4 v_position   : TEX_COORD;
 };
-void main(in  VSInput VSIn, out PSInput PSIn)
+void main(in VSInput VSIn, out PSInput PSIn)
 {
-    PSIn.Pos = VSIn.Pos;
-    PSIn.vPos = VSIn.Pos;
+    PSIn.Pos        = VSIn.a_position;
+    PSIn.v_position = VSIn.a_position;
 }
 )";

@@ -24,14 +24,25 @@
  */
 
 const char* lineColor3D_frag = R"(
-#ifdef GL_ES
-precision lowp float;
-#endif
+// #ifdef GL_ES
+// precision lowp float;
+// #endif
 
-varying vec4 v_fragmentColor;
+// varying vec4 v_fragmentColor;
 
-void main()
+// void main()
+// {
+//     gl_FragColor = v_fragmentColor;
+// }
+struct PSInput {
+    float4 Pos              : SV_POSITION;
+    float4 v_fragmentColor  : TEX_COORD;
+};
+struct PSOutput {
+    float4 Color : SV_TARGET;
+};
+void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    gl_FragColor = v_fragmentColor;
+    PSOut.Color = PSIn.v_fragmentColor;
 }
 )";

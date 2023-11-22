@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <Diligent/Common/interface/RefCntAutoPtr.hpp>
 namespace Urho3D
 {
 class Texture2D;
@@ -40,8 +41,10 @@ class RenderDevice;
 } // namespace Urho3D
 namespace Diligent
 {
-class IShader;
-}
+struct IShader;
+struct IBuffer;
+} // namespace Diligent
+
 CC_BACKEND_BEGIN
 
 class ShaderModule;
@@ -183,8 +186,9 @@ public:
      * @param vs Specifes the vertex shader source.
      * @param fs Specifes the fragment shader source.
      */
-    Program(const std::string& vs, const std::string& fs, const char* shaderName = "");
-
+    Program(const std::string& vs, const std::string& fs, ProgramType programType = ProgramType::CUSTOM_PROGRAM);
+    Diligent::IBuffer* GetVertexConstantBuffer() const { return _vsConstants; };
+    Diligent::IBuffer* GetPixelConstantBuffer() const { return _psConstants; };
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     /**
      * In case of EGL context lost, the engine will reload shaders. Thus location of uniform may changed.
@@ -220,7 +224,9 @@ public:
     Urho3D::RenderDevice* _device{nullptr};
     Diligent::IShader* _vsShader{nullptr};
     Diligent::IShader* _fsShader{nullptr};
-    UniformLocation* _builtinUniformLocation[UNIFORM_MAX]{nullptr};
+    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
+    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _psConstants{ nullptr };
+    UniformLocation _builtinUniformLocation[UNIFORM_MAX];
     std::size_t _uniformBufferSize = 0;
     std::unordered_map<uint16_t, UniformLocation> _activeUniform;
 };

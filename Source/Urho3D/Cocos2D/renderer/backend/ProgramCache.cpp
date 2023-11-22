@@ -139,58 +139,58 @@ void ProgramCache::addProgram(ProgramType type)
     Program* program = nullptr;
     switch (type) {
         case ProgramType::POSITION_TEXTURE_COLOR:
-            program = new Program(positionTextureColor_vert, positionTextureColor_frag, "POSITION_TEXTURE_COLOR");
+            program = new Program(positionTextureColor_vert, positionTextureColor_frag, type);
             break;
         case ProgramType::ETC1:
-            program = new Program(positionTextureColor_vert, etc1_frag, "ETC1");
+            program = new Program(positionTextureColor_vert, etc1_frag, type);
             break;
         case ProgramType::LABEL_DISTANCE_NORMAL:
-            program = new Program(positionTextureColor_vert, label_distanceNormal_frag, "LABEL_DISTANCE_NORMAL");
+            program = new Program(positionTextureColor_vert, label_distanceNormal_frag, type);
             break;
         case ProgramType::LABEL_NORMAL:
-            program = new Program(positionTextureColor_vert, label_normal_frag, "LABEL_NORMAL");
+            program = new Program(positionTextureColor_vert, label_normal_frag, type);
             break;
         case ProgramType::LABLE_OUTLINE:
-            program = new Program(positionTextureColor_vert, labelOutline_frag, "LABLE_OUTLINE");
+            program = new Program(positionTextureColor_vert, labelOutline_frag, type);
             break;
         case ProgramType::LABLE_DISTANCEFIELD_GLOW:
-            program = new Program(positionTextureColor_vert, labelDistanceFieldGlow_frag, "LABLE_DISTANCEFIELD_GLOW");
+            program = new Program(positionTextureColor_vert, labelDistanceFieldGlow_frag, type);
             break;
         case ProgramType::POSITION_COLOR_LENGTH_TEXTURE:
-            program = new Program(positionColorLengthTexture_vert, positionColorLengthTexture_frag, "POSITION_COLOR_LENGTH_TEXTURE");
+            program = new Program(positionColorLengthTexture_vert, positionColorLengthTexture_frag, type);
             break;
         case ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE:
-            program = new Program(positionColorTextureAsPointsize_vert, positionColor_frag, "POSITION_COLOR_TEXTURE_AS_POINTSIZE");
+            program = new Program(positionColorTextureAsPointsize_vert, positionColor_frag, type);
             break;
         case ProgramType::POSITION_COLOR:
-            program = new Program(positionColor_vert, positionColor_frag, "POSITION_COLOR");
+            program = new Program(positionColor_vert, positionColor_frag, type);
             break;
         case ProgramType::POSITION:
-            program = new Program(position_vert, positionColor_frag, "POSITION");
+            program = new Program(position_vert, positionColor_frag, type);
             break;
         case ProgramType::LAYER_RADIA_GRADIENT:
-            program = new Program(position_vert, layer_radialGradient_frag, "LAYER_RADIA_GRADIENT");
+            program = new Program(position_vert, layer_radialGradient_frag, type);
             break;
         case ProgramType::POSITION_TEXTURE:
-            program = new Program(positionTexture_vert, positionTexture_frag, "POSITION_TEXTURE");
+            program = new Program(positionTexture_vert, positionTexture_frag, type);
             break;
         case ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST:
-            program = new Program(positionTextureColor_vert, positionTextureColorAlphaTest_frag, "POSITION_TEXTURE_COLOR_ALPHA_TEST");
+            program = new Program(positionTextureColor_vert, positionTextureColorAlphaTest_frag, type);
             break;
         case ProgramType::POSITION_UCOLOR:
-            program = new Program(positionUColor_vert, positionUColor_frag, "POSITION_UCOLOR");
+            program = new Program(positionUColor_vert, positionUColor_frag, type);
             break;
         case ProgramType::ETC1_GRAY:
-            program = new Program(positionTextureColor_vert, etc1Gray_frag, "ETC1_GRAY");
+            program = new Program(positionTextureColor_vert, etc1Gray_frag, type);
             break;
         case ProgramType::GRAY_SCALE:
-            program = new Program(positionTextureColor_vert, grayScale_frag, "GRAY_SCALE");
+            program = new Program(positionTextureColor_vert, grayScale_frag, type);
             break;
         case ProgramType::LINE_COLOR_3D:
-            program = new Program(lineColor3D_vert, lineColor3D_frag, "LINE_COLOR_3D");
+            program = new Program(lineColor3D_vert, lineColor3D_frag, type);
             break;
         case ProgramType::CAMERA_CLEAR:
-            program = new Program(cameraClear_vert, cameraClear_frag, "CAMERA_CLEAR");
+            program = new Program(cameraClear_vert, cameraClear_frag, type);
             break;
 //         case ProgramType::SKYBOX_3D:
 //             program = new Program(CC3D_skybox_vert, CC3D_skybox_frag);

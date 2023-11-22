@@ -40,21 +40,21 @@ const char* positionColor_vert = R"(
 //     gl_Position = u_MVPMatrix *  a_position;
 //     v_fragmentColor = a_color;
 // }
-cbuffer Constants {
-    float4x4 g_WorldViewProj;
+cbuffer VSConstants {
+    float4x4 u_MVPMatrix;
 };
 struct VSInput {
-    float3 Pos      : ATTRIB0;
-    float4 Color    : ATTRIB1;
+    float3 a_position   : ATTRIB0;
+    float4 a_color      : ATTRIB1;
 };
 struct PSInput {
-    float4 Pos      : SV_POSITION;
-    float4 Color    : TEX_COORD;
+    float4 Pos              : SV_POSITION;
+    float4 v_fragmentColor  : TEX_COORD;
 };
-void main(in  VSInput VSIn, out PSInput PSIn)
+void main(in VSInput VSIn, out PSInput PSIn)
 {
-    PSIn.Pos = mul( float4(VSIn.Pos,1.0), g_WorldViewProj);
-    PSIn.Color  = VSIn.Color;
+    PSIn.Pos                = mul(float4(VSIn.a_position, 1.0), u_MVPMatrix);
+    PSIn.v_fragmentColor    = VSIn.a_color;
 }
 )";
 

@@ -325,10 +325,10 @@ protected:
 
     backend::Program*                                       _program = nullptr;
 //     std::unordered_map<UniformLocation, UniformCallback, UniformLocation>   _callbackUniforms;
-//     char* _vertexUniformBuffer = nullptr;
-//     char* _fragmentUniformBuffer = nullptr;
-//     std::size_t _vertexUniformBufferSize = 0;
-//     std::size_t _fragmentUniformBufferSize = 0;
+    char* _vertexUniformBuffer = nullptr;
+    char* _fragmentUniformBuffer = nullptr;
+    std::size_t _vertexUniformBufferSize = 0;
+    std::size_t _fragmentUniformBufferSize = 0;
 // 
 //     std::unordered_map<int, TextureInfo>                    _vertexTextureInfos;
 //     std::unordered_map<int, TextureInfo>                    _fragmentTextureInfos;

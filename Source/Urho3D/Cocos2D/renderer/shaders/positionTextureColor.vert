@@ -44,24 +44,24 @@ const char* positionTextureColor_vert = R"(
 //     v_fragmentColor = a_color;
 //     v_texCoord = a_texCoord;
 // }
-cbuffer Constants {
-    float4x4 g_WorldViewProj;
+cbuffer VSConstants {
+    float4x4 u_MVPMatrix;
 };
 struct VSInput {
-    float3 Pos      : ATTRIB0;
-    float2 UV       : ATTRIB1;
-    float4 Color    : ATTRIB2;
+    float3 a_position   : ATTRIB0;
+    float2 a_texCoord   : ATTRIB1;
+    float4 a_color      : ATTRIB2;
 };
 struct PSInput {
-    float4 Pos      : SV_POSITION;
-    float2 UV       : TEX_COORD;
-    float4 Color    : TEX_COOR1;
+    float4 Pos              : SV_POSITION;
+    float2 v_texCoord       : TEX_COORD;
+    float4 v_fragmentColor  : TEX_COOR1;
 };
-void main(in  VSInput VSIn, out PSInput PSIn) 
+void main(in VSInput VSIn, out PSInput PSIn) 
 {
-    PSIn.Pos    = mul( float4(VSIn.Pos,1.0), g_WorldViewProj);
-    PSIn.UV     = VSIn.UV;
-    PSIn.Color  = VSIn.Color;
+    PSIn.Pos                = mul(float4(VSIn.a_position,1.0), u_MVPMatrix);
+    PSIn.v_texCoord         = VSIn.a_texCoord;
+    PSIn.v_fragmentColor    = VSIn.a_color;
 }
 )";
 

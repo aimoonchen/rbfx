@@ -39,24 +39,20 @@ const char* grayScale_frag = R"(
 //     gl_FragColor.xyz = vec3(0.2126*c.r + 0.7152*c.g + 0.0722*c.b);
 //     gl_FragColor.w = c.w;
 // }
-Texture2D    g_Texture;
-SamplerState g_Texture_sampler;
+Texture2D    u_texture;
+SamplerState u_texture_sampler;
 struct PSInput {
-    float4 Pos      : SV_POSITION;
-    float2 UV       : TEX_COORD;
-    float4 Color    : TEX_COOR1;
+    float4 Pos              : SV_POSITION;
+    float2 v_texCoord       : TEX_COORD;
+    float4 v_fragmentColor  : TEX_COOR1;
 };
 struct PSOutput {
     float4 Color : SV_TARGET;
 };
-void main(in  PSInput  PSIn, out PSOutput PSOut)
+void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    float4 Color = PSIn.Color * g_Texture.Sample(g_Texture_sampler, PSIn.UV);
-#if CONVERT_PS_OUTPUT_TO_GAMMA
-    // Use fast approximation for gamma correction.
-    Color.rgb = pow(Color.rgb, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
-#endif
-    Color.rgb = vec3(0.2126*Color.r + 0.7152*Color.g + 0.0722*Color.b);
-    PSOut.Color = Color;
+    float4 Color = PSIn.v_fragmentColor * u_texture.Sample(u_texture_sampler, PSIn.v_texCoord);
+    float gray = 0.2126*Color.r + 0.7152*Color.g + 0.0722*Color.b;
+    PSOut.Color = float4(gray, gray, gray, Color.a);
 }
 )";

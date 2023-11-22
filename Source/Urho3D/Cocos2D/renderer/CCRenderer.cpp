@@ -873,40 +873,42 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         inputLayout.NumElements = elements.size();
         inputLayout.LayoutElements = elements.data();
 
-        ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
-        ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
-//         const auto& uniformLayout = currentShader->GetUniformLayout();
-//         if (uniformLayout != nullptr)
-//         {
-//             Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
-//             ws[(int)Effekseer::TextureWrapType::Clamp] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
-//             ws[(int)Effekseer::TextureWrapType::Repeat] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP;
-// 
-//             Diligent::FILTER_TYPE fs[2]{};
-//             fs[(int)Effekseer::TextureFilterType::Linear] = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
-//             fs[(int)Effekseer::TextureFilterType::Nearest] = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
-// 
-//             const auto& samplerNames = uniformLayout->GetTextures();
-//             auto samplerCount = samplerNames.size();
-//             const auto& state = key.state;
-//             Vars.reserve(samplerCount);
-//             ImtblSamplers.reserve(samplerCount);
-//             for (int i = 0; i < samplerCount; i++)
-//             {
-//                 auto filterMode = fs[(int)state.TextureFilterTypes[i]];
-//                 auto addressMode = ws[(int)state.TextureWrapTypes[i]];
-//                 Vars.emplace_back(
-//                     Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(), Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
-//                 ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(),
-//                     Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
-//             }
-//         }
-        auto& resourceLayout = PSOCreateInfo.PSODesc.ResourceLayout;
-        resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
-        resourceLayout.Variables = Vars.data();
-        resourceLayout.NumVariables = Vars.size();
-        resourceLayout.ImmutableSamplers = ImtblSamplers.data();
-        resourceLayout.NumImmutableSamplers = ImtblSamplers.size();
+        auto programType = program->getProgramType();
+        bool notexture = (programType == backend::ProgramType::POSITION
+            || programType == backend::ProgramType::POSITION_COLOR
+            || programType == backend::ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
+            || programType == backend::ProgramType::LINE_COLOR_3D
+            || programType == backend::ProgramType::LAYER_RADIA_GRADIENT
+            || programType == backend::ProgramType::CAMERA_CLEAR
+            || programType == backend::ProgramType::POSITION_COLOR_LENGTH_TEXTURE);
+        if (!notexture) {
+    //         Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
+    //         ws[(int)Effekseer::TextureWrapType::Clamp] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
+    //         ws[(int)Effekseer::TextureWrapType::Repeat] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP;
+    //         Diligent::FILTER_TYPE fs[2]{};
+    //         fs[(int)Effekseer::TextureFilterType::Linear] = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
+    //         fs[(int)Effekseer::TextureFilterType::Nearest] = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
+    //         auto filterMode = fs[(int)state.TextureFilterTypes[i]];
+    //         auto addressMode = ws[(int)state.TextureWrapTypes[i]];
+            ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
+            ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
+            Vars.reserve(2);
+            ImtblSamplers.reserve(2);
+            auto filterMode = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
+            auto addressMode = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
+            Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+            ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
+            if (programType == backend::ProgramType::ETC1 || programType == backend::ProgramType::ETC1_GRAY) {
+                Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+                ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SamplerDesc{ filterMode, filterMode, filterMode, addressMode, addressMode, addressMode });
+            }
+            auto& resourceLayout = PSOCreateInfo.PSODesc.ResourceLayout;
+            resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+            resourceLayout.Variables = Vars.data();
+            resourceLayout.NumVariables = Vars.size();
+            resourceLayout.ImmutableSamplers = ImtblSamplers.data();
+            resourceLayout.NumImmutableSamplers = ImtblSamplers.size();
+        }
 
         auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
         blendDesc.BlendEnable = true;
@@ -915,23 +917,19 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
 
         if (key.blendDescriptor.blendEnabled) {
-            if (false)
-            {
+            if (false) {
                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
                 blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
                 blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
                 blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
                 blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-            }
-            else
-            {
+            } else {
                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
                 blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
             }
-        }
-        else {
+        } else {
             blendDesc.BlendEnable = false;
             blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
@@ -939,13 +937,18 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         }
 
         _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
-//         piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer")
-//             ->Set(currentShader->GetVertexUniformBuffer());
-//         piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")
-//             ->Set(currentShader->GetPixelUniformBuffer());
+        auto srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VSConstants");
+        if (srv) {
+            srv->Set(program->GetVertexConstantBuffer());
+        }
+        srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PSConstants");
+        if (srv) {
+            srv->Set(program->GetPixelConstantBuffer());
+        }
+        
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> SRB;
         piplineState->CreateShaderResourceBinding(&SRB, true);
-//        currentShader->SetShaderResourceBinding(SRB);
+        //currentShader->SetShaderResourceBinding(SRB);
         piplineStates_[key] = piplineState;
     }
     _device->GetImmediateContext()->SetPipelineState(piplineState);

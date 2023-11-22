@@ -164,14 +164,13 @@ bool ProgramState::init(Program* program)
 {
     CC_SAFE_RETAIN(program);
     _program = program;
-//     _vertexUniformBufferSize = _program->getUniformBufferSize(ShaderStage::VERTEX);
-//     _vertexUniformBuffer = new char[_vertexUniformBufferSize];
-//     memset(_vertexUniformBuffer, 0, _vertexUniformBufferSize);
-#ifdef CC_USE_METAL
+    _vertexUniformBufferSize = _program->getUniformBufferSize(ShaderStage::VERTEX);
+    _vertexUniformBuffer = new char[_vertexUniformBufferSize];
+    memset(_vertexUniformBuffer, 0, _vertexUniformBufferSize);
+
     _fragmentUniformBufferSize = _program->getUniformBufferSize(ShaderStage::FRAGMENT);
     _fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
     memset(_fragmentUniformBuffer, 0, _fragmentUniformBufferSize);
-#endif
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     _backToForegroundListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*){
@@ -210,8 +209,8 @@ ProgramState::ProgramState()
 ProgramState::~ProgramState()
 {
     CC_SAFE_RELEASE(_program);
-//     CC_SAFE_DELETE_ARRAY(_vertexUniformBuffer);
-//     CC_SAFE_DELETE_ARRAY(_fragmentUniformBuffer);
+    CC_SAFE_DELETE_ARRAY(_vertexUniformBuffer);
+    CC_SAFE_DELETE_ARRAY(_fragmentUniformBuffer);
     
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     Director::getInstance()->getEventDispatcher()->removeEventListener(_backToForegroundListener);
@@ -222,17 +221,16 @@ ProgramState *ProgramState::clone() const
 {
     ProgramState *cp = new ProgramState();
     cp->_program = _program;
-//     cp->_vertexUniformBufferSize = _vertexUniformBufferSize;
-//     cp->_fragmentUniformBufferSize = _fragmentUniformBufferSize;
+    cp->_vertexUniformBufferSize = _vertexUniformBufferSize;
+    cp->_fragmentUniformBufferSize = _fragmentUniformBufferSize;
 //     cp->_vertexTextureInfos = _vertexTextureInfos;
 //     cp->_fragmentTextureInfos = _fragmentTextureInfos;
-//     cp->_vertexUniformBuffer = new char[_vertexUniformBufferSize];
-//     memcpy(cp->_vertexUniformBuffer, _vertexUniformBuffer, _vertexUniformBufferSize);
-//     cp->_vertexLayout = _vertexLayout;
-// #ifdef CC_USE_METAL
-//     cp->_fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
-//     memcpy(cp->_fragmentUniformBuffer, _fragmentUniformBuffer, _fragmentUniformBufferSize);
-// #endif
+    cp->_vertexUniformBuffer = new char[_vertexUniformBufferSize];
+    memcpy(cp->_vertexUniformBuffer, _vertexUniformBuffer, _vertexUniformBufferSize);
+//    cp->_vertexLayout = _vertexLayout;
+    cp->_fragmentUniformBuffer = new char[_fragmentUniformBufferSize];
+    memcpy(cp->_fragmentUniformBuffer, _fragmentUniformBuffer, _fragmentUniformBufferSize);
+
     cp->_uniformBuffer.resize(_uniformBuffer.size());
     CC_SAFE_RETAIN(cp->_program);
 
@@ -256,21 +254,21 @@ void ProgramState::setCallbackUniform(const backend::UniformLocation& uniformLoc
 
 void ProgramState::setUniform(const backend::UniformLocation& uniformLocation, const void* data, std::size_t size)
 {
-//     switch (uniformLocation.shaderStage)
-//     {
-//         case backend::ShaderStage::VERTEX:
-//             setVertexUniform(uniformLocation.location[0], data, size, uniformLocation.location[1]);
-//             break;
-//         case backend::ShaderStage::FRAGMENT:
-//             setFragmentUniform(uniformLocation.location[1], data, size);
-//             break;
-//         case backend::ShaderStage::VERTEX_AND_FRAGMENT:
-//             setVertexUniform(uniformLocation.location[0], data, size, uniformLocation.location[1]);
-//             setFragmentUniform(uniformLocation.location[1], data, size);
-//             break;
-//         default:
-//             break;
-//     }
+    switch (uniformLocation.shaderStage)
+    {
+        case backend::ShaderStage::VERTEX:
+            setVertexUniform(uniformLocation.location[0], data, size, uniformLocation.location[1]);
+            break;
+        case backend::ShaderStage::FRAGMENT:
+            setFragmentUniform(uniformLocation.location[1], data, size);
+            break;
+        case backend::ShaderStage::VERTEX_AND_FRAGMENT:
+            setVertexUniform(uniformLocation.location[0], data, size, uniformLocation.location[1]);
+            setFragmentUniform(uniformLocation.location[1], data, size);
+            break;
+        default:
+            break;
+    }
 //    memcpy(_uniformBuffer.data() + uniformLocation.offset, data, size);
 }
 
@@ -343,12 +341,12 @@ void ProgramState::convertAndCopyUniformData(const backend::UniformInfo& uniform
 }
 #endif
 
-// void ProgramState::setVertexUniform(int location, const void* data, std::size_t size, std::size_t offset)
-// {
-//     if(location < 0)
-//         return;
-//     
-// //float3 etc in Metal has both sizeof and alignment same as float4, need convert to correct laytout
+void ProgramState::setVertexUniform(int location, const void* data, std::size_t size, std::size_t offset)
+{
+    if(location < 0)
+        return;
+    
+//float3 etc in Metal has both sizeof and alignment same as float4, need convert to correct laytout
 // #ifdef CC_USE_METAL
 //     const auto& uniformInfo = _program->getActiveUniformInfo(ShaderStage::VERTEX, location);
 //     if(uniformInfo.needConvert)
@@ -360,16 +358,16 @@ void ProgramState::convertAndCopyUniformData(const backend::UniformInfo& uniform
 //         memcpy(_vertexUniformBuffer + location, data, size);
 //     }
 // #else
-//     memcpy(_vertexUniformBuffer + offset, data, size);
+    memcpy(_vertexUniformBuffer + location, data, size);
 // #endif
-// }
-// 
-// void ProgramState::setFragmentUniform(int location, const void* data, std::size_t size)
-// {
-//     if(location < 0)
-//         return;
-//    
-// //float3 etc in Metal has both sizeof and alignment same as float4, need convert to correct laytout
+}
+
+void ProgramState::setFragmentUniform(int location, const void* data, std::size_t size)
+{
+    if(location < 0)
+        return;
+   
+//float3 etc in Metal has both sizeof and alignment same as float4, need convert to correct laytout
 // #ifdef CC_USE_METAL
 //     const auto& uniformInfo = _program->getActiveUniformInfo(ShaderStage::FRAGMENT, location);
 //     if(uniformInfo.needConvert)
@@ -378,10 +376,10 @@ void ProgramState::convertAndCopyUniformData(const backend::UniformInfo& uniform
 //     }
 //     else
 //     {
-//         memcpy(_fragmentUniformBuffer + location, data, size);
+        memcpy(_fragmentUniformBuffer + location, data, size);
 //     }
 // #endif
-// }
+}
 
 void ProgramState::setTexture(const backend::UniformLocation& uniformLocation, uint32_t slot, Urho3D::Texture2D* texture)
 {
