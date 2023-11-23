@@ -56,7 +56,7 @@ struct VSInput {
 struct PSInput {
     float4 Pos          : SV_POSITION;
     float2 v_texCoord   : TEX_COORD;
-    float4 v_color      : TEX_COOR1;
+    float4 v_color      : COLOR0;
 };
 void main(in VSInput VSIn, out PSInput PSIn) 
 {

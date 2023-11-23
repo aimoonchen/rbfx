@@ -969,31 +969,31 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             resourceLayout.NumImmutableSamplers = ImtblSamplers.size();
         }
 
-//         auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
-//         blendDesc.BlendEnable = true;
-//         blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-//         blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-//         blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
-// 
-//         if (key.blendDescriptor.blendEnabled) {
-//             if (false) {
-//                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-//                 blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
-//                 blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
-//                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-//                 blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-//                 blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-//             } else {
-//                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-//                 blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
-//                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-//             }
-//         } else {
-//             blendDesc.BlendEnable = false;
-//             blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
-//             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
-//             blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-//         }
+        auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
+        blendDesc.BlendEnable = true;
+        blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+        blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+        blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
+
+        if (key.blendDescriptor.blendEnabled) {
+            if (false) {
+                blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+                blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
+                blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+                blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+                blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+                blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+            } else {
+                blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+                blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+                blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+            }
+        } else {
+            blendDesc.BlendEnable = false;
+            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
+            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
+            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+        }
 
         _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
         auto srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VSConstants");

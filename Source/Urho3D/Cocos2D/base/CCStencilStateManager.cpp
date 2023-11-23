@@ -60,7 +60,7 @@ StencilStateManager::StencilStateManager()
         Vec2(-1.0f, 1.0f)
     };
     _customCommand.createVertexBuffer(sizeof(Vec2), 4, CustomCommand::BufferUsage::STATIC, {
-        Diligent::LayoutElement{0, 0, 3, Diligent::VT_FLOAT32, false}
+        Diligent::LayoutElement{0, 0, 2, Diligent::VT_FLOAT32, false}
         });
     _customCommand.updateVertexBuffer(vertices, sizeof(vertices));
 

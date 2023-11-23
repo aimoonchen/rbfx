@@ -36,7 +36,7 @@ const char* lineColor3D_frag = R"(
 // }
 struct PSInput {
     float4 Pos              : SV_POSITION;
-    float4 v_fragmentColor  : TEX_COORD;
+    float4 v_fragmentColor  : COLOR0;
 };
 struct PSOutput {
     float4 Color : SV_TARGET;

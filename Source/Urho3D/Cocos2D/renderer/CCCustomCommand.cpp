@@ -117,7 +117,6 @@ void CustomCommand::createIndexBuffer(IndexFormat format, std::size_t capacity, 
 void CustomCommand::updateVertexBuffer(void* data, std::size_t offset, std::size_t length)
 {   
     assert(_vertexBuffer);
-    //_vertexBuffer->updateSubData(data, offset, length);
     if (_vertexBuffUsage == BufferUsage::STATIC) {
         _device->GetImmediateContext()->UpdateBuffer(_vertexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     } else {
@@ -133,7 +132,6 @@ void CustomCommand::updateVertexBuffer(void* data, std::size_t offset, std::size
 void CustomCommand::updateIndexBuffer(void* data, std::size_t offset, std::size_t length)
 {
     assert(_indexBuffer);
-    //_indexBuffer->updateSubData(data, offset, length);
     if (_indexBuffUsage == BufferUsage::STATIC) {
         _device->GetImmediateContext()->UpdateBuffer(_indexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     } else {
@@ -151,9 +149,7 @@ void CustomCommand::setVertexBuffer(Diligent::IBuffer *vertexBuffer)
     if (_vertexBuffer == vertexBuffer)
         return;
 
-    //CC_SAFE_RELEASE(_vertexBuffer);
     _vertexBuffer = vertexBuffer;
-    //CC_SAFE_RETAIN(_vertexBuffer);
 }
 
 void CustomCommand::setIndexBuffer(Diligent::IBuffer*indexBuffer, IndexFormat format)
@@ -161,9 +157,7 @@ void CustomCommand::setIndexBuffer(Diligent::IBuffer*indexBuffer, IndexFormat fo
     if (_indexBuffer == indexBuffer && _indexFormat == format)
         return;
 
-    //CC_SAFE_RELEASE(_indexBuffer);
     _indexBuffer = indexBuffer;
-    //CC_SAFE_RETAIN(_indexBuffer);
 
     _indexFormat = format;
     _indexSize = computeIndexSize();
@@ -172,15 +166,13 @@ void CustomCommand::setIndexBuffer(Diligent::IBuffer*indexBuffer, IndexFormat fo
 void CustomCommand::updateVertexBuffer(void* data, std::size_t length)
 {
     assert(_vertexBuffer);
-    //_vertexBuffer->updateData(data, length);
-    _device->GetImmediateContext()->UpdateBuffer(_vertexBuffer, 0, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    updateVertexBuffer(data, 0, length);
 }
 
 void CustomCommand::updateIndexBuffer(void* data, std::size_t length)
 {
     assert(_indexBuffer);
-    //_indexBuffer->updateData(data, length);
-    _device->GetImmediateContext()->UpdateBuffer(_indexBuffer, 0, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    updateIndexBuffer(data, 0, length);
 }
 
 std::size_t CustomCommand::computeIndexSize() const

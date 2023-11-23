@@ -107,21 +107,30 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
     switch (programType) {
     case ProgramType::POSITION_COLOR_LENGTH_TEXTURE:
     case ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE:
+    {
         // float4x4 u_MVPMatrix;
         // float u_alpha;
         _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 17);
-        _customUniform.insert({ "u_alpha", {} });
+        auto ret = _customUniform.insert({ "u_alpha", {} });
+        ret.first->second.location[0] = sizeof(float) * 16;
+    }
         break;
     case ProgramType::POSITION_UCOLOR:
+    {
         // float4x4 u_MVPMatrix;
         // float4 u_color;
         _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 20);
-        _customUniform.insert({ "u_color", {} });
+        auto ret = _customUniform.insert({ "u_color", {} });
+        ret.first->second.location[0] = sizeof(float) * 16;
+    }
         break;
     case ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST:
+    {
         // float u_alpha_value;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float));
-        _customUniform.insert({ "u_alpha_value", {} });
+        auto ret = _customUniform.insert({ "u_alpha_value", {} });
+        ret.first->second.location[1] = 0;
+    }
         break;
     case ProgramType::LABEL_NORMAL:
     case ProgramType::LABEL_DISTANCE_NORMAL:

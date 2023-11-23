@@ -299,7 +299,7 @@ void ProgressTimer::setMidpoint(const Vec2& midPoint)
 static ea::vector<Diligent::LayoutElement> get_vertex_layout()
 {
     return ea::vector<Diligent::LayoutElement>{
-        Diligent::LayoutElement{0, 0, 3, Diligent::VT_FLOAT32, false},
+        Diligent::LayoutElement{0, 0, 2, Diligent::VT_FLOAT32, false},
         Diligent::LayoutElement{1, 0, 4, Diligent::VT_UINT8, true},
         Diligent::LayoutElement{2, 0, 2, Diligent::VT_FLOAT32, false}
     };

@@ -48,7 +48,7 @@ struct VSInput {
 };
 struct PSInput {
     float4 Pos              : SV_POSITION;
-    float4 v_fragmentColor  : TEX_COORD;
+    float4 v_fragmentColor  : COLOR0;
 };
 void main(in VSInput VSIn, out PSInput PSIn)
 {
