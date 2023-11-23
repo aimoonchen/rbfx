@@ -49,6 +49,7 @@
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include "../../Core/Context.h"
 #include "../../RenderAPI/RenderDevice.h"
+#include "../../Graphics/Texture2D.h"
 #include "Urho3DContext.h"
 
 NS_CC_BEGIN
@@ -192,7 +193,11 @@ void Renderer::init()
     _triangleCommandBufferManager.init(_device);
     _vertexBuffer = _triangleCommandBufferManager.getVertexBuffer();
     _indexBuffer = _triangleCommandBufferManager.getIndexBuffer();
-
+    _triangleCommandVertexLayout = {
+        Diligent::LayoutElement{0, 0, 3, Diligent::VT_FLOAT32, false},
+        Diligent::LayoutElement{1, 0, 4, Diligent::VT_UINT8, true},
+        Diligent::LayoutElement{2, 0, 2, Diligent::VT_FLOAT32, false}
+    };
 //     auto device = backend::Device::getInstance();
 //     _commandBuffer = device->newCommandBuffer();
 //     _renderPipeline = device->newRenderPipeline();
@@ -268,20 +273,20 @@ void Renderer::processRenderCommand(RenderCommand* command)
                 drawBatchedTriangles();
 
                 _queuedTotalIndexCount = _queuedTotalVertexCount = 0;
-#ifdef CC_USE_METAL
+//#ifdef CC_USE_METAL
                 _queuedIndexCount = _queuedVertexCount = 0;
                 _triangleCommandBufferManager.prepareNextBuffer();
                 _vertexBuffer = _triangleCommandBufferManager.getVertexBuffer();
                 _indexBuffer = _triangleCommandBufferManager.getIndexBuffer();
-#endif
+//#endif
             }
             
             // queue it
             _queuedTriangleCommands.push_back(cmd);
-#ifdef CC_USE_METAL
+//#ifdef CC_USE_METAL
             _queuedIndexCount += cmd->getIndexCount();
             _queuedVertexCount += cmd->getVertexCount();
-#endif
+//#endif
             _queuedTotalVertexCount += cmd->getVertexCount();
             _queuedTotalIndexCount += cmd->getIndexCount();
 
@@ -389,9 +394,9 @@ void Renderer::endFrame()
     //_commandBuffer->endFrame();
 
 // #ifdef CC_USE_METAL
-//     _triangleCommandBufferManager.putbackAllBuffers();
-//     _vertexBuffer = _triangleCommandBufferManager.getVertexBuffer();
-//     _indexBuffer = _triangleCommandBufferManager.getIndexBuffer();
+    _triangleCommandBufferManager.putbackAllBuffers();
+    _vertexBuffer = _triangleCommandBufferManager.getVertexBuffer();
+    _indexBuffer = _triangleCommandBufferManager.getIndexBuffer();
 // #endif
     _queuedTotalIndexCount = 0;
     _queuedTotalVertexCount = 0;
@@ -560,13 +565,13 @@ void Renderer::drawBatchedTriangles()
         return;
     
     /************** 1: Setup up vertices/indices *************/
-#ifdef CC_USE_METAL
+// #ifdef CC_USE_METAL
     unsigned int vertexBufferFillOffset = _queuedTotalVertexCount - _queuedVertexCount;
     unsigned int indexBufferFillOffset = _queuedTotalIndexCount - _queuedIndexCount;
-#else
-    unsigned int vertexBufferFillOffset = 0;
-    unsigned int indexBufferFillOffset = 0;
-#endif
+// #else
+//     unsigned int vertexBufferFillOffset = 0;
+//     unsigned int indexBufferFillOffset = 0;
+// #endif
 
     _triBatchesToDraw[0].offset = indexBufferFillOffset;
     _triBatchesToDraw[0].indicesToDraw = 0;
@@ -622,6 +627,19 @@ void Renderer::drawBatchedTriangles()
         firstCommand = false;
     }
     batchesTotal++;
+
+    auto deviceContext = _device->GetImmediateContext();
+    void* dst = nullptr;
+    deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE /*Diligent::MAP_FLAG_DISCARD*/, dst);
+    if (dst) {
+        memcpy((uint8_t*)dst + vertexBufferFillOffset * sizeof(_verts[0]), _verts, _filledVertex * sizeof(_verts[0]));
+        deviceContext->UnmapBuffer(_vertexBuffer, Diligent::MAP_WRITE);
+    }
+    deviceContext->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE /*Diligent::MAP_FLAG_DISCARD*/, dst);
+    if (dst) {
+        memcpy((uint8_t*)dst + indexBufferFillOffset * sizeof(_indices[0]), _indices, _filledIndex * sizeof(_indices[0]));
+        deviceContext->UnmapBuffer(_indexBuffer, Diligent::MAP_WRITE);
+    }
 // #ifdef CC_USE_METAL
 //     _vertexBuffer->updateSubData(_verts, vertexBufferFillOffset * sizeof(_verts[0]), _filledVertex * sizeof(_verts[0]));
 //     _indexBuffer->updateSubData(_indices, indexBufferFillOffset * sizeof(_indices[0]), _filledIndex * sizeof(_indices[0]));
@@ -629,7 +647,6 @@ void Renderer::drawBatchedTriangles()
 //     _vertexBuffer->updateData(_verts, _filledVertex * sizeof(_verts[0]));
 //     _indexBuffer->updateData(_indices,  _filledIndex * sizeof(_indices[0]));
 // #endif
-    auto deviceContext = _device->GetImmediateContext();
     /************** 2: Draw *************/
     for (int i = 0; i < batchesTotal; ++i)
     {
@@ -645,14 +662,15 @@ void Renderer::drawBatchedTriangles()
 //        _commandBuffer->setProgramState(pipelineDescriptor.programState);
         Diligent::DrawIndexedAttribs DrawAttrs;
         DrawAttrs.IndexType = Diligent::VT_UINT16;
-        DrawAttrs.FirstIndexLocation = _triBatchesToDraw[i].offset * sizeof(_indices[0]);
+        DrawAttrs.FirstIndexLocation = _triBatchesToDraw[i].offset;// *sizeof(_indices[0]);
         DrawAttrs.NumIndices = _triBatchesToDraw[i].indicesToDraw;
 //         _commandBuffer->drawElements(backend::PrimitiveType::TRIANGLE,
 //                                      backend::IndexFormat::U_SHORT,
 //                                      _triBatchesToDraw[i].indicesToDraw,
 //                                      _triBatchesToDraw[i].offset * sizeof(_indices[0]));
 //        _commandBuffer->endRenderPass();
-
+        DrawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+        deviceContext->DrawIndexed(DrawAttrs);
         _drawnBatches++;
         _drawnVertices += _triBatchesToDraw[i].indicesToDraw;
     }
@@ -811,9 +829,42 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
     return false;
 }
 
+void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescriptor)
+{
+    auto programState = pipelineDescriptor.programState;
+    auto currentProgram = pipelineDescriptor.programState->getProgram();
+    auto deviceContext = _device->GetImmediateContext();
+    if (programState->_vertexUniformBufferSize > 0) {
+        Diligent::PVoid pMappedData{nullptr};
+        auto buffer = currentProgram->_vsConstants.RawPtr();
+        deviceContext->MapBuffer(buffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, pMappedData);
+        if (pMappedData) {
+            memcpy(pMappedData, programState->_vertexUniformBuffer.get(), programState->_vertexUniformBufferSize);
+            deviceContext->UnmapBuffer(buffer, Diligent::MAP_WRITE);
+        }
+    }
+
+    if (programState->_fragmentUniformBufferSize > 0) {
+        Diligent::PVoid pMappedData{nullptr};
+        auto buffer = currentProgram->_fsConstants.RawPtr();
+        deviceContext->MapBuffer(buffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, pMappedData);
+        if (pMappedData) {
+            memcpy(pMappedData, programState->_fragmentUniformBuffer.get(), programState->_fragmentUniformBufferSize);
+            deviceContext->UnmapBuffer(buffer, Diligent::MAP_WRITE);
+        }
+    }
+
+    for (int32_t i = 0; i < currentProgram->_textureCount; i++) {
+        auto texture = programState->_textures[i];
+        currentProgram->_shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, (i == 0) ? "u_texture" : "u_texture1")->Set(texture ? texture->GetHandles().srv_ : (Diligent::ITextureView*)nullptr);
+    }
+}
+
 void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor& renderPassDescriptor)
 {
+    auto commandType = command->getType();
     const auto& pipelineDescriptor = command->getPipelineDescriptor();
+    auto currentProgram = pipelineDescriptor.programState->getProgram();
     StateKey key;
     key.blendDescriptor = pipelineDescriptor.blendDescriptor;
     key.depthTestEnabled = renderPassDescriptor.depthTestEnabled;
@@ -822,7 +873,7 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
     key.clearStencilValue = renderPassDescriptor.clearStencilValue;
     key.cullMode = _cullMode;
     Diligent::PRIMITIVE_TOPOLOGY topologyType{ Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_UNDEFINED };
-    auto pt = static_cast<CustomCommand*>(command)->getPrimitiveType();
+    auto pt = (commandType == RenderCommand::Type::TRIANGLES_COMMAND) ? backend::PrimitiveType::TRIANGLE : static_cast<CustomCommand*>(command)->getPrimitiveType();
     switch (pt) {
     case backend::PrimitiveType::POINT: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_POINT_LIST; break;
     case backend::PrimitiveType::LINE: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_LIST; break;
@@ -857,23 +908,33 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         } else if (key.cullMode == backend::CullMode::NONE) {
             rasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
         }
-
+        rasterizerDesc.FrontCounterClockwise = true;
+        rasterizerDesc.DepthClipEnable = false;
         // Depth testing
         auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
-        depthStencilDesc.DepthEnable = key.depthTestEnabled;
         depthStencilDesc.DepthWriteEnable = false;
-        depthStencilDesc.DepthFunc = Diligent::COMPARISON_FUNC_LESS_EQUAL;
+        depthStencilDesc.DepthEnable = key.depthTestEnabled;
+//        depthStencilDesc.DepthEnable = true;
+//        depthStencilDesc.DepthFunc = Diligent::COMPARISON_FUNC_ALWAYS;
 
-        auto program = pipelineDescriptor.programState->getProgram();
-        PSOCreateInfo.pVS = program->_vsShader;
-        PSOCreateInfo.pPS = program->_fsShader;
+        PSOCreateInfo.pVS = currentProgram->_vsShader;
+        PSOCreateInfo.pPS = currentProgram->_fsShader;
 
-        const auto& elements = static_cast<CustomCommand*>(command)->getLayoutElement();
         auto& inputLayout = PSOCreateInfo.GraphicsPipeline.InputLayout;
-        inputLayout.NumElements = elements.size();
-        inputLayout.LayoutElements = elements.data();
+        if (commandType == RenderCommand::Type::TRIANGLES_COMMAND) {
+            inputLayout.NumElements = _triangleCommandVertexLayout.size();
+            inputLayout.LayoutElements = _triangleCommandVertexLayout.data();
+        } else if (commandType == RenderCommand::Type::CUSTOM_COMMAND) {
+            const auto& elements = static_cast<CustomCommand*>(command)->getLayoutElement();
+            inputLayout.NumElements = elements.size();
+            inputLayout.LayoutElements = elements.data();
+        } else {
+            assert(false);
+        }
 
-        auto programType = program->getProgramType();
+        auto programType = currentProgram->getProgramType();
+        ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
+        ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
         bool notexture = (programType == backend::ProgramType::POSITION
             || programType == backend::ProgramType::POSITION_COLOR
             || programType == backend::ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
@@ -890,11 +951,9 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
     //         fs[(int)Effekseer::TextureFilterType::Nearest] = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
     //         auto filterMode = fs[(int)state.TextureFilterTypes[i]];
     //         auto addressMode = ws[(int)state.TextureWrapTypes[i]];
-            ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
-            ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
             Vars.reserve(2);
             ImtblSamplers.reserve(2);
-            auto filterMode = Diligent::FILTER_TYPE::FILTER_TYPE_POINT;
+            auto filterMode = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
             auto addressMode = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
             Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
             ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
@@ -910,49 +969,50 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             resourceLayout.NumImmutableSamplers = ImtblSamplers.size();
         }
 
-        auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
-        blendDesc.BlendEnable = true;
-        blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-        blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-        blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
-
-        if (key.blendDescriptor.blendEnabled) {
-            if (false) {
-                blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-                blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
-                blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
-                blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-                blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-                blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-            } else {
-                blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-                blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
-                blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-            }
-        } else {
-            blendDesc.BlendEnable = false;
-            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
-            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
-            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-        }
+//         auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
+//         blendDesc.BlendEnable = true;
+//         blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+//         blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+//         blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
+// 
+//         if (key.blendDescriptor.blendEnabled) {
+//             if (false) {
+//                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+//                 blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
+//                 blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+//                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+//                 blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
+//                 blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+//             } else {
+//                 blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+//                 blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
+//                 blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
+//             }
+//         } else {
+//             blendDesc.BlendEnable = false;
+//             blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
+//             blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
+//             blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+//         }
 
         _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
         auto srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VSConstants");
         if (srv) {
-            srv->Set(program->GetVertexConstantBuffer());
+            srv->Set(currentProgram->_vsConstants);
         }
         srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PSConstants");
         if (srv) {
-            srv->Set(program->GetPixelConstantBuffer());
+            srv->Set(currentProgram->_fsConstants);
         }
-        
-        Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> SRB;
-        piplineState->CreateShaderResourceBinding(&SRB, true);
-        //currentShader->SetShaderResourceBinding(SRB);
+        piplineState->CreateShaderResourceBinding(&currentProgram->_shaderResourceBinding, true);
+
         piplineStates_[key] = piplineState;
     }
-    _device->GetImmediateContext()->SetPipelineState(piplineState);
 
+    commitUniformAndTextures(pipelineDescriptor);
+
+    _device->GetImmediateContext()->SetPipelineState(piplineState);
+    _device->GetImmediateContext()->CommitShaderResources(currentProgram->_shaderResourceBinding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 //     auto device = backend::Device::getInstance();
 //     _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
 // 
@@ -1208,7 +1268,7 @@ void Renderer::TriangleCommandBufferManager::createBuffer()
     VertBuffDesc.BindFlags = Diligent::BIND_VERTEX_BUFFER;
     VertBuffDesc.Usage = Diligent::USAGE_DYNAMIC;
     VertBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
-    VertBuffDesc.Size = Renderer::VBO_SIZE * sizeof(V3F_C4B_T2F);
+    VertBuffDesc.Size = Renderer::VBO_SIZE * sizeof(_verts[0]);
     _device->GetRenderDevice()->CreateBuffer(VertBuffDesc, nullptr, &vertexBuffer);
     if (!vertexBuffer) {
 //        free(tmpData);
@@ -1218,8 +1278,8 @@ void Renderer::TriangleCommandBufferManager::createBuffer()
     Diligent::BufferDesc IndBuffDesc;
     IndBuffDesc.Name = "Cocos index buffer";
     IndBuffDesc.BindFlags = Diligent::BIND_INDEX_BUFFER;
-    VertBuffDesc.Usage = Diligent::USAGE_DYNAMIC;
-    VertBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
+    IndBuffDesc.Usage = Diligent::USAGE_DYNAMIC;
+    IndBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
     IndBuffDesc.Size = Renderer::INDEX_VBO_SIZE * sizeof(unsigned short);
     //auto indexBuffer = device->newBuffer(Renderer::INDEX_VBO_SIZE * sizeof(unsigned short), backend::BufferType::INDEX, backend::BufferUsage::DYNAMIC);
     Diligent::IBuffer* indexBuffer{ nullptr };

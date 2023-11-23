@@ -477,13 +477,13 @@ ProgramState::AutoBindingResolver::~AutoBindingResolver()
 
 // void ProgramState::getVertexUniformBuffer(char** buffer, std::size_t& size) const
 // {
-//     *buffer = _vertexUniformBuffer;
+//     *buffer = _vertexUniformBuffer.get();
 //     size = _vertexUniformBufferSize;
 // }
 // 
 // void ProgramState::getFragmentUniformBuffer(char** buffer, std::size_t& size) const
 // {
-//     *buffer = _fragmentUniformBuffer;
+//     *buffer = _fragmentUniformBuffer.get();
 //     size = _fragmentUniformBufferSize;
 // }
 

@@ -48,8 +48,8 @@ cbuffer VSConstants {
 };
 struct VSInput {
     float3 a_position   : ATTRIB0;
-    float2 a_texCoord   : ATTRIB1;
-    float4 a_color      : ATTRIB2;
+    float4 a_color      : ATTRIB1;
+    float2 a_texCoord   : ATTRIB2;
 };
 struct PSInput {
     float4 Pos              : SV_POSITION;
@@ -58,7 +58,7 @@ struct PSInput {
 };
 void main(in VSInput VSIn, out PSInput PSIn)
 {
-    PSIn.Pos                = mul(float4(VSIn.a_position,1.0), u_MVPMatrix);
+    PSIn.Pos                = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
     PSIn.pointSize          = VSIn.a_texCoord.x;
     PSIn.v_fragmentColor    = float4(VSIn.a_color.rgb * u_alpha * VSIn.a_color.a, u_alpha * VSIn.a_color.a);
 }

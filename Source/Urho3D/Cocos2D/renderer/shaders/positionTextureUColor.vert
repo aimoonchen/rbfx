@@ -53,7 +53,7 @@ struct PSInput {
 };
 void main(in VSInput VSIn, out PSInput PSIn)
 {
-    PSIn.Pos        = mul(float4(VSIn.a_position,1.0), u_MVPMatrix);
+    PSIn.Pos        = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
     PSIn.v_texCoord = VSIn.a_texCoord;
 }
 )";

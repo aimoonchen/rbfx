@@ -222,7 +222,8 @@ public:
 
 protected:
     std::size_t computeIndexSize() const;
-
+    backend::BufferUsage _vertexBuffUsage;
+    backend::BufferUsage _indexBuffUsage;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> _vertexBuffer;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> _indexBuffer;
     

@@ -192,64 +192,10 @@ void ProgramCache::addProgram(ProgramType type)
         case ProgramType::CAMERA_CLEAR:
             program = new Program(cameraClear_vert, cameraClear_frag, type);
             break;
-//         case ProgramType::SKYBOX_3D:
-//             program = new Program(CC3D_skybox_vert, CC3D_skybox_frag);
-//             break;
-//         case ProgramType::SKINPOSITION_TEXTURE_3D:
-//             program = new Program(CC3D_skinPositionTexture_vert, CC3D_colorTexture_frag);
-//             break;
-//         case ProgramType::SKINPOSITION_NORMAL_TEXTURE_3D:
-//             {
-//                 std::string def = getShaderMacrosForLight();
-//                 program = new Program(def + CC3D_skinPositionNormalTexture_vert, def + CC3D_colorNormalTexture_frag);
-//             }
-//             break;
-//         case ProgramType::POSITION_NORMAL_TEXTURE_3D:
-//             {
-//                 std::string def = getShaderMacrosForLight();
-//                 program = new Program(def + CC3D_positionNormalTexture_vert, def + CC3D_colorNormalTexture_frag);
-//             }
-//             break;
-//         case ProgramType::POSITION_TEXTURE_3D:
-//             program = new Program(CC3D_positionTexture_vert, CC3D_colorTexture_frag);
-//             break;
-//         case ProgramType::POSITION_3D:
-//             program = new Program(CC3D_positionTexture_vert, CC3D_color_frag);
-//             break;
-//         case ProgramType::POSITION_NORMAL_3D:
-//             {
-//                 std::string def = getShaderMacrosForLight();
-//                 program = new Program(def + CC3D_positionNormalTexture_vert, def + CC3D_colorNormal_frag);
-//             }
-//             break;
-//         case ProgramType::POSITION_BUMPEDNORMAL_TEXTURE_3D:
-//             {
-//                 std::string def = getShaderMacrosForLight();
-//                 std::string normalMapDef = "\n#define USE_NORMAL_MAPPING 1 \n";
-//                 program = new Program(def + normalMapDef + CC3D_positionNormalTexture_vert, def + normalMapDef + CC3D_colorNormalTexture_frag);
-//             }
-//             break;
-//         case ProgramType::SKINPOSITION_BUMPEDNORMAL_TEXTURE_3D:
-//             {
-//                 std::string def = getShaderMacrosForLight();
-//                 std::string normalMapDef = "\n#define USE_NORMAL_MAPPING 1 \n";
-//                 program = new Program(def + normalMapDef + CC3D_skinPositionNormalTexture_vert, def + normalMapDef + CC3D_colorNormalTexture_frag);
-//             }
-//             break;
-//         case ProgramType::TERRAIN_3D:
-//             program = new Program(CC3D_terrain_vert, CC3D_terrain_frag);
-//             break;
-//         case ProgramType::PARTICLE_TEXTURE_3D:
-//             program = new Program(CC3D_particle_vert, CC3D_particleTexture_frag);
-//             break;
-//         case ProgramType::PARTICLE_COLOR_3D:
-//             program = new Program(CC3D_particle_vert, CC3D_particleColor_frag);
-//             break;
         default:
             CCASSERT(false, "Not built-in program type.");
             break;
     }
-    program->setProgramType(type);
     ProgramCache::_cachedPrograms.emplace(type, program);
 }
 

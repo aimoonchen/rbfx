@@ -34,6 +34,7 @@
 #include "renderer/backend/Types.h"
 #include <Diligent/Common/interface/RefCntAutoPtr.hpp>
 #include <Diligent/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
+#include <Diligent/Graphics/GraphicsEngine/interface/InputLayout.h>
 
 namespace Diligent
 {
@@ -492,7 +493,7 @@ protected:
      * @param renderPassDescriptor Specifies the render pass descriptor.
      */
     void setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor&);
-
+    void commitUniformAndTextures(const PipelineDescriptor& pipelineDescriptor);
     void pushStateBlock();
 
     void popStateBlock();
@@ -515,7 +516,8 @@ protected:
     Diligent::IBuffer* _vertexBuffer = nullptr;
     Diligent::IBuffer* _indexBuffer = nullptr;
     TriangleCommandBufferManager _triangleCommandBufferManager;
-    
+    ea::vector<Diligent::LayoutElement> _triangleCommandVertexLayout;
+
     backend::CommandBuffer* _commandBuffer = nullptr;
     backend::RenderPassDescriptor _renderPassDescriptor;
     backend::DepthStencilDescriptor _depthStencilDescriptor;

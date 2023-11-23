@@ -70,6 +70,22 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
     ShaderCI.Source = fs.data();
     device->GetRenderDevice()->CreateShader(ShaderCI, &_fsShader);
 
+    
+    if (programType == ProgramType::POSITION
+        || programType == ProgramType::POSITION_COLOR
+        || programType == ProgramType::POSITION_UCOLOR
+        || programType == ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
+        || programType == ProgramType::POSITION_COLOR_LENGTH_TEXTURE)
+    {
+        _textureCount = 0;
+    } else if (programType == ProgramType::ETC1
+        || programType == ProgramType::ETC1_GRAY)
+    {
+        _textureCount = 2;
+    }
+    else {
+        _textureCount = 1;
+    }
     /// u_MVPMatrix
     _builtinUniformLocation[Uniform::MVP_MATRIX].location[0] = 0;
     /// u_texture
@@ -104,20 +120,20 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
         break;
     case ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST:
         // float u_alpha_value;
-        _psConstants = create_uniform_buffer("PSConstants", sizeof(float));
+        _fsConstants = create_uniform_buffer("PSConstants", sizeof(float));
         _customUniform.insert({ "u_alpha_value", {} });
         break;
     case ProgramType::LABEL_NORMAL:
     case ProgramType::LABEL_DISTANCE_NORMAL:
         // float4 u_textColor;
-        _psConstants = create_uniform_buffer("PSConstants", sizeof(float) * 4);
+        _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 4);
         _builtinUniformLocation[Uniform::TEXT_COLOR].location[1] = 0;
         break;
     case ProgramType::LABLE_OUTLINE:
         // float4 u_effectColor;
         // float4 u_textColor;
         // int u_effectType;
-        _psConstants = create_uniform_buffer("PSConstants", sizeof(float) * 8 + sizeof(int));
+        _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 8 + sizeof(int));
         _builtinUniformLocation[Uniform::EFFECT_COLOR].location[1] = 0;
         _builtinUniformLocation[Uniform::TEXT_COLOR].location[1] = sizeof(float) * 4;
         _builtinUniformLocation[Uniform::EFFECT_TYPE].location[1] = sizeof(float) * 8;
@@ -125,7 +141,7 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
     case ProgramType::LABLE_DISTANCEFIELD_GLOW:
         // float4 u_effectColor;
         // float4 u_textColor;
-        _psConstants = create_uniform_buffer("PSConstants", sizeof(float) * 8);
+        _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 8);
         _builtinUniformLocation[Uniform::EFFECT_COLOR].location[1] = 0;
         _builtinUniformLocation[Uniform::TEXT_COLOR].location[1] = sizeof(float) * 4;
         break;
@@ -135,7 +151,7 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
         // float2 u_center;
         // float u_radius;
         // float u_expand;
-        _psConstants = create_uniform_buffer("PSConstants", sizeof(float) * 12);
+        _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 12);
         _customUniform.insert({ "u_startColor", {} });
         _customUniform.insert({ "u_endColor", {} });
         _customUniform.insert({ "u_center", {} });
@@ -163,6 +179,9 @@ std::size_t Program::getUniformBufferSize(ShaderStage stage) const
             // float4 u_color;
             return sizeof(float) * 20;
         } else if (_programType == ProgramType::CAMERA_CLEAR) {
+            // float depth;
+            return sizeof(float);
+        } else {
             // float4x4 u_MVPMatrix;
             return sizeof(float) * 16;
         }
@@ -232,11 +251,6 @@ void Program::applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[])
 //             graphics_->SetShaderParameter(uniform.handle, (const float*)(buffer + uniform.offset), uniform.count);
 //         }
 //     }
-}
-
-void Program::setProgramType(ProgramType type)
-{
-    _programType = type;
 }
 
 Program* Program::getBuiltinProgram(ProgramType type)

@@ -43,6 +43,7 @@ namespace Diligent
 {
 struct IShader;
 struct IBuffer;
+struct IShaderResourceBinding;
 } // namespace Diligent
 
 CC_BACKEND_BEGIN
@@ -176,57 +177,19 @@ public:
     //virtual const std::unordered_map<std::string, UniformInfo>& getAllActiveUniformInfo(ShaderStage stage) const = 0;
     void applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[]);
 //protected:
-    /**
-     * Set engin built-in program type.
-     * @param type Specifies the program type.
-     */
-    void setProgramType(ProgramType type);
-    
-    /**
-     * @param vs Specifes the vertex shader source.
-     * @param fs Specifes the fragment shader source.
-     */
     Program(const std::string& vs, const std::string& fs, ProgramType programType = ProgramType::CUSTOM_PROGRAM);
-    Diligent::IBuffer* GetVertexConstantBuffer() const { return _vsConstants; };
-    Diligent::IBuffer* GetPixelConstantBuffer() const { return _psConstants; };
-#if CC_ENABLE_CACHE_TEXTURE_DATA
-    /**
-     * In case of EGL context lost, the engine will reload shaders. Thus location of uniform may changed.
-     * The engine will maintain the relationship between the original uniform location and the current active uniform location.
-     * @param location Specifies original location.
-     * @return Current active uniform location.
-     * @see `int getOriginalLocation(int location) const`
-     */
-    virtual int getMappedLocation(int location) const = 0;
-
-    /**
-     * In case of EGL context lost, the engine will reload shaders. Thus location of uniform may changed.
-     * The engine will maintain the relationship between the original uniform location and the current active uniform location.
-     * @param location Specifies the current active uniform location.
-     * @return The original uniform location.
-     * @see `int getMappedLocation(int location) const`
-     */
-    virtual int getOriginalLocation(int location) const = 0;
-
-    /**
-     * Get all uniform locations.
-     * @return All uniform locations.
-     */
-    virtual const std::unordered_map<std::string, int> getAllUniformsLocation() const = 0;
-    friend class ProgramState;
-#endif
-    friend class ProgramCache;
-    
+    //
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
-
     Urho3D::RenderDevice* _device{nullptr};
     Diligent::IShader* _vsShader{nullptr};
     Diligent::IShader* _fsShader{nullptr};
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
-    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _psConstants{ nullptr };
+    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _fsConstants{ nullptr };
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> _shaderResourceBinding;
     UniformLocation _builtinUniformLocation[UNIFORM_MAX];
-    std::size_t _uniformBufferSize = 0;
     std::unordered_map<std::string, UniformLocation> _customUniform;
+    std::size_t _textureCount = 0;
+    friend class ProgramCache;
 };
 
 //end of _backend group

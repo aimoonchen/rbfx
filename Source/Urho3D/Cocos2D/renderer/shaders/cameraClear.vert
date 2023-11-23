@@ -50,8 +50,8 @@ cbuffer VSConstants {
 };
 struct VSInput {
     float3 a_position   : ATTRIB0;
-    float2 a_texCoord   : ATTRIB1;
-    float4 a_color      : ATTRIB2;
+    float4 a_color      : ATTRIB1;
+    float2 a_texCoord   : ATTRIB2;
 };
 struct PSInput {
     float4 Pos          : SV_POSITION;
