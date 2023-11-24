@@ -29,13 +29,7 @@
 #include "renderer/CCCustomCommand.h"
 #include "renderer/CCCallbackCommand.h"
 #include "renderer/CCGroupCommand.h"
-#include "renderer/CCMeshCommand.h"
-// #include "renderer/CCMaterial.h"
-// #include "renderer/CCTechnique.h"
-// #include "renderer/CCPass.h"
-// #include "renderer/CCTexture2D.h"
 
-#include "base/CCConfiguration.h"
 #include "base/CCDirector.h"
 #include "base/CCEventDispatcher.h"
 #include "base/CCEventListenerCustom.h"
@@ -44,7 +38,6 @@
 #include "2d/CCScene.h"
 #include "external/xxhash/xxhash.h"
 
-//#include "renderer/backend/Backend.h"
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include "../../Core/Context.h"
@@ -307,20 +300,20 @@ void Renderer::processRenderCommand(RenderCommand* command)
             flush();
            static_cast<CallbackCommand*>(command)->execute();
             break;
-        case RenderCommand::Type::CAPTURE_SCREEN_COMMAND:
-            flush();
-            captureScreen(command);
-            break;
+//         case RenderCommand::Type::CAPTURE_SCREEN_COMMAND:
+//             flush();
+//             captureScreen(command);
+//             break;
         default:
             assert(false);
             break;
     }
 }
 
-void Renderer::captureScreen(RenderCommand *command)
-{
-    //_commandBuffer->captureScreen(static_cast<CaptureScreenCallbackCommand*>(command)->func);
-}
+// void Renderer::captureScreen(RenderCommand *command)
+// {
+//     _commandBuffer->captureScreen(static_cast<CaptureScreenCallbackCommand*>(command)->func);
+// }
 
 void Renderer::visitRenderQueue(RenderQueue& queue)
 {
@@ -737,7 +730,7 @@ void Renderer::drawCustomCommand(RenderCommand *command)
 
 void Renderer::drawMeshCommand(RenderCommand *command)
 {
-    //MeshCommand and CustomCommand are identical while rendering.
+    //CustomCommand are identical while rendering.
     drawCustomCommand(command);
 }
 
@@ -803,7 +796,7 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
     if (psShader != v.psShader)
         return psShader < v.psShader;
     if (blendDescriptor.blendEnabled != v.blendDescriptor.blendEnabled)
-        return blendDescriptor.blendEnabled < v.blendDescriptor.blendEnabled;
+        return v.blendDescriptor.blendEnabled;
     if (cullMode != v.cullMode)
         return cullMode < v.cullMode;
     if (depthTestEnabled != v.depthTestEnabled)
@@ -813,7 +806,7 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
     if (needClearStencil != v.needClearStencil)
         return v.needClearStencil;
     if (clearStencilValue != v.clearStencilValue)
-        return v.clearStencilValue;
+        return clearStencilValue < v.clearStencilValue;
 
 //     for (int i = 0; i < 4; i++)
 //     {
@@ -873,8 +866,8 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
     key.clearStencilValue = renderPassDescriptor.clearStencilValue;
     key.cullMode = _cullMode;
     Diligent::PRIMITIVE_TOPOLOGY topologyType{ Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_UNDEFINED };
-    auto pt = (commandType == RenderCommand::Type::TRIANGLES_COMMAND) ? backend::PrimitiveType::TRIANGLE : static_cast<CustomCommand*>(command)->getPrimitiveType();
-    switch (pt) {
+    auto primitiveType = (commandType == RenderCommand::Type::TRIANGLES_COMMAND) ? backend::PrimitiveType::TRIANGLE : static_cast<CustomCommand*>(command)->getPrimitiveType();
+    switch (primitiveType) {
     case backend::PrimitiveType::POINT: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_POINT_LIST; break;
     case backend::PrimitiveType::LINE: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_LIST; break;
     case backend::PrimitiveType::LINE_STRIP: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_STRIP; break;
@@ -911,11 +904,48 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         rasterizerDesc.FrontCounterClockwise = true;
         rasterizerDesc.DepthClipEnable = false;
         // Depth testing
+        static ea::array<Diligent::COMPARISON_FUNCTION, (uint32_t)backend::CompareFunction::ALWAYS + 1> compareFunciontMap = {
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_NEVER, Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_LESS,
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_LESS_EQUAL,
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_GREATER,
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_GREATER_EQUAL,
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_EQUAL,
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_NOT_EQUAL,
+            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_ALWAYS};
         auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
         depthStencilDesc.DepthWriteEnable = false;
         depthStencilDesc.DepthEnable = key.depthTestEnabled;
-//        depthStencilDesc.DepthEnable = true;
-//        depthStencilDesc.DepthFunc = Diligent::COMPARISON_FUNC_ALWAYS;
+        if (key.depthTestEnabled) {
+            depthStencilDesc.DepthFunc = compareFunciontMap[(uint32_t)_depthStencilDescriptor.depthCompareFunction];
+            depthStencilDesc.DepthWriteEnable = _depthStencilDescriptor.depthWriteEnabled;
+        }
+        depthStencilDesc.StencilEnable = key.stencilTestEnabled;
+        if (key.stencilTestEnabled) {
+            static ea::array<Diligent::STENCIL_OP, (uint32_t)backend::StencilOperation::DECREMENT_WRAP + 1> stencilOpMap = {
+                Diligent::STENCIL_OP::STENCIL_OP_KEEP,
+                Diligent::STENCIL_OP::STENCIL_OP_ZERO,
+                Diligent::STENCIL_OP::STENCIL_OP_REPLACE,
+                Diligent::STENCIL_OP::STENCIL_OP_INVERT,
+                Diligent::STENCIL_OP::STENCIL_OP_INCR_WRAP,
+                Diligent::STENCIL_OP::STENCIL_OP_DECR_WRAP,
+            };
+            const auto& frontFace = _depthStencilDescriptor.frontFaceStencil;
+            depthStencilDesc.FrontFace = {
+                stencilOpMap[(uint32_t)frontFace.stencilFailureOperation],
+                stencilOpMap[(uint32_t)frontFace.depthFailureOperation],
+                stencilOpMap[(uint32_t)frontFace.depthStencilPassOperation],
+                compareFunciontMap[(uint32_t)frontFace.stencilCompareFunction]
+            };
+            const auto& backFace = _depthStencilDescriptor.frontFaceStencil;
+            depthStencilDesc.BackFace = {
+                stencilOpMap[(uint32_t)backFace.stencilFailureOperation],
+                stencilOpMap[(uint32_t)backFace.depthFailureOperation],
+                stencilOpMap[(uint32_t)backFace.depthStencilPassOperation],
+                compareFunciontMap[(uint32_t)backFace.stencilCompareFunction]
+            };
+            depthStencilDesc.StencilReadMask = frontFace.readMask;
+            depthStencilDesc.StencilWriteMask = frontFace.writeMask;
+        }
 
         PSOCreateInfo.pVS = currentProgram->_vsShader;
         PSOCreateInfo.pPS = currentProgram->_fsShader;
@@ -1008,11 +1038,8 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
 
         piplineStates_[key] = piplineState;
     }
-
     commitUniformAndTextures(pipelineDescriptor);
-
     _device->GetImmediateContext()->SetPipelineState(piplineState);
-    _device->GetImmediateContext()->CommitShaderResources(currentProgram->_shaderResourceBinding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 //     auto device = backend::Device::getInstance();
 //     _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
 // 
@@ -1035,9 +1062,28 @@ void Renderer::beginRenderPass(RenderCommand* cmd)
 //      _commandBuffer->setCullMode(_cullMode);
 //      _commandBuffer->setWinding(_winding);
 //      _commandBuffer->setScissorRect(_scissorState.isEnabled, _scissorState.rect.x, _scissorState.rect.y, _scissorState.rect.width, _scissorState.rect.height);
-     setRenderPipeline(cmd, _renderPassDescriptor);
+//      _commandBuffer->setStencilReferenceValue(_stencilRef);
+    setRenderPipeline(cmd, _renderPassDescriptor);
 
-//    _commandBuffer->setStencilReferenceValue(_stencilRef);
+    auto pCtx = _device->GetImmediateContext();
+    const auto& SCDesc = _device->GetSwapChain()->GetDesc();
+    Diligent::Viewport vp{ (float)_viewport.x, (float)_viewport.y, (float)_viewport.w, (float)_viewport.h };
+    pCtx->SetViewports(1, &vp, SCDesc.Width, SCDesc.Height);
+    if (_scissorState.isEnabled) {
+        Diligent::Rect Scissor{
+            (int32_t)_scissorState.rect.x,
+            (int32_t)_scissorState.rect.y,
+            (int32_t)_scissorState.rect.x + (int32_t)_scissorState.rect.width,
+            (int32_t)_scissorState.rect.y + (int32_t)_scissorState.rect.height,
+        };
+        pCtx->SetScissorRects(1, &Scissor, SCDesc.Width, SCDesc.Height);
+    }
+    pCtx->SetStencilRef(_stencilRef);
+    const auto& pipelineDescriptor = cmd->getPipelineDescriptor();
+    auto currentProgram = pipelineDescriptor.programState->getProgram();
+    if (currentProgram->_shaderResourceBinding) {
+        pCtx->CommitShaderResources(currentProgram->_shaderResourceBinding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    }
 }
 
 void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment)

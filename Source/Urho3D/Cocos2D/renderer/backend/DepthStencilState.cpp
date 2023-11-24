@@ -37,6 +37,38 @@ bool StencilDescriptor::operator==(const StencilDescriptor &rhs) const
 
 }
 
+bool StencilDescriptor::operator<(const StencilDescriptor& v) const
+{
+    if (stencilCompareFunction != v.stencilCompareFunction)
+        return stencilCompareFunction < v.stencilCompareFunction;
+    if (stencilFailureOperation != v.stencilFailureOperation)
+        return stencilFailureOperation < v.stencilFailureOperation;
+    if (depthFailureOperation != v.depthFailureOperation)
+        return depthFailureOperation < v.depthFailureOperation;
+    if (depthStencilPassOperation != v.depthStencilPassOperation)
+        return depthStencilPassOperation < v.depthStencilPassOperation;
+    if (readMask != v.readMask)
+        return readMask < v.readMask;
+    if (writeMask != v.writeMask)
+        return writeMask < v.writeMask;
+}
+
+bool DepthStencilDescriptor::operator<(const DepthStencilDescriptor& v) const
+{
+    if (stencilTestEnabled != v.stencilTestEnabled)
+        return stencilTestEnabled < v.stencilTestEnabled;
+    if (depthTestEnabled != v.depthTestEnabled)
+        return depthTestEnabled < v.depthTestEnabled;
+    if (depthCompareFunction != v.depthCompareFunction)
+        return depthCompareFunction < v.depthCompareFunction;
+    if (depthWriteEnabled != v.depthWriteEnabled)
+        return depthWriteEnabled < v.depthWriteEnabled;
+    if (!(backFaceStencil == v.backFaceStencil))
+        return backFaceStencil < v.backFaceStencil;
+    if (!(frontFaceStencil == v.frontFaceStencil))
+        return frontFaceStencil < v.frontFaceStencil;
+}
+
 DepthStencilState::DepthStencilState(const DepthStencilDescriptor& descriptor)
 : _depthStencilInfo(descriptor)
 {

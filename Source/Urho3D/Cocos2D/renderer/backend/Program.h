@@ -180,12 +180,12 @@ public:
     Program(const std::string& vs, const std::string& fs, ProgramType programType = ProgramType::CUSTOM_PROGRAM);
     //
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
-    Urho3D::RenderDevice* _device{nullptr};
-    Diligent::IShader* _vsShader{nullptr};
-    Diligent::IShader* _fsShader{nullptr};
+    Urho3D::RenderDevice* _device{ nullptr };
+    Diligent::IShader* _vsShader{ nullptr };
+    Diligent::IShader* _fsShader{ nullptr };
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _fsConstants{ nullptr };
-    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> _shaderResourceBinding;
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> _shaderResourceBinding{ nullptr };
     UniformLocation _builtinUniformLocation[UNIFORM_MAX];
     std::unordered_map<std::string, UniformLocation> _customUniform;
     std::size_t _textureCount = 0;

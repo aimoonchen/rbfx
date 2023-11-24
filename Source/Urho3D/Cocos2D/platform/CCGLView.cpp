@@ -25,7 +25,7 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "platform/CCGLView.h"
-
+#include <map>
 #include "base/CCTouch.h"
 #include "base/CCDirector.h"
 #include "base/CCEventDispatcher.h"

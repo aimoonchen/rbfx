@@ -28,7 +28,6 @@ THE SOFTWARE.
 
 #include "platform/CCGL.h" 
 #include "base/CCRef.h"
-#include "platform/CCCommon.h"
 #include "platform/CCGLView.h"
 #include "../../Input/InputConstants.h"
 // #include "glfw3.h"

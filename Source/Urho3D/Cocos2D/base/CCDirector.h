@@ -557,7 +557,7 @@ protected:
      @since v3.0
      */
     EventDispatcher* _eventDispatcher = nullptr;
-    EventCustom* _eventProjectionChanged = nullptr;
+    //EventCustom* _eventProjectionChanged = nullptr;
     EventCustom* _eventBeforeDraw =nullptr; 
     EventCustom* _eventAfterDraw = nullptr;
     EventCustom* _eventAfterVisit = nullptr;

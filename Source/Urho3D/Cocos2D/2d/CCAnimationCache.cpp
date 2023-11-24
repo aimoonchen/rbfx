@@ -62,20 +62,27 @@ AnimationCache::AnimationCache()
 
 AnimationCache::~AnimationCache()
 {
+    for (auto& it : _animations) {
+        it.second->release();
+    }
     CCLOGINFO("deallocing AnimationCache: %p", this);
 }
 
 void AnimationCache::addAnimation(Animation *animation, const std::string& name)
 {
-    _animations.insert(name, animation);
+    animation->retain();
+    _animations.insert({ name, animation });
 }
 
 void AnimationCache::removeAnimation(const std::string& name)
 {
     if (name.empty())
         return;
-
-    _animations.erase(name);
+    auto it = _animations.find(name);
+    if (it != _animations.end()) {
+        it->second->release();
+    }
+    _animations.erase(it);
 }
 
 Animation* AnimationCache::getAnimation(const std::string& name)

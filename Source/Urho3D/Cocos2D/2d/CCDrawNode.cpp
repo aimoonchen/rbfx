@@ -26,7 +26,6 @@
 #include <stddef.h> // offsetof
 #include "base/ccTypes.h"
 #include "base/CCEventType.h"
-#include "base/CCConfiguration.h"
 #include "renderer/CCRenderer.h"
 #include "base/CCDirector.h"
 #include "base/CCEventListenerCustom.h"

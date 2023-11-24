@@ -28,9 +28,7 @@
 #include "2d/CCFontAtlas.h"
 #include "2d/CCSpriteFrameCache.h"
 #include "platform/CCFileUtils.h"
-#include "base/CCConfiguration.h"
 #include "base/CCDirector.h"
-#include "base/CCMap.h"
 #include "base/ccUTF8.h"
 //#include "renderer/CCTextureCache.h"
 #include "../../Graphics/Texture2D.h"
@@ -55,7 +53,7 @@ struct _FontDefHashElement;
 //
 //FNTConfig Cache - free functions
 //
-static Map<std::string, BMFontConfiguration*>* s_configurations = nullptr;
+static std::unordered_map<std::string, BMFontConfiguration*>* s_configurations = nullptr;
 
 BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
 {
@@ -63,7 +61,7 @@ BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
 
     if (s_configurations == nullptr)
     {
-        s_configurations = new (std::nothrow) Map<std::string, BMFontConfiguration*>();
+        s_configurations = new (std::nothrow) std::unordered_map<std::string, BMFontConfiguration*>();
     }
 
     ret = s_configurations->at(fntFile);
@@ -72,7 +70,8 @@ BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
         ret = BMFontConfiguration::create(fntFile);
         if (ret)
         {
-            s_configurations->insert(fntFile, ret);
+            ret->retain();
+            s_configurations->insert({ fntFile, ret });
         }        
     }
 
@@ -425,26 +424,6 @@ void BMFontConfiguration::parseCommonArguments(const char* line)
     // Height
     auto tmp = strstr(line, "lineHeight=") + 11;
     sscanf(tmp, "%d", &_commonHeight);
-    
-#if COCOS2D_DEBUG > 0
-    // scaleW. sanity check
-    int value;
-    tmp = strstr(tmp, "scaleW=") + 7;
-    sscanf(tmp, "%d", &value);
-
-    int maxTextureSize = Configuration::getInstance()->getMaxTextureSize();
-    CCASSERT(value <= maxTextureSize, "CCLabelBMFont: page can't be larger than supported");
-
-    // scaleH. sanity check
-    tmp = strstr(tmp, "scaleH=") + 7;
-    sscanf(tmp, "%d", &value);
-    CCASSERT(value <= maxTextureSize, "CCLabelBMFont: page can't be larger than supported");
-
-    // pages. sanity check
-    tmp = strstr(tmp, "pages=") + 6;
-    sscanf(tmp, "%d", &value);
-    CCASSERT(value == 1, "CCBitfontAtlas: only supports 1 page");
-#endif
     // packed (ignore) What does this mean ??
 }
 
@@ -602,6 +581,9 @@ void FontFNT::purgeCachedData()
 {
     if (s_configurations)
     {
+        for (auto& it : *s_configurations) {
+            it.second->release();
+        }
         s_configurations->clear();
         CC_SAFE_DELETE(s_configurations);
     }
@@ -752,19 +734,21 @@ void FontFNT::reloadBMFontResource(const std::string& fntFilePath)
 {
     if (s_configurations == nullptr)
     {
-        s_configurations = new (std::nothrow) Map<std::string, BMFontConfiguration*>();
+        s_configurations = new (std::nothrow) std::unordered_map<std::string, BMFontConfiguration*>();
     }
 
     BMFontConfiguration *ret = s_configurations->at(fntFilePath);
     if (ret != nullptr)
     {
+        ret->release();
         s_configurations->erase(fntFilePath);
     }
 
     ret = BMFontConfiguration::create(fntFilePath);
     if (ret)
     {
-        s_configurations->insert(fntFilePath, ret);
+        ret->retain();
+        s_configurations->insert({ fntFilePath, ret });
         //Director::getInstance()->getTextureCache()->reloadTexture(ret->getAtlasName());
     }
 }

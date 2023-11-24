@@ -38,7 +38,7 @@ THE SOFTWARE.
 #include "base/CCEventCustom.h"
 #include "base/CCEventDispatcher.h"
 #include "platform/CCStdC.h"
-#include "base/CCScriptSupport.h"
+//#include "base/CCScriptSupport.h"
 
 NS_CC_BEGIN
 

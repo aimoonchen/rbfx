@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "base/CCDirector.h"
 #include "base/utlist.h"
 #include "base/ccCArray.h"
-#include "base/CCScriptSupport.h"
+//#include "base/CCScriptSupport.h"
 
 NS_CC_BEGIN
 

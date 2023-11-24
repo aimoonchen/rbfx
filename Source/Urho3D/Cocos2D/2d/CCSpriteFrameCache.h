@@ -37,7 +37,6 @@ THE SOFTWARE.
 #include "2d/CCSpriteFrame.h"
 #include "base/CCRef.h"
 #include "base/CCValue.h"
-#include "base/CCMap.h"
 
 NS_CC_BEGIN
 
@@ -119,7 +118,7 @@ protected:
         inline bool isPlistUsed(const std::string &plist) const;
 
         inline SpriteFrame *at(const std::string &frame);
-        inline Map<std::string, SpriteFrame*>& getSpriteFrames();
+        inline std::unordered_map<std::string, SpriteFrame*>& getSpriteFrames();
 
         void markPlistFull(const std::string &plist, bool full) { _isPlistFull[plist] = full; }
         bool isPlistFull(const std::string &plist) const
@@ -128,7 +127,7 @@ protected:
             return it == _isPlistFull.end() ? false : it->second;
         }
     private:
-        Map<std::string, SpriteFrame*> _spriteFrames;
+        std::unordered_map<std::string, SpriteFrame*> _spriteFrames;
         std::unordered_map<std::string, std::set<std::string>> _indexPlist2Frames;
         std::unordered_map<std::string, std::string> _indexFrame2plist;
         std::unordered_map<std::string, bool> _isPlistFull;

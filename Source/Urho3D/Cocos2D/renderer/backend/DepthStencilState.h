@@ -42,7 +42,7 @@ CC_BACKEND_BEGIN
 struct StencilDescriptor
 {
     bool operator ==(const StencilDescriptor& rhs) const;
-    
+    bool operator<(const StencilDescriptor& v) const;
     StencilOperation stencilFailureOperation = StencilOperation::KEEP;
     StencilOperation depthFailureOperation = StencilOperation::KEEP;
     StencilOperation depthStencilPassOperation = StencilOperation::KEEP;
@@ -63,6 +63,7 @@ struct DepthStencilDescriptor
     bool stencilTestEnabled = false;
     StencilDescriptor backFaceStencil;
     StencilDescriptor frontFaceStencil;
+    bool operator<(const DepthStencilDescriptor& v) const;
 };
 
 /**

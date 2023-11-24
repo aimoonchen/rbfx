@@ -23,12 +23,9 @@
  ****************************************************************************/
  
 #include "ProgramCache.h"
-//#include "Device.h"
-//#include "ShaderModule.h"
 #include "renderer/ccShaders.h"
 #include "renderer/CCRenderer.h"
 #include "base/ccMacros.h"
-#include "base/CCConfiguration.h"
 #include "base/CCDirector.h"
 namespace std
 {
@@ -45,24 +42,6 @@ namespace std
 }
 
 CC_BACKEND_BEGIN
-
-namespace
-{
-    std::string getShaderMacrosForLight()
-    {
-        char def[256];
-        auto conf = Configuration::getInstance();
-
-        snprintf(def, sizeof(def) - 1, "\n#define MAX_DIRECTIONAL_LIGHT_NUM %d \n"
-            "\n#define MAX_POINT_LIGHT_NUM %d \n"
-            "\n#define MAX_SPOT_LIGHT_NUM %d \n",
-            conf->getMaxSupportDirLightInShader(),
-            conf->getMaxSupportPointLightInShader(),
-            conf->getMaxSupportSpotLightInShader());
-
-        return std::string(def);
-    }
-}
 
 std::unordered_map<backend::ProgramType, backend::Program*>  ProgramCache::_cachedPrograms;
 std::unordered_map<std::string, backend::Program*> ProgramCache::_cachedCustomPrograms;

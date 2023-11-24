@@ -23,6 +23,7 @@
  ****************************************************************************/
  
 #include "Program.h"
+#include <map>
 #include "ProgramCache.h"
 #include "base/CCDirector.h"
 #include "renderer/CCRenderer.h"

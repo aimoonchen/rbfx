@@ -55,7 +55,6 @@ THE SOFTWARE.
 #include "base/CCEventCustom.h"
 #include "base/CCConsole.h"
 #include "base/CCAutoreleasePool.h"
-#include "base/CCConfiguration.h"
 // #include "base/CCAsyncTaskPool.h"
 // #include "base/ObjectFactory.h"
 // #include "platform/CCApplication.h"
@@ -144,8 +143,8 @@ bool Director::init()
     _eventBeforeUpdate->setUserData(this);
     _eventAfterUpdate = new (std::nothrow) EventCustom(EVENT_AFTER_UPDATE);
     _eventAfterUpdate->setUserData(this);
-    _eventProjectionChanged = new (std::nothrow) EventCustom(EVENT_PROJECTION_CHANGED);
-    _eventProjectionChanged->setUserData(this);
+//     _eventProjectionChanged = new (std::nothrow) EventCustom(EVENT_PROJECTION_CHANGED);
+//     _eventProjectionChanged->setUserData(this);
     _eventResetDirector = new (std::nothrow) EventCustom(EVENT_RESET);
     //init TextureCache
     initTextureCache();
@@ -176,7 +175,7 @@ Director::~Director()
     CC_SAFE_RELEASE(_eventAfterDraw);
     CC_SAFE_RELEASE(_eventBeforeDraw);
     CC_SAFE_RELEASE(_eventAfterVisit);
-    CC_SAFE_RELEASE(_eventProjectionChanged);
+    //CC_SAFE_RELEASE(_eventProjectionChanged);
     CC_SAFE_RELEASE(_eventResetDirector);
 
     delete _renderer;
@@ -184,7 +183,7 @@ Director::~Director()
 
     CC_SAFE_RELEASE(_eventDispatcher);
     
-    Configuration::destroyInstance();
+    //Configuration::destroyInstance();
     //ObjectFactory::destroyInstance();
 
     s_SharedDirector = nullptr;
@@ -200,38 +199,8 @@ Director::~Director()
 
 void Director::setDefaultValues()
 {
-    Configuration *conf = Configuration::getInstance();
-
-    // default FPS
-    float fps = conf->getValue("cocos2d.x.fps", Value(kDefaultFPS)).asFloat();
-    _oldAnimationInterval = _animationInterval = 1.0f / fps;
-
-    // Display FPS
-    _displayStats = conf->getValue("cocos2d.x.display_fps", Value(false)).asBool();
-
-    // GL projection
-    std::string projection = conf->getValue("cocos2d.x.gl.projection", Value("3d")).asString();
-    if (projection == "3d")
-        _projection = Projection::_3D;
-    else if (projection == "2d")
-        _projection = Projection::_2D;
-    else if (projection == "custom")
-        _projection = Projection::CUSTOM;
-    else
-        CCASSERT(false, "Invalid projection value");
-
-//     // Default pixel format for PNG images with alpha
-//     std::string pixel_format = conf->getValue("cocos2d.x.texture.pixel_format_for_png", Value("rgba8888")).asString();
-//     if (pixel_format == "rgba8888")
-//         Texture2D::setDefaultAlphaPixelFormat(backend::PixelFormat::RGBA8888);
-//     else if(pixel_format == "rgba4444")
-//         Texture2D::setDefaultAlphaPixelFormat(backend::PixelFormat::RGBA4444);
-//     else if(pixel_format == "rgba5551")
-//         Texture2D::setDefaultAlphaPixelFormat(backend::PixelFormat::RGB5A1);
-// 
-//     // PVR v2 has alpha premultiplied ?
-//     bool pvr_alpha_premultiplied = conf->getValue("cocos2d.x.texture.pvrv2_has_alpha_premultiplied", Value(false)).asBool();
-//     Image::setPVRImagesHavePremultipliedAlpha(pvr_alpha_premultiplied);
+    _oldAnimationInterval = _animationInterval = 1.0f / 60.0f;
+    _projection = Projection::_2D;
 }
 
 void Director::setGLDefaultValues()
@@ -373,11 +342,6 @@ void Director::setOpenGLView(GLView *openGLView)
 
     if (_openGLView != openGLView)
     {
-        // Configuration. Gather GPU info
-        Configuration *conf = Configuration::getInstance();
-        conf->gatherGPUInfo();
-        CCLOG("%s\n",conf->getInfo().c_str());
-
         if(_openGLView)
             _openGLView->release();
         _openGLView = openGLView;
@@ -640,7 +604,7 @@ void Director::setProjection(Projection projection)
 
     _projection = projection;
 
-    _eventDispatcher->dispatchEvent(_eventProjectionChanged);
+    //_eventDispatcher->dispatchEvent(_eventProjectionChanged);
 }
 
 void Director::purgeCachedData()

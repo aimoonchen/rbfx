@@ -59,7 +59,6 @@ using Winding = backend::Winding;
 namespace backend
 {
     class Buffer;
-    class CommandBuffer;
     class RenderPipeline;
     class RenderPass;
     struct RenderPipelineDescriptor;
@@ -67,7 +66,6 @@ namespace backend
 
 class EventListenerCustom;
 class TrianglesCommand;
-class MeshCommand;
 class GroupCommand;
 class CallbackCommand;
 struct PipelineDescriptor;
@@ -464,7 +462,7 @@ protected:
     void drawBatchedTriangles();
     void drawCustomCommand(RenderCommand* command);
     void drawMeshCommand(RenderCommand* command);
-    void captureScreen(RenderCommand* command);
+    //void captureScreen(RenderCommand* command);
 
     void beginFrame(); /// Indicate the begining of a frame
     void endFrame(); /// Finish a frame.
@@ -518,7 +516,7 @@ protected:
     TriangleCommandBufferManager _triangleCommandBufferManager;
     ea::vector<Diligent::LayoutElement> _triangleCommandVertexLayout;
 
-    backend::CommandBuffer* _commandBuffer = nullptr;
+    //backend::CommandBuffer* _commandBuffer = nullptr;
     backend::RenderPassDescriptor _renderPassDescriptor;
     backend::DepthStencilDescriptor _depthStencilDescriptor;
 

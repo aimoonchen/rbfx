@@ -25,7 +25,6 @@
  ****************************************************************************/
 
 #include "base/ccUTF8.h"
-#include "platform/CCCommon.h"
 #include "base/CCConsole.h"
 #include "external/ConvertUTF/ConvertUTF.h"
 #include <limits>
