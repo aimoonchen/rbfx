@@ -10,6 +10,7 @@ GTextField::GTextField()
       _ubbEnabled(false),
       _autoSize(AutoSizeType::BOTH)
 {
+    typeID = TypeID::kTextField;
 }
 
 GTextField::~GTextField()
@@ -267,6 +268,7 @@ GBasicTextField::GBasicTextField() : _label(nullptr),
                                      _updatingSize(false)
 {
     _touchDisabled = true;
+    typeID = TypeID::kBasicTextField;
 }
 
 GBasicTextField::~GBasicTextField()

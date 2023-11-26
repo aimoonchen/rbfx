@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#ifdef _AUDIO_
 #pragma once
 
 #include "../Audio/AudioDefs.h"
@@ -235,3 +235,4 @@ private:
 };
 
 }
+#endif

@@ -5,6 +5,7 @@
 #include "cocos2d.h"
 #include "UIEventDispatcher.h"
 #include "InputEvent.h"
+#include "UIEventType.h"
 
 NS_FGUI_BEGIN
 
@@ -14,7 +15,7 @@ class TouchInfo;
 class InputProcessor
 {
 public:
-    typedef std::function<void(int eventType)> CaptureEventCallback;
+    typedef std::function<void(UIEventType eventType)> CaptureEventCallback;
 
     InputEvent* getRecentInput() { return &_recentInput; }
     static bool isTouchOnUI();

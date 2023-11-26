@@ -25,6 +25,7 @@ GSlider::GSlider()
       _barStartY(0),
       _wholeNumbers(false)
 {
+    typeID = TypeID::kSlider;
 }
 
 GSlider::~GSlider()

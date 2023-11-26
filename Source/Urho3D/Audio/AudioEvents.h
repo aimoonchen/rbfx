@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#ifdef _AUDIO_
 #pragma once
 
 #include "../Core/Object.h"
@@ -55,3 +55,4 @@ URHO3D_EVENT(E_RECORDINGENDED, RecordingEnded)
 }
 
 }
+#endif

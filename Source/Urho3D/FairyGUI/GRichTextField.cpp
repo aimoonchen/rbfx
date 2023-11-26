@@ -10,6 +10,7 @@ GRichTextField::GRichTextField() :
     _richText(nullptr),
     _updatingSize(false)
 {
+    typeID = TypeID::kRichTextField;
 }
 
 GRichTextField::~GRichTextField()

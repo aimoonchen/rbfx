@@ -32,6 +32,7 @@ GButton::GButton() : _mode(ButtonMode::COMMON),
 {
     _sound = UIConfig::buttonSound;
     _soundVolumeScale = UIConfig::buttonSoundVolumeScale;
+    typeID = TypeID::kButton;
 }
 
 GButton::~GButton()

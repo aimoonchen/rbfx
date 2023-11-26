@@ -34,7 +34,9 @@
 #include "../RmlUI/RmlUI.h"
 #include "../RmlUI/RmlUIComponent.h"
 #include "../Scene/Node.h"
-
+#include "../Audio/Audio.h"
+#include "fmod_studio.hpp"
+#include "fmod_errors.h"
 #include <regex>
 
 #include "../DebugNew.h"
@@ -270,6 +272,15 @@ SoundEventListener::SoundEventListener(const ea::string& soundResource, float vo
 {
 }
 
+static void ERRCHECK_fn(FMOD_RESULT result, const char* file, int line)
+{
+    if (result != FMOD_OK)
+    {
+        URHO3D_LOGERRORF("%s(%d): FMOD error %d - %s", file, line, result, FMOD_ErrorString(result));
+    }
+}
+#define ERRCHECK(_result) ERRCHECK_fn(_result, __FILE__, __LINE__)
+
 void SoundEventListener::ProcessEvent(Rml::Event& event)
 {
     if (soundNode_ == nullptr)
@@ -279,14 +290,22 @@ void SoundEventListener::ProcessEvent(Rml::Event& event)
         Detail::RmlContext* rmlContext = static_cast<Detail::RmlContext*>(event.GetTargetElement()->GetContext());
         RmlUI* ui = rmlContext->GetOwnerSubsystem();
         Context* context = ui->GetContext();
-        soundNode_ = MakeShared<Node>(context);
-        soundPlayer_ = soundNode_->CreateComponent<SoundSource>();
-        soundPlayer_->SetGain(volume_);
+//         soundNode_ = MakeShared<Node>(context);
+//         soundPlayer_ = soundNode_->CreateComponent<SoundSource>();
+//         soundPlayer_->SetGain(volume_);
+        auto system = context->GetSubsystem<Audio>()->GetSystem();
+        FMOD::Studio::EventDescription* eventDescription = nullptr;
+        ERRCHECK(system->getEvent(soundResource_.c_str(), &eventDescription));
+        ERRCHECK(eventDescription->createInstance(&soundNode_));
+        if (soundNode_)
+        {
+            ERRCHECK(soundNode_->setVolume(volume_));
+        }
     }
-
-    ResourceCache* cache = soundNode_->GetSubsystem<ResourceCache>();
-    if (Sound* sound = cache->GetResource<Sound>(soundResource_))
-        soundPlayer_->Play(sound);
+    soundNode_->start();
+//     ResourceCache* cache = soundNode_->GetSubsystem<ResourceCache>();
+//     if (Sound* sound = cache->GetResource<Sound>(soundResource_))
+//         soundPlayer_->Play(sound);
 }
 
 void SoundEventListener::OnDetach(Rml::Element* element)

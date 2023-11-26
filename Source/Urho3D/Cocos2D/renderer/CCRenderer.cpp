@@ -791,12 +791,12 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
 
 bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
 {
-    if (vsShader != v.vsShader)
-        return vsShader < v.vsShader;
-    if (psShader != v.psShader)
-        return psShader < v.psShader;
+    if (primitiveType != v.primitiveType)
+        return primitiveType < v.primitiveType;
     if (blendDescriptor.blendEnabled != v.blendDescriptor.blendEnabled)
         return v.blendDescriptor.blendEnabled;
+    if (topologyType != v.topologyType)
+        return topologyType < v.topologyType;
     if (cullMode != v.cullMode)
         return cullMode < v.cullMode;
     if (depthTestEnabled != v.depthTestEnabled)
@@ -815,10 +815,6 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
 //         if (state.TextureWrapTypes[i] != v.state.TextureWrapTypes[i])
 //             return state.TextureWrapTypes[i] < v.state.TextureWrapTypes[i];
 //     }
-
-    if (topologyType != v.topologyType)
-        return topologyType < v.topologyType;
-
     return false;
 }
 
@@ -852,30 +848,49 @@ void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescri
         currentProgram->_shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, (i == 0) ? "u_texture" : "u_texture1")->Set(texture ? texture->GetHandles().srv_ : (Diligent::ITextureView*)nullptr);
     }
 }
-
+namespace {
+ea::array<Diligent::PRIMITIVE_TOPOLOGY, (uint32_t)backend::PrimitiveType::TRIANGLE_STRIP + 1> primitiveTypeMap = {
+    Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_POINT_LIST,
+    Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_LIST,
+    Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_STRIP,
+    Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+    Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
+};
+ea::array<Diligent::COMPARISON_FUNCTION, (uint32_t)backend::CompareFunction::ALWAYS + 1> compareFunciontMap = {
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_NEVER,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_LESS,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_LESS_EQUAL,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_GREATER,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_GREATER_EQUAL,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_EQUAL,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_NOT_EQUAL,
+    Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_ALWAYS };
+ea::array<Diligent::STENCIL_OP, (uint32_t)backend::StencilOperation::DECREMENT_WRAP + 1> stencilOpMap = {
+    Diligent::STENCIL_OP::STENCIL_OP_KEEP,
+    Diligent::STENCIL_OP::STENCIL_OP_ZERO,
+    Diligent::STENCIL_OP::STENCIL_OP_REPLACE,
+    Diligent::STENCIL_OP::STENCIL_OP_INVERT,
+    Diligent::STENCIL_OP::STENCIL_OP_INCR_WRAP,
+    Diligent::STENCIL_OP::STENCIL_OP_DECR_WRAP,
+};
+}
 void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor& renderPassDescriptor)
 {
-    auto commandType = command->getType();
     const auto& pipelineDescriptor = command->getPipelineDescriptor();
     auto currentProgram = pipelineDescriptor.programState->getProgram();
+    auto commandType = command->getType();
+    auto primitiveType = (commandType == RenderCommand::Type::TRIANGLES_COMMAND)
+        ? backend::PrimitiveType::TRIANGLE
+        : static_cast<CustomCommand*>(command)->getPrimitiveType();
+    auto topologyType = primitiveTypeMap[(uint32_t)primitiveType];
     StateKey key;
+    key.primitiveType = primitiveType;
     key.blendDescriptor = pipelineDescriptor.blendDescriptor;
     key.depthTestEnabled = renderPassDescriptor.depthTestEnabled;
     key.stencilTestEnabled = renderPassDescriptor.stencilTestEnabled;
     key.needClearStencil = renderPassDescriptor.needClearStencil;
     key.clearStencilValue = renderPassDescriptor.clearStencilValue;
     key.cullMode = _cullMode;
-    Diligent::PRIMITIVE_TOPOLOGY topologyType{ Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_UNDEFINED };
-    auto primitiveType = (commandType == RenderCommand::Type::TRIANGLES_COMMAND) ? backend::PrimitiveType::TRIANGLE : static_cast<CustomCommand*>(command)->getPrimitiveType();
-    switch (primitiveType) {
-    case backend::PrimitiveType::POINT: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_POINT_LIST; break;
-    case backend::PrimitiveType::LINE: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_LIST; break;
-    case backend::PrimitiveType::LINE_STRIP: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_LINE_STRIP; break;
-    case backend::PrimitiveType::TRIANGLE: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; break;
-    case backend::PrimitiveType::TRIANGLE_STRIP: topologyType = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP; break;
-    default:
-        break;
-    }
     key.topologyType = topologyType;
     Diligent::IPipelineState* piplineState{ nullptr };
     auto it = piplineStates_.find(key);
@@ -904,14 +919,6 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         rasterizerDesc.FrontCounterClockwise = true;
         rasterizerDesc.DepthClipEnable = false;
         // Depth testing
-        static ea::array<Diligent::COMPARISON_FUNCTION, (uint32_t)backend::CompareFunction::ALWAYS + 1> compareFunciontMap = {
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_NEVER, Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_LESS,
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_LESS_EQUAL,
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_GREATER,
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_GREATER_EQUAL,
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_EQUAL,
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_NOT_EQUAL,
-            Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_ALWAYS};
         auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
         depthStencilDesc.DepthWriteEnable = false;
         depthStencilDesc.DepthEnable = key.depthTestEnabled;
@@ -921,14 +928,6 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         }
         depthStencilDesc.StencilEnable = key.stencilTestEnabled;
         if (key.stencilTestEnabled) {
-            static ea::array<Diligent::STENCIL_OP, (uint32_t)backend::StencilOperation::DECREMENT_WRAP + 1> stencilOpMap = {
-                Diligent::STENCIL_OP::STENCIL_OP_KEEP,
-                Diligent::STENCIL_OP::STENCIL_OP_ZERO,
-                Diligent::STENCIL_OP::STENCIL_OP_REPLACE,
-                Diligent::STENCIL_OP::STENCIL_OP_INVERT,
-                Diligent::STENCIL_OP::STENCIL_OP_INCR_WRAP,
-                Diligent::STENCIL_OP::STENCIL_OP_DECR_WRAP,
-            };
             const auto& frontFace = _depthStencilDescriptor.frontFaceStencil;
             depthStencilDesc.FrontFace = {
                 stencilOpMap[(uint32_t)frontFace.stencilFailureOperation],

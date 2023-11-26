@@ -150,6 +150,12 @@ void RmlRenderer::BeginRendering()
     projection_.m22_ = 1.0f / farClip_;
     projection_.m23_ = 0.0f;
     projection_.m33_ = 1.0f;
+
+    for (auto& it : renderTextures_) {
+        if (it.second.init_func) {
+            it.second.init_func(&it.second);
+        }
+    }
 }
 
 void RmlRenderer::EndRendering()
@@ -304,13 +310,18 @@ void RmlRenderer::SetScissorRegion(int x, int y, int width, int height)
 
 bool RmlRenderer::LoadTexture(Rml::TextureHandle& textureOut, Rml::Vector2i& sizeOut, const Rml::String& source)
 {
-    ResourceCache* cache = context_->GetSubsystem<ResourceCache>();
-    Texture2D* texture = cache->GetResource<Texture2D>(source.c_str());
-    if (texture)
-    {
-        sizeOut.x = texture->GetWidth();
-        sizeOut.y = texture->GetHeight();
-        texture->AddRef();
+    SharedPtr<Texture2D> texture;
+    if (source.substr(source.size() - 3, 3) == ".rt") {
+        texture = GetRenderTextureProxy(source.c_str())->texture;
+    } else {
+        ResourceCache* cache = context_->GetSubsystem<ResourceCache>();
+        texture = cache->GetResource<Texture2D>(source.c_str());
+        if (texture)
+        {
+            sizeOut.x = texture->GetWidth();
+            sizeOut.y = texture->GetHeight();
+            // texture->AddRef();
+        }
     }
     auto cachedTexture = new CachedRmlTexture{ nullptr, SharedPtr(texture) };
     textureOut = WrapTextureHandle(cachedTexture);
@@ -341,6 +352,16 @@ void RmlRenderer::SetTransform(const Rml::Matrix4f* transform)
 {
     transformEnabled_ = transform != nullptr;
     transform_ = transform ? Matrix3x4(Matrix4(transform->data())) : Matrix3x4::IDENTITY;
+}
+
+RTProxy* RmlRenderer::GetRenderTextureProxy(const ea::string& name)
+{
+    auto it = renderTextures_.find(name);
+    if (it == renderTextures_.end())
+    {
+        renderTextures_.insert({ea::string(name), {SharedPtr{new Texture2D(context_), nullptr}}});
+    }
+    return &renderTextures_[name];
 }
 
 }   // namespace Detail

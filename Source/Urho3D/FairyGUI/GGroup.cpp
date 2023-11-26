@@ -20,6 +20,7 @@ GGroup::GGroup() : _layout(GroupLayoutType::NONE),
                    _updating(false)
 {
     _touchDisabled = true;
+    typeID = TypeID::kGroup;
 }
 
 GGroup::~GGroup()

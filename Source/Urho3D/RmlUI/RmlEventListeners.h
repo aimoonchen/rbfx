@@ -26,6 +26,13 @@
 
 #include <RmlUi/Core/EventListener.h>
 
+namespace FMOD
+{
+namespace Studio
+{
+class EventInstance;
+}
+} // namespace FMOD
 
 namespace Urho3D
 {
@@ -93,9 +100,10 @@ private:
     const float volume_{1.0f};
 
     /// Node that contains SoundSource component.
-    SharedPtr<Node> soundNode_;
+    //SharedPtr<Node> soundNode_;
     /// Sound player.
-    WeakPtr<SoundSource> soundPlayer_;
+    //WeakPtr<SoundSource> soundPlayer_;
+    FMOD::Studio::EventInstance* soundNode_{ nullptr };
 };
 
 class URHO3D_API CustomEventListener : public Rml::EventListener, public NonCopyable

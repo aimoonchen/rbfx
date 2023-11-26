@@ -575,8 +575,7 @@ protected:
     //
     Urho3D::RenderDevice* _device{ nullptr };
     struct StateKey {
-        Diligent::IShader* vsShader{ nullptr };
-        Diligent::IShader* psShader{ nullptr };
+        backend::PrimitiveType primitiveType;
         backend::BlendDescriptor blendDescriptor;
         Diligent::PRIMITIVE_TOPOLOGY topologyType;
         CullMode cullMode{ CullMode::NONE };

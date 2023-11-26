@@ -10,7 +10,7 @@ EventContext::EventContext() :
     _isStopped(false),
     _defaultPrevented(false),
     _touchCapture(0),
-    _type(0)
+    _type(UIEventType::None)
 {
 }
 

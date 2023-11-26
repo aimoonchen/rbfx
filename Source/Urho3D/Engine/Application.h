@@ -79,6 +79,8 @@ protected:
     int exitCode_;
 };
 
+URHO3D_API int ReadCommandLine(int argc, char** argv, uint32_t& width, uint32_t& height, uint32_t& msaa);
+URHO3D_API StringVariantMap& GetEngineParameters();
 // Macro for defining a main function which creates a Context and the application, then runs it
 #if !defined(IOS) && !defined(TVOS)
 #define URHO3D_DEFINE_APPLICATION_MAIN(className) \

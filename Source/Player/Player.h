@@ -39,6 +39,9 @@ public:
     void Start() override;
     void Stop() override;
     /// @}
+private:
+    void get_script_filename();
+    ea::string scriptFileName_;
 };
 
 }

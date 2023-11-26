@@ -93,7 +93,7 @@ UIEventDispatcher::~UIEventDispatcher()
     removeEventListeners();
 }
 
-void UIEventDispatcher::addEventListener(int eventType, const EventCallback& callback, const EventTag& tag)
+void UIEventDispatcher::addEventListener(UIEventType eventType, const EventCallback& callback, const EventTag& tag)
 {
     if (!tag.isNone())
     {
@@ -115,7 +115,7 @@ void UIEventDispatcher::addEventListener(int eventType, const EventCallback& cal
     _callbacks.push_back(item);
 }
 
-void UIEventDispatcher::removeEventListener(int eventType, const EventTag& tag)
+void UIEventDispatcher::removeEventListener(UIEventType eventType, const EventTag& tag)
 {
     if (_callbacks.empty())
         return;
@@ -158,7 +158,7 @@ void UIEventDispatcher::removeEventListeners()
     }
 }
 
-bool UIEventDispatcher::hasEventListener(int eventType, const EventTag& tag) const
+bool UIEventDispatcher::hasEventListener(UIEventType eventType, const EventTag& tag) const
 {
     if (_callbacks.empty())
         return false;
@@ -171,7 +171,7 @@ bool UIEventDispatcher::hasEventListener(int eventType, const EventTag& tag) con
     return false;
 }
 
-bool UIEventDispatcher::dispatchEvent(int eventType, void* data, const Value& dataValue)
+bool UIEventDispatcher::dispatchEvent(UIEventType eventType, void* data, const Value& dataValue)
 {
     if (_callbacks.size() == 0)
         return false;
@@ -189,7 +189,7 @@ bool UIEventDispatcher::dispatchEvent(int eventType, void* data, const Value& da
     return context._defaultPrevented;
 }
 
-bool UIEventDispatcher::bubbleEvent(int eventType, void* data, const Value& dataValue)
+bool UIEventDispatcher::bubbleEvent(UIEventType eventType, void* data, const Value& dataValue)
 {
     EventContext context;
     if (InputProcessor::_activeProcessor)
@@ -203,7 +203,7 @@ bool UIEventDispatcher::bubbleEvent(int eventType, void* data, const Value& data
     return context._defaultPrevented;
 }
 
-bool UIEventDispatcher::isDispatchingEvent(int eventType)
+bool UIEventDispatcher::isDispatchingEvent(UIEventType eventType)
 {
     for (auto it = _callbacks.begin(); it != _callbacks.end(); ++it)
     {
@@ -213,7 +213,7 @@ bool UIEventDispatcher::isDispatchingEvent(int eventType)
     return false;
 }
 
-void UIEventDispatcher::doDispatch(int eventType, EventContext* context)
+void UIEventDispatcher::doDispatch(UIEventType eventType, EventContext* context)
 {
     retain();
 
@@ -264,7 +264,7 @@ void UIEventDispatcher::doDispatch(int eventType, EventContext* context)
     release();
 }
 
-void UIEventDispatcher::doBubble(int eventType, EventContext* context)
+void UIEventDispatcher::doBubble(UIEventType eventType, EventContext* context)
 {
     //parent maybe disposed in callbacks
     WeakPtr wptr(((GObject*)this)->findParent());

@@ -19,6 +19,7 @@ GComboBox::GComboBox()
       popupDirection(PopupDirection::AUTO)
 {
     visibleItemCount = UIConfig::defaultComboBoxVisibleItemCount;
+    typeID = TypeID::kComboBox;
 }
 
 GComboBox::~GComboBox()

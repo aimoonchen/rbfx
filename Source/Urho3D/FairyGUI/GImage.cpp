@@ -10,6 +10,7 @@ USING_NS_CC;
 GImage::GImage() : _content(nullptr)
 {
     _touchDisabled = true;
+    typeID = TypeID::kImage;
 }
 
 GImage::~GImage()

@@ -2536,19 +2536,19 @@ void Input::HandleSDLEvent(void* sdlEvent)
 
     case SDL_AUDIODEVICEADDED:
         {
-            if (evt.adevice.iscapture == SDL_FALSE)
-            {
-                auto audio = GetSubsystem<Audio>();
-                if (audio && audio->IsInitialized())
-                    audio->RefreshMode();
-            }
+//             if (evt.adevice.iscapture == SDL_FALSE)
+//             {
+//                 auto audio = GetSubsystem<Audio>();
+//                 if (audio && audio->IsInitialized())
+//                     audio->RefreshMode();
+//             }
         }
         break;
 
     case SDL_AUDIODEVICEREMOVED:
         {
             if (evt.adevice.iscapture)
-                GetSubsystem<Audio>()->CloseMicrophoneForLoss(evt.adevice.which);
+                ;//GetSubsystem<Audio>()->CloseMicrophoneForLoss(evt.adevice.which);
             else
                 GetSubsystem<Audio>()->Close();
         }

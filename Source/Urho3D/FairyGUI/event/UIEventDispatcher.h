@@ -46,27 +46,27 @@ public:
     UIEventDispatcher();
     virtual ~UIEventDispatcher();
 
-    void addEventListener(int eventType, const EventCallback& callback) { return addEventListener(eventType, callback, EventTag::None); }
-    void addEventListener(int eventType, const EventCallback& callback, const EventTag& tag);
-    void removeEventListener(int eventType) { removeEventListener(eventType, EventTag::None); }
-    void removeEventListener(int eventType, const EventTag& tag);
+    void addEventListener(UIEventType eventType, const EventCallback& callback) { return addEventListener(eventType, callback, EventTag::None); }
+    void addEventListener(UIEventType eventType, const EventCallback& callback, const EventTag& tag);
+    void removeEventListener(UIEventType eventType) { removeEventListener(eventType, EventTag::None); }
+    void removeEventListener(UIEventType eventType, const EventTag& tag);
     void removeEventListeners();
-    bool hasEventListener(int eventType) const { return hasEventListener(eventType, EventTag::None); }
-    bool hasEventListener(int eventType, const EventTag& tag) const;
+    bool hasEventListener(UIEventType eventType) const { return hasEventListener(eventType, EventTag::None); }
+    bool hasEventListener(UIEventType eventType, const EventTag& tag) const;
 
-    bool dispatchEvent(int eventType, void* data = nullptr, const cocos2d::Value& dataValue = cocos2d::Value::Null);
-    bool bubbleEvent(int eventType, void* data = nullptr, const cocos2d::Value& dataValue = cocos2d::Value::Null);
+    bool dispatchEvent(UIEventType eventType, void* data = nullptr, const cocos2d::Value& dataValue = cocos2d::Value::Null);
+    bool bubbleEvent(UIEventType eventType, void* data = nullptr, const cocos2d::Value& dataValue = cocos2d::Value::Null);
 
-    bool isDispatchingEvent(int eventType);
+    bool isDispatchingEvent(UIEventType eventType);
 
 private:
-    void doDispatch(int eventType, EventContext* context);
-    void doBubble(int eventType, EventContext* context);
+    void doDispatch(UIEventType eventType, EventContext* context);
+    void doBubble(UIEventType eventType, EventContext* context);
 
     struct EventCallbackItem
     {
         EventCallback callback;
-        int eventType;
+        UIEventType eventType;
         EventTag tag;
         int dispatching;
     };

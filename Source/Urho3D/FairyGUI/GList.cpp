@@ -44,6 +44,7 @@ GList::GList() : foldInvisibleItems(false),
     _trackBounds = true;
     setOpaque(true);
     _pool = new GObjectPool();
+    typeID = TypeID::kList;
 }
 
 GList::~GList()

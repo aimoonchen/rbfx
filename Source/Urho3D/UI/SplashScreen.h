@@ -64,7 +64,7 @@ public:
     void SetForegroundImage(Texture* image);
     void SetProgressImage(Texture* image);
     void SetProgressColor(const Color& color);
-    void SetSound(Sound* sound, float gain);
+//    void SetSound(Sound* sound, float gain);
     void SetDuration(float durationInSeconds);
     void SetSkippable(bool skippable);
 
@@ -95,12 +95,12 @@ private:
     float duration_{0.0f};
 
     SharedPtr<Scene> scene_;
-    SharedPtr<SoundSource> soundSource_;
+//    SharedPtr<SoundSource> soundSource_;
 
     SharedPtr<Sprite> background_;
     SharedPtr<Sprite> foreground_;
     SharedPtr<Sprite> progressBar_;
-    SharedPtr<Sound> sound_;
+//    SharedPtr<Sound> sound_;
 };
 
 template <class T> bool SplashScreen::QueueResource(const ea::string& name, bool sendEventOnFailure)

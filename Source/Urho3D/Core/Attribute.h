@@ -173,6 +173,8 @@ struct AttributeInfo
     /// Scope hint.
     AttributeScopeHint scopeHint_{};
 
+    void* ptr_ = nullptr;
+
 private:
     static StringVector ToVector(const char* const* strings)
     {

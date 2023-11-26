@@ -29,6 +29,15 @@
 #include "../Core/Mutex.h"
 #include "../Core/Object.h"
 
+namespace FMOD
+{
+namespace Studio
+{
+class System;
+class Bank;
+} // namespace Studio
+} // namespace FMOD
+
 namespace Urho3D
 {
 
@@ -50,9 +59,9 @@ public:
     ~Audio() override;
 
     /// Initialize sound output with specified buffer length and output mode.
-    bool SetMode(int bufferLengthMSec, int mixRate, SpeakerMode mode, bool interpolation = true);
+    //bool SetMode(int bufferLengthMSec, int mixRate, SpeakerMode mode, bool interpolation = true);
     /// Re-initialize sound output with same parameters.
-    bool RefreshMode();
+    //bool RefreshMode();
     /// Shutdown this audio device, likely because we've lost it.
     void Close();
     /// Run update on sound sources. Not required for continued playback, but frees unused sound sources & sounds and updates 3D positions.
@@ -94,7 +103,7 @@ public:
 
     /// Return mode of output.
     /// @property
-    SpeakerMode GetSpeakerMode() const { return speakerMode_; }
+    //SpeakerMode GetSpeakerMode() const { return speakerMode_; }
 
     /// Return whether audio is being output.
     /// @property
@@ -113,10 +122,10 @@ public:
 
     /// Return active sound listener.
     /// @property
-    SoundListener* GetListener() const;
+    //SoundListener* GetListener() const;
 
     /// Return all sound sources.
-    const ea::vector<SoundSource*>& GetSoundSources() const { return soundSources_; }
+    //const ea::vector<SoundSource*>& GetSoundSources() const { return soundSources_; }
 
     /// Return whether the specified master gain has been defined.
     bool HasMasterGain(const ea::string& type) const { return masterGain_.contains(type); }
@@ -136,11 +145,15 @@ public:
     void MixOutput(void* dest, unsigned samples);
 
     /// Returns a pretty-name list of all attached microphones.
-    StringVector EnumerateMicrophones() const;
+    //StringVector EnumerateMicrophones() const;
     /// Constructs a microphone from a pretty-name (found via EnumerateMicrophones()).
-    SharedPtr<Microphone> CreateMicrophone(const ea::string& name, bool forSpeechRecog, unsigned wantedFreq, unsigned silenceLevelLimit = 0);
+    //SharedPtr<Microphone> CreateMicrophone(const ea::string& name, bool forSpeechRecog, unsigned wantedFreq, unsigned silenceLevelLimit = 0);
     /// Disables a microphone that has been lost.
-    void CloseMicrophoneForLoss(unsigned which);
+    //void CloseMicrophoneForLoss(unsigned which);
+
+    FMOD::Studio::Bank* LoadBank(std::string_view path);
+    void UnloadBank(std::string_view path);
+    FMOD::Studio::System* GetSystem() const { return studio_; }
 
 private:
     /// Handle render update event.
@@ -167,7 +180,7 @@ private:
     /// Mixing interpolation flag.
     bool interpolation_{};
     /// Speaker configuration.
-    SpeakerMode speakerMode_{SpeakerMode::SPK_AUTO};
+    //SpeakerMode speakerMode_{SpeakerMode::SPK_AUTO};
     /// Playing flag.
     bool playing_{};
     /// Master gain by sound source type.
@@ -175,11 +188,13 @@ private:
     /// Paused sound types.
     ea::hash_set<StringHash> pausedSoundTypes_;
     /// Sound sources.
-    ea::vector<SoundSource*> soundSources_;
+    //ea::vector<SoundSource*> soundSources_;
     /// Sound listener.
-    WeakPtr<SoundListener> listener_;
+    //WeakPtr<SoundListener> listener_;
     /// List of microphones being tracked.
     ea::vector< WeakPtr<Microphone> > microphones_;
+
+    FMOD::Studio::System* studio_{ nullptr };
 };
 
 /// Register Audio library objects.

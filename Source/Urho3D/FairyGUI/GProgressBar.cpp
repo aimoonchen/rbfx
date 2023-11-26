@@ -23,6 +23,7 @@ GProgressBar::GProgressBar()
       _barStartX(0),
       _barStartY(0)
 {
+    typeID = TypeID::kProgressBar;
 }
 
 GProgressBar::~GProgressBar()

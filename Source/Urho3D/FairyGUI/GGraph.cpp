@@ -24,6 +24,7 @@ GGraph::GGraph() : _shape(nullptr),
                    _distances(nullptr)
 {
     _touchDisabled = true;
+    typeID = TypeID::kGraph;
 }
 
 GGraph::~GGraph()

@@ -451,15 +451,15 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
         renderer->SetTextureFilterMode((TextureFilterMode)GetParameter(EP_TEXTURE_FILTER_MODE).GetInt());
         renderer->SetTextureAnisotropy(GetParameter(EP_TEXTURE_ANISOTROPY).GetInt());
 
-        if (GetParameter(EP_SOUND).GetBool())
-        {
-            GetSubsystem<Audio>()->SetMode(
-                GetParameter(EP_SOUND_BUFFER).GetInt(),
-                GetParameter(EP_SOUND_MIX_RATE).GetInt(),
-                (SpeakerMode)GetParameter(EP_SOUND_MODE).GetInt(),
-                GetParameter(EP_SOUND_INTERPOLATION).GetBool()
-            );
-        }
+//         if (GetParameter(EP_SOUND).GetBool())
+//         {
+//             GetSubsystem<Audio>()->SetMode(
+//                 GetParameter(EP_SOUND_BUFFER).GetInt(),
+//                 GetParameter(EP_SOUND_MIX_RATE).GetInt(),
+//                 (SpeakerMode)GetParameter(EP_SOUND_MODE).GetInt(),
+//                 GetParameter(EP_SOUND_INTERPOLATION).GetBool()
+//             );
+//         }
         context_->RegisterSubsystem(new EffekseerSystem(context_));
     }
 
@@ -1049,6 +1049,7 @@ void Engine::DefineParameters(CLI::App& commandLine, StringVariantMap& enginePar
     addOptionInt("-m,--multisample", EP_MULTI_SAMPLE, "Multisampling samples");
     addOptionInt("-b,--sound-buffer", EP_SOUND_BUFFER, "Sound buffer size");
     addOptionInt("-r,--mix-rate", EP_SOUND_MIX_RATE, "Sound mixing rate");
+    addOptionInt("--userid", EP_USERID, "User ID");
     addOptionString("--pp,--prefix-paths", EP_RESOURCE_PREFIX_PATHS, "Resource prefix paths")->envname("URHO3D_PREFIX_PATH")->type_name("path1;path2;...");
     addOptionString("--pr,--resource-paths", EP_RESOURCE_PATHS, "Resource paths")->type_name("path1;path2;...");
     addOptionString("--pf,--resource-packages", EP_RESOURCE_PACKAGES, "Resource packages")->type_name("path1;path2;...");
@@ -1179,7 +1180,7 @@ void Engine::PopulateDefaultParameters()
     engineParameters_->DefineVariable(EP_SOUND_BUFFER, 100);
     engineParameters_->DefineVariable(EP_SOUND_INTERPOLATION, true);
     engineParameters_->DefineVariable(EP_SOUND_MIX_RATE, 44100);
-    engineParameters_->DefineVariable(EP_SOUND_MODE, SpeakerMode::SPK_AUTO);
+//    engineParameters_->DefineVariable(EP_SOUND_MODE, SpeakerMode::SPK_AUTO);
     engineParameters_->DefineVariable(EP_SYSTEMUI_FLAGS, 0u);
     engineParameters_->DefineVariable(EP_TEXTURE_ANISOTROPY, 4).Overridable();
     engineParameters_->DefineVariable(EP_TEXTURE_FILTER_MODE, FILTER_TRILINEAR).Overridable();
@@ -1190,14 +1191,14 @@ void Engine::PopulateDefaultParameters()
     engineParameters_->DefineVariable(EP_TWEAK_VULKAN, ToJSONString(vulkanTweaks).value_or(""));
     engineParameters_->DefineVariable(EP_VALIDATE_SHADERS, false);
     engineParameters_->DefineVariable(EP_VSYNC, false).Overridable();
-    engineParameters_->DefineVariable(EP_WINDOW_HEIGHT, 0); //.Overridable();
+    engineParameters_->DefineVariable(EP_WINDOW_HEIGHT, DEFAULT_WINDOW_HEIGHT); //.Overridable();
     engineParameters_->DefineVariable(EP_WINDOW_ICON, EMPTY_STRING);
     engineParameters_->DefineVariable(EP_WINDOW_MAXIMIZE, true).Overridable();
     engineParameters_->DefineVariable(EP_WINDOW_POSITION_X, 0);
     engineParameters_->DefineVariable(EP_WINDOW_POSITION_Y, 0);
     engineParameters_->DefineVariable(EP_WINDOW_RESIZABLE, false);
     engineParameters_->DefineVariable(EP_WINDOW_TITLE, "Urho3D");
-    engineParameters_->DefineVariable(EP_WINDOW_WIDTH, 0); //.Overridable();
+    engineParameters_->DefineVariable(EP_WINDOW_WIDTH, DEFAULT_WINDOW_WIDTH); //.Overridable();
     engineParameters_->DefineVariable(EP_WORKER_THREADS, true);
     engineParameters_->DefineVariable(EP_PSO_CACHE, "conf://psocache.bin");
     engineParameters_->DefineVariable(EP_RENDER_BACKEND).SetOptional<int>();

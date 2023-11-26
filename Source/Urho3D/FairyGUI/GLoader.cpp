@@ -26,6 +26,7 @@ GLoader::GLoader()
     _playing(true),
     _frame(0)
 {
+    typeID = TypeID::kLoader;
 }
 
 GLoader::~GLoader()

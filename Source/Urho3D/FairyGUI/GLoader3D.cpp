@@ -26,6 +26,7 @@ GLoader3D::GLoader3D()
     _loop(false),
     _color(255, 255, 255)
 {
+    typeID = TypeID::kLoader3D;
 }
 
 GLoader3D::~GLoader3D()

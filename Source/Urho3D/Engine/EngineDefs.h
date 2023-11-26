@@ -91,6 +91,7 @@ URHO3D_GLOBAL_CONSTANT(ConstString EP_PSO_CACHE{"PsoCacheDir"});
 URHO3D_GLOBAL_CONSTANT(ConstString EP_RENDER_BACKEND{"RenderBackend"});
 URHO3D_GLOBAL_CONSTANT(ConstString EP_RENDER_ADAPTER_ID{"RenderAdapterId"});
 URHO3D_GLOBAL_CONSTANT(ConstString EP_XR{"XR"});
+URHO3D_GLOBAL_CONSTANT(ConstString EP_USERID{ "UserID" });
 /// @}
 
 /// Global parameters for user code which go as Engine parameters as convenience.

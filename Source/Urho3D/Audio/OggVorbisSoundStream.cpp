@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#ifdef _AUDIO_
 #include "../Precompiled.h"
 
 #include "../Audio/OggVorbisSoundStream.h"
@@ -94,3 +94,4 @@ unsigned OggVorbisSoundStream::GetData(signed char* dest, unsigned numBytes)
 }
 
 }
+#endif

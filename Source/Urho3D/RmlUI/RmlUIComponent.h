@@ -34,7 +34,7 @@ class ElementDocument;
 
 namespace Urho3D
 {
-
+class Texture2D;
 class RmlCanvasComponent;
 class RmlNavigationManager;
 struct RmlCanvasResizedArgs;
@@ -94,6 +94,11 @@ public:
     bool BindDataModelProperty(const ea::string& name, GetterFunc getter, SetterFunc setter);
     // Bind data model event.
     bool BindDataModelEvent(const ea::string& name, EventFunc eventCallback);
+    //
+    Texture2D* GetRenderTexture(const ea::string& name);
+    // if disable lau script, call SetEnableLua before SetResourece()
+    void SetEnableLua(bool enable) { enableLua_ = enable; }
+    void AddUpdateListener(std::function<void(float, Rml::ElementDocument*)> updater) { luaUpdater_ = updater; }
 
 protected:
     /// Data model facade
@@ -200,6 +205,10 @@ private:
 
     /// Data model constructor.
     ea::unique_ptr<Rml::DataModelConstructor> modelConstructor_;
+    //
+    bool enableLua_{true};
+    bool enableNavigation_{false};
+    std::function<void(float, Rml::ElementDocument*)> luaUpdater_;
 };
 
 }

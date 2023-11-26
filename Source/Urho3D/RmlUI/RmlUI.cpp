@@ -352,6 +352,25 @@ bool RmlUI::LoadFont(const ea::string& resourceName, bool fallback)
     return Rml::LoadFontFace(resourceName, fallback);
 }
 
+bool RmlUI::LoadFont(const ea::string& familyName, const ea::string& resourceName, bool italic, bool bold, bool fallback)
+{
+    auto* cache = GetSubsystem<ResourceCache>();
+    auto fontFile = cache->GetFile(resourceName.c_str());
+    if (!fontFile)
+    {
+        URHO3D_LOGERRORF("LoadFont failed: %s", resourceName.c_str());
+        return false;
+    }
+    auto size = fontFile->GetSize();
+    auto buffer = ea::make_unique<Rml::byte[]>(size);
+    fontFile->Read(buffer.get(), size);
+    fontFile->Close();
+
+    return Rml::LoadFontFace(buffer.get(), size, familyName.c_str(),
+        italic ? Rml::Style::FontStyle::Italic : Rml::Style::FontStyle::Normal,
+        bold ? Rml::Style::FontWeight::Bold : Rml::Style::FontWeight::Auto, fallback);
+}
+
 Rml::Context* RmlUI::GetRmlContext() const
 {
     return rmlContext_;

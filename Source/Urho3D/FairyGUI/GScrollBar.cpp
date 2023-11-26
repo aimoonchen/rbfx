@@ -17,6 +17,7 @@ GScrollBar::GScrollBar()
       _fixedGripSize(false),
       _gripDragging(false)
 {
+    typeID = TypeID::kScrollBar;
 }
 
 GScrollBar::~GScrollBar()

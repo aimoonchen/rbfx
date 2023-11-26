@@ -81,7 +81,7 @@ private:
     void adjustModalLayer();
     void closePopup(GObject* target);
     void checkPopups();
-    void onTouchEvent(int eventType);
+    void onTouchEvent(UIEventType eventType);
     void updateContentScaleLevel();
 
     CALL_LATER_FUNC(GRoot, doShowTooltipsWin);

@@ -32,8 +32,55 @@ THE SOFTWARE.
 #include "base/utlist.h"
 #include "base/ccCArray.h"
 //#include "base/CCScriptSupport.h"
+#include "../../IO/Log.h"
 
 NS_CC_BEGIN
+
+//
+// // ScriptHandlerEntry
+
+ScriptHandlerEntry* ScriptHandlerEntry::create(sol::function handler)
+{
+    ScriptHandlerEntry* entry = new (std::nothrow) ScriptHandlerEntry(handler);
+    entry->autorelease();
+    return entry;
+}
+
+ScriptHandlerEntry::~ScriptHandlerEntry()
+{
+    if (_handler)
+    {
+        //ScriptEngineManager::getInstance()->getScriptEngine()->removeScriptHandler(_handler);
+        LUALOG("[LUA] Remove event handler: %d", _handler);
+        _handler = 0;
+    }
+}
+
+//
+// // SchedulerScriptHandlerEntry
+
+SchedulerScriptHandlerEntry* SchedulerScriptHandlerEntry::create(sol::function handler, float interval, bool paused)
+{
+    SchedulerScriptHandlerEntry* entry = new (std::nothrow) SchedulerScriptHandlerEntry(handler);
+    entry->init(interval, paused);
+    entry->autorelease();
+    return entry;
+}
+
+bool SchedulerScriptHandlerEntry::init(float interval, bool paused)
+{
+    _timer = new (std::nothrow) TimerScriptHandler();
+    _timer->initWithScriptHandler(_handler, interval);
+    _paused = paused;
+    LUALOG("[LUA] ADD script schedule: %d, entryID: %d", _handler, _entryId);
+    return true;
+}
+
+SchedulerScriptHandlerEntry::~SchedulerScriptHandlerEntry()
+{
+    _timer->release();
+    LUALOG("[LUA] DEL script schedule %d, entryID: %d", _handler, _entryId);
+}
 
 // data structures
 
@@ -212,11 +259,11 @@ void TimerTargetCallback::cancel()
     _scheduler->unschedule(_key, _target);
 }
 
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
 
 // TimerScriptHandler
 
-bool TimerScriptHandler::initWithScriptHandler(int handler, float seconds)
+bool TimerScriptHandler::initWithScriptHandler(sol::function handler, float seconds)
 {
     _scriptHandler = handler;
     _elapsed = -1;
@@ -227,11 +274,18 @@ bool TimerScriptHandler::initWithScriptHandler(int handler, float seconds)
 
 void TimerScriptHandler::trigger(float dt)
 {
-    if (0 != _scriptHandler)
+    if (/*0 != */_scriptHandler)
     {
-        SchedulerScriptData data(_scriptHandler,dt);
-        ScriptEvent event(kScheduleEvent,&data);
-        ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
+        sol::protected_function_result result = _scriptHandler(dt);
+        if (!result.valid())
+        {
+            sol::error err = result;
+            sol::call_status status = result.status();
+            URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
+        }
+//         SchedulerScriptData data(_scriptHandler,dt);
+//         ScriptEvent event(kScheduleEvent,&data);
+//         ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
     }
 }
 
@@ -260,7 +314,7 @@ Scheduler::Scheduler()
 , _currentTarget(nullptr)
 , _currentTargetSalvaged(false)
 , _updateHashLocked(false)
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
 , _scriptHandlerEntries(20)
 #endif
 {
@@ -617,7 +671,7 @@ void Scheduler::unscheduleAllWithMinPriority(int minPriority)
             unscheduleUpdate(entry->target);
         }
     }
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
     _scriptHandlerEntries.clear();
 #endif
 }
@@ -658,8 +712,8 @@ void Scheduler::unscheduleAllForTarget(void *target)
     unscheduleUpdate(target);
 }
 
-#if CC_ENABLE_SCRIPT_BINDING
-unsigned int Scheduler::scheduleScriptFunc(unsigned int handler, float interval, bool paused)
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
+unsigned int Scheduler::scheduleScriptFunc(sol::function handler, float interval, bool paused)
 {
     SchedulerScriptHandlerEntry* entry = SchedulerScriptHandlerEntry::create(handler, interval, paused);
     _scriptHandlerEntries.pushBack(entry);
@@ -913,7 +967,7 @@ void Scheduler::update(float dt)
     _updateHashLocked = false;
     _currentTarget = nullptr;
 
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
     //
     // Script callbacks
     //

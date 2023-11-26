@@ -36,8 +36,153 @@ THE SOFTWARE.
 #include "base/CCRef.h"
 #include "base/CCVector.h"
 #include "base/uthash.h"
+#include <sol/sol.hpp>
 
 NS_CC_BEGIN
+
+class TimerScriptHandler;
+
+/**
+ * This classes is wrapped to store the handler corresponding to the Lua function pointer and assign the handler a unique id
+ * @js NA
+ */
+    class ScriptHandlerEntry : public Ref
+{
+public:
+
+    /**
+     * create a ScriptHandlerEntry instance by the handler.
+     *
+     * @param handler corresponding to the Lua function pointer.
+     * @return ScriptHandlerEntry instance.
+     * @lua NA
+     * @js NA
+     */
+    static ScriptHandlerEntry* create(sol::function handler);
+
+    /**
+     * Destructor of ScriptHandlerEntry.
+     * @lua NA
+     * @js NA
+     */
+    virtual ~ScriptHandlerEntry();
+
+    /**
+     * Get the handler corresponding to the Lua function pointer.
+     *
+     * @return the handler corresponding to the Lua function pointer.
+     * @lua NA
+     * @js NA
+     */
+    sol::function getHandler() {
+        return _handler;
+    }
+
+    /**
+     * Get the unique id corresponding to the handler.
+     *
+     * @return the unique id corresponding to the handler.
+     * @lua NA
+     * @js NA
+     */
+    int getEntryId() {
+        return _entryId;
+    }
+
+protected:
+    ScriptHandlerEntry(sol::function handler)
+        : _handler(handler)
+    {
+        static int newEntryId = 0;
+        newEntryId++;
+        _entryId = newEntryId;
+    }
+
+    sol::function _handler;
+    int _entryId;
+};
+
+/**
+ * The SchedulerScriptHandlerEntry is used to store the handler corresponding to the Lua function pointer and assign the handler a unique id like ScriptHandlerEntry.
+ * Meanwhile,create a timer that named TimerScriptHandler to execute the Lua function corresponding to the handler in the interval time if the SchedulerScriptHandlerEntry object isn't paused.
+ * @js NA
+ */
+class SchedulerScriptHandlerEntry : public ScriptHandlerEntry
+{
+public:
+    /**
+     * create a SchedulerScriptHandlerEntry object.
+     *
+     * @param handler the index corresponding to the Lua function pointer.
+     * @param interval the interval to execute the Lua function. If the value is 0, then the lua function will be scheduled every frame.
+     * @param paused if paused is true, then the timer won't be started until it is resumed.
+     * @return a SchedulerScriptHandlerEntry object.
+     * @js NA
+     * @lua NA
+     */
+    static SchedulerScriptHandlerEntry* create(sol::function handler, float interval, bool paused);
+
+    /**
+     * Destructor of SchedulerScriptHandlerEntry.
+     * @js NA
+     * @lua NA
+     */
+    virtual ~SchedulerScriptHandlerEntry();
+
+    /**
+     * Get the pointer of TimerScriptHandler object.
+     *
+     * @return the pointer of TimerScriptHandler object.
+     * @js NA
+     * @lua NA
+     */
+    TimerScriptHandler* getTimer() {
+        return _timer;
+    }
+
+    /**
+     * Get the flag whether paused or not.
+     *
+     * @return the flag whether paused or not.
+     * @js NA
+     * @lua NA
+     */
+    bool isPaused() {
+        return _paused;
+    }
+    /**
+     * Set the markedForDeletion flag true.
+     * @js NA
+     * @lua NA
+     */
+    void markedForDeletion() {
+        _markedForDeletion = true;
+    }
+    /**
+     * Get the flag whether markedForDeletion or not.
+     *
+     * @return the flag whether markedForDeletion or not.
+     * @js NA
+     * @lua NA
+     */
+    bool isMarkedForDeletion() {
+        return _markedForDeletion;
+    }
+
+private:
+    SchedulerScriptHandlerEntry(sol::function handler)
+        : ScriptHandlerEntry(handler)
+        , _timer(nullptr)
+        , _paused(false)
+        , _markedForDeletion(false)
+    {
+    }
+    bool init(float interval, bool paused);
+
+    TimerScriptHandler* _timer;
+    bool                _paused;
+    bool                _markedForDeletion;
+};
 
 class Scheduler;
 
@@ -114,19 +259,19 @@ protected:
     std::string _key;
 };
 
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
 
 class CC_DLL TimerScriptHandler : public Timer
 {
 public:
-    bool initWithScriptHandler(int handler, float seconds);
-    int getScriptHandler() const { return _scriptHandler; }
+    bool initWithScriptHandler(sol::function handler, float seconds);
+    //int getScriptHandler() const { return _scriptHandler; }
     
     virtual void trigger(float dt) override;
     virtual void cancel() override;
     
 private:
-    int _scriptHandler;
+    sol::function _scriptHandler;
 };
 
 #endif
@@ -144,7 +289,7 @@ struct _listEntry;
 struct _hashSelectorEntry;
 struct _hashUpdateEntry;
 
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
 class SchedulerScriptHandlerEntry;
 #endif
 
@@ -284,7 +429,7 @@ public:
         }, target, priority, paused);
     }
 
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
     // Schedule for script bindings.
     /** The scheduled script callback will be called every 'interval' seconds.
      If paused is true, then it won't be called until it is resumed.
@@ -295,7 +440,7 @@ public:
      @js NA
      @lua NA
      */
-    unsigned int scheduleScriptFunc(unsigned int handler, float interval, bool paused);
+    unsigned int scheduleScriptFunc(sol::function handler, float interval, bool paused);
 #endif
     /////////////////////////////////////
     
@@ -345,7 +490,7 @@ public:
      */
     void unscheduleAllWithMinPriority(int minPriority);
     
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
     /** Unschedule a script entry. 
      * @warning Don't invoke this function unless you know what you are doing.
      * @js NA
@@ -476,7 +621,7 @@ protected:
     // If true unschedule will not remove anything from a hash. Elements will only be marked for deletion.
     bool _updateHashLocked;
     
-#if CC_ENABLE_SCRIPT_BINDING
+#if 1/*CC_ENABLE_SCRIPT_BINDING*/
     Vector<SchedulerScriptHandlerEntry*> _scriptHandlerEntries;
 #endif
     

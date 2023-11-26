@@ -3,7 +3,8 @@
 
 #include "FairyGUIMacros.h"
 #include "cocos2d.h"
-
+#include "../Core/Variant.h"
+#include "../sol/sol.hpp"
 NS_FGUI_BEGIN
 
 class GTree;
@@ -20,8 +21,8 @@ public:
     GTreeNode* getParent() const { return _parent; }
     GTree* getTree() const { return _tree; }
     GComponent* getCell() const { return _cell; }
-    const cocos2d::Value& getData() const { return _data; }
-    void setData(const cocos2d::Value& value) { _data = value; }
+    const Urho3D::Variant& getData() const { return _data; }
+    void setData(const Urho3D::Variant& value) { _data = value; }
     bool isExpanded() const { return _expanded; }
     void setExpaned(bool value);
     bool isFolder() const { return _isFolder; }
@@ -49,6 +50,8 @@ public:
     void swapChildrenAt(int index1, int index2);
 
     int numChildren() const;
+    const sol::table getTable() const { return _table; }
+    void setTable(const sol::table& value) { _table = value; }
 
 private:
     bool init(bool isFolder, const std::string& resURL);
@@ -61,7 +64,8 @@ private:
     int _level;
     bool _expanded;
     bool _isFolder;
-    cocos2d::Value _data;
+    Urho3D::Variant _data;
+    sol::table _table;
     cocos2d::Vector<GTreeNode*> _children;
     std::string _resURL;
 

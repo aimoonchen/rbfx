@@ -70,7 +70,7 @@ SplashScreen::SplashScreen(Context* context)
     foreground_ = background_->CreateChild<Sprite>();
     progressBar_ = foreground_->CreateChild<Sprite>();
     scene_ = MakeShared<Scene>(context);
-    soundSource_ = scene_->CreateComponent<SoundSource>();
+//    soundSource_ = scene_->CreateComponent<SoundSource>();
 }
 
 void SplashScreen::Activate(StringVariantMap& bundle)
@@ -89,8 +89,8 @@ void SplashScreen::Activate(StringVariantMap& bundle)
     maxResourceCounter_ = Max(cache->GetNumBackgroundLoadResources(), 1);
 
     SetViewport(0, MakeShared<Viewport>(context_, scene_, nullptr));
-    if (sound_)
-        soundSource_->Play(sound_);
+//     if (sound_)
+//         soundSource_->Play(sound_);
 
     Update(0);
 }
@@ -192,13 +192,13 @@ void SplashScreen::SetSkippable(bool skippable)
     skippable_ = skippable;
 }
 
-void SplashScreen::SetSound(Sound* sound, float gain)
-{
-    sound_ = sound;
-    soundSource_->SetGain(gain);
-    if (IsActive())
-        soundSource_->Play(sound_);
-}
+// void SplashScreen::SetSound(Sound* sound, float gain)
+// {
+//     sound_ = sound;
+//     soundSource_->SetGain(gain);
+//     if (IsActive())
+//         soundSource_->Play(sound_);
+// }
 
 void SplashScreen::SetBackgroundImage(Texture* image)
 {

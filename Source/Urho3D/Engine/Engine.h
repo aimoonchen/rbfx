@@ -26,6 +26,9 @@
 #include <Urho3D/Core/Timer.h>
 #include <Urho3D/Engine/ConfigFile.h>
 
+constexpr int DEFAULT_WINDOW_WIDTH = 1280;
+constexpr int DEFAULT_WINDOW_HEIGHT = 720;
+
 namespace CLI
 {
 

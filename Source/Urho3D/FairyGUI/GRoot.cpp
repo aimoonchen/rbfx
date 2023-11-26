@@ -38,6 +38,7 @@ GRoot::GRoot() : _windowSizeListener(nullptr),
                  _tooltipWin(nullptr),
                  _defaultTooltipWin(nullptr)
 {
+    typeID = TypeID::kRoot;
 }
 
 GRoot::~GRoot()
@@ -495,7 +496,7 @@ void GRoot::setSoundVolumeScale(float value)
     _soundVolumeScale = value;
 }
 
-void GRoot::onTouchEvent(int eventType)
+void GRoot::onTouchEvent(UIEventType eventType)
 {
     if (eventType == UIEventType::TouchBegin)
     {

@@ -19,6 +19,7 @@ Window::Window() :
     _loading(false)
 {
     _bringToFontOnClick = UIConfig::bringWindowToFrontOnClick;
+    typeID = TypeID::kWindow;
 }
 
 Window::~Window()

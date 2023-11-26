@@ -17,6 +17,32 @@ class GRoot;
 class PackageItem;
 class GTreeNode;
 
+enum class TypeID : uint8_t
+{
+    kObject,
+    kComponent,
+    kGraph,
+    kGroup,
+    kImage,
+    kLoader,
+    kLoader3D,
+    kMovieClip,
+    kTextField,
+    kBasicTextField,
+    //
+    kButton,
+    kComboBox,
+    kLabel,
+    kList,
+    kProgressBar,
+    kRoot,
+    kScrollBar,
+    kSlider,
+    kWindow,
+    kTree,
+    kRichTextField
+};
+
 class GObject : public UIEventDispatcher
 {
 public:
@@ -163,6 +189,7 @@ public:
     bool _underConstruct;
     bool _gearLocked;
     bool _alignToBL;
+    TypeID typeID{ TypeID::kObject };
 
 protected:
     GComponent* _parent;

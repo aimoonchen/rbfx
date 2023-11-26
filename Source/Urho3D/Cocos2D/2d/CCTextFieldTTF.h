@@ -240,7 +240,7 @@ public:
     */
     void setCursorFromPoint(const Vec2 &point, const Camera* camera);
 
-protected:
+//protected:
     //////////////////////////////////////////////////////////////////////////
     // IMEDelegate interface
     //////////////////////////////////////////////////////////////////////////
@@ -281,6 +281,15 @@ protected:
     void updateCursorDisplayText();
     void setAttachWithIME(bool isAttachWithIME);
     void setTextColorInternally(const Color4B& color);
+    // TODO test for GTextInput:
+    void setContentSize(const Size& contentSize) override
+    {
+        if (contentSize.equals(Size::ZERO))
+        {
+            return;
+        }
+        Label::setContentSize(contentSize);
+    }
 
 private:
     class LengthStack;

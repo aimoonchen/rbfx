@@ -27,6 +27,7 @@ _buildingDisplayList(false),
 _maskOwner(nullptr),
 _hitArea(nullptr)
 {
+    typeID = TypeID::kComponent;
 }
 
 GComponent::~GComponent()

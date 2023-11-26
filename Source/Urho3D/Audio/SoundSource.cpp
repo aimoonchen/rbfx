@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#ifdef _AUDIO_
 #include "../Precompiled.h"
 
 #include "../Audio/Audio.h"
@@ -1859,3 +1859,4 @@ void SoundSource::MixNull(float timeStep)
 }
 
 }
+#endif

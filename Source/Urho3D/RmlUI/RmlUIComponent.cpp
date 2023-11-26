@@ -34,7 +34,13 @@
 #include "../Scene/Node.h"
 #include "../Scene/Scene.h"
 
+#include "../Graphics/IndexBuffer.h"
+#include "../Graphics/VertexBuffer.h"
+#include "../RmlUI/RmlRenderer.h"
+
 #include "../DebugNew.h"
+
+extern std::function<void(Rml::DataModelConstructor dmc, const Rml::String&)> g_on_datamodel_create;
 
 namespace Urho3D
 {
@@ -51,7 +57,9 @@ RmlUIComponent::RmlUIComponent(Context* context)
     , navigationManager_(MakeShared<RmlNavigationManager>(this))
 {
     SetUpdateEventMask(USE_UPDATE);
-    navigationManager_->OnGroupChanged.Subscribe(this, &RmlUIComponent::OnNavigableGroupChanged);
+    if (enableNavigation_) {
+        navigationManager_->OnGroupChanged.Subscribe(this, &RmlUIComponent::OnNavigableGroupChanged);
+    }
 }
 
 RmlUIComponent::~RmlUIComponent()
@@ -73,9 +81,17 @@ void RmlUIComponent::RegisterObject(Context* context)
 
 void RmlUIComponent::Update(float timeStep)
 {
-    navigationManager_->Update();
+    if (!IsEnabled()) {
+        return;
+    }
+    if (enableNavigation_) {
+        navigationManager_->Update();
+    }
     // There should be only a few of RmlUIComponent enabled at a time, so this is not a performance issue.
     UpdateConnectedCanvas();
+    if (luaUpdater_) {
+        luaUpdater_(timeStep, document_);
+    }
 }
 
 bool RmlUIComponent::BindDataModelProperty(const ea::string& name, GetterFunc getter, SetterFunc setter)
@@ -139,10 +155,54 @@ void RmlUIComponent::OnNodeSet(Node* previousNode, Node* currentNode)
 
 void RmlUIComponent::SetResource(const ResourceRef& resourceRef)
 {
+    g_on_datamodel_create = [this](Rml::DataModelConstructor dmc, const Rml::String& name) {
+        dataModel_ = dmc.GetModelHandle();
+        dataModelName_ = name.c_str();
+        if (enableNavigation_) {
+            dmc.BindFunc("navigable_group",
+                [this](Rml::Variant& result) { result = navigationManager_->GetTopCursorGroup().c_str(); });
+            dmc.BindEventCallback("navigable_push", &RmlUIComponent::DoNavigablePush, this);
+            dmc.BindEventCallback("navigable_pop", &RmlUIComponent::DoNavigablePop, this);
+        }
+    };
+
     resource_ = resourceRef;
     if (resource_.type_ == StringHash::Empty)
         resource_.type_ = BinaryFile::GetTypeStatic();
     UpdateDocumentOpen();
+
+    if (document_)
+    {
+        // set render target init function
+        Rml::ElementList elements;
+        document_->GetElementsByTagName(elements, "img");
+        for (auto e : elements)
+        {
+            auto srcVar = e->GetAttribute("src");
+            if (!srcVar)
+            {
+                continue;
+            }
+            ea::string src = srcVar->Get<Rml::String>().c_str();
+            if (!src.ends_with(".rt"))
+                continue;
+            auto render_interface = (Detail::RmlRenderer*)::Rml::GetRenderInterface();
+            auto rtp = render_interface->GetRenderTextureProxy("UI/" + src);
+            rtp->init_func = [e](Detail::RTProxy* rtp)
+            {
+                auto size = e->GetBox().GetSize(Rml::BoxArea::Content);
+                if (size.x > 0.0f && size.y > 0.0f)
+                {
+                    auto rt = rtp->texture.Get();
+                    rt->SetFilterMode(FILTER_BILINEAR);
+                    rt->SetNumLevels(1);
+                    rt->SetSize(size.x, size.y, TextureFormat::TEX_FORMAT_RGBA8_UNORM, TextureFlag::BindRenderTarget);
+                    rtp->init_func = nullptr;
+                }
+            };
+            rtp->init_func(rtp);
+        }
+    }
 }
 
 void RmlUIComponent::OpenInternal()
@@ -163,7 +223,7 @@ void RmlUIComponent::OpenInternal()
 
     OnDocumentPreLoad();
 
-    if (!dataModel_)
+    if (!enableLua_ && !dataModel_)
     {
         CreateDataModel();
         OnDataModelInitialized();
@@ -202,7 +262,7 @@ void RmlUIComponent::CloseInternal()
     document_->Close();
     SetDocument(nullptr);
 
-    if (dataModel_)
+    if (!enableLua_ && dataModel_)
         RemoveDataModel();
 
     OnDocumentPostUnload();
@@ -439,6 +499,13 @@ RmlUIComponent* RmlUIComponent::FromDocument(Rml::ElementDocument* document)
             return static_cast<RmlUIComponent*>(value->Get<void*>());
     }
     return nullptr;
+}
+
+Texture2D* RmlUIComponent::GetRenderTexture(const ea::string& name)
+{
+    static auto render_interface = (Detail::RmlRenderer*)::Rml::GetRenderInterface();
+    auto rtp = render_interface->GetRenderTextureProxy("UI/" + name);
+    return rtp->texture;
 }
 
 }

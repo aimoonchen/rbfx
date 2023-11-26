@@ -14,6 +14,7 @@ GMovieClip::GMovieClip()
 {
     _sizeImplType = 1;
     _touchDisabled = true;
+    typeID = TypeID::kMovieClip;
 }
 
 GMovieClip::~GMovieClip()

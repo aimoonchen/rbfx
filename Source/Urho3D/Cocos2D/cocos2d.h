@@ -103,7 +103,6 @@ THE SOFTWARE.
 #include "2d/CCLabelAtlas.h"
 #include "2d/CCNode.h"
 #include "2d/CCProgressTimer.h"
-#include "2d/CCProtectedNode.h"
 #include "2d/CCScene.h"
 
 // 2d utils

@@ -12,6 +12,7 @@ GTree::GTree()
       _clickToExpand(0),
       _expandedStatusInEvt(false)
 {
+    typeID = TypeID::kTree;
 }
 
 GTree::~GTree()

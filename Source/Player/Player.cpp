@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#define URHO3D_LUA
 
 #include "Player.h"
 
@@ -39,6 +40,7 @@
 
 namespace Urho3D
 {
+bool URHO3D_API RunLua(Context* context, const ea::string& scriptFileName);
 
 Player::Player(Context* context)
     : Application(context)
@@ -48,56 +50,82 @@ Player::Player(Context* context)
 void Player::Setup()
 {
     FileSystem* fs = context_->GetSubsystem<FileSystem>();
-
-#if MOBILE
-    engineParameters_[EP_RESOURCE_PATHS] = "";
+    auto& engineParameters_ = GetEngineParameters();
+    engineParameters_[EP_ORGANIZATION_NAME] = "KFEngine";
+    engineParameters_[EP_APPLICATION_NAME] = "KFPlayer";
+#ifndef _WIN32
+    engineParameters_[EP_RESOURCE_PATHS] = "Assets/Engine"; // "CoreData;Data";//
 #else
-    engineParameters_[EP_RESOURCE_PREFIX_PATHS] = fs->GetProgramDir() + ";" + fs->GetCurrentDir();
+    engineParameters_[EP_RESOURCE_PREFIX_PATHS] = ";..;../..";
 #endif
-    engineParameters_[EP_PLUGINS] = ea::string::joined(PluginApplication::GetStaticPlugins(), ";");
-
-    PluginApplication::RegisterStaticPlugins();
+// #if MOBILE
+//     engineParameters_[EP_RESOURCE_PATHS] = "";
+// #else
+//     engineParameters_[EP_RESOURCE_PREFIX_PATHS] = fs->GetProgramDir() + ";" + fs->GetCurrentDir();
+// #endif
+//     engineParameters_[EP_PLUGINS] = ea::string::joined(PluginApplication::GetStaticPlugins(), ";");
+// 
+//     PluginApplication::RegisterStaticPlugins();
 }
 
 void Player::Start()
 {
-    auto engine = GetSubsystem<Engine>();
-    if (!engine->IsHeadless())
-    {
-#if URHO3D_SYSTEMUI
-        ui::GetIO().IniFilename = nullptr; // Disable of imgui.ini creation,
-#endif
-
-        // TODO(editor): Support resource routing
-
-#if URHO3D_RMLUI
-        auto* cache = GetSubsystem<ResourceCache>();
-        auto* ui = GetSubsystem<RmlUI>();
-        ea::vector<ea::string> fonts;
-        for (const char* pattern: {"*.ttf", "*.otf"})
-        {
-            ea::vector<ea::string> fonts;
-            cache->Scan(fonts, "Fonts/", pattern, SCAN_FILES | SCAN_RECURSIVE);
-            for (const ea::string& font : fonts)
-                ui->LoadFont(Format("Fonts/{}", font));
+    // Check for script file name from the arguments
+    get_script_filename();
+    ea::string extension = GetExtension(scriptFileName_);
+    if (extension == ".lua" || extension == ".luc") {
+#ifdef URHO3D_LUA
+        if (RunLua(context_, scriptFileName_)) {
+            return;
         }
+#else
+        ErrorExit("Lua is not enabled!");
+        return;
 #endif
     }
 
-    const StringVector loadedPlugins = engine->GetParameter(EP_PLUGINS).GetString().split(';');
-
-    auto pluginManager = GetSubsystem<PluginManager>();
-    pluginManager->SetPluginsLoaded(loadedPlugins);
-    pluginManager->StartApplication();
+//     auto engine = GetSubsystem<Engine>();
+//     if (!engine->IsHeadless())
+//     {
+// #if URHO3D_SYSTEMUI
+//         ui::GetIO().IniFilename = nullptr; // Disable of imgui.ini creation,
+// #endif
+// 
+//         // TODO(editor): Support resource routing
+// 
+// #if URHO3D_RMLUI
+//         auto* cache = GetSubsystem<ResourceCache>();
+//         auto* ui = GetSubsystem<RmlUI>();
+//         ea::vector<ea::string> fonts;
+//         for (const char* pattern: {"*.ttf", "*.otf"})
+//         {
+//             ea::vector<ea::string> fonts;
+//             cache->Scan(fonts, "Fonts/", pattern, SCAN_FILES | SCAN_RECURSIVE);
+//             for (const ea::string& font : fonts)
+//                 ui->LoadFont(Format("Fonts/{}", font));
+//         }
+// #endif
+//     }
+// 
+//     const StringVector loadedPlugins = engine->GetParameter(EP_PLUGINS).GetString().split(';');
+// 
+//     auto pluginManager = GetSubsystem<PluginManager>();
+//     pluginManager->SetPluginsLoaded(loadedPlugins);
+//     pluginManager->StartApplication();
 }
 
 void Player::Stop()
 {
-    auto pluginManager = GetSubsystem<PluginManager>();
-    pluginManager->StopApplication();
-
-    auto stateManager = GetSubsystem<StateManager>();
-    stateManager->Reset();
+//     auto pluginManager = GetSubsystem<PluginManager>();
+//     pluginManager->StopApplication();
+// 
+//     auto stateManager = GetSubsystem<StateManager>();
+//     stateManager->Reset();
+}
+void Player::get_script_filename()
+{
+    const ea::vector<ea::string>& arguments = GetArguments();
+    scriptFileName_ = (arguments.size() && arguments[0][0] != '-') ? GetInternalPath(arguments[0]) : "Scripts/App.lua";
 }
 
 }

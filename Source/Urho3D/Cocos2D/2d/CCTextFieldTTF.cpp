@@ -254,11 +254,12 @@ void TextFieldTTF::insertText(const char * text, size_t len)
 
     if (len > 0)
     {
-        if (_delegate && _delegate->onTextFieldInsertText(this, insert.c_str(), len))
-        {
-            // delegate doesn't want to insert text
-            return;
-        }
+        //TODO: modify by Urho3D
+//         if (_delegate && _delegate->onTextFieldInsertText(this, insert.c_str(), len))
+//         {
+//             // delegate doesn't want to insert text
+//             return;
+//         }
 
         std::size_t countInsertChar = _calcCharCount(insert.c_str());
         _charCount += countInsertChar;
@@ -280,6 +281,9 @@ void TextFieldTTF::insertText(const char * text, size_t len)
             sText.append(insert);
             setString(sText);
         }
+
+        // TODO: modify by Urho3D
+        _delegate->onTextFieldInsertText(this, insert.c_str(), len);
     }
 
     if ((int)insert.npos == pos) {

@@ -4,6 +4,7 @@
 #include "FairyGUIMacros.h"
 #include "cocos2d.h"
 #include "InputEvent.h"
+#include "UIEventType.h"
 
 NS_FGUI_BEGIN
 
@@ -16,7 +17,7 @@ public:
     EventContext();
     ~EventContext();
 
-    int getType() const { return _type; }
+    UIEventType getType() const { return _type; }
     cocos2d::Ref* getSender() const { return _sender; }
     InputEvent* getInput() const { return _inputEvent; }
     void stopPropagation() { _isStopped = true; }
@@ -36,7 +37,7 @@ private:
     bool _isStopped;
     bool _defaultPrevented;
     int _touchCapture;
-    int _type;
+    UIEventType _type;
 
     friend class UIEventDispatcher;
 };

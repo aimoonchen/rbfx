@@ -56,7 +56,19 @@ target_link_libraries(${PLAYER_TARGET} PUBLIC Urho3D)
 target_include_directories(${PLAYER_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 link_static_plugins (${PLAYER_TARGET} "${URHO3D_PLUGIN_LIST}")
-
+if (WIN32)
+    set_property(TARGET ${PLAYER_TARGET} APPEND PROPERTY LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+    add_custom_command(TARGET ${PLAYER_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/windows/core/lib/fmod.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/windows/studio/lib/fmodstudio.dll
+        # ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/openssl/prebuilt/win64/libcrypto-1_1-x64.dll
+        # ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/openssl/prebuilt/win64/libssl-1_1-x64.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/zlib1.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/shaderc.exe
+        $<TARGET_FILE_DIR:${PLAYER_TARGET}>)
+endif ()
 install(TARGETS ${PLAYER_TARGET}
     LIBRARY DESTINATION ${DEST_LIBRARY_DIR_CONFIG}
     RUNTIME DESTINATION ${DEST_BIN_DIR_CONFIG}

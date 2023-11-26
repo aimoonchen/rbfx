@@ -13,6 +13,7 @@ GLabel::GLabel() :
     _titleObject(nullptr),
     _iconObject(nullptr)
 {
+    typeID = TypeID::kLabel;
 }
 GLabel::~GLabel()
 {
