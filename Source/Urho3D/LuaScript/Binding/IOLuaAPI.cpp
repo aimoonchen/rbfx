@@ -30,7 +30,7 @@ int sol2_IOLuaAPI_open(sol::state& lua)
         "ReadQuaternion", &Deserializer::ReadQuaternion,
         "ReadVariantMap", &Deserializer::ReadVariantMap);
     lua.new_usertype<Serializer>("Serializer",
-        "WriteString", &Serializer::WriteString,
+        "WriteString", sol::resolve<bool(const char*)>(&Serializer::WriteString),
         "WriteInt64", &Serializer::WriteInt64,
         "WriteInt", &Serializer::WriteInt,
         "WriteShort", &Serializer::WriteShort,

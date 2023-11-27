@@ -71,7 +71,7 @@ LuaEventListener::LuaEventListener(const String& code, Element* element) : Event
 //     luaFuncRef = luaL_ref(L,tbl); //creates a reference to the item at the top of the stack in to the table we just created
 //     lua_pop(L,1); //pop the EVENTLISTENERFUNCTIONS table
     auto solstate = g_lua_script->GetState();
-    auto result = solstate->script(function);
+    auto result = solstate->script(function.c_str());
     if (!result.valid()) {
         sol::error err = result;
         std::cerr << "failed to load string-based script into the program" << err.what() << std::endl;

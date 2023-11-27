@@ -3,15 +3,15 @@
 #include <sol/sol.hpp>
 #include "../../Math/StringHash.h"
 #include "../../IO/Log.h"
-template <typename Handler>
-bool sol_lua_check(sol::types<const ea::string&>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
-{
-    int absolute_index = lua_absindex(L, index);
-    bool success = sol::stack::check<const char*>(L, absolute_index, handler);
-    tracking.use(1);
-
-    return success;
-}
+// template <typename Handler>
+// bool sol_lua_check(sol::types<const ea::string&>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
+// {
+//     int absolute_index = lua_absindex(L, index);
+//     bool success = sol::stack::check<const char*>(L, absolute_index, handler);
+//     tracking.use(1);
+// 
+//     return success;
+// }
 template <typename Handler>
 bool sol_lua_check(sol::types<ea::string>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
 {
@@ -21,10 +21,10 @@ bool sol_lua_check(sol::types<ea::string>, lua_State* L, int index, Handler&& ha
 
     return success;
 }
-ea::string sol_lua_get(sol::types<const ea::string&>, lua_State* L, int index, sol::stack::record& tracking);
+//ea::string sol_lua_get(sol::types<const ea::string&>, lua_State* L, int index, sol::stack::record& tracking);
 ea::string sol_lua_get(sol::types<ea::string>, lua_State* L, int index, sol::stack::record& tracking);
 int sol_lua_push(lua_State* L, const ea::string& str);
-int sol_lua_push(lua_State* L, const ea::string* str);
+//int sol_lua_push(lua_State* L, const ea::string* str);
 
 // template <typename Handler>
 // bool sol_lua_check(sol::types<const Urho3D::StringHash&>, lua_State* L, int index, Handler&& handler, sol::stack::record& tracking)
