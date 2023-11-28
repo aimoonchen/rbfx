@@ -56,6 +56,9 @@ void Player::Setup()
 #ifndef _WIN32
     engineParameters_[EP_RESOURCE_PATHS] = "Assets/Engine"; // "CoreData;Data";//
 #else
+    engineParameters_[EP_FULL_SCREEN] = false;
+    engineParameters_[EP_WINDOW_MAXIMIZE] = false;
+    engineParameters_[EP_BORDERLESS] = false;
     engineParameters_[EP_RESOURCE_PREFIX_PATHS] = ";..;../..";
 #endif
 // #if MOBILE
