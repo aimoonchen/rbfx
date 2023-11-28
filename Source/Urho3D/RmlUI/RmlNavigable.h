@@ -94,7 +94,7 @@ public:
 
     /// Return properties of the navigable.
     /// @{
-    const ea::string& GetGroup() const { return group_; }
+    const ea::string& GetGroup() const { return group_.c_str(); }
     NavigablePressMode GetMousePressMode() const { return cache_.mousePressMode_; }
     NavigablePressMode GetKeyboardPressMode() const { return cache_.keyboardPressMode_; }
     NavigablePressMode GetJoystickPressMode() const { return cache_.joystickPressMode_; }
@@ -108,7 +108,7 @@ public:
     bool IsVisible() const { return cache_.visible_; }
 
     bool IsNavigable() const { return cache_.visible_ && !disabled_; }
-    bool IsNavigableInGroup(const ea::string& group) const { return IsNavigable() && group_ == group; }
+    bool IsNavigableInGroup(const ea::string& group) const { return IsNavigable() && group_.c_str() == group; }
     /// @}
 
 private:

@@ -60,14 +60,16 @@ void RunFrame(void* data)
 static CLI::App commandLine_{};
 #endif
 
-Application::Application(Context* context)
+Application::Application(Context* context, uint32_t width, uint32_t height)
     : Object(context)
-    , engineParameters_{{EP_ENGINE_CLI_PARAMETERS, true}}
+    //, engineParameters_{{EP_ENGINE_CLI_PARAMETERS, true}}
     , exitCode_(EXIT_SUCCESS)
 {
+    engineParameters_[EP_ENGINE_CLI_PARAMETERS] = true;
     // Create the Engine, but do not initialize it yet. Subsystems except Graphics & Renderer are registered at this point
     engine_ = new Engine(context);
-
+    engineParameters_[EP_WINDOW_WIDTH] = width == 0 ? DEFAULT_WINDOW_WIDTH : width;
+    engineParameters_[EP_WINDOW_HEIGHT] = height == 0 ? DEFAULT_WINDOW_HEIGHT : height;
     // Subscribe to log messages so that can show errors if ErrorExit() is called with empty message
     SubscribeToEvent(E_LOGMESSAGE, URHO3D_HANDLER(Application, HandleLogMessage));
 }
@@ -83,7 +85,7 @@ int Application::Run()
         // Register application command line arguments or set up engine parameters
         Setup();
 
-#if DESKTOP
+#if 0/*DESKTOP*/
         if (engineParameters_[EP_ENGINE_CLI_PARAMETERS].GetBool())
         {
             // Register engine command line arguments
@@ -94,7 +96,7 @@ int Application::Run()
         if (exitCode_)
             return exitCode_;
 
-#if DESKTOP
+#if 0/*DESKTOP*/
         // Parse command line parameters
         {
             const StringVector& rawArguments = GetArguments();

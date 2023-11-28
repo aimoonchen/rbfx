@@ -37,7 +37,7 @@
  * define) to the path of that file.
  */
 
-#ifdef RMLUI_CUSTOM_CONFIGURATION_FILE
+#ifdef RMLUI_CUSTOM_CONFIGURATION_FILE_
 	#include RMLUI_CUSTOM_CONFIGURATION_FILE
 #else
 	#include <array>

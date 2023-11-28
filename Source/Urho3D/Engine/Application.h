@@ -44,7 +44,7 @@ class URHO3D_API Application : public Object
 
 public:
     /// Construct. Parse default engine parameters from the command line, and create the engine in an uninitialized state.
-    explicit Application(Context* context);
+    explicit Application(Context* context, uint32_t width = 0, uint32_t height = 0);
 
     /// Setup before engine initialization. This is a chance to eg. modify the engine parameters. Call ErrorExit() to terminate without initializing the engine. Called by Application.
     virtual void Setup() { }
@@ -70,7 +70,7 @@ protected:
     /// Urho3D engine.
     SharedPtr<Engine> engine_;
     /// Engine parameters defined from the code.
-    StringVariantMap engineParameters_;
+    //StringVariantMap engineParameters_;
     /// Engine parameters defined from the command line.
     StringVariantMap commandLineParameters_;
     /// Collected startup error log messages.

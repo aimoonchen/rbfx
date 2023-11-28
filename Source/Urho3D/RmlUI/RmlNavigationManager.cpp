@@ -199,7 +199,7 @@ void RmlNavigationManager::Reset(Rml::ElementDocument* document)
     navigables_.clear();
     navigationStack_.clear();
 
-    const ea::string defaultNavigationGroup = document->GetAttribute<Rml::String>("navigation-group", "default");
+    const ea::string defaultNavigationGroup = document->GetAttribute<Rml::String>("navigation-group", "default").c_str();
     PushCursorGroup(defaultNavigationGroup);
 }
 

@@ -15,7 +15,8 @@ namespace Urho3D
 MeshLine::MeshLine(Context* context)
     : Component(context)
 {
-    vertex_element_ = {Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION),
+    vertex_element_ = ea::vector<VertexElement>{
+        Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION),
         Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL),
         Urho3D::VertexElement(Urho3D::TYPE_VECTOR4, Urho3D::SEM_TANGENT),
         Urho3D::VertexElement(Urho3D::TYPE_VECTOR4, Urho3D::SEM_BINORMAL),
@@ -23,7 +24,7 @@ MeshLine::MeshLine(Context* context)
     vertex_data_.reserve(512);
     vertex_buffer_ = new Urho3D::VertexBuffer(context_);
     vertex_buffer_->SetShadowed(true);
-    vertex_buffer_->SetSize(512, vertex_element_, true);
+    //vertex_buffer_->SetSize(512, vertex_element_, true);
 
     index_data_.reserve(1024);
     index_buffer_ = new Urho3D::IndexBuffer(context_);
@@ -221,7 +222,7 @@ void MeshLine::UpdateData()
     }
     if (vertex_data_.size() > vertex_buffer_->GetVertexCount())
     {
-        vertex_buffer_->SetSize(vertex_data_.size(), vertex_element_, true);
+        //vertex_buffer_->SetSize(vertex_data_.size(), vertex_element_, true);
     }
     //vertex_buffer_->SetData(vertex_data_.data());
 

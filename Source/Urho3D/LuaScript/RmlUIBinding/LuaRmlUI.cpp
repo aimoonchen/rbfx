@@ -36,6 +36,9 @@ Urho3D::Context* GetContext(lua_State* L);
     #undef GetNextSibling
 #endif
 namespace sol {
+    //template <> struct is_container<ea::string> : std::false_type {};
+    //template <> struct is_automagical<Rml::Element> : std::false_type {};
+
     int sol_lua_push(sol::types<Rml::Element*>, lua_State* L, const Rml::Element* el)
     {
         if (el) {

@@ -83,7 +83,7 @@ public:
     /// Create an instance of inline event listener, if applicable.
     Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override
     {
-        return PipeEventListener::CreateInstancer(value, element);
+        return PipeEventListener::CreateInstancer(value.c_str(), element);
     }
 };
 
@@ -93,7 +93,7 @@ public:
     /// Create instance of RmlContext.
     Rml::ContextPtr InstanceContext(const Rml::String& name) override
     {
-        return Rml::ContextPtr(new Detail::RmlContext(name));
+        return Rml::ContextPtr(new Detail::RmlContext(name.c_str()));
     }
     /// Free instance of RmlContext.
     void ReleaseContext(Rml::Context* context) override
@@ -127,6 +127,12 @@ static std::atomic<int> rmlInstanceCounter;
 
 /// A standalone object which creates event instances for RmlUi.
 static Detail::RmlEventListenerInstancer RmlEventListenerInstancerInstance;
+
+// TODO : for rmlui lua
+Rml::EventListener* CreateCppListener(const Rml::String& value, Rml::Element* element)
+{
+    return RmlEventListenerInstancerInstance.InstanceEventListener(value, element);
+}
 
 /// A standalone object which creates Context instances for RmlUi.
 static Detail::RmlContextInstancer RmlContextInstancerInstance;
@@ -334,7 +340,7 @@ RmlUI::~RmlUI()
 
 Rml::ElementDocument* RmlUI::LoadDocument(const ea::string& path)
 {
-    return rmlContext_->LoadDocument(path);
+    return rmlContext_->LoadDocument(path.c_str());
 }
 
 void RmlUI::SetDebuggerVisible(bool visible)
@@ -349,7 +355,7 @@ void RmlUI::SetDebuggerVisible(bool visible)
 
 bool RmlUI::LoadFont(const ea::string& resourceName, bool fallback)
 {
-    return Rml::LoadFontFace(resourceName, fallback);
+    return Rml::LoadFontFace(resourceName.c_str(), fallback);
 }
 
 bool RmlUI::LoadFont(const ea::string& familyName, const ea::string& resourceName, bool italic, bool bold, bool fallback)
@@ -571,7 +577,7 @@ bool FromRmlUi(const Rml::Variant& src, Variant& dst)
     case Rml::Variant::INT64: dst = static_cast<long long>(src.Get<int64_t>()); return true;
     case Rml::Variant::FLOAT: dst = src.Get<float>(); return true;
     case Rml::Variant::DOUBLE: dst = src.Get<double>(); return true;
-    case Rml::Variant::STRING: dst = src.Get<Rml::String>(); return true;
+    case Rml::Variant::STRING: dst = src.Get<Rml::String>().c_str(); return true;
     case Rml::Variant::VOIDPTR: dst = src.Get<void*>(); return true;
     case Rml::Variant::VECTOR2: dst = ToVector2(src.Get<Rml::Vector2f>()); return true;
     case Rml::Variant::VECTOR3: dst = ToVector3(src.Get<Rml::Vector3f>()); return true;
@@ -605,7 +611,7 @@ bool ToRmlUi(const Variant& src, Rml::Variant& dst)
     case VAR_INT64: dst = static_cast<int64_t>(src.Get<long long>()); return true;
     case VAR_FLOAT: dst = src.Get<float>(); return true;
     case VAR_DOUBLE: dst = src.Get<double>(); return true;
-    case VAR_STRING: dst = src.Get<ea::string>(); return true;
+    case VAR_STRING: dst = src.Get<ea::string>().c_str(); return true;
     case VAR_VOIDPTR: dst = src.Get<void*>(); return true;
     case VAR_VECTOR2: dst = ToRmlUi(src.Get<Vector2>()); return true;
     case VAR_VECTOR3: dst = ToRmlUi(src.Get<Vector3>()); return true;
@@ -668,7 +674,7 @@ bool RmlUI::IsInputCapturedInternal() const
 {
     if (Rml::Element* element = rmlContext_->GetFocusElement())
     {
-        const ea::string& tag = element->GetTagName();
+        const ea::string& tag = element->GetTagName().c_str();
         return tag == "input" || tag == "textarea" || tag == "select";
     }
     return false;

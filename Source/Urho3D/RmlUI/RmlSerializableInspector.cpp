@@ -60,7 +60,7 @@ struct RmlSerializableAttribute
 
     void SetEnumStringValue(const Rml::String& value)
     {
-        const auto iter = enumNames_.find(value);
+        const auto iter = std::find(enumNames_.begin(), enumNames_.end(), value);
         if (iter != enumNames_.end())
             serializable_->SetAttribute(index_, static_cast<int>(iter - enumNames_.begin()));
     }
@@ -170,7 +170,7 @@ void RmlSerializableInspector::Connect(Serializable* serializable)
     }
 
     serializable_ = serializable;
-    type_ = serializable->GetTypeName();
+    type_ = serializable->GetTypeName().c_str();
     attributes_.clear();
 
     const auto attributes = serializable->GetAttributes();
@@ -184,18 +184,23 @@ void RmlSerializableInspector::Connect(Serializable* serializable)
         attribute.index_ = index;
         attribute.internalType_ = attributeInfo.type_;
         attribute.serializable_ = serializable_;
-        attribute.name_ = attributeInfo.name_;
+        attribute.name_ = attributeInfo.name_.c_str();
 
         if (attributeInfo.type_ == VAR_BOOL)
             attribute.type_ = AttributeType_Bool;
         else if (!attributeInfo.enumNames_.empty())
         {
             attribute.type_ = AttributeType_Enum;
-            attribute.enumNames_ = attributeInfo.enumNames_;
+            attribute.enumNames_.clear();
+            // TODO: fix this
+            for (const auto& it : attributeInfo.enumNames_) {
+                attribute.enumNames_.emplace_back(it.c_str());
+            }
+            //attribute.enumNames_ = attributeInfo.enumNames_;
 
             attribute.enumSelector_ = "<select data-value='attribute.value' style='width: 90%'>";
             for (const auto& option : attribute.enumNames_)
-                attribute.enumSelector_ += Format("<option value='{}'>{}</option>", option, option);
+                attribute.enumSelector_ += Format("<option value='{}'>{}</option>", option, option).c_str();
             attribute.enumSelector_ += "</select>";
         }
         else if (attributeInfo.type_ == VAR_INT || attributeInfo.type_ == VAR_INT64

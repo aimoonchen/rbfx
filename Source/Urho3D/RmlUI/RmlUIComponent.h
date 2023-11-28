@@ -107,12 +107,12 @@ protected:
     {
         if (!dataModel_)
             return false;
-        return dataModel_.IsVariableDirty(variableName);
+        return dataModel_.IsVariableDirty(variableName.c_str());
     }
     void DirtyVariable(const ea::string& variableName)
     {
         if (dataModel_)
-            dataModel_.DirtyVariable(variableName);
+            dataModel_.DirtyVariable(variableName.c_str());
     }
     void DirtyAllVariables()
     {

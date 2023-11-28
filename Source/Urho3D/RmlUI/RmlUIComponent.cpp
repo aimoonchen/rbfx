@@ -103,7 +103,7 @@ bool RmlUIComponent::BindDataModelProperty(const ea::string& name, GetterFunc ge
         return false;
     }
     return constructor->BindFunc(
-        name,
+        name.c_str(),
         [=](Rml::Variant& outputValue)
         {
         Variant variant;
@@ -129,7 +129,7 @@ bool RmlUIComponent::BindDataModelEvent(const ea::string& name, EventFunc eventC
         return false;
     }
     return constructor->BindEventCallback(
-        name,
+        name.c_str(),
         [=](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& args)
         {
         VariantVector urhoArgs;
@@ -425,7 +425,7 @@ void RmlUIComponent::DoNavigablePush(Rml::DataModelHandle model, Rml::Event& eve
     }
 
     const bool enabled = args.size() > 1 ? args[0].Get<bool>() : true;
-    const ea::string group = args.back().Get<Rml::String>();
+    const ea::string group = args.back().Get<Rml::String>().c_str();
     if (enabled)
         navigationManager_->PushCursorGroup(group);
 }
@@ -449,10 +449,10 @@ void RmlUIComponent::CreateDataModel()
     Rml::Context* context = ui->GetRmlContext();
 
     dataModelName_ = GetDataModelName();
-    modelConstructor_ = ea::make_unique<Rml::DataModelConstructor>(context->CreateDataModel(dataModelName_, &typeRegister_));
+    modelConstructor_ = ea::make_unique<Rml::DataModelConstructor>(context->CreateDataModel(dataModelName_.c_str(), &typeRegister_));
 
     modelConstructor_->BindFunc(
-        "navigable_group", [this](Rml::Variant& result) { result = navigationManager_->GetTopCursorGroup(); });
+        "navigable_group", [this](Rml::Variant& result) { result = navigationManager_->GetTopCursorGroup().c_str(); });
     modelConstructor_->BindEventCallback("navigable_push", &RmlUIComponent::DoNavigablePush, this);
     modelConstructor_->BindEventCallback("navigable_pop", &RmlUIComponent::DoNavigablePop, this);
 }
@@ -461,7 +461,7 @@ void RmlUIComponent::RemoveDataModel()
 {
     RmlUI* ui = GetUI();
     Rml::Context* context = ui->GetRmlContext();
-    context->RemoveDataModel(dataModelName_);
+    context->RemoveDataModel(dataModelName_.c_str());
 
     dataModel_ = nullptr;
     dataModelName_.clear();

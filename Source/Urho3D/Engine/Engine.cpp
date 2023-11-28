@@ -1113,6 +1113,8 @@ const Variant& Engine::GetParameter(const ea::string& name) const
 
 void Engine::LoadConfigFiles()
 {
+    // TODO: fix this
+    return;
     const auto configName = GetParameter(EP_CONFIG_NAME).GetString();
     if (configName.empty())
         return;

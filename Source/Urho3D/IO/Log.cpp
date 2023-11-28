@@ -359,7 +359,8 @@ public:
 Log::Log(Context* context) :
     Object(context),
     impl_(new LogImpl(context)),
-    formatPattern_("[%H:%M:%S] [%l] [%n] : %v"),
+    //formatPattern_("[%H:%M:%S] [%l] [%n] : %v"),
+    formatPattern_("[%H:%M:%S] [%^%l%$] %v"),
     defaultLogger_(GetOrCreateLogger("main"))
 {
     impl_->platformSink_->set_pattern(formatPattern_.c_str());

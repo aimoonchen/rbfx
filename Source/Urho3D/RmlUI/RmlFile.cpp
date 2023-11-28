@@ -45,7 +45,7 @@ Rml::FileHandle RmlFile::Open(const Rml::String& path)
 {
     auto cache = context_->GetSubsystem<ResourceCache>();
 
-    if (AbstractFilePtr file = cache->GetFile(path))
+    if (AbstractFilePtr file = cache->GetFile(path.c_str()))
     {
         loadedResources_.insert(file->GetName());
         return reinterpret_cast<Rml::FileHandle>(file.Detach());
