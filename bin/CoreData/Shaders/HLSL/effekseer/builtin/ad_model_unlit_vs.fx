@@ -107,8 +107,8 @@ float4 mod(float4 x, float4 y)
 float2 GetFlipbookOriginUV(float2 FlipbookUV, float FlipbookIndex, float DivideX, float2 flipbookOneSize, float2 flipbookOffset)
 {
     float2 DivideIndex;
-    DivideIndex.x = float(int(FlipbookIndex) % int(DivideX));
-    DivideIndex.y = float(int(FlipbookIndex) / int(DivideX));
+    DivideIndex.x = float(uint(FlipbookIndex) % uint(DivideX));
+    DivideIndex.y = float(uint(FlipbookIndex) / uint(DivideX));
     float2 UVOffset = (DivideIndex * flipbookOneSize) + flipbookOffset;
     return FlipbookUV - UVOffset;
 }
@@ -116,8 +116,8 @@ float2 GetFlipbookOriginUV(float2 FlipbookUV, float FlipbookIndex, float DivideX
 float2 GetFlipbookUVForIndex(float2 OriginUV, float Index, float DivideX, float2 flipbookOneSize, float2 flipbookOffset)
 {
     float2 DivideIndex;
-    DivideIndex.x = float(int(Index) % int(DivideX));
-    DivideIndex.y = float(int(Index) / int(DivideX));
+    DivideIndex.x = float(uint(Index) % uint(DivideX));
+    DivideIndex.y = float(uint(Index) / uint(DivideX));
     return (OriginUV + (DivideIndex * flipbookOneSize)) + flipbookOffset;
 }
 

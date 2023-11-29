@@ -875,6 +875,26 @@ ea::array<Diligent::STENCIL_OP, (uint32_t)backend::StencilOperation::DECREMENT_W
     Diligent::STENCIL_OP::STENCIL_OP_INCR_WRAP,
     Diligent::STENCIL_OP::STENCIL_OP_DECR_WRAP,
 };
+ea::array<Diligent::BLEND_OPERATION, (uint32_t)backend::BlendOperation::RESERVE_SUBTRACT + 1> blendOpMap = {
+    Diligent::BLEND_OPERATION::BLEND_OPERATION_ADD,
+    Diligent::BLEND_OPERATION::BLEND_OPERATION_SUBTRACT,
+    Diligent::BLEND_OPERATION::BLEND_OPERATION_REV_SUBTRACT,
+};
+ea::array<Diligent::BLEND_FACTOR, (uint32_t)backend::BlendFactor::BLEND_CLOLOR> blendFactorMap = {
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_ZERO,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_ONE,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_SRC_COLOR,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_INV_SRC_COLOR,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_SRC_ALPHA,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_INV_SRC_ALPHA,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_DEST_COLOR,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_INV_DEST_COLOR,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_DEST_ALPHA,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_INV_DEST_ALPHA,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_BLEND_FACTOR,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_SRC_ALPHA_SAT,
+    Diligent::BLEND_FACTOR::BLEND_FACTOR_INV_BLEND_FACTOR,
+};
 }
 void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor& renderPassDescriptor)
 {
@@ -986,7 +1006,7 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             Vars.reserve(2);
             ImtblSamplers.reserve(2);
             auto filterMode = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
-            auto addressMode = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
+            auto addressMode = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP; //Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
             Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
             ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
             if (programType == backend::ProgramType::ETC1 || programType == backend::ProgramType::ETC1_GRAY) {
@@ -1002,29 +1022,16 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         }
 
         auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
-        blendDesc.BlendEnable = true;
-        blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-        blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-        blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_MAX;
-
+        blendDesc.BlendEnable = key.blendDescriptor.blendEnabled;
         if (key.blendDescriptor.blendEnabled) {
-            if (false) {
-                blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-                blendDesc.BlendOpAlpha = Diligent::BLEND_OPERATION_ADD;
-                blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
-                blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-                blendDesc.SrcBlendAlpha = Diligent::BLEND_FACTOR_ONE;
-                blendDesc.DestBlendAlpha = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-            } else {
-                blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
-                blendDesc.SrcBlend = Diligent::BLEND_FACTOR_SRC_ALPHA;
-                blendDesc.DestBlend = Diligent::BLEND_FACTOR_INV_SRC_ALPHA;
-            }
-        } else {
-            blendDesc.BlendEnable = false;
-            blendDesc.DestBlend = Diligent::BLEND_FACTOR_ZERO;
-            blendDesc.SrcBlend = Diligent::BLEND_FACTOR_ONE;
-            blendDesc.BlendOp = Diligent::BLEND_OPERATION_ADD;
+            PSOCreateInfo.GraphicsPipeline.BlendDesc.IndependentBlendEnable = true;
+            blendDesc.SrcBlend = blendFactorMap[(uint32_t)key.blendDescriptor.sourceRGBBlendFactor];
+            blendDesc.DestBlend = blendFactorMap[(uint32_t)key.blendDescriptor.destinationRGBBlendFactor];
+            blendDesc.BlendOp = blendOpMap[(uint32_t)key.blendDescriptor.rgbBlendOperation];
+            blendDesc.SrcBlendAlpha = blendFactorMap[(uint32_t)key.blendDescriptor.sourceAlphaBlendFactor];
+            blendDesc.DestBlendAlpha = blendFactorMap[(uint32_t)key.blendDescriptor.destinationAlphaBlendFactor];
+            blendDesc.BlendOpAlpha = blendOpMap[(uint32_t)key.blendDescriptor.alphaBlendOperation];
+            blendDesc.RenderTargetWriteMask = (Diligent::COLOR_MASK)key.blendDescriptor.writeMask;
         }
 
         _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
