@@ -3,7 +3,7 @@
 NS_FGUI_BEGIN
 USING_NS_CC;
 
-std::string UIConfig::defaultFont = "";
+std::string UIConfig::defaultFont = "default";
 std::string UIConfig::buttonSound = "";
 float UIConfig::buttonSoundVolumeScale = 1;
 int UIConfig::defaultScrollStep = 25;

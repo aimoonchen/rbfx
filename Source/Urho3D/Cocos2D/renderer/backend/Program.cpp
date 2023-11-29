@@ -71,7 +71,6 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
     ShaderCI.Source = fs.data();
     device->GetRenderDevice()->CreateShader(ShaderCI, &_fsShader);
 
-    
     if (programType == ProgramType::POSITION
         || programType == ProgramType::POSITION_COLOR
         || programType == ProgramType::POSITION_UCOLOR
@@ -79,7 +78,8 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
         || programType == ProgramType::POSITION_COLOR_LENGTH_TEXTURE)
     {
         _textureCount = 0;
-    } else if (programType == ProgramType::ETC1
+    }
+    else if (programType == ProgramType::ETC1
         || programType == ProgramType::ETC1_GRAY)
     {
         _textureCount = 2;

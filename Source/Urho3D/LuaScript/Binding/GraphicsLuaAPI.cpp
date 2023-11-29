@@ -30,6 +30,7 @@
 #include "../../Graphics/Geometry.h"
 #include "../../Graphics/IndexBuffer.h"
 #include "../../RenderPipeline/RenderPipeline.h"
+#include "../../RenderAPI/RenderDevice.h"
 #include "../../Scene/Scene.h"
 #include "../../Scene/Component.h"
 #include "../../UI/Text3D.h"
@@ -373,12 +374,18 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
 //         "GetSRGBSupport", &Graphics::GetSRGBSupport,
 //         "GetSRGBWriteSupport", &Graphics::GetSRGBWriteSupport,
 		"width", sol::property(&Graphics::GetWidth),
-        "height", sol::property(&Graphics::GetHeight)
+        "height", sol::property(&Graphics::GetHeight),
 //         "GetNumPrimitives", &Graphics::GetNumPrimitives,
 //         "GetNumBatches", &Graphics::GetNumBatches,
 //         "SetBGFXCamera", &Graphics::SetBGFXCamera,
 //         "TakeScreenShot", sol::resolve<bool(const ea::string&)>(&Graphics::TakeScreenShot),
-//         "GetStats", &Graphics::GetBGFXStats
+        "GetStats", [](Graphics* self) {
+            const auto& stats = self->GetSubsystem<RenderDevice>()->GetStats();
+            static ea::string ret;
+            ret.clear();
+            ret.append_sprintf("DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_);
+            return ret;// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
+        }
         );
 	lua.new_usertype<Renderer>("Renderer", sol::constructors<Renderer(Context*)>(),
 		"SetViewport", &Renderer::SetViewport,

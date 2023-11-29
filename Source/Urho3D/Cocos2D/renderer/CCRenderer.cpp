@@ -791,12 +791,14 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
 
 bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
 {
-    if (primitiveType != v.primitiveType)
-        return primitiveType < v.primitiveType;
+    if (programType != v.programType)
+        return programType < v.programType;
     if (blendDescriptor.blendEnabled != v.blendDescriptor.blendEnabled)
         return v.blendDescriptor.blendEnabled;
-    if (topologyType != v.topologyType)
-        return topologyType < v.topologyType;
+    if (scissorEnable != v.scissorEnable)
+        return v.scissorEnable;
+    if (primitiveType != v.primitiveType)
+        return primitiveType < v.primitiveType;
     if (cullMode != v.cullMode)
         return cullMode < v.cullMode;
     if (depthTestEnabled != v.depthTestEnabled)
@@ -884,14 +886,15 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         : static_cast<CustomCommand*>(command)->getPrimitiveType();
     auto topologyType = primitiveTypeMap[(uint32_t)primitiveType];
     StateKey key;
-    key.primitiveType = primitiveType;
+    key.programType = currentProgram->getProgramType();
     key.blendDescriptor = pipelineDescriptor.blendDescriptor;
     key.depthTestEnabled = renderPassDescriptor.depthTestEnabled;
     key.stencilTestEnabled = renderPassDescriptor.stencilTestEnabled;
+    key.scissorEnable = _scissorState.isEnabled;
     key.needClearStencil = renderPassDescriptor.needClearStencil;
     key.clearStencilValue = renderPassDescriptor.clearStencilValue;
     key.cullMode = _cullMode;
-    key.topologyType = topologyType;
+    key.primitiveType = primitiveType;
     Diligent::IPipelineState* piplineState{ nullptr };
     auto it = piplineStates_.find(key);
     if (it != piplineStates_.end()) {
@@ -908,7 +911,7 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = topologyType;
 
         auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
-        rasterizerDesc.ScissorEnable = Diligent::False;
+        rasterizerDesc.ScissorEnable = key.scissorEnable;
         if (key.cullMode == backend::CullMode::BACK) {
             rasterizerDesc.CullMode = Diligent::CULL_MODE_BACK;
         } else if (key.cullMode == backend::CullMode::FRONT) {
@@ -1085,8 +1088,8 @@ void Renderer::beginRenderPass(RenderCommand* cmd)
     }
 }
 
-void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment)
-{
+// void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment)
+// {
 //    _renderTargetFlag = flags;
 //     if (flags & RenderTargetFlag::COLOR)
 //     {
@@ -1137,12 +1140,12 @@ void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachmen
 //         _renderPassDescriptor.stencilTestEnabled = false;
 //         _renderPassDescriptor.stencilAttachmentTexture = nullptr;
 //     }
-}
+// }
 
-void Renderer::clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder)
-{
-    _clearFlag = flags;
-
+// void Renderer::clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder)
+// {
+//     _clearFlag = flags;
+// 
 //     CallbackCommand* command = new CallbackCommand();
 //     command->init(globalOrder);
 //     command->func = [=]() -> void {
@@ -1177,7 +1180,7 @@ void Renderer::clear(ClearFlag flags, const Color4F& color, float depth, unsigne
 //         delete command;
 //     };
 //     addCommand(command);
-}
+// }
 
 Texture2D* Renderer::getColorAttachment() const
 {
@@ -1209,15 +1212,15 @@ unsigned int Renderer::getClearStencil() const
     return _renderPassDescriptor.clearStencilValue;
 }
 
-ClearFlag Renderer::getClearFlag() const
-{
-    return _clearFlag;
-}
-
-RenderTargetFlag Renderer::getRenderTargetFlag() const
-{
-    return _renderTargetFlag;
-}
+// ClearFlag Renderer::getClearFlag() const
+// {
+//     return _clearFlag;
+// }
+// 
+// RenderTargetFlag Renderer::getRenderTargetFlag() const
+// {
+//     return _renderTargetFlag;
+// }
 
 void Renderer::setScissorTest(bool enabled)
 {

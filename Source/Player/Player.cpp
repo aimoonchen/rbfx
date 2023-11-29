@@ -74,6 +74,10 @@ void Player::Setup()
 void Player::Start()
 {
     // Check for script file name from the arguments
+#ifdef _WIN32
+    auto* input = GetSubsystem<Input>();
+    input->SetMouseVisible(true);
+#endif
     get_script_filename();
     ea::string extension = GetExtension(scriptFileName_);
     if (extension == ".lua" || extension == ".luc") {

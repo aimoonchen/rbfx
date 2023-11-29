@@ -196,7 +196,7 @@ public:
      @stencilAttachment The value to replace stencil attachment. Depth attachment and stencil attachment
                         can be the same value.
      */
-    void setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment);
+    //void setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment);
     /**
     Set clear values for each attachment.
     @flags Flags to indicate which attachment clear value to be modified.
@@ -204,7 +204,7 @@ public:
     @depth The clear depth value.
     @stencil The clear stencil value.
     */
-    void clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder);
+    //void clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder);
 
     /**
      * Get color attachment.
@@ -246,7 +246,7 @@ public:
      * Get the clear flag.
      * @return The clear flag.
      */
-    ClearFlag getClearFlag() const;
+    //ClearFlag getClearFlag() const;
 
     /**
      * Get the render target flag.
@@ -555,8 +555,8 @@ protected:
     Texture2D* _depthAttachment = nullptr;
     Texture2D* _stencilAttachment = nullptr;
     Color4F _clearColor = Color4F::BLACK;
-    ClearFlag _clearFlag;
-    RenderTargetFlag _renderTargetFlag = RenderTargetFlag::COLOR;
+    //ClearFlag _clearFlag;
+    //RenderTargetFlag _renderTargetFlag = RenderTargetFlag::COLOR;
 
     struct ScissorState
     {
@@ -575,11 +575,12 @@ protected:
     //
     Urho3D::RenderDevice* _device{ nullptr };
     struct StateKey {
+        backend::ProgramType programType;
         backend::PrimitiveType primitiveType;
         backend::BlendDescriptor blendDescriptor;
-        Diligent::PRIMITIVE_TOPOLOGY topologyType;
         CullMode cullMode{ CullMode::NONE };
         bool depthTestEnabled = false;
+        bool scissorEnable = false;
         bool stencilTestEnabled = false;
         bool needClearStencil = false;
         float clearStencilValue = 0.0f;
