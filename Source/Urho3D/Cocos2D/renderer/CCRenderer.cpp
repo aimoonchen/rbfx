@@ -1080,11 +1080,21 @@ void Renderer::beginRenderPass(RenderCommand* cmd)
     Diligent::Viewport vp{ (float)_viewport.x, (float)_viewport.y, (float)_viewport.w, (float)_viewport.h };
     pCtx->SetViewports(1, &vp, SCDesc.Width, SCDesc.Height);
     if (_scissorState.isEnabled) {
+//         Diligent::Rect Scissor{
+//             (int32_t)_scissorState.rect.x,
+//             (int32_t)_scissorState.rect.y,
+//             (int32_t)_scissorState.rect.x + (int32_t)_scissorState.rect.width,
+//             (int32_t)_scissorState.rect.y + (int32_t)_scissorState.rect.height,
+//         };
+        // convert coord    *           to (0,0) * * *
+        //                  *              *
+        //                  *              *
+        //                  (0,0) * * *    *
         Diligent::Rect Scissor{
             (int32_t)_scissorState.rect.x,
-            (int32_t)_scissorState.rect.y,
+            (int32_t)SCDesc.Height - ((int32_t)_scissorState.rect.y + (int32_t)_scissorState.rect.height),
             (int32_t)_scissorState.rect.x + (int32_t)_scissorState.rect.width,
-            (int32_t)_scissorState.rect.y + (int32_t)_scissorState.rect.height,
+            (int32_t)SCDesc.Height - (int32_t)_scissorState.rect.y,
         };
         pCtx->SetScissorRects(1, &Scissor, SCDesc.Width, SCDesc.Height);
     }

@@ -303,7 +303,7 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
         "GetParent", &GObject::getParent,
 		"SetPosition", &GObject::setPosition,
         "GetPosition", [](GObject* obj) {
-            auto cv2 = obj->getPosition();
+            const auto& cv2 = obj->getPosition();
             //return IntVector2((int32_t)cv2.x, (int32_t)cv2.y);
             return Vector2(cv2.x, cv2.y);
         },
