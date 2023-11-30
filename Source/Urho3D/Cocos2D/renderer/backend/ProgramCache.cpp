@@ -97,7 +97,7 @@ bool ProgramCache::init()
     addProgram(ProgramType::ETC1_GRAY);
     addProgram(ProgramType::GRAY_SCALE);
     addProgram(ProgramType::LINE_COLOR_3D);
-    addProgram(ProgramType::CAMERA_CLEAR);
+//     addProgram(ProgramType::CAMERA_CLEAR);
 //     addProgram(ProgramType::SKYBOX_3D);
 //     addProgram(ProgramType::SKINPOSITION_TEXTURE_3D);
 //     addProgram(ProgramType::SKINPOSITION_NORMAL_TEXTURE_3D);
@@ -167,9 +167,6 @@ void ProgramCache::addProgram(ProgramType type)
             break;
         case ProgramType::LINE_COLOR_3D:
             program = new Program(lineColor3D_vert, lineColor3D_frag, type);
-            break;
-        case ProgramType::CAMERA_CLEAR:
-            program = new Program(cameraClear_vert, cameraClear_frag, type);
             break;
         default:
             CCASSERT(false, "Not built-in program type.");

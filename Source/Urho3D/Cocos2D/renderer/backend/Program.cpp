@@ -168,9 +168,6 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
         _customUniform.insert({ "u_radius", {} });
         _customUniform.insert({ "u_expand", {} });
         break;
-    case ProgramType::CAMERA_CLEAR:
-        _builtinUniformLocation[Uniform::MVP_MATRIX].location[0] = -1;
-        break;
     default:
         break;
     }
@@ -188,9 +185,6 @@ std::size_t Program::getUniformBufferSize(ShaderStage stage) const
             // float4x4 u_MVPMatrix;
             // float4 u_color;
             return sizeof(float) * 20;
-        } else if (_programType == ProgramType::CAMERA_CLEAR) {
-            // float depth;
-            return sizeof(float);
         } else {
             // float4x4 u_MVPMatrix;
             return sizeof(float) * 16;

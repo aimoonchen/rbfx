@@ -944,6 +944,8 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         // Depth testing
         auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
         depthStencilDesc.DepthWriteEnable = false;
+//         depthStencilDesc.DepthEnable = true;
+//         depthStencilDesc.DepthFunc = Diligent::COMPARISON_FUNCTION::COMPARISON_FUNC_ALWAYS;
         depthStencilDesc.DepthEnable = key.depthTestEnabled;
         if (key.depthTestEnabled) {
             depthStencilDesc.DepthFunc = compareFunciontMap[(uint32_t)_depthStencilDescriptor.depthCompareFunction];
@@ -992,7 +994,6 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             || programType == backend::ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
             || programType == backend::ProgramType::LINE_COLOR_3D
             || programType == backend::ProgramType::LAYER_RADIA_GRADIENT
-            || programType == backend::ProgramType::CAMERA_CLEAR
             || programType == backend::ProgramType::POSITION_COLOR_LENGTH_TEXTURE);
         if (!notexture) {
     //         Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
