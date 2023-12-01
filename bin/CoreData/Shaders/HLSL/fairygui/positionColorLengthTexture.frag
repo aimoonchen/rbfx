@@ -19,7 +19,6 @@
  * SOFTWARE.
  */
 
-const char* positionColorLengthTexture_frag = R"(
 // #ifdef GL_ES
 // // #extension GL_OES_standard_derivatives : enable
 
@@ -50,4 +49,3 @@ void main(in PSInput PSIn, out PSOutput PSOut)
 {
     PSOut.Color = PSIn.v_color * step(0.0, 1.0 - length(PSIn.v_texcoord));
 }
-)";

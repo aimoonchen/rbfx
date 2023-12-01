@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-const char* positionColorTextureAsPointsize_vert = R"(
 // attribute vec4 a_position;
 // attribute vec4 a_color;
 
@@ -62,4 +61,3 @@ void main(in VSInput VSIn, out PSInput PSIn)
     PSIn.pointSize          = VSIn.a_texCoord.x;
     PSIn.v_fragmentColor    = float4(VSIn.a_color.rgb * u_alpha * VSIn.a_color.a, u_alpha * VSIn.a_color.a);
 }
-)";

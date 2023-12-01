@@ -23,32 +23,27 @@
  * THE SOFTWARE.
  */
 
-const char* etc1Gray_frag = R"(
 // #ifdef GL_ES
-//     precision mediump float;
+// precision lowp float;
 // #endif
 
 // varying vec4 v_fragmentColor;
 // varying vec2 v_texCoord;
 
+// uniform vec4 u_textColor;
 // uniform sampler2D u_texture;
-// uniform sampler2D u_texture1;
 
 // void main()
 // {
-//     vec4 texColor = texture2D(u_texture, v_texCoord);
-//     texColor.a = texture2D(u_texture1, v_texCoord).r;
-//     texColor.rgb *= texColor.a; // premultiply alpha channel
-
-//     texColor = v_fragmentColor * texColor;
-
-//     gl_FragColor.rgb = vec3(0.2126*texColor.r + 0.7152*texColor.g + 0.0722*texColor.b);
-//     gl_FragColor.a = texColor.a;
+//     gl_FragColor =  v_fragmentColor * vec4(u_textColor.rgb,// RGB from uniform
+//         u_textColor.a * texture2D(u_texture, v_texCoord).a// A from texture & uniform
+//     );
 // }
+cbuffer PSConstants {
+    float4 u_textColor;
+};
 Texture2D    u_texture;
 SamplerState u_texture_sampler;
-Texture2D    u_texture1;
-SamplerState u_texture1_sampler;
 struct PSInput {
     float4 Pos              : SV_POSITION;
     float2 v_texCoord       : TEX_COORD;
@@ -59,10 +54,5 @@ struct PSOutput {
 };
 void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    float4 Color = float4(u_texture.Sample(u_texture_sampler, PSIn.v_texCoord).rgb, u_texture1.Sample(u_texture1_sampler, PSIn.v_texCoord).r);
-    Color.rgb *= Color.a;
-    Color *= PSIn.v_fragmentColor;
-    float gray = 0.2126*Color.r + 0.7152*Color.g + 0.0722*Color.b;
-    PSOut.Color = float4(gray, gray, gray, Color.a);
+    PSOut.Color = PSIn.v_fragmentColor * float4(u_textColor.rgb, u_textColor.a * u_texture.Sample(u_texture_sampler, PSIn.v_texCoord).a);
 }
-)";

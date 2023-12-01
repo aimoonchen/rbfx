@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2016 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -21,31 +21,29 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
- 
 
-const char * cameraClear_frag = R"(
+// attribute vec4 a_position;
+
 // #ifdef GL_ES
-// varying mediump vec2 v_texCoord;
-// varying mediump vec4 v_color;
+// varying lowp vec4 v_position;
 // #else
-// varying vec2 v_texCoord;
-// varying vec4 v_color;
+// varying vec4 v_position;
 // #endif
 
 // void main()
 // {
-//     gl_FragColor = v_color;
+//     gl_Position = a_position;
+//     v_position = a_position;
 // }
+struct VSInput {
+    float3 a_position   : ATTRIB0;
+};
 struct PSInput {
     float4 Pos          : SV_POSITION;
-    float2 v_texCoord   : TEX_COORD;
-    float4 v_color      : COLOR0;
+    float4 v_position   : TEX_COORD;
 };
-struct PSOutput {
-    float4 Color : SV_TARGET;
-};
-void main(in PSInput PSIn, out PSOutput PSOut)
+void main(in VSInput VSIn, out PSInput PSIn)
 {
-    PSOut.Color = PSIn.v_color;
+    PSIn.Pos        = VSIn.a_position;
+    PSIn.v_position = VSIn.a_position;
 }
-)";

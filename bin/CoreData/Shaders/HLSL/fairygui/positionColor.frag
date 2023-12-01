@@ -23,7 +23,6 @@
  * THE SOFTWARE.
  */
 
-const char* lineColor3D_frag = R"(
 // #ifdef GL_ES
 // precision lowp float;
 // #endif
@@ -45,4 +44,3 @@ void main(in PSInput PSIn, out PSOutput PSOut)
 {
     PSOut.Color = PSIn.v_fragmentColor;
 }
-)";

@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2016 Chukong Technologies Inc.
+ Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
 
  http://www.cocos2d-x.org
 
@@ -22,35 +22,43 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-const char* position_vert = R"(
+// uniform float depth;
 // attribute vec4 a_position;
+// attribute vec4 a_color;
+// attribute vec2 a_texCoord;
 
 // #ifdef GL_ES
-// varying lowp vec4 v_position;
+// varying mediump vec2 v_texCoord;
+// varying mediump vec4 v_color;
 // #else
-// varying vec4 v_position;
+// varying vec2 v_texCoord;
+// varying vec4 v_color;
 // #endif
-
-// uniform mat4 u_MVPMatrix;
 
 // void main()
 // {
-//     gl_Position = u_MVPMatrix * a_position;
-//     v_position = a_position;
+//     gl_Position = a_position;
+//     gl_Position.z = depth;
+//     gl_Position.w = 1.0;
+//     v_texCoord = a_texCoord;
+//     v_color = a_color;
 // }
 cbuffer VSConstants {
-    float4x4 u_MVPMatrix;
+    float depth;
 };
 struct VSInput {
     float3 a_position   : ATTRIB0;
+    float4 a_color      : ATTRIB1;
+    float2 a_texCoord   : ATTRIB2;
 };
 struct PSInput {
     float4 Pos          : SV_POSITION;
-    float4 v_position   : TEX_COORD;
+    float2 v_texCoord   : TEX_COORD;
+    float4 v_color      : COLOR0;
 };
-void main(in VSInput VSIn, out PSInput PSIn)
+void main(in VSInput VSIn, out PSInput PSIn) 
 {
-    PSIn.Pos        = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
-    PSIn.v_position = float4(VSIn.a_position, 1.0);
+    PSIn.Pos        = float4(VSIn.a_position.xy, depth, 1.0);
+    PSIn.v_texCoord = VSIn.a_texCoord;
+    PSIn.v_color    = VSIn.a_color;
 }
-)";

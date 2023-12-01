@@ -791,8 +791,12 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
 
 bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
 {
-    if (programType != v.programType)
-        return programType < v.programType;
+//     if (programType != v.programType)
+//         return programType < v.programType;
+    if (vsName != v.vsName)
+        return vsName < v.vsName;
+    if (fsName != v.fsName)
+        return fsName < v.fsName;
     if (blendDescriptor.blendEnabled != v.blendDescriptor.blendEnabled)
         return v.blendDescriptor.blendEnabled;
     if (scissorEnable != v.scissorEnable)
@@ -906,7 +910,9 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         : static_cast<CustomCommand*>(command)->getPrimitiveType();
     auto topologyType = primitiveTypeMap[(uint32_t)primitiveType];
     StateKey key;
-    key.programType = currentProgram->getProgramType();
+    //key.programType = currentProgram->getProgramType();
+    key.vsName = currentProgram->vsName;
+    key.fsName = currentProgram->fsName;
     key.blendDescriptor = pipelineDescriptor.blendDescriptor;
     key.depthTestEnabled = renderPassDescriptor.depthTestEnabled;
     key.stencilTestEnabled = renderPassDescriptor.stencilTestEnabled;

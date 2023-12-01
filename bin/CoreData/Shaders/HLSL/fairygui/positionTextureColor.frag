@@ -23,37 +23,30 @@
  * THE SOFTWARE.
  */
 
-const char* positionTextureUColor_vert = R"(
-// attribute vec4 a_position;
-// attribute vec2 a_texCoord;
-
-// uniform mat4 u_MVPMatrix;
-
 // #ifdef GL_ES
-// varying mediump vec2 v_texCoord;
-// #else
-// varying vec2 v_texCoord;
+// precision lowp float;
 // #endif
+
+// varying vec4 v_fragmentColor;
+// varying vec2 v_texCoord;
+
+// uniform sampler2D u_texture;
 
 // void main()
 // {
-//     gl_Position = u_MVPMatrix * a_position;
-//     v_texCoord = a_texCoord;
+//     gl_FragColor = v_fragmentColor * texture2D(u_texture, v_texCoord);
 // }
-cbuffer VSConstants {
-    float4x4 u_MVPMatrix;
-};
-struct VSInput {
-    float3 a_position : ATTRIB0;
-    float2 a_texCoord  : ATTRIB1;
-};
+Texture2D    u_texture;
+SamplerState u_texture_sampler;
 struct PSInput {
-    float4 Pos          : SV_POSITION;
-    float2 v_texCoord   : TEX_COORD;
+    float4 Pos              : SV_POSITION;
+    float2 v_texCoord       : TEX_COORD;
+    float4 v_fragmentColor  : COLOR0;
 };
-void main(in VSInput VSIn, out PSInput PSIn)
+struct PSOutput {
+    float4 Color : SV_TARGET;
+};
+void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    PSIn.Pos        = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
-    PSIn.v_texCoord = VSIn.a_texCoord;
+    PSOut.Color = PSIn.v_fragmentColor * u_texture.Sample(u_texture_sampler, PSIn.v_texCoord);
 }
-)";

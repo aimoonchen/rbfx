@@ -23,36 +23,35 @@
  * THE SOFTWARE.
  */
 
-const char* positionTexture_frag = R"(
+// attribute vec4 a_position;
+// attribute vec2 a_texCoord;
+
+// uniform mat4 u_MVPMatrix;
+
 // #ifdef GL_ES
-// precision lowp float;
-// #endif
-
+// varying mediump vec2 v_texCoord;
+// #else
 // varying vec2 v_texCoord;
-
-// uniform sampler2D u_texture;
+// #endif
 
 // void main()
 // {
-//     gl_FragColor =  texture2D(u_texture, v_texCoord);
+//     gl_Position = u_MVPMatrix * a_position;
+//     v_texCoord = a_texCoord;
 // }
-
-Texture2D    u_texture;
-SamplerState u_texture_sampler; // By convention, texture samplers must use the '_sampler' suffix
-
-struct PSInput
-{
+cbuffer VSConstants {
+    float4x4 u_MVPMatrix;
+};
+struct VSInput {
+    float3 a_position : ATTRIB0;
+    float2 a_texCoord  : ATTRIB1;
+};
+struct PSInput {
     float4 Pos          : SV_POSITION;
     float2 v_texCoord   : TEX_COORD;
 };
-
-struct PSOutput
+void main(in VSInput VSIn, out PSInput PSIn)
 {
-    float4 Color : SV_TARGET;
-};
-
-void main(in PSInput PSIn, out PSOutput PSOut)
-{
-    PSOut.Color = u_texture.Sample(u_texture_sampler, PSIn.v_texCoord);
+    PSIn.Pos        = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
+    PSIn.v_texCoord = VSIn.a_texCoord;
 }
-)";

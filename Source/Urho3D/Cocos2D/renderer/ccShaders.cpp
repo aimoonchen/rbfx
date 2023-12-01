@@ -29,48 +29,33 @@ THE SOFTWARE.
 NS_CC_BEGIN
 
 // backend shader file
-#include "renderer/shaders/positionColor.vert"
-#include "renderer/shaders/positionColor.frag"
-#include "renderer/shaders/positionTexture.vert"
-#include "renderer/shaders/positionTexture.frag"
-#include "renderer/shaders/positionTextureColor.vert"
-#include "renderer/shaders/positionTextureColor.frag"
-#include "renderer/shaders/positionTextureColorAlphaTest.frag"
-#include "renderer/shaders/label_normal.frag"
-#include "renderer/shaders/label_distanceNormal.frag"
-#include "renderer/shaders/label_outline.frag"
-#include "renderer/shaders/label_distanceFieldGlow.frag"
-#include "renderer/shaders/positionColorLengthTexture.vert"
-#include "renderer/shaders/positionColorLengthTexture.frag"
-#include "renderer/shaders/positionColorTextureAsPointsize.vert"
-#include "renderer/shaders/position.vert"
-#include "renderer/shaders/positionNoMVP.vert"
-#include "renderer/shaders/layer_radialGradient.frag"
-#include "renderer/shaders/ui_Gray.frag"
-#include "renderer/shaders/positionTextureUColor.vert"
-#include "renderer/shaders/positionTextureUColor.frag"
-#include "renderer/shaders/positionUColor.vert"
-#include "renderer/shaders/positionUColor.frag"
-#include "renderer/shaders/etc1.frag"
-#include "renderer/shaders/etc1_Gray.frag"
-#include "renderer/shaders/cameraClear.vert"
-#include "renderer/shaders/cameraClear.frag"
-
-
-// #include "renderer/shaders/3D_color.frag"
-// #include "renderer/shaders/3D_colorNormal.frag"
-// #include "renderer/shaders/3D_colorNormalTexture.frag"
-// #include "renderer/shaders/3D_colorTexture.frag"
-// #include "renderer/shaders/3D_particle.vert"
-// #include "renderer/shaders/3D_particle.frag"
-// #include "renderer/shaders/3D_positionNormalTexture.vert"
-// #include "renderer/shaders/3D_positionTexture.vert"
-// #include "renderer/shaders/3D_skybox.vert"
-// #include "renderer/shaders/3D_skybox.frag"
-// #include "renderer/shaders/3D_terrain.frag"
-// #include "renderer/shaders/3D_terrain.vert"
-
-#include "renderer/shaders/lineColor.frag"
-#include "renderer/shaders/lineColor.vert"
+const char* positionColor_vert                   = "positionColor.vert";
+const char* positionColor_frag                   = "positionColor.frag";
+const char* positionTexture_vert                 = "positionTexture.vert";
+const char* positionTexture_frag                 = "positionTexture.frag";
+const char* positionTextureColor_vert            = "positionTextureColor.vert";
+const char* positionTextureColor_frag            = "positionTextureColor.frag";
+const char* positionTextureColorAlphaTest_frag   = "positionTextureColorAlphaTest.frag";
+const char* label_normal_frag                    = "label_normal.frag";
+const char* label_distanceNormal_frag            = "label_distanceNormal.frag";
+const char* labelOutline_frag                    = "label_outline.frag";
+const char* labelDistanceFieldGlow_frag          = "label_distanceFieldGlow.frag";
+const char* positionColorLengthTexture_vert      = "positionColorLengthTexture.vert";
+const char* positionColorLengthTexture_frag      = "positionColorLengthTexture.frag";
+const char* positionColorTextureAsPointsize_vert = "positionColorTextureAsPointsize.vert";
+const char* position_vert                        = "position.vert";
+const char* positionNoMVP_vert                   = "positionNoMVP.vert";
+const char* layer_radialGradient_frag            = "layer_radialGradient.frag";
+const char* grayScale_frag                       = "ui_Gray.frag";
+const char* positionTextureUColor_vert           = "positionTextureUColor.vert";
+const char* positionTextureUColor_frag           = "positionTextureUColor.frag";
+const char* positionUColor_vert                  = "positionUColor.vert";
+const char* positionUColor_frag                  = "positionUColor.frag";
+const char* etc1_frag                            = "etc1.frag";
+const char* etc1Gray_frag                        = "etc1_Gray.frag";
+const char* cameraClear_vert                     = "cameraClear.vert";
+const char* cameraClear_frag                     = "cameraClear.frag";
+const char* lineColor3D_frag                     = "lineColor.frag";
+const char* lineColor3D_vert                     = "lineColor.vert";
 
 NS_CC_END

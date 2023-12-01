@@ -575,7 +575,9 @@ protected:
     //
     Urho3D::RenderDevice* _device{ nullptr };
     struct StateKey {
-        backend::ProgramType programType;
+        //backend::ProgramType programType;
+        const char* vsName = nullptr;
+        const char* fsName = nullptr;
         backend::PrimitiveType primitiveType;
         backend::BlendDescriptor blendDescriptor;
         CullMode cullMode{ CullMode::NONE };

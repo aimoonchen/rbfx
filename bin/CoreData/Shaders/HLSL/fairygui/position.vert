@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2016 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -21,38 +21,34 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
- 
-const char* grayScale_frag = R"(
+
+// attribute vec4 a_position;
+
 // #ifdef GL_ES
-// precision mediump float;
+// varying lowp vec4 v_position;
+// #else
+// varying vec4 v_position;
 // #endif
 
-// varying vec4 v_fragmentColor;
-// varying vec2 v_texCoord;
+// uniform mat4 u_MVPMatrix;
 
-// uniform sampler2D u_texture;
-
-// void main(void)
+// void main()
 // {
-//     vec4 c = texture2D(u_texture, v_texCoord);
-//      c = v_fragmentColor * c;
-//     gl_FragColor.xyz = vec3(0.2126*c.r + 0.7152*c.g + 0.0722*c.b);
-//     gl_FragColor.w = c.w;
+//     gl_Position = u_MVPMatrix * a_position;
+//     v_position = a_position;
 // }
-Texture2D    u_texture;
-SamplerState u_texture_sampler;
+cbuffer VSConstants {
+    float4x4 u_MVPMatrix;
+};
+struct VSInput {
+    float3 a_position   : ATTRIB0;
+};
 struct PSInput {
-    float4 Pos              : SV_POSITION;
-    float2 v_texCoord       : TEX_COORD;
-    float4 v_fragmentColor  : COLOR0;
+    float4 Pos          : SV_POSITION;
+    float4 v_position   : TEX_COORD;
 };
-struct PSOutput {
-    float4 Color : SV_TARGET;
-};
-void main(in PSInput PSIn, out PSOutput PSOut)
+void main(in VSInput VSIn, out PSInput PSIn)
 {
-    float4 Color = PSIn.v_fragmentColor * u_texture.Sample(u_texture_sampler, PSIn.v_texCoord);
-    float gray = 0.2126*Color.r + 0.7152*Color.g + 0.0722*Color.b;
-    PSOut.Color = float4(gray, gray, gray, Color.a);
+    PSIn.Pos        = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
+    PSIn.v_position = float4(VSIn.a_position, 1.0);
 }
-)";

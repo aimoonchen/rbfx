@@ -1739,6 +1739,10 @@ void Label::updateBuffer(TextureAtlas* textureAtlas, CustomCommand& customComman
             });
         customCommand.createIndexBuffer(CustomCommand::IndexFormat::U_SHORT, (unsigned int)textureAtlas->getTotalQuads() * 6, CustomCommand::BufferUsage::DYNAMIC);
     }
+    if (!textureAtlas->isDirty())
+    {
+        return;
+    }
     customCommand.updateVertexBuffer(textureAtlas->getQuads(), (unsigned int)(textureAtlas->getTotalQuads() * sizeof(V3F_C4B_T2F_Quad)));
     customCommand.updateIndexBuffer(textureAtlas->getIndices(), (unsigned int)(textureAtlas->getTotalQuads() * 6 * sizeof(unsigned short)));
     customCommand.setIndexDrawInfo(0, (unsigned int)(textureAtlas->getTotalQuads() * 6));
@@ -1844,7 +1848,8 @@ void Label::updateEffectUniforms(BatchCommand &batch, TextureAtlas* textureAtlas
             setColor(oldColor);
         }
     }
-
+    // TODO: fix buffer update
+    textureAtlas->setDirty(false);
     batch.textCommand.init(_globalZOrder);
     renderer->addCommand(&batch.textCommand);
 }

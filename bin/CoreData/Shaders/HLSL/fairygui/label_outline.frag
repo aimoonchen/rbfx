@@ -22,7 +22,9 @@
  THE SOFTWARE.
  ****************************************************************************/
  
-const char* labelDistanceFieldGlow_frag = R"(
+/*
+ * LICENSE ???
+ */
 // #ifdef GL_ES
 // precision lowp float;
 // #endif
@@ -34,22 +36,43 @@ const char* labelDistanceFieldGlow_frag = R"(
 // uniform vec4 u_textColor;
 // uniform sampler2D u_texture;
 
+// #ifdef GL_ES
+// uniform lowp int u_effectType; // 0: None (Draw text), 1: Outline, 2: Shadow
+// #else
+// uniform int u_effectType;
+// #endif
+
 // void main()
 // {
-//     float dist = texture2D(u_texture, v_texCoord).a;
-//     //TODO: Implementation 'fwidth' for glsl 1.0
-//     //float width = fwidth(dist);
-//     //assign width for constant will lead to a little bit fuzzy,it's temporary measure.
-//     float width = 0.04;
-//     float alpha = smoothstep(0.5-width, 0.5+width, dist);
-//     //glow
-//     float mu = smoothstep(0.5, 1.0, sqrt(dist));
-//     vec4 color = u_effectColor*(1.0-alpha) + u_textColor*alpha;
-//     gl_FragColor = v_fragmentColor * vec4(color.rgb, max(alpha,mu)*color.a);
+//     vec4 sample = texture2D(u_texture, v_texCoord);
+//     // fontAlpha == 1 means the area of solid text (without edge)
+//     // fontAlpha == 0 means the area outside text, including outline area
+//     // fontAlpha == (0, 1) means the edge of text
+//     float fontAlpha = sample.a;
+
+//     // outlineAlpha == 1 means the area of 'solid text' and 'solid outline'
+//     // outlineAlpha == 0 means the transparent area outside text and outline
+//     // outlineAlpha == (0, 1) means the edge of outline
+//     float outlineAlpha = sample.r;
+
+//     if (u_effectType == 0) // draw text
+//     {
+//         gl_FragColor = v_fragmentColor * vec4(u_textColor.rgb, u_textColor.a * fontAlpha);
+//     }
+//     else if (u_effectType == 1) // draw outline
+//     {
+//         // multipy (1.0 - fontAlpha) to make the inner edge of outline smoother and make the text itself transparent.
+//         gl_FragColor = v_fragmentColor * vec4(u_effectColor.rgb, u_effectColor.a * outlineAlpha * (1.0 - fontAlpha));
+//     }
+//     else // draw shadow
+//     {
+//         gl_FragColor = v_fragmentColor * vec4(u_effectColor.rgb, u_effectColor.a * outlineAlpha);
+//     }
 // }
 cbuffer PSConstants {
     float4 u_effectColor;
     float4 u_textColor;
+    int u_effectType;
 };
 Texture2D    u_texture;
 SamplerState u_texture_sampler;
@@ -63,12 +86,16 @@ struct PSOutput {
 };
 void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    float dist = u_texture.Sample(u_texture_sampler, PSIn.v_texCoord).a;
-    float width = 0.04;
-    float alpha = smoothstep(0.5-width, 0.5+width, dist);
-    //glow
-    float mu = smoothstep(0.5, 1.0, sqrt(dist));
-    float4 Color = u_effectColor*(1.0-alpha) + u_textColor*alpha;
-    PSOut.Color = PSIn.v_fragmentColor * float4(Color.rgb, max(alpha,mu)*Color.a);
+    float4 sample = u_texture.Sample(u_texture_sampler, PSIn.v_texCoord);
+    float fontAlpha = sample.a;
+    float outlineAlpha = sample.r;
+    float4 Color = PSIn.v_fragmentColor;
+    if (u_effectType == 0) {
+        Color *= float4(u_textColor.rgb, u_textColor.a * fontAlpha);
+    } else if (u_effectType == 1) {
+        Color *= float4(u_effectColor.rgb, u_effectColor.a * outlineAlpha * (1.0 - fontAlpha));
+    } else {
+        Color *= float4(u_effectColor.rgb, u_effectColor.a * outlineAlpha);
+    }
+    PSOut.Color = Color;
 }
-)";

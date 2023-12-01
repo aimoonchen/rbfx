@@ -27,9 +27,11 @@
 #include "ProgramCache.h"
 #include "base/CCDirector.h"
 #include "renderer/CCRenderer.h"
+#include "../ccShaders.h"
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include "../../../RenderAPI/RenderDevice.h"
+#include "../../../Resource/ResourceCache.h"
 CC_BACKEND_BEGIN
 
 static Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const char* name, int32_t size)
@@ -47,40 +49,65 @@ static Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const ch
     return pBuffer;
 }
 
-Program::Program(const std::string& vs, const std::string& fs, ProgramType programType)
+std::unordered_map<const char*, Diligent::IShader*> Program::_cachedShaders;
+
+Program::Program(const char* vsfile, const char* fsfile, ProgramType programType)
     : _programType{ programType }
 {
+    vsName = vsfile;
+    fsName = fsfile;
     auto renderer = Director::getInstance()->getRenderer();
     auto device = renderer->GetRenderDevice();
+    auto cache = device->GetSubsystem<Urho3D::ResourceCache>();
+    auto get_source_code = [cache](const char* filename, ea::string& sourceCode) {
+        auto shaderPath = ea::string{ "Shaders/HLSL/fairygui/" } + filename;
+        auto pFile = cache->GetFile(shaderPath);
+        unsigned dataSize = pFile->GetSize();
+        sourceCode.resize(dataSize + 1);
+        sourceCode[dataSize] = '\0';
+        if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
+            return false;
+        return true;
+    };
+    
     Diligent::ShaderCreateInfo ShaderCI;
     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
     ShaderCI.Desc.UseCombinedTextureSamplers = true;
-    //auto shaderName = fs.substr(0, fs.find_last_of("_frag"));
-    auto shaderName = std::string{ "FairyGUI VS" } + std::to_string((int)programType);
+    ea::string sourceCode;
     // Create a vertex shader
-    ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
-    ShaderCI.EntryPoint = "main";
-    ShaderCI.Desc.Name = shaderName.c_str();
-    ShaderCI.Source = vs.data();
-    device->GetRenderDevice()->CreateShader(ShaderCI, &_vsShader);
-    shaderName = std::string{ "FairyGUI PS" } + std::to_string((int)programType);
-    // Create a pixel shader
-    ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
-    ShaderCI.EntryPoint = "main";
-    ShaderCI.Desc.Name = shaderName.c_str();
-    ShaderCI.Source = fs.data();
-    device->GetRenderDevice()->CreateShader(ShaderCI, &_fsShader);
+    if (auto it = _cachedShaders.find(vsfile); it == _cachedShaders.end()) {
+        if (get_source_code(vsfile, sourceCode)) {
+            ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+            ShaderCI.EntryPoint = "main";
+            ShaderCI.Desc.Name = vsfile;
+            ShaderCI.Source = sourceCode.data();
+            device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[vsfile]);
+        }
+    }
+    _vsShader = _cachedShaders[vsfile];
 
-    if (programType == ProgramType::POSITION
-        || programType == ProgramType::POSITION_COLOR
-        || programType == ProgramType::POSITION_UCOLOR
-        || programType == ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
-        || programType == ProgramType::POSITION_COLOR_LENGTH_TEXTURE)
+    // Create a pixel shader
+    if (auto it = _cachedShaders.find(fsfile); it == _cachedShaders.end()) {
+        if (get_source_code(fsfile, sourceCode)) {
+            ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+            ShaderCI.EntryPoint = "main";
+            ShaderCI.Desc.Name = fsfile;
+            ShaderCI.Source = sourceCode.data();
+            device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[fsfile]);
+        }
+    }
+    _fsShader = _cachedShaders[fsfile];
+
+    if (fsfile == positionColor_frag
+        || fsfile == positionUColor_frag
+        || fsfile == lineColor3D_frag
+        || fsfile == layer_radialGradient_frag
+        || fsfile == positionColorLengthTexture_frag)
     {
         _textureCount = 0;
     }
-    else if (programType == ProgramType::ETC1
-        || programType == ProgramType::ETC1_GRAY)
+    else if (fsfile == etc1_frag
+        || fsfile == etc1Gray_frag)
     {
         _textureCount = 2;
     }
@@ -99,47 +126,33 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
     _builtinUniformLocation[Uniform::TEXT_COLOR].shaderStage = ShaderStage::FRAGMENT;
     _builtinUniformLocation[Uniform::EFFECT_TYPE].shaderStage = ShaderStage::FRAGMENT;
 
-    if (programType != ProgramType::POSITION_COLOR_LENGTH_TEXTURE
-        && programType != ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
-        && programType != ProgramType::POSITION_UCOLOR) {
-        // float4x4 u_MVPMatrix;
-        _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 16);
-    }
-    switch (programType) {
-    case ProgramType::POSITION_COLOR_LENGTH_TEXTURE:
-    case ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE:
-    {
+    if (vsfile == positionColorLengthTexture_vert || vsfile == positionColorTextureAsPointsize_vert) {
         // float4x4 u_MVPMatrix;
         // float u_alpha;
         _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 17);
         auto ret = _customUniform.insert({ "u_alpha", {} });
         ret.first->second.location[0] = sizeof(float) * 16;
-    }
-        break;
-    case ProgramType::POSITION_UCOLOR:
-    {
+    } else if (vsfile == positionUColor_vert) {
         // float4x4 u_MVPMatrix;
         // float4 u_color;
         _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 20);
         auto ret = _customUniform.insert({ "u_color", {} });
         ret.first->second.location[0] = sizeof(float) * 16;
+    } else {
+        // float4x4 u_MVPMatrix;
+        _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 16);
     }
-        break;
-    case ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST:
-    {
+    //
+    if (fsfile == positionTextureColorAlphaTest_frag) {
         // float u_alpha_value;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float));
         auto ret = _customUniform.insert({ "u_alpha_value", {} });
         ret.first->second.location[1] = 0;
-    }
-        break;
-    case ProgramType::LABEL_NORMAL:
-    case ProgramType::LABEL_DISTANCE_NORMAL:
+    } else if (fsfile == label_normal_frag || fsfile == label_distanceNormal_frag) {
         // float4 u_textColor;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 4);
         _builtinUniformLocation[Uniform::TEXT_COLOR].location[1] = 0;
-        break;
-    case ProgramType::LABLE_OUTLINE:
+    } else if (fsfile == labelOutline_frag) {
         // float4 u_effectColor;
         // float4 u_textColor;
         // int u_effectType;
@@ -147,29 +160,24 @@ Program::Program(const std::string& vs, const std::string& fs, ProgramType progr
         _builtinUniformLocation[Uniform::EFFECT_COLOR].location[1] = 0;
         _builtinUniformLocation[Uniform::TEXT_COLOR].location[1] = sizeof(float) * 4;
         _builtinUniformLocation[Uniform::EFFECT_TYPE].location[1] = sizeof(float) * 8;
-        break;
-    case ProgramType::LABLE_DISTANCEFIELD_GLOW:
+    } else if (fsfile == labelDistanceFieldGlow_frag) {
         // float4 u_effectColor;
         // float4 u_textColor;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 8);
         _builtinUniformLocation[Uniform::EFFECT_COLOR].location[1] = 0;
         _builtinUniformLocation[Uniform::TEXT_COLOR].location[1] = sizeof(float) * 4;
-        break;
-    case ProgramType::LAYER_RADIA_GRADIENT:
+    } else if (fsfile == layer_radialGradient_frag) {
         // float4 u_startColor;
         // float4 u_endColor;
         // float2 u_center;
         // float u_radius;
         // float u_expand;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 12);
-        _customUniform.insert({ "u_startColor", {} });
-        _customUniform.insert({ "u_endColor", {} });
-        _customUniform.insert({ "u_center", {} });
-        _customUniform.insert({ "u_radius", {} });
-        _customUniform.insert({ "u_expand", {} });
-        break;
-    default:
-        break;
+        _customUniform.insert({"u_startColor", {}});
+        _customUniform.insert({"u_endColor", {}});
+        _customUniform.insert({"u_center", {}});
+        _customUniform.insert({"u_radius", {}});
+        _customUniform.insert({"u_expand", {}});
     }
 }
 

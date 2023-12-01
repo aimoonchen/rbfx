@@ -22,46 +22,47 @@
  THE SOFTWARE.
  ****************************************************************************/
  
-
-const char * cameraClear_vert = R"(
-// uniform float depth;
-// attribute vec4 a_position;
-// attribute vec4 a_color;
-// attribute vec2 a_texCoord;
-
 // #ifdef GL_ES
-// varying mediump vec2 v_texCoord;
-// varying mediump vec4 v_color;
-// #else
-// varying vec2 v_texCoord;
-// varying vec4 v_color;
+// precision lowp float;
 // #endif
+
+// varying vec4 v_fragmentColor;
+// varying vec2 v_texCoord;
+
+// uniform vec4 u_textColor;
+// uniform sampler2D u_texture;
 
 // void main()
 // {
-//     gl_Position = a_position;
-//     gl_Position.z = depth;
-//     gl_Position.w = 1.0;
-//     v_texCoord = a_texCoord;
-//     v_color = a_color;
+//     vec4 color = texture2D(u_texture, v_texCoord);
+//     //the texture use dual channel 16-bit output for distance_map
+//     //float dist = color.b+color.g/256.0;
+//     // the texture use single channel 8-bit output for distance_map
+//     float dist = color.a;
+//     //TODO: Implementation 'fwidth' for glsl 1.0
+//     //float width = fwidth(dist);
+//     //assign width for constant will lead to a little bit fuzzy,it's temporary measure.
+//     float width = 0.04;
+//     float alpha = smoothstep(0.5-width, 0.5+width, dist) * u_textColor.a;
+//     gl_FragColor = v_fragmentColor * vec4(u_textColor.rgb,alpha);
 // }
-cbuffer VSConstants {
-    float depth;
+cbuffer PSConstants {
+    float4 u_textColor;
 };
-struct VSInput {
-    float3 a_position   : ATTRIB0;
-    float4 a_color      : ATTRIB1;
-    float2 a_texCoord   : ATTRIB2;
-};
+Texture2D    u_texture;
+SamplerState u_texture_sampler;
 struct PSInput {
-    float4 Pos          : SV_POSITION;
-    float2 v_texCoord   : TEX_COORD;
-    float4 v_color      : COLOR0;
+    float4 Pos              : SV_POSITION;
+    float2 v_texCoord       : TEX_COORD;
+    float4 v_fragmentColor  : COLOR0;
 };
-void main(in VSInput VSIn, out PSInput PSIn) 
+struct PSOutput {
+    float4 Color : SV_TARGET;
+};
+void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    PSIn.Pos        = float4(VSIn.a_position.xy, depth, 1.0);
-    PSIn.v_texCoord = VSIn.a_texCoord;
-    PSIn.v_color    = VSIn.a_color;
+    float dist = u_texture.Sample(u_texture_sampler, PSIn.v_texCoord).a;
+    float width = 0.04;
+    float alpha = smoothstep(0.5-width, 0.5+width, dist) * u_textColor.a;
+    PSOut.Color = PSIn.v_fragmentColor * float4(u_textColor.rgb, alpha);
 }
-)";

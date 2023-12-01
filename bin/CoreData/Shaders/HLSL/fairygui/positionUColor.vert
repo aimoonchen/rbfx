@@ -23,10 +23,8 @@
  * THE SOFTWARE.
  */
 
-const char* positionColor_vert = R"(
 // attribute vec4 a_position;
-// attribute vec4 a_color;
-
+// uniform vec4 u_color;
 // uniform mat4 u_MVPMatrix;
 
 // #ifdef GL_ES
@@ -37,15 +35,15 @@ const char* positionColor_vert = R"(
 
 // void main()
 // {
-//     gl_Position = u_MVPMatrix *  a_position;
-//     v_fragmentColor = a_color;
+//     gl_Position = u_MVPMatrix * a_position;
+//     v_fragmentColor = u_color;
 // }
 cbuffer VSConstants {
     float4x4 u_MVPMatrix;
+    float4 u_color;
 };
 struct VSInput {
     float3 a_position   : ATTRIB0;
-    float4 a_color      : ATTRIB1;
 };
 struct PSInput {
     float4 Pos              : SV_POSITION;
@@ -54,7 +52,5 @@ struct PSInput {
 void main(in VSInput VSIn, out PSInput PSIn)
 {
     PSIn.Pos                = mul(u_MVPMatrix, float4(VSIn.a_position, 1.0));
-    PSIn.v_fragmentColor    = VSIn.a_color;
+    PSIn.v_fragmentColor    = u_color;
 }
-)";
-

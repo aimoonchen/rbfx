@@ -107,7 +107,7 @@ UIPackage* UIPackage::addPackage(const string& assetPath)
 //         _emptyTexture->initWithImage(emptyImage);
 //         delete emptyImage;
         _emptyTexture = new Urho3D::Texture2D(GetUrho3DContext());
-        _emptyTexture->SetSize(2, 2, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UINT);
+        _emptyTexture->SetSize(2, 2, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM);
         _emptyTexture->SetData(0, 0, 0, 2, 2, emptyTextureData);
     }
 

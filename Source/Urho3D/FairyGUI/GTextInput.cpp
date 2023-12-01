@@ -13,6 +13,7 @@ void (*updateIMEPosition)(int, int) = nullptr;
 
 GTextInput::GTextInput()
 {
+    _textFormat = std::make_unique<TextFormat>();
 }
 
 GTextInput::~GTextInput()

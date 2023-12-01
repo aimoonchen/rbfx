@@ -443,7 +443,7 @@ void Sprite::setTexture(Urho3D::Texture2D *texture)
 //             CC_SAFE_RELEASE(image);
 //         }
         texture = new Urho3D::Texture2D(GetUrho3DContext());
-        texture->SetSize(2, 2, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UINT);
+        texture->SetSize(2, 2, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM);
         texture->SetData(0, 0, 0, 2, 2, cc_2x2_white_image);
     }
 

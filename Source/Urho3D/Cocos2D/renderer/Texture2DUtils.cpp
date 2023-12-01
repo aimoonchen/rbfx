@@ -103,7 +103,7 @@ bool InitWithString(Urho3D::Texture2D* texture, const char *text, const FontDefi
 	outTempDataLen = imageWidth * imageHeight * 4;
 	//ret = initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight, imageSize);
 	texture->SetNumLevels(1);
-	texture->SetSize(imageWidth, imageHeight, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UINT);
+	texture->SetSize(imageWidth, imageHeight, Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM);
 	ret = texture->SetData(0, 0, 0, imageWidth, imageHeight, outTempData);
 	if (outTempData != nullptr && outTempData != outData.getBytes()) {
 		free(outTempData);

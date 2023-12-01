@@ -267,7 +267,7 @@ protected:
     void setVertexLayout();
     void setUniformLocation();
     
-    virtual void updateShaders(const std::string& vertexShader, const std::string& fragmentShader);
+    virtual void updateShaders(const char* vertexShader, const char* fragmentShader);
 
     TextureAtlas *_textureAtlas = nullptr;
     BlendFunc _blendFunc;

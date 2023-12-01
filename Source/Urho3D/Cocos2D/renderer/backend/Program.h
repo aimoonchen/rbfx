@@ -177,7 +177,10 @@ public:
     //virtual const std::unordered_map<std::string, UniformInfo>& getAllActiveUniformInfo(ShaderStage stage) const = 0;
     void applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[]);
 //protected:
-    Program(const std::string& vs, const std::string& fs, ProgramType programType = ProgramType::CUSTOM_PROGRAM);
+    Program(const char* vsfile, const char* fsfile, ProgramType programType = ProgramType::CUSTOM_PROGRAM);
+    // for debug
+    const char* vsName = nullptr;
+    const char* fsName = nullptr;
     //
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
     Urho3D::RenderDevice* _device{ nullptr };
@@ -189,6 +192,7 @@ public:
     UniformLocation _builtinUniformLocation[UNIFORM_MAX];
     std::unordered_map<std::string, UniformLocation> _customUniform;
     std::size_t _textureCount = 0;
+    static std::unordered_map<const char*, Diligent::IShader*> _cachedShaders;
     friend class ProgramCache;
 };
 

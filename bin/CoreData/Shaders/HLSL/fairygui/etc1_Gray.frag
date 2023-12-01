@@ -1,7 +1,8 @@
 /*
  * cocos2d for iPhone: http://www.cocos2d-iphone.org
  *
- * Copyright (c) 2011 Brian Chapados
+ * Copyright (c) 2011 Ricardo Quesada
+ * Copyright (c) 2012 Zynga Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +23,31 @@
  * THE SOFTWARE.
  */
 
-const char* positionTextureColorAlphaTest_frag = R"(
 // #ifdef GL_ES
-// precision lowp float;
+//     precision mediump float;
 // #endif
 
 // varying vec4 v_fragmentColor;
 // varying vec2 v_texCoord;
 
-// uniform float u_alpha_value;
 // uniform sampler2D u_texture;
+// uniform sampler2D u_texture1;
 
 // void main()
 // {
 //     vec4 texColor = texture2D(u_texture, v_texCoord);
+//     texColor.a = texture2D(u_texture1, v_texCoord).r;
+//     texColor.rgb *= texColor.a; // premultiply alpha channel
 
-// // mimic: glAlphaFunc(GL_GREATER)
-// // pass if ( incoming_pixel >= u_alpha_value ) => fail if incoming_pixel < u_alpha_value
+//     texColor = v_fragmentColor * texColor;
 
-//     if ( texColor.a <= u_alpha_value )
-//         discard;
-
-//     gl_FragColor = texColor * v_fragmentColor;
+//     gl_FragColor.rgb = vec3(0.2126*texColor.r + 0.7152*texColor.g + 0.0722*texColor.b);
+//     gl_FragColor.a = texColor.a;
 // }
-cbuffer PSConstants {
-    float u_alpha_value;
-};
 Texture2D    u_texture;
 SamplerState u_texture_sampler;
+Texture2D    u_texture1;
+SamplerState u_texture1_sampler;
 struct PSInput {
     float4 Pos              : SV_POSITION;
     float2 v_texCoord       : TEX_COORD;
@@ -60,9 +58,9 @@ struct PSOutput {
 };
 void main(in PSInput PSIn, out PSOutput PSOut)
 {
-    float4 Color = u_texture.Sample(u_texture_sampler, PSIn.v_texCoord);
-    if (Color.a <= u_alpha_value)
-        discard;
-    PSOut.Color = PSIn.v_fragmentColor * Color;
+    float4 Color = float4(u_texture.Sample(u_texture_sampler, PSIn.v_texCoord).rgb, u_texture1.Sample(u_texture1_sampler, PSIn.v_texCoord).r);
+    Color.rgb *= Color.a;
+    Color *= PSIn.v_fragmentColor;
+    float gray = 0.2126*Color.r + 0.7152*Color.g + 0.0722*Color.b;
+    PSOut.Color = float4(gray, gray, gray, Color.a);
 }
-)";

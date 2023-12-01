@@ -147,7 +147,7 @@ void FontAtlas::initTextureWithZeros(Urho3D::Texture2D *texture)
     if (outlineSize > 0)
     {    
         //metal do no support AI88 format
-        pixelFormat = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UINT; //backend::PixelFormat::RGBA8888;
+        pixelFormat = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM; //backend::PixelFormat::RGBA8888;
         zeroBytes = CacheTextureWidth * CacheTextureWidth * 4;
     }
     else

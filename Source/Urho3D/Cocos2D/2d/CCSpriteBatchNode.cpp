@@ -116,7 +116,7 @@ bool SpriteBatchNode::initWithTexture(Urho3D::Texture2D *tex, ssize_t capacity/*
     return true;
 }
 
-void SpriteBatchNode::updateShaders(const std::string &vertexShader, const std::string &fragmentShader)
+void SpriteBatchNode::updateShaders(const char* vertexShader, const char* fragmentShader)
 {
     auto& pipelineDescriptor = _quadCommand.getPipelineDescriptor();
     //auto* program = backend::Device::getInstance()->newProgram(vertexShader, fragmentShader);
