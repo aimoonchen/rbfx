@@ -72,15 +72,8 @@ public:
      */
     void removeAllPrograms();
     
-    /**
-     * Add custom program to the cache.
-     * @param key Specifies the key used to store the program.
-     * @param program Specifies the program to store in the cache.
-     */
-    void addCustomProgram(const std::string& key, backend::Program* program);
-    
     /// Get custom program from cache.
-    backend::Program* getCustomProgram(const std::string& key) const;
+    backend::Program* getCustomProgram(const char* vsfile, const char* fsfile) const;
     
 protected:
     ProgramCache() = default;
@@ -95,7 +88,7 @@ protected:
     void addProgram(ProgramType type);
     
     static std::unordered_map<backend::ProgramType, backend::Program*> _cachedPrograms; ///< The cached program object.
-    static std::unordered_map<std::string, backend::Program*> _cachedCustomPrograms; ///< The cached custom program object.
+    static std::unordered_map<uint64_t, backend::Program*> _cachedCustomPrograms; ///< The cached custom program object.
     static ProgramCache *_sharedProgramCache; ///< A shared instance of the program cache.
     Urho3D::RenderDevice* _device{ nullptr };
 };

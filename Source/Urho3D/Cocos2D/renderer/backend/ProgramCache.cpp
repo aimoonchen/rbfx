@@ -44,7 +44,7 @@ namespace std
 CC_BACKEND_BEGIN
 
 std::unordered_map<backend::ProgramType, backend::Program*>  ProgramCache::_cachedPrograms;
-std::unordered_map<std::string, backend::Program*> ProgramCache::_cachedCustomPrograms;
+std::unordered_map<uint64_t, backend::Program*> ProgramCache::_cachedCustomPrograms;
 
 ProgramCache* ProgramCache::_sharedProgramCache = nullptr;
 
@@ -238,21 +238,18 @@ void ProgramCache::removeAllPrograms()
     _cachedCustomPrograms.clear();
 }
 
-void ProgramCache::addCustomProgram(const std::string &key, backend::Program *program)
+backend::Program* ProgramCache::getCustomProgram(const char* vsfile, const char* fsfile) const
 {
-    _cachedCustomPrograms.emplace(key, program);
-}
-
-backend::Program* ProgramCache::getCustomProgram(const std::string &key) const
-{
+    uint64_t key = (uint64_t)vsfile + (uint64_t)fsfile;
     const auto& iter = ProgramCache::_cachedCustomPrograms.find(key);
-    if (ProgramCache::_cachedCustomPrograms.end() != iter)
-    {
+    if (ProgramCache::_cachedCustomPrograms.end() != iter) {
         return iter->second;
     }
-    
-    CCLOG("Warning: program %s not found in cache.", key.c_str());
-    return nullptr;
+    else {
+        auto program = new Program(vsfile, fsfile);
+        auto ret = ProgramCache::_cachedCustomPrograms.insert({key, program});
+        return program;
+    }
 }
 
 CC_BACKEND_END

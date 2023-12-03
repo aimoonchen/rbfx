@@ -720,8 +720,7 @@ bool SpriteFrameCache::reloadTexture(const std::string& plist)
 
 void SpriteFrameCache::PlistFramesCache::insertFrame(const std::string &plist, const std::string &frame, SpriteFrame *spriteFrame)
 {
-    spriteFrame->retain();
-    _spriteFrames.insert({ frame, spriteFrame });   //add SpriteFrame
+    _spriteFrames.insert(frame, spriteFrame);   //add SpriteFrame
 
     _indexPlist2Frames[plist].insert(frame);    //insert index plist->[frameName]
     _indexFrame2plist[frame] = plist;           //insert index frameName->plist
@@ -729,10 +728,6 @@ void SpriteFrameCache::PlistFramesCache::insertFrame(const std::string &plist, c
 
 bool SpriteFrameCache::PlistFramesCache::eraseFrame(const std::string &frame)
 {
-    auto it = _spriteFrames.at(frame);
-    if (it) {
-        it->release();
-    }
     _spriteFrames.erase(frame);                             //drop SpriteFrame
     auto itFrame = _indexFrame2plist.find(frame);
     if (itFrame != _indexFrame2plist.end())
@@ -806,7 +801,7 @@ SpriteFrame * SpriteFrameCache::PlistFramesCache::at(const std::string &frame)
 {
     return _spriteFrames.at(frame);
 }
-std::unordered_map<std::string, SpriteFrame*>&  SpriteFrameCache::PlistFramesCache::getSpriteFrames()
+Map<std::string, SpriteFrame*>&  SpriteFrameCache::PlistFramesCache::getSpriteFrames()
 {
     return _spriteFrames;
 }

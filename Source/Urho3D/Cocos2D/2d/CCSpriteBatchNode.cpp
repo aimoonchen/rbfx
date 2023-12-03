@@ -121,7 +121,7 @@ void SpriteBatchNode::updateShaders(const char* vertexShader, const char* fragme
     auto& pipelineDescriptor = _quadCommand.getPipelineDescriptor();
     //auto* program = backend::Device::getInstance()->newProgram(vertexShader, fragmentShader);
     CC_SAFE_RELEASE(_programState);
-    _programState = new (std::nothrow) backend::ProgramState(new backend::Program(vertexShader, fragmentShader));
+    _programState = new (std::nothrow) backend::ProgramState(backend::Program::getCustomProgram(vertexShader, fragmentShader));
     pipelineDescriptor.programState = _programState;
     
     //CC_SAFE_RELEASE(program);

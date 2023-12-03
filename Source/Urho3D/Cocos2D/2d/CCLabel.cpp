@@ -1292,14 +1292,16 @@ void Label::setBMFontSizeInternal(float fontSize)
 {
     if(_currentLabelType == LabelType::BMFONT)
     {
-        if (!_bmSubTextureKey.empty())
-        {
-            this->setBMFontFilePath(_bmFontPath, _bmSubTextureKey, fontSize);
-        }
-        else
-        {
-            this->setBMFontFilePath(_bmFontPath, _bmRect, _bmRotated, fontSize);
-        }
+//         if (!_bmSubTextureKey.empty())
+//         {
+//             this->setBMFontFilePath(_bmFontPath, _bmSubTextureKey, fontSize);
+//         }
+//         else
+//         {
+//             this->setBMFontFilePath(_bmFontPath, _bmRect, _bmRotated, fontSize);
+//         }
+        // TODO: user deprecated interface for fairygui
+        this->setBMFontFilePath(_bmFontPath, Vec2::ZERO, fontSize);
         _contentDirty = true;
     }
 }

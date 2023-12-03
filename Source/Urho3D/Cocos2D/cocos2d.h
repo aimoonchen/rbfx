@@ -46,6 +46,7 @@ THE SOFTWARE.
 #include "base/CCDirector.h"
 #include "base/CCIMEDelegate.h"
 #include "base/CCIMEDispatcher.h"
+#include "base/CCMap.h"
 #include "base/CCNS.h"
 #include "base/CCRef.h"
 #include "base/CCRefPtr.h"

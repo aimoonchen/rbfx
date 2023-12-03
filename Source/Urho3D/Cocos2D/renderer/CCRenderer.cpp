@@ -29,6 +29,7 @@
 #include "renderer/CCCustomCommand.h"
 #include "renderer/CCCallbackCommand.h"
 #include "renderer/CCGroupCommand.h"
+#include "renderer/ccShaders.h"
 
 #include "base/CCDirector.h"
 #include "base/CCEventDispatcher.h"
@@ -623,12 +624,12 @@ void Renderer::drawBatchedTriangles()
 
     auto deviceContext = _device->GetImmediateContext();
     void* dst = nullptr;
-    deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE /*Diligent::MAP_FLAG_DISCARD*/, dst);
+    deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, vertexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, dst);
     if (dst) {
         memcpy((uint8_t*)dst + vertexBufferFillOffset * sizeof(_verts[0]), _verts, _filledVertex * sizeof(_verts[0]));
         deviceContext->UnmapBuffer(_vertexBuffer, Diligent::MAP_WRITE);
     }
-    deviceContext->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE /*Diligent::MAP_FLAG_DISCARD*/, dst);
+    deviceContext->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, indexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, dst);
     if (dst) {
         memcpy((uint8_t*)dst + indexBufferFillOffset * sizeof(_indices[0]), _indices, _filledIndex * sizeof(_indices[0]));
         deviceContext->UnmapBuffer(_indexBuffer, Diligent::MAP_WRITE);
@@ -791,12 +792,8 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
 
 bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
 {
-//     if (programType != v.programType)
-//         return programType < v.programType;
-    if (vsName != v.vsName)
-        return vsName < v.vsName;
-    if (fsName != v.fsName)
-        return fsName < v.fsName;
+    if (program != v.program)
+        return program < v.program;
     if (blendDescriptor.blendEnabled != v.blendDescriptor.blendEnabled)
         return v.blendDescriptor.blendEnabled;
     if (scissorEnable != v.scissorEnable)
@@ -908,11 +905,8 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
     auto primitiveType = (commandType == RenderCommand::Type::TRIANGLES_COMMAND)
         ? backend::PrimitiveType::TRIANGLE
         : static_cast<CustomCommand*>(command)->getPrimitiveType();
-    auto topologyType = primitiveTypeMap[(uint32_t)primitiveType];
     StateKey key;
-    //key.programType = currentProgram->getProgramType();
-    key.vsName = currentProgram->vsName;
-    key.fsName = currentProgram->fsName;
+    key.program = currentProgram;
     key.blendDescriptor = pipelineDescriptor.blendDescriptor;
     key.depthTestEnabled = renderPassDescriptor.depthTestEnabled;
     key.stencilTestEnabled = renderPassDescriptor.stencilTestEnabled;
@@ -921,10 +915,10 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
     key.clearStencilValue = renderPassDescriptor.clearStencilValue;
     key.cullMode = _cullMode;
     key.primitiveType = primitiveType;
-    Diligent::IPipelineState* piplineState{ nullptr };
+    Diligent::IPipelineState* pipelineState{ nullptr };
     auto it = piplineStates_.find(key);
     if (it != piplineStates_.end()) {
-        piplineState = it->second;
+        pipelineState = it->second;
     } else {
         Diligent::GraphicsPipelineStateCreateInfo PSOCreateInfo;
         PSOCreateInfo.PSODesc.Name = "Effekseer PSO";
@@ -934,7 +928,7 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         PSOCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
         PSOCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain->GetDesc().ColorBufferFormat;
         PSOCreateInfo.GraphicsPipeline.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
-        PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = topologyType;
+        PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = primitiveTypeMap[(uint32_t)primitiveType];
 
         auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
         rasterizerDesc.ScissorEnable = key.scissorEnable;
@@ -992,16 +986,9 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             assert(false);
         }
 
-        auto programType = currentProgram->getProgramType();
         ea::vector<Diligent::ShaderResourceVariableDesc> Vars;
         ea::vector<Diligent::ImmutableSamplerDesc> ImtblSamplers;
-        bool notexture = (programType == backend::ProgramType::POSITION
-            || programType == backend::ProgramType::POSITION_COLOR
-            || programType == backend::ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE
-            || programType == backend::ProgramType::LINE_COLOR_3D
-            || programType == backend::ProgramType::LAYER_RADIA_GRADIENT
-            || programType == backend::ProgramType::POSITION_COLOR_LENGTH_TEXTURE);
-        if (!notexture) {
+        if (currentProgram->_textureCount != 0) {
     //         Diligent::TEXTURE_ADDRESS_MODE ws[2]{};
     //         ws[(int)Effekseer::TextureWrapType::Clamp] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
     //         ws[(int)Effekseer::TextureWrapType::Repeat] = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP;
@@ -1016,7 +1003,7 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             auto addressMode = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP; //Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
             Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
             ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
-            if (programType == backend::ProgramType::ETC1 || programType == backend::ProgramType::ETC1_GRAY) {
+            if (currentProgram->_textureCount == 2) {
                 Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
                 ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SamplerDesc{ filterMode, filterMode, filterMode, addressMode, addressMode, addressMode });
             }
@@ -1041,21 +1028,22 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
             blendDesc.RenderTargetWriteMask = (Diligent::COLOR_MASK)key.blendDescriptor.writeMask;
         }
 
-        _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
-        auto srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VSConstants");
+        _device->GetRenderDevice()->CreateGraphicsPipelineState(PSOCreateInfo, &pipelineState);
+        auto srv = pipelineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VSConstants");
         if (srv) {
             srv->Set(currentProgram->_vsConstants);
         }
-        srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PSConstants");
+        srv = pipelineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PSConstants");
         if (srv) {
             srv->Set(currentProgram->_fsConstants);
         }
-        piplineState->CreateShaderResourceBinding(&currentProgram->_shaderResourceBinding, true);
+        pipelineState->CreateShaderResourceBinding(&currentProgram->_shaderResourceBinding, true);
 
-        piplineStates_[key] = piplineState;
+        piplineStates_.insert({ key, Diligent::RefCntAutoPtr<Diligent::IPipelineState>{pipelineState} });
     }
+
     commitUniformAndTextures(pipelineDescriptor);
-    _device->GetImmediateContext()->SetPipelineState(piplineState);
+    _device->GetImmediateContext()->SetPipelineState(pipelineState);
 //     auto device = backend::Device::getInstance();
 //     _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
 // 

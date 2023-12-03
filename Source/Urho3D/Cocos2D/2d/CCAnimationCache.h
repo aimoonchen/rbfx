@@ -29,6 +29,7 @@ THE SOFTWARE.
 #define __CC_ANIMATION_CACHE_H__
 
 #include "base/CCRef.h"
+#include "base/CCMap.h"
 #include "base/CCValue.h"
 #include "2d/CCAnimation.h"
 
@@ -120,7 +121,7 @@ private:
     void parseVersion2(const ValueMap& animations);
 
 private:
-    std::unordered_map<std::string, Animation*> _animations;
+    Map<std::string, Animation*> _animations;
     static AnimationCache* s_sharedAnimationCache;
 };
 

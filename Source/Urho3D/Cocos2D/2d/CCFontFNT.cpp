@@ -29,6 +29,7 @@
 #include "2d/CCSpriteFrameCache.h"
 #include "platform/CCFileUtils.h"
 #include "base/CCDirector.h"
+#include "base/CCMap.h"
 #include "base/ccUTF8.h"
 //#include "renderer/CCTextureCache.h"
 #include "../../Graphics/Texture2D.h"
@@ -53,7 +54,7 @@ struct _FontDefHashElement;
 //
 //FNTConfig Cache - free functions
 //
-static std::unordered_map<std::string, BMFontConfiguration*>* s_configurations = nullptr;
+static Map<std::string, BMFontConfiguration*>* s_configurations = nullptr;
 
 BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
 {
@@ -61,7 +62,7 @@ BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
 
     if (s_configurations == nullptr)
     {
-        s_configurations = new (std::nothrow) std::unordered_map<std::string, BMFontConfiguration*>();
+        s_configurations = new (std::nothrow) Map<std::string, BMFontConfiguration*>();
     }
 
     ret = s_configurations->at(fntFile);
@@ -70,8 +71,7 @@ BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
         ret = BMFontConfiguration::create(fntFile);
         if (ret)
         {
-            ret->retain();
-            s_configurations->insert({ fntFile, ret });
+            s_configurations->insert(fntFile, ret);
         }        
     }
 
@@ -734,21 +734,19 @@ void FontFNT::reloadBMFontResource(const std::string& fntFilePath)
 {
     if (s_configurations == nullptr)
     {
-        s_configurations = new (std::nothrow) std::unordered_map<std::string, BMFontConfiguration*>();
+        s_configurations = new (std::nothrow) Map<std::string, BMFontConfiguration*>();
     }
 
     BMFontConfiguration *ret = s_configurations->at(fntFilePath);
     if (ret != nullptr)
     {
-        ret->release();
         s_configurations->erase(fntFilePath);
     }
 
     ret = BMFontConfiguration::create(fntFilePath);
     if (ret)
     {
-        ret->retain();
-        s_configurations->insert({ fntFilePath, ret });
+        s_configurations->insert(fntFilePath, ret);
         //Director::getInstance()->getTextureCache()->reloadTexture(ret->getAtlasName());
     }
 }

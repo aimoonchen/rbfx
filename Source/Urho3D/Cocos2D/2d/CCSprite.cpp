@@ -380,7 +380,7 @@ void Sprite::setVertexLayout()
 void Sprite::updateShaders(const char* vert, const char* frag)
 {
     //auto* program = backend::Device::getInstance()->newProgram(vert, frag);
-    auto programState = new (std::nothrow) backend::ProgramState(new backend::Program(vert, frag));
+    auto programState = new (std::nothrow) backend::ProgramState(backend::Program::getCustomProgram(vert, frag));
     setProgramState(programState);
 //     CC_SAFE_RELEASE(programState);
 //     CC_SAFE_RELEASE(program);

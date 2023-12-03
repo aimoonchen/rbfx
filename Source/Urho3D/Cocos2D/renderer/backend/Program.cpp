@@ -27,7 +27,7 @@
 #include "ProgramCache.h"
 #include "base/CCDirector.h"
 #include "renderer/CCRenderer.h"
-#include "../ccShaders.h"
+#include "renderer/ccShaders.h"
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include "../../../RenderAPI/RenderDevice.h"
@@ -68,8 +68,8 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
         if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
             return false;
         return true;
-    };
-    
+        };
+
     Diligent::ShaderCreateInfo ShaderCI;
     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
     ShaderCI.Desc.UseCombinedTextureSamplers = true;
@@ -142,11 +142,12 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
         // float4x4 u_MVPMatrix;
         _vsConstants = create_uniform_buffer("VSConstants", sizeof(float) * 16);
     }
-    //
+    
     if (fsfile == positionTextureColorAlphaTest_frag) {
         // float u_alpha_value;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float));
         auto ret = _customUniform.insert({ "u_alpha_value", {} });
+        ret.first->second.shaderStage = ShaderStage::FRAGMENT;
         ret.first->second.location[1] = 0;
     } else if (fsfile == label_normal_frag || fsfile == label_distanceNormal_frag) {
         // float4 u_textColor;
@@ -173,23 +174,44 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
         // float u_radius;
         // float u_expand;
         _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 12);
-        _customUniform.insert({"u_startColor", {}});
-        _customUniform.insert({"u_endColor", {}});
-        _customUniform.insert({"u_center", {}});
-        _customUniform.insert({"u_radius", {}});
-        _customUniform.insert({"u_expand", {}});
+        auto ret = _customUniform.insert({ "u_startColor", {} });
+        auto& u_startColor = ret.first->second;
+        u_startColor.shaderStage = ShaderStage::FRAGMENT;
+        u_startColor.location[1] = 0;
+        ret = _customUniform.insert({ "u_endColor", {} });
+        auto& u_endColor = ret.first->second;
+        u_endColor.shaderStage = ShaderStage::FRAGMENT;
+        u_endColor.location[1] = sizeof(float) * 4;
+        ret = _customUniform.insert({ "u_center", {} });
+        auto& u_center = ret.first->second;
+        u_center.shaderStage = ShaderStage::FRAGMENT;
+        u_center.location[1] = sizeof(float) * 8;
+        ret = _customUniform.insert({ "u_radius", {} });
+        auto& u_radius = ret.first->second;
+        u_radius.shaderStage = ShaderStage::FRAGMENT;
+        u_radius.location[1] = sizeof(float) * 10;
+        ret = _customUniform.insert({ "u_expand", {} });
+        auto& u_expand = ret.first->second;
+        u_expand.shaderStage = ShaderStage::FRAGMENT;
+        u_expand.location[1] = sizeof(float) * 11;
+    } else if (fsfile == positionTextureUColor_frag) {
+        // float4 u_color;
+        _fsConstants = create_uniform_buffer("PSConstants", sizeof(float) * 4);
+        auto ret = _customUniform.insert({ "u_color", {} });
+        ret.first->second.shaderStage = ShaderStage::FRAGMENT;
+        ret.first->second.location[1] = 0;
     }
 }
 
 std::size_t Program::getUniformBufferSize(ShaderStage stage) const
 {
     if (stage == ShaderStage::VERTEX) {
-        if (_programType == ProgramType::POSITION_COLOR_LENGTH_TEXTURE
-            || _programType == ProgramType::POSITION_COLOR_TEXTURE_AS_POINTSIZE) {
+        if (vsName == positionColorLengthTexture_vert
+            || vsName == positionColorTextureAsPointsize_vert) {
             // float4x4 u_MVPMatrix;
             // float u_alpha;
             return sizeof(float) * 17;
-        } else if (_programType == ProgramType::POSITION_UCOLOR) {
+        } else if (vsName == positionUColor_vert) {
             // float4x4 u_MVPMatrix;
             // float4 u_color;
             return sizeof(float) * 20;
@@ -198,26 +220,32 @@ std::size_t Program::getUniformBufferSize(ShaderStage stage) const
             return sizeof(float) * 16;
         }
     } else if (stage == ShaderStage::FRAGMENT) {
-        if (_programType == ProgramType::LABLE_OUTLINE) {
+        if (fsName == labelOutline_frag) {
             // float4 u_effectColor;
             // float4 u_textColor;
             // int u_effectType;
             return sizeof(float) * 8 + sizeof(int);
-        } else if (_programType == ProgramType::LABLE_DISTANCEFIELD_GLOW) {
+        } else if (fsName == labelDistanceFieldGlow_frag) {
             // float4 u_effectColor;
             // float4 u_textColor;
             return sizeof(float) * 8;
-        } else if (_programType == ProgramType::LABEL_NORMAL
-            || _programType == ProgramType::LABEL_DISTANCE_NORMAL) {
+        } else if (fsName == label_normal_frag
+            || fsName == label_distanceNormal_frag) {
             // float4 u_textColor;
             return sizeof(float) * 4;
-        } else if (_programType == ProgramType::LAYER_RADIA_GRADIENT) {
+        } else if (fsName == layer_radialGradient_frag) {
             // float4 u_startColor;
             // float4 u_endColor;
             // float2 u_center;
             // float u_radius;
             // float u_expand;
             return sizeof(float) * 12;
+        } else if (fsName == positionTextureUColor_frag) {
+            // float4 u_color;
+            return sizeof(float) * 4;
+        } else if (fsName == positionTextureColorAlphaTest_frag) {
+            // float u_alpha_value;
+            return sizeof(float);
         }
     }
     return 0;
@@ -268,6 +296,11 @@ void Program::applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[])
 Program* Program::getBuiltinProgram(ProgramType type)
 {
     return ProgramCache::getInstance()->getBuiltinProgram(type);
+}
+
+Program* Program::getCustomProgram(const char* vsfile, const char* fsfile)
+{
+    return ProgramCache::getInstance()->getCustomProgram(vsfile, fsfile);
 }
 
 CC_BACKEND_END

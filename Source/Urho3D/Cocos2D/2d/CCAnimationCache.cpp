@@ -70,19 +70,14 @@ AnimationCache::~AnimationCache()
 
 void AnimationCache::addAnimation(Animation *animation, const std::string& name)
 {
-    animation->retain();
-    _animations.insert({ name, animation });
+    _animations.insert(name, animation);
 }
 
 void AnimationCache::removeAnimation(const std::string& name)
 {
     if (name.empty())
         return;
-    auto it = _animations.find(name);
-    if (it != _animations.end()) {
-        it->second->release();
-    }
-    _animations.erase(it);
+    _animations.erase(name);
 }
 
 Animation* AnimationCache::getAnimation(const std::string& name)

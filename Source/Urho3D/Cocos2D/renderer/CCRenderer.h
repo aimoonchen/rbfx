@@ -575,10 +575,8 @@ protected:
     //
     Urho3D::RenderDevice* _device{ nullptr };
     struct StateKey {
-        //backend::ProgramType programType;
-        const char* vsName = nullptr;
-        const char* fsName = nullptr;
-        backend::PrimitiveType primitiveType;
+        backend::Program* program = nullptr;
+        backend::PrimitiveType primitiveType{ backend::PrimitiveType::TRIANGLE };
         backend::BlendDescriptor blendDescriptor;
         CullMode cullMode{ CullMode::NONE };
         bool depthTestEnabled = false;
