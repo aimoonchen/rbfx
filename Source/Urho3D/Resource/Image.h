@@ -51,6 +51,9 @@ enum CompressedFormat
     CF_PVRTC_RGBA_2BPP,
     CF_PVRTC_RGB_4BPP,
     CF_PVRTC_RGBA_4BPP,
+    CF_ASTC4x4,
+    CF_ASTC5x5,
+    CF_ASTC6x6
 };
 
 /// Compressed image mip level.
@@ -258,6 +261,12 @@ private:
     SharedPtr<Image> nextLevel_;
     /// Next texture array or cube map image.
     SharedPtr<Image> nextSibling_;
+    struct astc_mip_info
+    {
+        unsigned offset;
+        unsigned size;
+    };
+    ea::vector<astc_mip_info> astc_mip_infos_;
 };
 
 }

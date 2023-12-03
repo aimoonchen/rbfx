@@ -26,6 +26,8 @@
 
 #include "Urho3D/Container/Ptr.h"
 #include "Urho3D/Core/Mutex.h"
+#include "Urho3D/Graphics/Texture2D.h"
+#include "Urho3D/Graphics/TextureCube.h"
 #include "Urho3D/IO/File.h"
 #include "Urho3D/IO/FileIdentifier.h"
 #include "Urho3D/IO/ScanFlags.h"
@@ -264,7 +266,34 @@ template <class T> T* ResourceCache::GetExistingResource(const ea::string& name)
 template <class T> T* ResourceCache::GetResource(const ea::string& name, bool sendEventOnFailure)
 {
     StringHash type = T::GetTypeStatic();
-    return static_cast<T*>(GetResource(type, name, sendEventOnFailure));
+    // TODO: for texture resource only, not for all resource.
+    if (type == Texture2D::GetTypeStatic() || type == TextureCube::GetTypeStatic())
+    {
+        ea::string realname = name;
+        // #if defined(_WIN32)
+        //         if (name.ends_with(".ktx")) {
+        //             realname = name.replaced(".ktx", ".dds");
+        //         }
+        //         else if (name.ends_with(".jpg"))
+        //         {
+        //             realname = name.replaced(".jpg", ".ktx");
+        //         }
+        // #else
+        // #if defined(__ANDROID__) || defined(IOS) || defined(__EMSCRIPTEN__)
+        if (name.ends_with(".dds"))
+        {
+            realname = name.replaced(".dds", ".ktx");
+        }
+        //         else if (name.ends_with(".jpg")) {
+        //             realname = name.replaced(".jpg", ".ktx");
+        //         }/
+        // #endif
+        return static_cast<T*>(GetResource(type, realname, sendEventOnFailure));
+    }
+    else
+    {
+        return static_cast<T*>(GetResource(type, name, sendEventOnFailure));
+    }
 }
 
 template <class T> void ResourceCache::ReleaseResource(const ea::string& name, bool force)

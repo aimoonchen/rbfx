@@ -217,6 +217,66 @@ struct DDSurfaceDesc2
     DDSCaps2 ddsCaps_;
     unsigned dwTextureStage_;
 };
+// decode astc
+void bimg_imageDecodeToRgba8(void* _dst, const void* _src, uint32_t _width, uint32_t _height,
+    uint32_t _dstPitch/*, TextureFormat::Enum _srcFormat*/)
+{
+//     const bimg::ImageBlockInfo& astcBlockInfo = bimg::getBlockInfo(_srcFormat);
+// 
+//     astcenc_config config{};
+// 
+//     astcenc_error status = astcenc_config_init(ASTCENC_PRF_LDR, astcBlockInfo.blockWidth,
+//         astcBlockInfo.blockHeight, 1, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
+// 
+//     if (status != ASTCENC_SUCCESS)
+//     {
+//         BX_TRACE("astc error in config init %s", astcenc_get_error_string(status));
+//         imageCheckerboard(_dst, _width, _height, 16, UINT32_C(0xff000000), UINT32_C(0xffffff00));
+//         break;
+//     }
+// 
+//     astcenc_context* context;
+//     status = astcenc_context_alloc(&config, 1, &context);
+// 
+//     if (status != ASTCENC_SUCCESS)
+//     {
+//         BX_TRACE("astc error in context alloc %s", astcenc_get_error_string(status));
+//         imageCheckerboard(_dst, _width, _height, 16, UINT32_C(0xff000000), UINT32_C(0xffffff00));
+//         break;
+//     }
+// 
+//     // Put image data into an astcenc_image
+//     astcenc_image image{};
+//     image.dim_x = _width;
+//     image.dim_y = _height;
+//     image.dim_z = 1;
+//     image.data_type = ASTCENC_TYPE_U8;
+//     image.data = &_dst;
+// 
+//     const uint32_t size =
+//         imageGetSize(NULL, uint16_t(_width), uint16_t(_height), 0, false, false, 1, _srcFormat);
+// 
+//     static const astcenc_swizzle swizzle{
+//         // 0123/rgba swizzle corresponds to ASTC_RGBA
+//         ASTCENC_SWZ_R,
+//         ASTCENC_SWZ_G,
+//         ASTCENC_SWZ_B,
+//         ASTCENC_SWZ_A,
+//     };
+// 
+//     status = astcenc_decompress_image(context, (const uint8_t*)_src, size, &image, &swizzle, 0);
+// 
+//     if (status != ASTCENC_SUCCESS)
+//     {
+//         BX_TRACE("astc error in compress image %s", astcenc_get_error_string(status));
+//         imageCheckerboard(_dst, _width, _height, 16, UINT32_C(0xff000000), UINT32_C(0xffffff00));
+// 
+//         astcenc_context_free(context);
+//         break;
+//     }
+// 
+//     astcenc_context_free(context);
+}
 
 bool CompressedLevel::Decompress(unsigned char* dest) const
 {
@@ -250,7 +310,19 @@ bool CompressedLevel::Decompress(unsigned char* dest) const
     case CF_PVRTC_RGBA_4BPP:
         DecompressImagePVRTC(dest, data_, width_, height_, format_);
         return true;
-
+    case CF_ASTC4x4:
+    case CF_ASTC5x5:
+    case CF_ASTC6x6:
+        /*
+    case CF_ASTC4x4:
+        return bgfx::TextureFormat::ASTC4x4;
+    case CF_ASTC5x5:
+        return bgfx::TextureFormat::ASTC5x5;
+    case CF_ASTC6x6:
+        return bgfx::TextureFormat::ASTC6x6;
+        */
+        bimg_imageDecodeToRgba8(dest, data_, width_, height_, width_ * 4);
+        return true;
     default:
         // Unknown format
         return false;
@@ -635,6 +707,21 @@ bool Image::BeginLoad(Deserializer& source)
             components_ = 4;
             break;
 
+        case 0x93d0:
+            compressedFormat_ = CF_ASTC4x4;
+            components_ = 4;
+            break;
+
+        case 0x93d2:
+            compressedFormat_ = CF_ASTC5x5;
+            components_ = 4;
+            break;
+
+        case 0x93d4:
+            compressedFormat_ = CF_ASTC6x6;
+            components_ = 4;
+            break;
+
         case 0x8d64:
             compressedFormat_ = CF_ETC1;
             components_ = 3;
@@ -682,30 +769,99 @@ bool Image::BeginLoad(Deserializer& source)
         }
 
         source.Seek(source.GetPosition() + keyValueBytes);
-        auto dataSize = (unsigned)(source.GetSize() - source.GetPosition() - mipmaps * sizeof(unsigned));
-
-        data_ = new unsigned char[dataSize];
-        width_ = width;
-        height_ = height;
-        numCompressedLevels_ = mipmaps;
-
-        unsigned dataOffset = 0;
-        for (unsigned i = 0; i < mipmaps; ++i)
+//         auto dataSize = (unsigned)(source.GetSize() - source.GetPosition() - mipmaps * sizeof(unsigned));
+// 
+//         data_ = new unsigned char[dataSize];
+//         width_ = width;
+//         height_ = height;
+//         numCompressedLevels_ = mipmaps;
+// 
+//         unsigned dataOffset = 0;
+//         for (unsigned i = 0; i < mipmaps; ++i)
+//         {
+//             unsigned levelSize = source.ReadUInt();
+//             if (levelSize + dataOffset > dataSize)
+//             {
+//                 URHO3D_LOGERROR("KTX mipmap level data size exceeds file size");
+//                 return false;
+//             }
+// 
+//             source.Read(&data_[dataOffset], levelSize);
+//             dataOffset += levelSize;
+//             if (source.GetPosition() & 3)
+//                 source.Seek((source.GetPosition() + 3) & 0xfffffffc);
+//         }
+// 
+//         SetMemoryUse(dataSize);
+        cubemap_ = faces > 1;
+        unsigned imageChainCount = 1;
+        if (cubemap_)
+            imageChainCount = 6;
+        auto faceDataSize = (unsigned)(source.GetSize() - source.GetPosition() - mipmaps * sizeof(unsigned)) / imageChainCount;
+        uint32_t startPos = source.GetPosition();
+        std::vector<int> level_size;
+        level_size.resize(16, -1);
+        Image* currentImage = this;
+        for (unsigned faceIndex = 0; faceIndex < imageChainCount; ++faceIndex)
         {
-            unsigned levelSize = source.ReadUInt();
-            if (levelSize + dataOffset > dataSize)
+            currentImage->data_ = new unsigned char[faceDataSize];
+            currentImage->cubemap_ = cubemap_;
+            currentImage->array_ = array_;
+            currentImage->components_ = components_;
+            currentImage->compressedFormat_ = compressedFormat_;
+            currentImage->width_ = width;
+            currentImage->height_ = height;
+            currentImage->depth_ = depth;
+
+            currentImage->numCompressedLevels_ = mipmaps;
+            if (!currentImage->numCompressedLevels_)
+                currentImage->numCompressedLevels_ = 1;
+
+            // Memory use needs to be exact per image as it's used for verifying the data size in GetCompressedLevel()
+            // even though it would be more proper for the first image to report the size of all siblings combined
+            currentImage->SetMemoryUse(faceDataSize);
+            if (faceIndex > 0)
             {
-                URHO3D_LOGERROR("KTX mipmap level data size exceeds file size");
-                return false;
+                source.Seek(startPos);
             }
-
-            source.Read(&data_[dataOffset], levelSize);
-            dataOffset += levelSize;
-            if (source.GetPosition() & 3)
-                source.Seek((source.GetPosition() + 3) & 0xfffffffc);
+            unsigned dataOffset = 0;
+            currentImage->astc_mip_infos_.resize(mipmaps);
+            for (unsigned i = 0; i < mipmaps; ++i)
+            {
+                if (level_size[i] < 0)
+                {
+                    level_size[i] = (source.ReadUInt() / imageChainCount);
+                }
+                else
+                {
+                    source.Seek(source.GetPosition() + sizeof(unsigned) + faceIndex * level_size[i]);
+                }
+                unsigned levelSize = level_size[i];
+                if (levelSize + dataOffset > faceDataSize)
+                {
+                    URHO3D_LOGERROR("KTX mipmap level data size exceeds file size");
+                    return false;
+                }
+                currentImage->astc_mip_infos_[i].offset = dataOffset;
+                currentImage->astc_mip_infos_[i].size = levelSize;
+                auto testpos = source.GetPosition();
+                source.Read(&currentImage->data_[dataOffset], levelSize);
+                dataOffset += levelSize;
+                if (imageChainCount > 1)
+                {
+                    source.Seek(source.GetPosition() + (imageChainCount - faceIndex - 1) * levelSize);
+                }
+                if (source.GetPosition() & 3)
+                    source.Seek((source.GetPosition() + 3) & 0xfffffffc);
+            }
+            if (faceIndex < imageChainCount - 1)
+            {
+                // Build the image chain
+                SharedPtr<Image> nextImage(MakeShared<Image>(context_));
+                currentImage->nextSibling_ = nextImage;
+                currentImage = nextImage;
+            }
         }
-
-        SetMemoryUse(dataSize);
     }
     else if (fileID == "PVR\3")
     {
@@ -2148,6 +2304,14 @@ CompressedLevel Image::GetCompressedLevel(unsigned index) const
             level.depth_ /= 2;
             ++i;
         }
+    }
+    else if (compressedFormat_ >= CF_ASTC4x4)
+    {
+        level.data_ = data_.get() + astc_mip_infos_[index].offset;
+        level.dataSize_ = astc_mip_infos_[index].size;
+        level.width_ = Max(width_ >> index, 1);
+        level.height_ = Max(height_ >> index, 1);
+        return level;
     }
     else
     {

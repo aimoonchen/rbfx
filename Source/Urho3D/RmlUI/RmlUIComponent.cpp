@@ -501,6 +501,11 @@ RmlUIComponent* RmlUIComponent::FromDocument(Rml::ElementDocument* document)
     return nullptr;
 }
 
+void RmlUIComponent::OnDocumentPostLoad()
+{
+    document_->DispatchEvent("postload", {});
+}
+
 Texture2D* RmlUIComponent::GetRenderTexture(const ea::string& name)
 {
     static auto render_interface = (Detail::RmlRenderer*)::Rml::GetRenderInterface();

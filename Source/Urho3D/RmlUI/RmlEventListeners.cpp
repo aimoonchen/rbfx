@@ -173,7 +173,7 @@ Rml::EventListener* CreateSingleEventListener(ea::string_view value, Rml::Elemen
         return CustomEventListener::CreateInstancer(value.substr(eventPrefix.size()), element);
     else
     {
-        URHO3D_LOGWARNING("Unknown event '{}'", value);
+        //URHO3D_LOGWARNING("Unknown event '{}'", value);
         return nullptr;
     }
 }

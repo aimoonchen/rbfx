@@ -141,7 +141,7 @@ protected:
     virtual void OnDataModelInitialized() {}
 
     virtual void OnDocumentPreLoad() {}
-    virtual void OnDocumentPostLoad() {}
+    virtual void OnDocumentPostLoad();
     virtual void OnDocumentPreUnload() {}
     virtual void OnDocumentPostUnload() {}
     /// @}
