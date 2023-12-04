@@ -58,6 +58,7 @@ public:
 	virtual Urho3D::RenderDevice* GetRenderDevice() const = 0;
 
     static RendererRef Create(Urho3D::RenderDevice* renderDevice, int32_t squareMaxCount, bool isReversedDepth = false);
+    //virtual void ResetStateForDefferedContext() = 0;
 };
 
 // class SingleFrameMemoryPool : public ::EffekseerRenderer::SingleFrameMemoryPool, public ::Effekseer::ReferenceObject

@@ -945,6 +945,11 @@ void RendererImplemented::ResetRenderState()
 	m_renderState->Update(true);
 }
 
+// void RendererImplemented::ResetStateForDefferedContext()
+// {
+//     GetImpl()->InternalVertexBuffer->GetCurrentBuffer().DownCast<Backend::VertexBuffer>()->MakeAllDirtied();
+// }
+
 Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(EffekseerRenderer::RendererShaderType type)
 {
     Effekseer::CustomVector<Effekseer::CustomString<char>> texLoc;

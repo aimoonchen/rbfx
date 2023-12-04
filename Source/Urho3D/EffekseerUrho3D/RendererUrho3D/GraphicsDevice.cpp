@@ -107,6 +107,10 @@ bool VertexBuffer::Allocate(int32_t size, bool isDynamic, const void* initData, 
     VBData.pData = initData;
     VBData.DataSize = initSize;
     renderDevice_->GetRenderDevice()->CreateBuffer(VertBuffDesc, initData ? &VBData : nullptr, &buffer_);
+    //
+//     if (isDynamic_) {
+//         blocks_.Allocate(size, 0);
+//     }
     return buffer_ != nullptr;
 }
 
@@ -125,6 +129,7 @@ bool VertexBuffer::Init(int32_t size, bool isDynamic, const void* initData, int3
 
 void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 {
+    auto dirtied = blocks_.Allocate(size, offset);
 // 	if (auto dst = static_cast<uint8_t*>(buffer_->Lock()))
 // 	{
 // 		memcpy(dst + offset, src, size);
@@ -132,7 +137,7 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 	}
     if (isDynamic_) {
         void* dst = nullptr;
-        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE/*Diligent::MAP_FLAG_DISCARD*/, dst);
+        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, dirtied ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
         if (dst) {
             memcpy((uint8_t*)dst + offset, src, size);
             renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
@@ -141,6 +146,11 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
         renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
 }
+
+// void VertexBuffer::MakeAllDirtied()
+// {
+//     blocks_.Allocate(size_, 0);
+// }
 
 IndexBuffer::IndexBuffer(Urho3D::RenderDevice* device)
     : renderDevice_{ device }

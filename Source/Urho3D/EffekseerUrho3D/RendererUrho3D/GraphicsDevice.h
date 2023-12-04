@@ -2,6 +2,7 @@
 #ifndef __EFFEKSEERRENDERER_LLGI_GRAPHICS_DEVICE_H__
 #define __EFFEKSEERRENDERER_LLGI_GRAPHICS_DEVICE_H__
 
+#include "../EffekseerRendererCommon/EffekseerRenderer.CommonUtils.h"
 #include <Effekseer.h>
 // #include <LLGI.Buffer.h>
 // #include <LLGI.CommandList.h>
@@ -75,6 +76,7 @@ class VertexBuffer
 	: public Effekseer::Backend::VertexBuffer
 {
 private:
+    EffekseerRenderer::DirtiedBlock blocks_;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> buffer_;
     Urho3D::RenderDevice* renderDevice_ = nullptr;
 	int32_t size_ = 0;
@@ -92,6 +94,8 @@ public:
 	bool Init(int32_t size, bool isDynamic, const void* initData = nullptr, int32_t initSize = 0);
 
 	void UpdateData(const void* src, int32_t size, int32_t offset) override;
+
+    //void MakeAllDirtied();
 
     Diligent::IBuffer* GetBuffer()
 	{

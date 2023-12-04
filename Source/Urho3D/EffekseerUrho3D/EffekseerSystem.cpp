@@ -50,7 +50,7 @@ EffekseerSystem::EffekseerSystem(Urho3D::Context* context)
 	s_instance = this;
 
 	int32_t instanceMaxCount = 8000;// 2000;
-	int32_t squareMaxCount = 4000;// 
+    int32_t squareMaxCount = 8000;// 4000;// 
 	int32_t drawMaxCount = 128;
 // 	Ref<Script> soundScript;
 // 
@@ -183,7 +183,9 @@ void EffekseerSystem::_process(float delta)
 // 	for (int i = 0; i < iterations; i++) {
 // 		m_manager->Update(advance);
 // 	}
-    m_manager->Update();
+    //m_manager->Update();
+    Effekseer::Manager::UpdateParameter updateParameter;
+    m_manager->Update(updateParameter);
 	m_renderer->SetTime(m_renderer->GetTime() + delta);
 }
 

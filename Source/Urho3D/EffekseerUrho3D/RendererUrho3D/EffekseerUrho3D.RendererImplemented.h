@@ -207,6 +207,8 @@ public:
 
 	void ResetRenderState() override;
 
+    //void ResetStateForDefferedContext() override;
+
 	virtual int GetRef() override
 	{
 		return ::Effekseer::ReferenceObject::GetRef();
