@@ -29,6 +29,7 @@ if (MSVC)
         cmake_host_system_information(RESULT URHO3D_PARALLEL_BUILD QUERY NUMBER_OF_PHYSICAL_CORES)
         ucm_add_flags(/MP${URHO3D_PARALLEL_BUILD})
     endif ()
+    add_compile_options("/wd4996") # _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
 endif ()
 
 add_subdirectory (ThirdParty)

@@ -38,7 +38,7 @@
 #include <webp/encode.h>
 #include <webp/mux.h>
 #endif
-
+#include <astc-encoder/astcenc.h>
 #include "../DebugNew.h"
 
 #ifndef MAKEFOURCC
@@ -217,65 +217,195 @@ struct DDSurfaceDesc2
     DDSCaps2 ddsCaps_;
     unsigned dwTextureStage_;
 };
+
 // decode astc
-void bimg_imageDecodeToRgba8(void* _dst, const void* _src, uint32_t _width, uint32_t _height,
-    uint32_t _dstPitch/*, TextureFormat::Enum _srcFormat*/)
+struct ImageBlockInfo
 {
-//     const bimg::ImageBlockInfo& astcBlockInfo = bimg::getBlockInfo(_srcFormat);
+    uint8_t bitsPerPixel;
+    uint8_t blockWidth;
+    uint8_t blockHeight;
+    uint8_t blockSize;
+    uint8_t minBlockX;
+    uint8_t minBlockY;
+    uint8_t depthBits;
+    uint8_t stencilBits;
+    uint8_t rBits;
+    uint8_t gBits;
+    uint8_t bBits;
+    uint8_t aBits;
+};
+
+static const ImageBlockInfo s_imageBlockInfo[] = {
+    {8, 4, 4, 16, 1, 1, 0, 0, 0, 0, 0, 0}, // ASTC4x4
+    {6, 5, 5, 16, 1, 1, 0, 0, 0, 0, 0, 0}, // ASTC5x5
+    {4, 6, 6, 16, 1, 1, 0, 0, 0, 0, 0, 0}, // ASTC6x6
+};
+
+// static inline uint32_t uint32_srl(uint32_t _a, int32_t _sa) { return _a >> _sa; }
+// static inline uint32_t uint32_or(uint32_t _a, uint32_t _b) { return _a | _b; }
+// static inline uint32_t uint32_not(uint32_t _a) { return ~_a; }
+// static inline uint32_t uint32_and(uint32_t _a, uint32_t _b) { return _a & _b; }
+// static inline uint32_t uint32_sub(uint32_t _a, uint32_t _b) { return _a - _b; }
+// static inline uint32_t uint32_add(uint32_t _a, uint32_t _b) { return _a + _b; }
+// static inline uint32_t uint32_cntbits(uint32_t _val)
+// {
+// #if defined(__clang__)
+//     return __builtin_popcount(_val);
+// #else
+//     const uint32_t tmp0 = uint32_srl(_val, 1);
+//     const uint32_t tmp1 = uint32_and(tmp0, 0x55555555);
+//     const uint32_t tmp2 = uint32_sub(_val, tmp1);
+//     const uint32_t tmp3 = uint32_and(tmp2, 0xc30c30c3);
+//     const uint32_t tmp4 = uint32_srl(tmp2, 2);
+//     const uint32_t tmp5 = uint32_and(tmp4, 0xc30c30c3);
+//     const uint32_t tmp6 = uint32_srl(tmp2, 4);
+//     const uint32_t tmp7 = uint32_and(tmp6, 0xc30c30c3);
+//     const uint32_t tmp8 = uint32_add(tmp3, tmp5);
+//     const uint32_t tmp9 = uint32_add(tmp7, tmp8);
+//     const uint32_t tmpA = uint32_srl(tmp9, 6);
+//     const uint32_t tmpB = uint32_add(tmp9, tmpA);
+//     const uint32_t tmpC = uint32_srl(tmpB, 12);
+//     const uint32_t tmpD = uint32_srl(tmpB, 24);
+//     const uint32_t tmpE = uint32_add(tmpB, tmpC);
+//     const uint32_t tmpF = uint32_add(tmpD, tmpE);
+//     const uint32_t result = uint32_and(tmpF, 0x3f);
 // 
-//     astcenc_config config{};
+//     return result;
+// #endif
+// }
+// static inline uint8_t countLeadingZeros(uint32_t _val)
+// {
+// #if defined(__clang__)
+//     return 0 == _val ? 32 : __builtin_clz(_val);
+// #else
+//     const uint32_t tmp0 = uint32_srl(_val, 1);
+//     const uint32_t tmp1 = uint32_or(tmp0, _val);
+//     const uint32_t tmp2 = uint32_srl(tmp1, 2);
+//     const uint32_t tmp3 = uint32_or(tmp2, tmp1);
+//     const uint32_t tmp4 = uint32_srl(tmp3, 4);
+//     const uint32_t tmp5 = uint32_or(tmp4, tmp3);
+//     const uint32_t tmp6 = uint32_srl(tmp5, 8);
+//     const uint32_t tmp7 = uint32_or(tmp6, tmp5);
+//     const uint32_t tmp8 = uint32_srl(tmp7, 16);
+//     const uint32_t tmp9 = uint32_or(tmp8, tmp7);
+//     const uint32_t tmpA = uint32_not(tmp9);
+//     const uint32_t result = uint32_cntbits(tmpA);
 // 
-//     astcenc_error status = astcenc_config_init(ASTCENC_PRF_LDR, astcBlockInfo.blockWidth,
-//         astcBlockInfo.blockHeight, 1, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
+//     return uint8_t(result);
+// #endif
+// }
 // 
-//     if (status != ASTCENC_SUCCESS)
-//     {
-//         BX_TRACE("astc error in config init %s", astcenc_get_error_string(status));
-//         imageCheckerboard(_dst, _width, _height, 16, UINT32_C(0xff000000), UINT32_C(0xffffff00));
-//         break;
-//     }
-// 
-//     astcenc_context* context;
-//     status = astcenc_context_alloc(&config, 1, &context);
-// 
-//     if (status != ASTCENC_SUCCESS)
-//     {
-//         BX_TRACE("astc error in context alloc %s", astcenc_get_error_string(status));
-//         imageCheckerboard(_dst, _width, _height, 16, UINT32_C(0xff000000), UINT32_C(0xffffff00));
-//         break;
-//     }
-// 
-//     // Put image data into an astcenc_image
-//     astcenc_image image{};
-//     image.dim_x = _width;
-//     image.dim_y = _height;
-//     image.dim_z = 1;
-//     image.data_type = ASTCENC_TYPE_U8;
-//     image.data = &_dst;
-// 
-//     const uint32_t size =
-//         imageGetSize(NULL, uint16_t(_width), uint16_t(_height), 0, false, false, 1, _srcFormat);
-// 
-//     static const astcenc_swizzle swizzle{
-//         // 0123/rgba swizzle corresponds to ASTC_RGBA
-//         ASTCENC_SWZ_R,
-//         ASTCENC_SWZ_G,
-//         ASTCENC_SWZ_B,
-//         ASTCENC_SWZ_A,
-//     };
-// 
-//     status = astcenc_decompress_image(context, (const uint8_t*)_src, size, &image, &swizzle, 0);
-// 
-//     if (status != ASTCENC_SUCCESS)
-//     {
-//         BX_TRACE("astc error in compress image %s", astcenc_get_error_string(status));
-//         imageCheckerboard(_dst, _width, _height, 16, UINT32_C(0xff000000), UINT32_C(0xffffff00));
-// 
-//         astcenc_context_free(context);
-//         break;
-//     }
-// 
-//     astcenc_context_free(context);
+// static inline uint8_t ceilLog2(uint32_t _a)
+// {
+//     return uint32_t(_a) < uint32_t(1) ? uint32_t(0) : sizeof(uint32_t) * 8 - countLeadingZeros(_a - 1);
+// }
+static inline uint32_t ceilLog2(uint32_t _a)
+{
+    if (_a < 1) {
+        return 0;
+    }
+    const union { float f; uint32_t i; } converter = { (float)_a };
+    return (converter.i - 0x3F000001) >> 23;
+}
+static uint8_t calcNumMips(bool _hasMips, uint16_t _width, uint16_t _height, uint16_t _depth = 1)
+{
+    if (_hasMips) {
+        const uint32_t max = std::max(_width, std::max(_height, _depth));
+        const uint32_t num = 1 + ceilLog2(max);
+
+        return uint8_t(num);
+    }
+
+    return 1;
+}
+
+static uint32_t imageGetSize(uint16_t _width, uint16_t _height, uint16_t _depth, bool _cubeMap,
+    bool _hasMips, uint16_t _numLayers, CompressedFormat format)
+{
+    const ImageBlockInfo& blockInfo = s_imageBlockInfo[format - CF_ASTC4x4];
+    const uint8_t bpp = blockInfo.bitsPerPixel;
+    const uint16_t blockWidth = blockInfo.blockWidth;
+    const uint16_t blockHeight = blockInfo.blockHeight;
+    const uint16_t minBlockX = blockInfo.minBlockX;
+    const uint16_t minBlockY = blockInfo.minBlockY;
+    const uint8_t blockSize = blockInfo.blockSize;
+
+    _width = std::max<uint16_t>(blockWidth * minBlockX, ((_width + blockWidth - 1) / blockWidth) * blockWidth);
+    _height = std::max<uint16_t>(blockHeight * minBlockY, ((_height + blockHeight - 1) / blockHeight) * blockHeight);
+    _depth = std::max<uint16_t>(1, _depth);
+    const uint8_t numMips = calcNumMips(_hasMips, _width, _height, _depth);
+    const uint32_t sides = _cubeMap ? 6 : 1;
+
+    uint32_t width = _width;
+    uint32_t height = _height;
+    uint32_t depth = _depth;
+    uint32_t size = 0;
+
+    for (uint32_t lod = 0; lod < numMips; ++lod)
+    {
+        width = std::max<uint32_t>(blockWidth * minBlockX, ((width + blockWidth - 1) / blockWidth) * blockWidth);
+        height = std::max<uint32_t>(blockHeight * minBlockY, ((height + blockHeight - 1) / blockHeight) * blockHeight);
+        depth = std::max<uint32_t>(1, depth);
+
+        size += uint32_t(uint64_t(width / blockWidth * height / blockHeight * depth) * blockSize * sides);
+
+        width >>= 1;
+        height >>= 1;
+        depth >>= 1;
+    }
+
+    size *= _numLayers;
+
+    return size;
+}
+
+static void DecompressImageASTC(void* _dst, const void* _src, uint32_t _width, uint32_t _height, CompressedFormat format)
+{
+    const auto& astcBlockInfo = s_imageBlockInfo[format - CF_ASTC4x4];
+
+    astcenc_config config{};
+
+    astcenc_error status = astcenc_config_init(ASTCENC_PRF_LDR, astcBlockInfo.blockWidth,
+        astcBlockInfo.blockHeight, 1, ASTCENC_PRE_MEDIUM, ASTCENC_FLG_DECOMPRESS_ONLY, &config);
+
+    if (status != ASTCENC_SUCCESS) {
+        URHO3D_LOGERRORF("astc error in config init %s", astcenc_get_error_string(status));
+        return;
+    }
+
+    astcenc_context* context;
+    status = astcenc_context_alloc(&config, 1, &context);
+
+    if (status != ASTCENC_SUCCESS) {
+        URHO3D_LOGERRORF("astc error in context alloc %s", astcenc_get_error_string(status));
+        return;
+    }
+
+    // Put image data into an astcenc_image
+    astcenc_image image{};
+    image.dim_x = _width;
+    image.dim_y = _height;
+    image.dim_z = 1;
+    image.data_type = ASTCENC_TYPE_U8;
+    image.data = &_dst;
+
+    const uint32_t size = imageGetSize(uint16_t(_width), uint16_t(_height), 0, false, false, 1, format);
+
+    static const astcenc_swizzle swizzle{
+        // 0123/rgba swizzle corresponds to ASTC_RGBA
+        ASTCENC_SWZ_R,
+        ASTCENC_SWZ_G,
+        ASTCENC_SWZ_B,
+        ASTCENC_SWZ_A,
+    };
+
+    status = astcenc_decompress_image(context, (const uint8_t*)_src, size, &image, &swizzle, 0);
+
+    if (status != ASTCENC_SUCCESS) {
+        URHO3D_LOGERRORF("astc error in compress image %s", astcenc_get_error_string(status));
+    }
+
+    astcenc_context_free(context);
 }
 
 bool CompressedLevel::Decompress(unsigned char* dest) const
@@ -313,15 +443,7 @@ bool CompressedLevel::Decompress(unsigned char* dest) const
     case CF_ASTC4x4:
     case CF_ASTC5x5:
     case CF_ASTC6x6:
-        /*
-    case CF_ASTC4x4:
-        return bgfx::TextureFormat::ASTC4x4;
-    case CF_ASTC5x5:
-        return bgfx::TextureFormat::ASTC5x5;
-    case CF_ASTC6x6:
-        return bgfx::TextureFormat::ASTC6x6;
-        */
-        bimg_imageDecodeToRgba8(dest, data_, width_, height_, width_ * 4);
+        DecompressImageASTC(dest, data_, width_, height_, format_);
         return true;
     default:
         // Unknown format

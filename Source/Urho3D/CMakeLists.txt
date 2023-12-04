@@ -236,6 +236,7 @@ set (PRIVATE_THIRD_PARTY_DEPENDENCIES
     SPIRV-Tools-opt
     SPIRV-Reflect
     Lua
+    astc
 )
 if (TARGET datachannel-wasm)
     target_link_libraries(Urho3D PUBLIC datachannel-wasm)

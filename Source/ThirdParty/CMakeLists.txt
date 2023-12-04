@@ -139,6 +139,8 @@ if (URHO3D_SYSTEMUI)
     add_subdirectory(imgui)
 endif ()
 
+add_subdirectory(astc-encoder)
+
 if (URHO3D_NETWORK)
     set(NO_MEDIA ON)
     set(NO_EXAMPLES ON)
