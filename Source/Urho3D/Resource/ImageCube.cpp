@@ -364,4 +364,10 @@ ea::pair<CubeMapFace, Vector2> ImageCube::ProjectDirectionOnFace(const Vector3& 
     return result;
 }
 
+void ImageCube::SetFaceImages(ea::vector<SharedPtr<Image>>& faceImages, int width)
+{
+    faceImages_ = faceImages;
+    width_ = width;
+}
+
 }

@@ -81,6 +81,7 @@ public:
     static Vector3 ProjectUVOnCube(CubeMapFace face, const Vector2& uv);
     /// Project direction onto cubemap.
     static ea::pair<CubeMapFace, Vector2> ProjectDirectionOnFace(const Vector3& direction);
+    void SetFaceImages(ea::vector<SharedPtr<Image>>& faceImages, int width);
 
 private:
     /// Face images.
