@@ -137,7 +137,7 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 	}
     if (isDynamic_) {
         void* dst = nullptr;
-        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, dirtied ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
+        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, dirtied ? Diligent::MAP_FLAG_DISCARD/* | Diligent::MAP_FLAG_DO_NOT_WAIT*/ : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
         if (dst) {
             memcpy((uint8_t*)dst + offset, src, size);
             renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
