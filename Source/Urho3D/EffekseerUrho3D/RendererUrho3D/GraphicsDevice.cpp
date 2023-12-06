@@ -107,9 +107,14 @@ bool VertexBuffer::Allocate(int32_t size, bool isDynamic, const void* initData, 
     VBData.pData = initData;
     VBData.DataSize = initSize;
     renderDevice_->GetRenderDevice()->CreateBuffer(VertBuffDesc, initData ? &VBData : nullptr, &buffer_);
-    //
+
 //     if (isDynamic_) {
 //         blocks_.Allocate(size, 0);
+//     }
+//     if (isDynamic) {
+//         std::vector<Diligent::StateTransitionDesc> Barriers;
+//         Barriers.emplace_back(buffer_, Diligent::RESOURCE_STATE_UNKNOWN, Diligent::RESOURCE_STATE_VERTEX_BUFFER, Diligent::STATE_TRANSITION_FLAG_UPDATE_STATE);
+//         renderDevice_->GetImmediateContext()->TransitionResourceStates(static_cast<Diligent::Uint32>(Barriers.size()), Barriers.data());
 //     }
     return buffer_ != nullptr;
 }
@@ -137,7 +142,7 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 	}
     if (isDynamic_) {
         void* dst = nullptr;
-        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, dirtied ? Diligent::MAP_FLAG_DISCARD/* | Diligent::MAP_FLAG_DO_NOT_WAIT*/ : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
+        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, dirtied ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
         if (dst) {
             memcpy((uint8_t*)dst + offset, src, size);
             renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
