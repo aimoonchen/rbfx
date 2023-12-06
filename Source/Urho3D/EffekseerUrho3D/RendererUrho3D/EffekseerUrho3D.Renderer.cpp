@@ -857,17 +857,11 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 	impl->drawvertexCount += spriteCount * 4;
 
     Diligent::DrawIndexedAttribs DrawAttrs; // This is an indexed draw call
-
     DrawAttrs.IndexType = (currentIndexBuffer_->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride4) ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
-
-    if (m_renderMode == Effekseer::RenderMode::Normal)
-	{
-        DrawAttrs.FirstIndexLocation = vertexOffset / 4 * 6;
+    DrawAttrs.BaseVertex = vertexOffset;
+    if (m_renderMode == Effekseer::RenderMode::Normal) {
         DrawAttrs.NumIndices = spriteCount * 6;
-	}
-	else
-	{
-        DrawAttrs.FirstIndexLocation = vertexOffset / 4 * 8;
+	} else {
         DrawAttrs.NumIndices = spriteCount * 8;
 	}
     // Verify the state of vertex and index buffers

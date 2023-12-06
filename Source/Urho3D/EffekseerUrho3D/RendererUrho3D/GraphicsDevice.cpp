@@ -171,7 +171,7 @@ bool IndexBuffer::Allocate(int32_t elementCount, int32_t stride, const void* ini
 	//buffer_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateBuffer(LLGI::BufferUsageType::Index | LLGI::BufferUsageType::MapWrite, stride * elementCount));
     Diligent::BufferDesc IndBuffDesc;
     IndBuffDesc.Name = "Effekseer index buffer";
-    IndBuffDesc.Usage = Diligent::USAGE_DEFAULT; //Diligent::USAGE_IMMUTABLE;
+    IndBuffDesc.Usage = initData ? Diligent::USAGE_IMMUTABLE : Diligent::USAGE_DEFAULT;
     IndBuffDesc.BindFlags = Diligent::BIND_INDEX_BUFFER;
     IndBuffDesc.Size = stride * elementCount;
     Diligent::BufferData IBData;
@@ -400,14 +400,14 @@ Effekseer::Backend::IndexBufferRef GraphicsDevice::CreateIndexBuffer(int32_t ele
 	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(renderDevice_);
 
     int32_t strideSize = (stride == Effekseer::Backend::IndexBufferStrideType::Stride4) ? 4 : 2;
-	if (!ret->Init(elementCount, strideSize))
+	if (!ret->Init(elementCount, strideSize, initialData, elementCount * strideSize))
 	{
 		return nullptr;
 	}
-    if (initialData != nullptr)
-    {
-        ret->UpdateData(initialData, elementCount * strideSize, 0);
-    }
+//     if (initialData != nullptr)
+//     {
+//         ret->UpdateData(initialData, elementCount * strideSize, 0);
+//     }
 	return ret;
 }
 
