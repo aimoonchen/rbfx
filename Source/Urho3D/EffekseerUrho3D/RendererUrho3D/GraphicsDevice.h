@@ -76,7 +76,7 @@ class VertexBuffer
 	: public Effekseer::Backend::VertexBuffer
 {
 private:
-    EffekseerRenderer::DirtiedBlock blocks_;
+    //EffekseerRenderer::DirtiedBlock blocks_;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> buffer_;
     Urho3D::RenderDevice* renderDevice_ = nullptr;
 	int32_t size_ = 0;
@@ -169,7 +169,7 @@ private:
     Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader_;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> vertexUniformBuffer_;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> pixelUniformBuffer_;
-    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding_;
+    //Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding_;
     Effekseer::Backend::UniformLayoutRef uniformLayout_ = nullptr;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const char* name, int32_t size);
 public:
@@ -182,8 +182,8 @@ public:
     Diligent::IShader* GetPixelShader() const { return pixelShader_; }
     Diligent::IBuffer* GetVertexUniformBuffer() const { return vertexUniformBuffer_; }
     Diligent::IBuffer* GetPixelUniformBuffer() const { return pixelUniformBuffer_; }
-    void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb);
-    Diligent::IShaderResourceBinding* GetShaderResourceBinding() const { return shaderResourceBinding_; }
+    //void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb);
+    //Diligent::IShaderResourceBinding* GetShaderResourceBinding() const { return shaderResourceBinding_; }
     void CreateVertexUniformBuffer(int32_t size);
     void CreatePixelUniformBuffer(int32_t size);
     const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;

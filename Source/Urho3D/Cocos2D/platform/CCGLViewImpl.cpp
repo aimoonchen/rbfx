@@ -52,7 +52,7 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-GLViewImpl* GLFWEventHandler::_view = nullptr;
+//GLViewImpl* GLFWEventHandler::_view = nullptr;
 
 const std::string GLViewImpl::EVENT_WINDOW_RESIZED = "glview_window_resized";
 const std::string GLViewImpl::EVENT_WINDOW_FOCUSED = "glview_window_focused";
@@ -212,7 +212,7 @@ GLViewImpl::GLViewImpl(bool initglfw)
         g_keyCodeMap[item.glfwKeyCode] = item.keyCode;
     }
 
-    GLFWEventHandler::setGLViewImpl(this);
+//    GLFWEventHandler::setGLViewImpl(this);
 //     if (initglfw)
 //     {
 //         glfwSetErrorCallback(GLFWEventHandler::onGLFWError);
@@ -223,7 +223,7 @@ GLViewImpl::GLViewImpl(bool initglfw)
 GLViewImpl::~GLViewImpl()
 {
     CCLOGINFO("deallocing GLViewImpl: %p", this);
-    GLFWEventHandler::setGLViewImpl(nullptr);
+    //GLFWEventHandler::setGLViewImpl(nullptr);
     //glfwTerminate();
 }
 
@@ -948,7 +948,7 @@ void GLViewImpl::onGLFWWindowIconifyCallback(int iconified)
 
 void GLViewImpl::onGLFWWindowFocusCallback(int focused)
 {
-    if (focused == true)
+    if (focused)
     {
         Director::getInstance()->getEventDispatcher()->dispatchCustomEvent(GLViewImpl::EVENT_WINDOW_FOCUSED, nullptr);
     }

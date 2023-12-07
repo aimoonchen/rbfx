@@ -40,6 +40,7 @@ namespace Diligent
 {
 struct IPipelineState;
 struct IBuffer;
+struct IShaderResourceVariable;
 }
 namespace Urho3D
 {
@@ -205,30 +206,6 @@ public:
     @stencil The clear stencil value.
     */
     //void clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder);
-
-    /**
-     * Get color attachment.
-     * @return Color attachment.
-     */
-    Texture2D* getColorAttachment() const;
-
-    /**
-     * Get depth attachment.
-     * @return Depth attachment.
-     */
-    Texture2D* getDepthAttachment() const;
-
-    /**
-     * Get stencil attachment.
-     * @return Stencil attachment.
-     */
-    Texture2D* getStencilAttachment() const;
-
-    /**
-     * Get color clear value.
-     * @return Color clear value.
-     */
-    const Color4F& getClearColor() const;
 
     /**
      * Get depth clear value.
@@ -490,8 +467,8 @@ protected:
      * @param pipelineDescriptor Specifies the pipeline descriptor.
      * @param renderPassDescriptor Specifies the render pass descriptor.
      */
-    void setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor&);
-    void commitUniformAndTextures(const PipelineDescriptor& pipelineDescriptor);
+    Diligent::IPipelineState* getOrCreateRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor&);
+    void commitUniformAndTextures(const PipelineDescriptor& pipelineDescriptor, Diligent::IPipelineState* pipelineState);
     void pushStateBlock();
 
     void popStateBlock();
@@ -510,7 +487,9 @@ protected:
 
     //for TrianglesCommand
     V3F_C4B_T2F _verts[VBO_SIZE];
-    unsigned short _indices[INDEX_VBO_SIZE];
+    uint16_t _indices[INDEX_VBO_SIZE];
+//     V3F_C4B_T2F* _verts = nullptr;
+//     uint16_t* _indices = nullptr;
     Diligent::IBuffer* _vertexBuffer = nullptr;
     Diligent::IBuffer* _indexBuffer = nullptr;
     TriangleCommandBufferManager _triangleCommandBufferManager;
@@ -550,14 +529,6 @@ protected:
 
     unsigned int _stencilRef = 0;
 
-    // weak reference
-    Texture2D* _colorAttachment = nullptr;
-    Texture2D* _depthAttachment = nullptr;
-    Texture2D* _stencilAttachment = nullptr;
-    Color4F _clearColor = Color4F::BLACK;
-    //ClearFlag _clearFlag;
-    //RenderTargetFlag _renderTargetFlag = RenderTargetFlag::COLOR;
-
     struct ScissorState
     {
         ScissorRect rect;
@@ -586,7 +557,13 @@ protected:
         float clearStencilValue = 0.0f;
         bool operator<(const StateKey& v) const;
     };
+    struct SRBInfo
+    {
+        Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding;
+        std::vector<Diligent::IShaderResourceVariable*> shaderResourceVariables;
+    };
     ea::map<StateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
+    ea::map<Diligent::IPipelineState*, SRBInfo> shaderResourceBindings_;
 };
 
 NS_CC_END

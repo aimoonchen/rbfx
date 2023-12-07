@@ -188,88 +188,88 @@ private:
 };
 
 
-class CC_DLL GLFWEventHandler
-{
-public:
-    static void onGLFWError(int errorID, const char* errorDesc)
-    {
-        if (_view)
-            _view->onGLFWError(errorID, errorDesc);
-    }
-
-    static void onGLFWMouseCallBack(Urho3D::MouseButton button, int action, int modify)
-    {
-        if (_view)
-            _view->onGLFWMouseCallBack(button, action, modify);
-    }
-
-    static void onGLFWMouseMoveCallBack(double x, double y)
-    {
-        if (_view)
-            _view->onGLFWMouseMoveCallBack(x, y);
-    }
-
-    static void onGLFWMouseScrollCallback(double x, double y)
-    {
-        if (_view)
-            _view->onGLFWMouseScrollCallback(x, y);
-    }
-
-    static void onGLFWKeyCallback(int key, int scancode, int action, int mods)
-    {
-        if (_view)
-            _view->onGLFWKeyCallback(key, scancode, action, mods);
-    }
-
-    static void onGLFWCharCallback(unsigned int character)
-    {
-        if (_view)
-            _view->onGLFWCharCallback(character);
-    }
-
-    static void onGLFWWindowPosCallback(int x, int y)
-    {
-        if (_view)
-            _view->onGLFWWindowPosCallback(x, y);
-    }
-
-    static void onGLFWWindowSizeFunCallback(int width, int height)
-    {
-        if (_view)
-            _view->onGLFWWindowSizeFunCallback(width, height);
-    }
-
-
-    static void onGLFWframebuffersize(int width, int height)
-    {
-        if (_view)
-            _view->onGLFWframebuffersize(width, height);
-    }
-
-    static void setGLViewImpl(GLViewImpl* view)
-    {
-        _view = view;
-    }
-
-    static void onGLFWWindowIconifyCallback(int iconified)
-    {
-        if (_view)
-        {
-            _view->onGLFWWindowIconifyCallback(iconified);
-        }
-    }
-
-    static void onGLFWWindowFocusCallback(int focused)
-    {
-        if (_view)
-        {
-            _view->onGLFWWindowFocusCallback(focused);
-        }
-    }
-
-
-private:
-    static GLViewImpl* _view;
-};
+// class CC_DLL GLFWEventHandler
+// {
+// public:
+//     static void onGLFWError(int errorID, const char* errorDesc)
+//     {
+//         if (_view)
+//             _view->onGLFWError(errorID, errorDesc);
+//     }
+// 
+//     static void onGLFWMouseCallBack(Urho3D::MouseButton button, int action, int modify)
+//     {
+//         if (_view)
+//             _view->onGLFWMouseCallBack(button, action, modify);
+//     }
+// 
+//     static void onGLFWMouseMoveCallBack(double x, double y)
+//     {
+//         if (_view)
+//             _view->onGLFWMouseMoveCallBack(x, y);
+//     }
+// 
+//     static void onGLFWMouseScrollCallback(double x, double y)
+//     {
+//         if (_view)
+//             _view->onGLFWMouseScrollCallback(x, y);
+//     }
+// 
+//     static void onGLFWKeyCallback(int key, int scancode, int action, int mods)
+//     {
+//         if (_view)
+//             _view->onGLFWKeyCallback(key, scancode, action, mods);
+//     }
+// 
+//     static void onGLFWCharCallback(unsigned int character)
+//     {
+//         if (_view)
+//             _view->onGLFWCharCallback(character);
+//     }
+// 
+//     static void onGLFWWindowPosCallback(int x, int y)
+//     {
+//         if (_view)
+//             _view->onGLFWWindowPosCallback(x, y);
+//     }
+// 
+//     static void onGLFWWindowSizeFunCallback(int width, int height)
+//     {
+//         if (_view)
+//             _view->onGLFWWindowSizeFunCallback(width, height);
+//     }
+// 
+// 
+//     static void onGLFWframebuffersize(int width, int height)
+//     {
+//         if (_view)
+//             _view->onGLFWframebuffersize(width, height);
+//     }
+// 
+//     static void setGLViewImpl(GLViewImpl* view)
+//     {
+//         _view = view;
+//     }
+// 
+//     static void onGLFWWindowIconifyCallback(int iconified)
+//     {
+//         if (_view)
+//         {
+//             _view->onGLFWWindowIconifyCallback(iconified);
+//         }
+//     }
+// 
+//     static void onGLFWWindowFocusCallback(int focused)
+//     {
+//         if (_view)
+//         {
+//             _view->onGLFWWindowFocusCallback(focused);
+//         }
+//     }
+// 
+// 
+// private:
+//     static GLViewImpl* _view;
+// };
 
 NS_CC_END   // end of namespace   cocos2d

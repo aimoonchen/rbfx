@@ -577,8 +577,14 @@ void Renderer::drawBatchedTriangles()
 
     _filledVertex = 0;
     _filledIndex = 0;
-
-    for(const auto& cmd : _queuedTriangleCommands)
+    auto deviceContext = _device->GetImmediateContext();
+    void* vertDst = nullptr;
+//     deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, vertexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, vertDst);
+//     _verts = (V3F_C4B_T2F*)vertDst;
+    void* indexDst = nullptr;
+//     deviceContext->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, indexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, indexDst);
+//     _indices = (uint16_t*)indexDst;
+    for (const auto& cmd : _queuedTriangleCommands)
     {
         auto currentMaterialID = cmd->getMaterialID();
         const bool batchable = !cmd->isSkipBatching();
@@ -622,16 +628,14 @@ void Renderer::drawBatchedTriangles()
     }
     batchesTotal++;
 
-    auto deviceContext = _device->GetImmediateContext();
-    void* dst = nullptr;
-    deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, vertexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, dst);
-    if (dst) {
-        memcpy((uint8_t*)dst + vertexBufferFillOffset * sizeof(_verts[0]), _verts, _filledVertex * sizeof(_verts[0]));
+    deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, vertexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, vertDst);
+    if (vertDst) {
+        memcpy((uint8_t*)vertDst + vertexBufferFillOffset * sizeof(_verts[0]), _verts, _filledVertex * sizeof(_verts[0]));
         deviceContext->UnmapBuffer(_vertexBuffer, Diligent::MAP_WRITE);
     }
-    deviceContext->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, indexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, dst);
-    if (dst) {
-        memcpy((uint8_t*)dst + indexBufferFillOffset * sizeof(_indices[0]), _indices, _filledIndex * sizeof(_indices[0]));
+    deviceContext->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, indexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, indexDst);
+    if (indexDst) {
+        memcpy((uint8_t*)indexDst + indexBufferFillOffset * sizeof(_indices[0]), _indices, _filledIndex * sizeof(_indices[0]));
         deviceContext->UnmapBuffer(_indexBuffer, Diligent::MAP_WRITE);
     }
 // #ifdef CC_USE_METAL
@@ -821,7 +825,7 @@ bool Renderer::StateKey::operator<(const Renderer::StateKey& v) const
     return false;
 }
 
-void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescriptor)
+void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescriptor, Diligent::IPipelineState* pipelineState)
 {
     auto programState = pipelineDescriptor.programState;
     auto currentProgram = pipelineDescriptor.programState->getProgram();
@@ -845,10 +849,10 @@ void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescri
             deviceContext->UnmapBuffer(buffer, Diligent::MAP_WRITE);
         }
     }
-
+    auto& shaderResourceVariables = shaderResourceBindings_[pipelineState].shaderResourceVariables;
     for (int32_t i = 0; i < currentProgram->_textureCount; i++) {
         auto texture = programState->_textures[i];
-        currentProgram->_shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, (i == 0) ? "u_texture" : "u_texture1")->Set(texture ? texture->GetHandles().srv_ : (Diligent::ITextureView*)nullptr);
+        shaderResourceVariables[i]->Set(texture ? texture->GetHandles().srv_ : (Diligent::ITextureView*)nullptr);
     }
 }
 namespace {
@@ -897,7 +901,7 @@ ea::array<Diligent::BLEND_FACTOR, (uint32_t)backend::BlendFactor::BLEND_CLOLOR> 
     Diligent::BLEND_FACTOR::BLEND_FACTOR_INV_BLEND_FACTOR,
 };
 }
-void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor& renderPassDescriptor)
+Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* command, const backend::RenderPassDescriptor& renderPassDescriptor)
 {
     const auto& pipelineDescriptor = command->getPipelineDescriptor();
     auto currentProgram = pipelineDescriptor.programState->getProgram();
@@ -1037,26 +1041,22 @@ void Renderer::setRenderPipeline(RenderCommand* command, const backend::RenderPa
         if (srv) {
             srv->Set(currentProgram->_fsConstants);
         }
-        pipelineState->CreateShaderResourceBinding(&currentProgram->_shaderResourceBinding, true);
-
+        
+        auto& srbinfo = shaderResourceBindings_[pipelineState];
+        pipelineState->CreateShaderResourceBinding(&srbinfo.shaderResourceBinding, true);
+        auto textureCount = currentProgram->_textureCount;
+        if (textureCount > 0) {
+            srbinfo.shaderResourceVariables.reserve(textureCount);
+            for (int i = 0; i < textureCount; i++) {
+                srbinfo.shaderResourceVariables.emplace_back(srbinfo.shaderResourceBinding->GetVariableByName(
+                    Diligent::SHADER_TYPE_PIXEL, (i == 0) ? "u_texture" : "u_texture1"));
+            }
+        }
         piplineStates_.insert({ key, Diligent::RefCntAutoPtr<Diligent::IPipelineState>{pipelineState} });
     }
 
-    commitUniformAndTextures(pipelineDescriptor);
-    _device->GetImmediateContext()->SetPipelineState(pipelineState);
-//     auto device = backend::Device::getInstance();
-//     _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
-// 
-//     backend::DepthStencilState* depthStencilState = nullptr;
-//     auto needDepthStencilAttachment = renderPassDescriptor.depthTestEnabled || renderPassDescriptor.stencilTestEnabled;
-//     if (needDepthStencilAttachment)
-//     {
-//         depthStencilState = device->createDepthStencilState(_depthStencilDescriptor);
-//     }
-//     _commandBuffer->setDepthStencilState(depthStencilState);
-// #ifdef CC_USE_METAL
-//     _commandBuffer->setRenderPipeline(_renderPipeline);
-// #endif
+    commitUniformAndTextures(pipelineDescriptor, pipelineState);
+    return pipelineState;
 }
 
 void Renderer::beginRenderPass(RenderCommand* cmd)
@@ -1067,7 +1067,7 @@ void Renderer::beginRenderPass(RenderCommand* cmd)
 //      _commandBuffer->setWinding(_winding);
 //      _commandBuffer->setScissorRect(_scissorState.isEnabled, _scissorState.rect.x, _scissorState.rect.y, _scissorState.rect.width, _scissorState.rect.height);
 //      _commandBuffer->setStencilReferenceValue(_stencilRef);
-    setRenderPipeline(cmd, _renderPassDescriptor);
+    auto* pipelineState = getOrCreateRenderPipeline(cmd, _renderPassDescriptor);
 
     auto pCtx = _device->GetImmediateContext();
     const auto& SCDesc = _device->GetSwapChain()->GetDesc();
@@ -1093,125 +1093,11 @@ void Renderer::beginRenderPass(RenderCommand* cmd)
         pCtx->SetScissorRects(1, &Scissor, SCDesc.Width, SCDesc.Height);
     }
     pCtx->SetStencilRef(_stencilRef);
-    const auto& pipelineDescriptor = cmd->getPipelineDescriptor();
-    auto currentProgram = pipelineDescriptor.programState->getProgram();
-    if (currentProgram->_shaderResourceBinding) {
-        pCtx->CommitShaderResources(currentProgram->_shaderResourceBinding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    pCtx->SetPipelineState(pipelineState);
+    Diligent::IShaderResourceBinding* srb = shaderResourceBindings_[pipelineState].shaderResourceBinding;
+    if (srb) {
+        pCtx->CommitShaderResources(srb, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
-}
-
-// void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachment, Texture2D* depthAttachment, Texture2D* stencilAttachment)
-// {
-//    _renderTargetFlag = flags;
-//     if (flags & RenderTargetFlag::COLOR)
-//     {
-//         _renderPassDescriptor.needColorAttachment = true;
-//         if (colorAttachment)
-//             _renderPassDescriptor.colorAttachmentsTexture[0] = colorAttachment->getBackendTexture();
-//         else
-//             _renderPassDescriptor.colorAttachmentsTexture[0] = nullptr;
-// 
-//         _colorAttachment = colorAttachment;
-//     }
-//     else
-//     {
-//         _colorAttachment = nullptr;
-//         _renderPassDescriptor.needColorAttachment = false;
-//         _renderPassDescriptor.colorAttachmentsTexture[0] = nullptr;
-//     }
-// 
-//     if (flags & RenderTargetFlag::DEPTH)
-//     {
-//         _renderPassDescriptor.depthTestEnabled = true;
-//         if (depthAttachment)
-//             _renderPassDescriptor.depthAttachmentTexture = depthAttachment->getBackendTexture();
-//         else
-//             _renderPassDescriptor.depthAttachmentTexture = nullptr;
-// 
-//         _depthAttachment = depthAttachment;
-//     }
-//     else
-//     {
-//         _renderPassDescriptor.depthTestEnabled = false;
-//         _renderPassDescriptor.depthAttachmentTexture = nullptr;
-//         _depthAttachment = nullptr;
-//     }
-// 
-//     if (flags & RenderTargetFlag::STENCIL)
-//     {
-//         _stencilAttachment = stencilAttachment;
-//         _renderPassDescriptor.stencilTestEnabled = true;
-//         if (_stencilAttachment)
-//             _renderPassDescriptor.stencilAttachmentTexture = stencilAttachment->getBackendTexture();
-//         else
-//             _renderPassDescriptor.stencilAttachmentTexture = nullptr;
-//     }
-//     else
-//     {
-//         _stencilAttachment = nullptr;
-//         _renderPassDescriptor.stencilTestEnabled = false;
-//         _renderPassDescriptor.stencilAttachmentTexture = nullptr;
-//     }
-// }
-
-// void Renderer::clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder)
-// {
-//     _clearFlag = flags;
-// 
-//     CallbackCommand* command = new CallbackCommand();
-//     command->init(globalOrder);
-//     command->func = [=]() -> void {
-//         backend::RenderPassDescriptor descriptor;
-// 
-//         if (flags & ClearFlag::COLOR)
-//         {
-//             _clearColor = color;
-//             descriptor.clearColorValue = {color.r, color.g, color.b, color.a};
-//             descriptor.needClearColor = true;
-//             descriptor.needColorAttachment = true;
-//             descriptor.colorAttachmentsTexture[0] = _renderPassDescriptor.colorAttachmentsTexture[0];
-//         }
-//         if (flags & ClearFlag::DEPTH)
-//         {
-//             descriptor.clearDepthValue = depth;
-//             descriptor.needClearDepth = true;
-//             descriptor.depthTestEnabled = true;
-//             descriptor.depthAttachmentTexture = _renderPassDescriptor.depthAttachmentTexture;
-//         }
-//         if (flags & ClearFlag::STENCIL)
-//         {
-//             descriptor.clearStencilValue = stencil;
-//             descriptor.needClearStencil = true;
-//             descriptor.stencilTestEnabled = true;
-//             descriptor.stencilAttachmentTexture = _renderPassDescriptor.stencilAttachmentTexture;
-//         }
-// 
-//         _commandBuffer->beginRenderPass(descriptor);
-//         _commandBuffer->endRenderPass();
-// 
-//         delete command;
-//     };
-//     addCommand(command);
-// }
-
-Texture2D* Renderer::getColorAttachment() const
-{
-    return _colorAttachment;
-}
-
-Texture2D* Renderer::getDepthAttachment() const
-{
-    return _depthAttachment;
-}
-
-Texture2D* Renderer::getStencilAttachment() const
-{
-    return _stencilAttachment;
-}
-
-const Color4F& Renderer::getClearColor() const
-{
-    return _clearColor;
 }
 
 float Renderer::getClearDepth() const
@@ -1223,16 +1109,6 @@ unsigned int Renderer::getClearStencil() const
 {
     return _renderPassDescriptor.clearStencilValue;
 }
-
-// ClearFlag Renderer::getClearFlag() const
-// {
-//     return _clearFlag;
-// }
-// 
-// RenderTargetFlag Renderer::getRenderTargetFlag() const
-// {
-//     return _renderTargetFlag;
-// }
 
 void Renderer::setScissorTest(bool enabled)
 {
@@ -1328,7 +1204,7 @@ void Renderer::TriangleCommandBufferManager::createBuffer()
     VertBuffDesc.BindFlags = Diligent::BIND_VERTEX_BUFFER;
     VertBuffDesc.Usage = Diligent::USAGE_DYNAMIC;
     VertBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
-    VertBuffDesc.Size = Renderer::VBO_SIZE * sizeof(_verts[0]);
+    VertBuffDesc.Size = Renderer::VBO_SIZE * sizeof(V3F_C4B_T2F);
     _device->GetRenderDevice()->CreateBuffer(VertBuffDesc, nullptr, &vertexBuffer);
     if (!vertexBuffer) {
 //        free(tmpData);
@@ -1340,7 +1216,7 @@ void Renderer::TriangleCommandBufferManager::createBuffer()
     IndBuffDesc.BindFlags = Diligent::BIND_INDEX_BUFFER;
     IndBuffDesc.Usage = Diligent::USAGE_DYNAMIC;
     IndBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
-    IndBuffDesc.Size = Renderer::INDEX_VBO_SIZE * sizeof(unsigned short);
+    IndBuffDesc.Size = Renderer::INDEX_VBO_SIZE * sizeof(uint16_t);
     //auto indexBuffer = device->newBuffer(Renderer::INDEX_VBO_SIZE * sizeof(unsigned short), backend::BufferType::INDEX, backend::BufferUsage::DYNAMIC);
     Diligent::IBuffer* indexBuffer{ nullptr };
     _device->GetRenderDevice()->CreateBuffer(IndBuffDesc, nullptr, &indexBuffer);

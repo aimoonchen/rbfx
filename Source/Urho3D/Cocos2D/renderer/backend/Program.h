@@ -188,7 +188,7 @@ public:
     Diligent::IShader* _fsShader{ nullptr };
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _fsConstants{ nullptr };
-    Diligent::IShaderResourceBinding* _shaderResourceBinding{ nullptr };
+    //Diligent::IShaderResourceBinding* _shaderResourceBinding{ nullptr };
     UniformLocation _builtinUniformLocation[UNIFORM_MAX];
     std::unordered_map<std::string, UniformLocation> _customUniform;
     std::size_t _textureCount = 0;

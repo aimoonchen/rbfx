@@ -134,15 +134,17 @@ bool VertexBuffer::Init(int32_t size, bool isDynamic, const void* initData, int3
 
 void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 {
-    auto dirtied = blocks_.Allocate(size, offset);
 // 	if (auto dst = static_cast<uint8_t*>(buffer_->Lock()))
 // 	{
 // 		memcpy(dst + offset, src, size);
 // 		buffer_->Unlock();
 // 	}
+//  auto dirtied = blocks_.Allocate(size, offset);
+
+    // TOOD: map a buffer_ for VertexBufferRing writing
     if (isDynamic_) {
         void* dst = nullptr;
-        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, dirtied ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
+        renderDevice_->GetImmediateContext()->MapBuffer(buffer_, Diligent::MAP_WRITE, /*dirtied*/ (offset == 0) ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
         if (dst) {
             memcpy((uint8_t*)dst + offset, src, size);
             renderDevice_->GetImmediateContext()->UnmapBuffer(buffer_, Diligent::MAP_WRITE);
@@ -329,10 +331,10 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
-void Shader::SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb)
-{
-    shaderResourceBinding_ = srb;
-}
+// void Shader::SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb)
+// {
+//     shaderResourceBinding_ = srb;
+// }
 
 const Effekseer::Backend::UniformLayoutRef& Shader::GetUniformLayout() const
 {
@@ -400,14 +402,14 @@ Effekseer::Backend::IndexBufferRef GraphicsDevice::CreateIndexBuffer(int32_t ele
 	auto ret = Effekseer::MakeRefPtr<IndexBuffer>(renderDevice_);
 
     int32_t strideSize = (stride == Effekseer::Backend::IndexBufferStrideType::Stride4) ? 4 : 2;
-	if (!ret->Init(elementCount, strideSize, initialData, elementCount * strideSize))
+	if (!ret->Init(elementCount, strideSize/*, initialData, elementCount * strideSize*/))
 	{
 		return nullptr;
 	}
-//     if (initialData != nullptr)
-//     {
-//         ret->UpdateData(initialData, elementCount * strideSize, 0);
-//     }
+    if (initialData != nullptr)
+    {
+        ret->UpdateData(initialData, elementCount * strideSize, 0);
+    }
 	return ret;
 }
 

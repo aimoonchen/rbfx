@@ -629,11 +629,6 @@ float Director::getZEye() const
     return (_winSizeInPoints.height / 1.154700538379252f);//(2 * tanf(M_PI/6))
 }
 
-void Director::setClearColor(const Color4F& clearColor)
-{
-    _clearColor = clearColor;
-}
-
 static void GLToClipTransform(Mat4 *transformOut)
 {
     if(nullptr == transformOut) return;

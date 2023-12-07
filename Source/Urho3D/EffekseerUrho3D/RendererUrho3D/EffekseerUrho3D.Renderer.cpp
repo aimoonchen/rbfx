@@ -344,9 +344,18 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     device->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
     piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer")->Set(currentShader->GetVertexUniformBuffer());
     piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")->Set(currentShader->GetPixelUniformBuffer());
-    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> SRB;
-    piplineState->CreateShaderResourceBinding(&SRB, true);
-    currentShader->SetShaderResourceBinding(SRB);
+    auto& srbinfo = shaderResourceBindings_[piplineState];
+    piplineState->CreateShaderResourceBinding(&srbinfo.shaderResourceBinding, true);
+    if (uniformLayout != nullptr) {
+        const auto& samplerNames = uniformLayout->GetTextures();
+        auto samplerCount = samplerNames.size();
+        if (samplerCount > 0) {
+            srbinfo.shaderResourceVariables.reserve(samplerCount);
+        }
+        for (int i = 0; i < samplerCount; i++) {
+            srbinfo.shaderResourceVariables.emplace_back(srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str()));
+        }
+    }
     piplineStates_[key] = piplineState;
 
     return piplineState;
@@ -797,7 +806,7 @@ void RendererImplemented::SetLayout(Shader* shader)
 	}
 }
 
-void RendererImplemented::CommitUniformAndTextures()
+void RendererImplemented::CommitUniformAndTextures(const std::vector<Diligent::IShaderResourceVariable*>& shaderResourceVariables)
 {
     if (currentShader->GetVertexConstantBufferSize() > 0)
     {
@@ -829,14 +838,13 @@ void RendererImplemented::CommitUniformAndTextures()
     }
     const auto& samplerNames = uniformLayout->GetTextures();
     auto count = m_currentTextures_.size();
-    auto srb = currentShader->GetShaderResourceBinding();
     for (int32_t i = 0; i < count; i++) {
         if (m_currentTextures_[i] == nullptr) {
-            srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(nullptr);
+            shaderResourceVariables[i]->Set(nullptr);
         } else {
             auto texture = static_cast<EffekseerUrho3D::Texture*>(m_currentTextures_[i].Get());
             const auto& srv = texture->GetTexture()->GetHandles().srv_;
-            srb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str())->Set(srv);
+            shaderResourceVariables[i]->Set(srv);
         }
     }
 }
@@ -844,14 +852,15 @@ void RendererImplemented::CommitUniformAndTextures()
 void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 {
     auto piplineState = GetOrCreatePiplineState();
-    CommitUniformAndTextures();
+    const auto& srbinfo = shaderResourceBindings_[piplineState];
+    CommitUniformAndTextures(srbinfo.shaderResourceVariables);
 
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_ };
     deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
     deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetBuffer(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     deviceContext_->SetPipelineState(piplineState);
-    deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    deviceContext_->CommitShaderResources(srbinfo.shaderResourceBinding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
     impl->drawcallCount++;
 	impl->drawvertexCount += spriteCount * 4;
@@ -877,14 +886,15 @@ void RendererImplemented::DrawPolygon(int32_t vertexCount, int32_t indexCount)
 void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t indexCount, int32_t instanceCount)
 {
     auto piplineState = GetOrCreatePiplineState();
-    CommitUniformAndTextures();
+    const auto& srbinfo = shaderResourceBindings_[piplineState];
+    CommitUniformAndTextures(srbinfo.shaderResourceVariables);
     
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_ };
     deviceContext_->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
     deviceContext_->SetIndexBuffer(currentIndexBuffer_->GetBuffer(), 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     deviceContext_->SetPipelineState(piplineState);
-    deviceContext_->CommitShaderResources(currentShader->GetShaderResourceBinding(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    deviceContext_->CommitShaderResources(srbinfo.shaderResourceBinding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
 	impl->drawcallCount++;
 	impl->drawvertexCount += vertexCount * instanceCount;

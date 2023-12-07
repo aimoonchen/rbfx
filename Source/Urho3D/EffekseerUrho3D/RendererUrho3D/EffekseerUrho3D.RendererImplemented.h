@@ -16,6 +16,7 @@
 namespace Diligent
 {
     struct IPipelineState;
+    struct IShaderResourceVariable;
 }
 
 namespace EffekseerUrho3D
@@ -34,12 +35,18 @@ public:
 	bool operator<(const PiplineStateKey& v) const;
 };
 
+struct SRBInfo {
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding;
+    std::vector<Diligent::IShaderResourceVariable*> shaderResourceVariables;
+};
+
 Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType format);
 
 class RendererImplemented : public Renderer, public ::Effekseer::ReferenceObject
 {
 protected:
 	std::map<PiplineStateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
+    std::map<Diligent::IPipelineState*, SRBInfo> shaderResourceBindings_;
     Diligent::IBuffer* currentVertexBuffer_{ nullptr };
 	int32_t currentVertexBufferStride_ = 0;
 	Diligent::PRIMITIVE_TOPOLOGY currentTopologyType_ = Diligent::PRIMITIVE_TOPOLOGY::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -222,7 +229,7 @@ public:
 		return ::Effekseer::ReferenceObject::Release();
 	}
     // TODO: for rbfx
-    void CommitUniformAndTextures();
+    void CommitUniformAndTextures(const std::vector<Diligent::IShaderResourceVariable*>& shaderResourceVariables);
 };
 
 void AddVertexUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout);

@@ -59,8 +59,8 @@ public:
 	}
     Diligent::IBuffer* GetVertexUniformBuffer() const { return shader_->GetVertexUniformBuffer(); }
     Diligent::IBuffer* GetPixelUniformBuffer() const { return shader_->GetPixelUniformBuffer(); }
-    void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb) const { return shader_->SetShaderResourceBinding(srb); }
-    Diligent::IShaderResourceBinding* GetShaderResourceBinding() const { return shader_->GetShaderResourceBinding(); }
+    //void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb) const { return shader_->SetShaderResourceBinding(srb); }
+    //Diligent::IShaderResourceBinding* GetShaderResourceBinding() const { return shader_->GetShaderResourceBinding(); }
 	const Backend::VertexLayoutRef& GetVertexLayouts() { return vertexLayout_; }
     int32_t GetVertexSize() const { return vertexSize_; }
     const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;

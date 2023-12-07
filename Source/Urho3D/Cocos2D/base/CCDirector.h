@@ -373,12 +373,6 @@ public:
      */
     void setGLDefaultValues();
     
-    /** Sets clear values for the color buffers,
-     * value range of each element is [0.0, 1.0].
-     * @js NA
-     */
-    void setClearColor(const Color4F& clearColor);
-
     void mainLoop();
     /** Invoke main loop with delta time. Then `calculateDeltaTime` can just use the delta time directly.
      * The delta time paseed may include vsync time. See issue #17806
@@ -630,8 +624,6 @@ protected:
 
     /* Renderer for the Director */
     Renderer *_renderer = nullptr;
-
-    Color4F _clearColor = {0, 0, 0, 1};
 
     /* Console for the director */
     Console *_console = nullptr;
