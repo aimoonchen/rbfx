@@ -6,12 +6,13 @@ namespace EffekseerUrho3D
 {
 Shader::Shader(Backend::GraphicsDeviceRef graphicsDevice,
 			   Backend::ShaderRef shader,
-			   Backend::VertexLayoutRef vertexLayout)
+			   Backend::VertexLayoutRef vertexLayout, const char* name)
 	: graphicsDevice_(graphicsDevice)
 	, shader_(shader)
 	, vertexLayout_(vertexLayout)
 	, m_vertexConstantBuffer(nullptr)
 	, m_pixelConstantBuffer(nullptr)
+    , name_{ name }
 {
     const auto& elements = vertexLayout_->GetElements();
     for (size_t i = 0; i < elements.size(); i++) {
@@ -34,7 +35,7 @@ Shader* Shader::Create(Effekseer::Backend::GraphicsDeviceRef graphicsDevice,
 	assert(graphicsDevice != nullptr);
 	assert(shader != nullptr);
 
-	return new Shader(graphicsDevice.DownCast<Backend::GraphicsDevice>(), shader.DownCast<Backend::Shader>(), vertexLayout.DownCast<Backend::VertexLayout>());
+	return new Shader(graphicsDevice.DownCast<Backend::GraphicsDevice>(), shader.DownCast<Backend::Shader>(), vertexLayout.DownCast<Backend::VertexLayout>(), name);
 }
 
 const Effekseer::Backend::UniformLayoutRef& Shader::GetUniformLayout() const

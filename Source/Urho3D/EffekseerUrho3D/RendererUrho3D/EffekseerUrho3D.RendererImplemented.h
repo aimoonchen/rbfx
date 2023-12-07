@@ -37,6 +37,7 @@ public:
 
 struct SRBInfo {
     Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding;
+    //std::unordered_map<std::string, Diligent::IShaderResourceVariable*> shaderResourceVariables;
     std::vector<Diligent::IShaderResourceVariable*> shaderResourceVariables;
 };
 
@@ -229,7 +230,7 @@ public:
 		return ::Effekseer::ReferenceObject::Release();
 	}
     // TODO: for rbfx
-    void CommitUniformAndTextures(const std::vector<Diligent::IShaderResourceVariable*>& shaderResourceVariables);
+    void CommitUniformAndTextures(Diligent::IPipelineState* pipelineState);
 };
 
 void AddVertexUniformLayout(Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement>& uniformLayout);

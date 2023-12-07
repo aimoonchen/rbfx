@@ -346,14 +346,44 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")->Set(currentShader->GetPixelUniformBuffer());
     auto& srbinfo = shaderResourceBindings_[piplineState];
     piplineState->CreateShaderResourceBinding(&srbinfo.shaderResourceBinding, true);
-    if (uniformLayout != nullptr) {
-        const auto& samplerNames = uniformLayout->GetTextures();
-        auto samplerCount = samplerNames.size();
-        if (samplerCount > 0) {
-            srbinfo.shaderResourceVariables.reserve(samplerCount);
+//     if (uniformLayout != nullptr) {
+//         const auto& samplerNames = uniformLayout->GetTextures();
+//         auto samplerCount = samplerNames.size();
+//         if (samplerCount > 0) {
+//             srbinfo.shaderResourceVariables.reserve(samplerCount);
+//         }
+//         for (int i = 0; i < samplerCount; i++) {
+//             srbinfo.shaderResourceVariables.emplace_back(srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str()));
+//         }
+//     }
+    const auto& samplerNames = uniformLayout->GetTextures();
+    srbinfo.shaderResourceVariables.resize(samplerNames.size());
+    auto psShader = currentShader->GetPixelShader();
+    const unsigned numResources = psShader->GetResourceCount();
+    auto get_index_by_name = [&samplerNames](const char* name) {
+        for (int i = 0; i < samplerNames.size(); i++) {
+            if (name == samplerNames[i]) {
+                return i;
+            }
         }
-        for (int i = 0; i < samplerCount; i++) {
-            srbinfo.shaderResourceVariables.emplace_back(srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str()));
+        return -1;
+    };
+    for (unsigned resourceIndex = 0; resourceIndex < numResources; ++resourceIndex) {
+        Diligent::ShaderResourceDesc desc;
+        psShader->GetResourceDesc(resourceIndex, desc);
+        int index = -1;
+        switch (desc.Type) {
+        case Diligent::SHADER_RESOURCE_TYPE_TEXTURE_SRV:
+            //srbinfo.shaderResourceVariables.insert({ desc.Name, srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, desc.Name) });
+            // TODO: remove this compute
+            index = get_index_by_name(desc.Name);
+            assert(index >= 0);
+            srbinfo.shaderResourceVariables[index] = srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, desc.Name);
+            break;
+//         case Diligent::SHADER_RESOURCE_TYPE_CONSTANT_BUFFER:
+//         case Diligent::SHADER_RESOURCE_TYPE_TEXTURE_UAV:
+//             break;
+        default: break;
         }
     }
     piplineStates_[key] = piplineState;
@@ -500,7 +530,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
                                            kShaderFilepath[pathIndex][1],
                                            Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocUnlit, uniformLayoutElementsLitUnlit)),
 									   vlUnlit,
-									   "StandardRenderer");
+									   "StandardRenderer Unlit");
 	if (shader_unlit == nullptr)
 		return false;
 	GetImpl()->ShaderUnlit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_unlit);
@@ -519,7 +549,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
                                                 kShaderFilepath[pathIndex][1],
                                                 Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocDist, uniformLayoutElementsDist)),
 											vlDist,
-											"StandardRenderer Distortion");
+											"StandardRenderer BackDistortion");
 	if (shader_distortion == nullptr)
 		return false;
 	GetImpl()->ShaderDistortion = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_distortion);
@@ -538,7 +568,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
                                               kShaderFilepath[pathIndex][1],
                                               Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdUnlit, uniformLayoutElementsLitUnlit)),
 										  vlUnlitAd,
-										  "StandardRenderer");
+										  "StandardRenderer AdvancedUnlit");
 	if (shader_ad_unlit == nullptr)
 		return false;
 	GetImpl()->ShaderAdUnlit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_unlit);
@@ -557,7 +587,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
                                                    kShaderFilepath[pathIndex][1],
                                                    Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdDist, uniformLayoutElementsDist)),
 											   vlDistAd,
-											   "StandardRenderer Distortion");
+											   "StandardRenderer AdvancedBackDistortion");
 	if (shader_ad_distortion == nullptr)
 		return false;
 	GetImpl()->ShaderAdDistortion = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_distortion);
@@ -576,7 +606,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
                                          kShaderFilepath[pathIndex][1],
                                          Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocLit, uniformLayoutElementsLitUnlit)),
 									 vlLit,
-									 "StandardRenderer Lighting");
+									 "StandardRenderer Lit");
 	GetImpl()->ShaderLit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_lit);
 
 	auto ad_lit_vs_shader_data = Backend::Serialize(fixedShader_.AdvancedSpriteLit_VS);
@@ -593,7 +623,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
                                             kShaderFilepath[pathIndex][1],
                                             Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdLit, uniformLayoutElementsLitUnlit)),
 										vlLitAd,
-										"StandardRenderer Lighting");
+										"StandardRenderer AdvancedLit");
 	GetImpl()->ShaderAdLit = std::unique_ptr<EffekseerRenderer::ShaderBase>(shader_ad_lit);
 
 	shader_unlit->SetVertexConstantBufferSize(sizeof(EffekseerRenderer::StandardRendererVertexBuffer));
@@ -806,7 +836,7 @@ void RendererImplemented::SetLayout(Shader* shader)
 	}
 }
 
-void RendererImplemented::CommitUniformAndTextures(const std::vector<Diligent::IShaderResourceVariable*>& shaderResourceVariables)
+void RendererImplemented::CommitUniformAndTextures(Diligent::IPipelineState* pipelineState)
 {
     if (currentShader->GetVertexConstantBufferSize() > 0)
     {
@@ -836,15 +866,16 @@ void RendererImplemented::CommitUniformAndTextures(const std::vector<Diligent::I
     if (uniformLayout == nullptr) {
         return;
     }
-    const auto& samplerNames = uniformLayout->GetTextures();
+    //const auto& samplerNames = uniformLayout->GetTextures();
     auto count = m_currentTextures_.size();
+    auto& shaderResourceVariables = shaderResourceBindings_[pipelineState].shaderResourceVariables;
+    int32_t j = 0;
     for (int32_t i = 0; i < count; i++) {
-        if (m_currentTextures_[i] == nullptr) {
-            shaderResourceVariables[i]->Set(nullptr);
-        } else {
+        if (m_currentTextures_[i] != nullptr) {
             auto texture = static_cast<EffekseerUrho3D::Texture*>(m_currentTextures_[i].Get());
             const auto& srv = texture->GetTexture()->GetHandles().srv_;
-            shaderResourceVariables[i]->Set(srv);
+            //shaderResourceVariables[samplerNames[j++]]->Set(srv);
+            shaderResourceVariables[j++]->Set(srv);
         }
     }
 }
@@ -853,7 +884,7 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 {
     auto piplineState = GetOrCreatePiplineState();
     const auto& srbinfo = shaderResourceBindings_[piplineState];
-    CommitUniformAndTextures(srbinfo.shaderResourceVariables);
+    CommitUniformAndTextures(piplineState);
 
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_ };
@@ -887,7 +918,7 @@ void RendererImplemented::DrawPolygonInstanced(int32_t vertexCount, int32_t inde
 {
     auto piplineState = GetOrCreatePiplineState();
     const auto& srbinfo = shaderResourceBindings_[piplineState];
-    CommitUniformAndTextures(srbinfo.shaderResourceVariables);
+    CommitUniformAndTextures(piplineState);
     
     const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { currentVertexBuffer_ };

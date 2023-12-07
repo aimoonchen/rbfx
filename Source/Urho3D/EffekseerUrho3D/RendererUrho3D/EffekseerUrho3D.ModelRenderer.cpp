@@ -121,7 +121,7 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
                                                                 kShaderFilepath[pathIndex][1],
                                                                 Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocLit, uniformLayoutElementsPlaceHold)),
 															vl,
-															"ModelRendererLightingTextureNormal");
+															"ModelRenderer Lit");
 
 	auto unlit_vs_shader_data = Backend::Serialize(fixedShader->ModelUnlit_VS);
 	auto unlit_ps_shader_data = Backend::Serialize(fixedShader->ModelUnlit_PS);
@@ -132,7 +132,7 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
                                                 kShaderFilepath[pathIndex][1],
                                                 Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocUnlit, uniformLayoutElementsPlaceHold)),
 											vl,
-											"ModelRendererTexture");
+											"ModelRenderer Unlit");
 
 	auto dist_vs_shader_data = Backend::Serialize(fixedShader->ModelDistortion_VS);
 	auto dist_ps_shader_data = Backend::Serialize(fixedShader->ModelDistortion_PS);
@@ -143,7 +143,7 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
                                                         kShaderFilepath[pathIndex][1],
                                                         Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocDist, uniformLayoutElementsPlaceHold)),
 													vl,
-													"ModelRendererDistortionTexture");
+													"ModelRenderer BackDistortion");
 
 	auto ad_lit_vs_shader_data = Backend::Serialize(fixedShader->AdvancedModelLit_VS);
 	auto ad_lit_ps_shader_data = Backend::Serialize(fixedShader->AdvancedModelLit_PS);
@@ -154,7 +154,7 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
                                                 kShaderFilepath[pathIndex][1],
                                                 Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdLit, uniformLayoutElementsPlaceHold)),
 										   vl,
-										   "ModelRendererLightingTextureNormal");
+										   "ModelRenderer AdvancedLit");
 
 	auto ad_unlit_vs_shader_data = Backend::Serialize(fixedShader->AdvancedModelUnlit_VS);
 	auto ad_unlit_ps_shader_data = Backend::Serialize(fixedShader->AdvancedModelUnlit_PS);
@@ -165,7 +165,7 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
                                                 kShaderFilepath[pathIndex][1],
                                                 Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdUnlit, uniformLayoutElementsPlaceHold)),
 											 vl,
-											 "ModelRendererTexture");
+											 "ModelRenderer AdvancedUnlit");
 
 	auto ad_dist_vs_shader_data = Backend::Serialize(fixedShader->AdvancedModelDistortion_VS);
 	auto ad_dist_ps_shader_data = Backend::Serialize(fixedShader->AdvancedModelDistortion_PS);
@@ -176,7 +176,7 @@ ModelRendererRef ModelRenderer::Create(RendererImplemented* renderer, FixedShade
                                                    kShaderFilepath[pathIndex][1],
                                                    Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(texLocAdDist, uniformLayoutElementsPlaceHold)),
 											   vl,
-											   "ModelRendererDistortionTexture");
+											   "ModelRenderer AdvancedBackDistortion");
 
 	if (shader_lighting_texture_normal == nullptr || shader_texture == nullptr || shader_distortion_texture == nullptr ||
 		shader_ad_lit == nullptr || shader_ad_unlit == nullptr || shader_ad_distortion == nullptr)

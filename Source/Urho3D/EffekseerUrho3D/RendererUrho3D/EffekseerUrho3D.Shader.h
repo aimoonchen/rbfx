@@ -14,7 +14,7 @@ private:
 	Backend::GraphicsDeviceRef graphicsDevice_;
 	Backend::ShaderRef shader_;
 	Backend::ShaderRef shaderOverride_;
-
+    const char* name_ = nullptr;
 	Backend::VertexLayoutRef vertexLayout_;
     int32_t vertexSize_{ 0 };
 	void* m_vertexConstantBuffer;
@@ -24,7 +24,7 @@ private:
 
 	Shader(Backend::GraphicsDeviceRef graphicsDevice,
 		   Backend::ShaderRef shader,
-		   Backend::VertexLayoutRef vertexLayout);
+		   Backend::VertexLayoutRef vertexLayout, const char* name);
 
 public:
 	~Shader() override;
