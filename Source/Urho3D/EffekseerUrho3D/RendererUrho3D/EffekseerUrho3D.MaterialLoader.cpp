@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Effekseer/Material/Effekseer.CompiledMaterial.h"
-
+#include "../Utils/EffekseerUrho3D.Compiler.h"
 #undef min
 
 namespace EffekseerUrho3D
@@ -13,7 +13,7 @@ namespace EffekseerUrho3D
 
 static const int LLGI_InstanceCount = 40;
 
-void MaterialLoader::Deserialize(uint8_t* data, uint32_t datasize/*, LLGI::CompilerResult& result*/)
+void MaterialLoader::Deserialize(uint8_t* data, uint32_t datasize, LLGI::CompilerResult& result)
 {
 	if (datasize < 4)
 		return;
@@ -24,19 +24,19 @@ void MaterialLoader::Deserialize(uint8_t* data, uint32_t datasize/*, LLGI::Compi
 	memcpy(&count, data + offset, sizeof(int32_t));
 	offset += sizeof(uint32_t);
 
-// 	result.Binary.resize(count);
-// 
-// 	for (uint32_t i = 0; i < count; i++)
-// 	{
-// 		uint32_t size = 0;
-// 		memcpy(&size, data + offset, sizeof(int32_t));
-// 		offset += sizeof(uint32_t);
-// 
-// 		result.Binary[i].resize(size);
-// 
-// 		memcpy(result.Binary[i].data(), data + offset, size);
-// 		offset += size;
-// 	}
+	result.Binary.resize(count);
+
+	for (uint32_t i = 0; i < count; i++)
+	{
+		uint32_t size = 0;
+		memcpy(&size, data + offset, sizeof(int32_t));
+		offset += sizeof(uint32_t);
+
+		result.Binary[i].resize(size);
+
+		memcpy(result.Binary[i].data(), data + offset, size);
+		offset += size;
+	}
 }
 
 MaterialLoader::MaterialLoader(Backend::GraphicsDeviceRef graphicsDevice,
@@ -129,7 +129,7 @@ MaterialLoader ::~MaterialLoader()
 	{
 		shaderTypeCount = 2;
 	}
-    /*
+
 	for (int32_t st = 0; st < shaderTypeCount; st++)
 	{
 		Shader* shader = nullptr;
@@ -305,7 +305,7 @@ MaterialLoader ::~MaterialLoader()
 			material->RefractionModelUserPtr = shader;
 		}
 	}
-    */
+
 	material->CustomData1 = materialFile.GetCustomData1Count();
 	material->CustomData2 = materialFile.GetCustomData2Count();
 	material->TextureCount = std::min(materialFile.GetTextureCount(), Effekseer::UserTextureSlotMax);

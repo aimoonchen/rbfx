@@ -61,4 +61,11 @@ void TextureLoader::Unload(Effekseer::TextureRef textureData)
 {
 }
 
+::Effekseer::TextureLoaderRef CreateTextureLoader(
+    Urho3D::Context* context,
+    ::Effekseer::Backend::GraphicsDeviceRef gprahicsDevice,
+    ::Effekseer::ColorSpaceType colorSpaceType)
+{
+    return ::Effekseer::MakeRefPtr<TextureLoader>(context, gprahicsDevice, colorSpaceType);
+}
 } // namespace EffekseerUrho3D

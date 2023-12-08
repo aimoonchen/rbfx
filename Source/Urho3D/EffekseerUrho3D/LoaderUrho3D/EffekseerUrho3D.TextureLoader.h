@@ -9,7 +9,6 @@ namespace Urho3D
 
 namespace EffekseerUrho3D
 {
-
 class TextureLoader : public Effekseer::TextureLoader
 {
 public:
@@ -25,5 +24,9 @@ private:
     ::Effekseer::Backend::GraphicsDeviceRef graphicsDevice_;
     ::Effekseer::ColorSpaceType colorSpaceType_;
 };
+
+::Effekseer::TextureLoaderRef CreateTextureLoader(Urho3D::Context* context,
+    ::Effekseer::Backend::GraphicsDeviceRef gprahicsDevice,
+    ::Effekseer::ColorSpaceType colorSpaceType = ::Effekseer::ColorSpaceType::Gamma);
 
 } // namespace EffekseerUrho3D

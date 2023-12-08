@@ -1,16 +1,9 @@
-
-#ifndef __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__
-#define __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__
-
+#pragma once
 #include "../EffekseerRendererCommon/EffekseerRenderer.CommonUtils.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.RenderStateBase.h"
 #include "../EffekseerRendererCommon/EffekseerRenderer.StandardRenderer.h"
 #include "EffekseerUrho3D.Base.h"
 #include "EffekseerUrho3D.Renderer.h"
-// #include <LLGI.CommandList.h>
-// #include <LLGI.Graphics.h>
-// #include <LLGI.PipelineState.h>
-// #include <LLGI.Texture.h>
 #include "../../RenderPipeline/RenderPipelineDefs.h"
 
 namespace Diligent
@@ -96,7 +89,7 @@ public:
 	//! shaders (todo implemented)
 	FixedShader fixedShader_;
 
-	::Effekseer::CompiledMaterialPlatformType platformType_;
+    ::Effekseer::CompiledMaterialPlatformType platformType_{ Effekseer::CompiledMaterialPlatformType::DirectX12 };
 
 	::Effekseer::MaterialCompiler* materialCompiler_ = nullptr;
 
@@ -138,50 +131,16 @@ public:
 	}
 
 	Effekseer::Backend::IndexBufferRef GetIndexBuffer();
-
-	/**
-		@brief	最大描画スプライト数
-	*/
 	int32_t GetSquareMaxCount() const override;
-
 	::EffekseerRenderer::RenderStateBase* GetRenderState();
-
-	/**
-		@brief	スプライトレンダラーを生成する。
-	*/
 	::Effekseer::SpriteRendererRef CreateSpriteRenderer() override;
-
-	/**
-		@brief	リボンレンダラーを生成する。
-	*/
 	::Effekseer::RibbonRendererRef CreateRibbonRenderer() override;
-
-	/**
-		@brief	リングレンダラーを生成する。
-	*/
 	::Effekseer::RingRendererRef CreateRingRenderer() override;
-
-	/**
-		@brief	モデルレンダラーを生成する。
-	*/
 	::Effekseer::ModelRendererRef CreateModelRenderer() override;
-
-	/**
-		@brief	軌跡レンダラーを生成する。
-	*/
 	::Effekseer::TrackRendererRef CreateTrackRenderer() override;
-
-	/**
-		@brief	テクスチャ読込クラスを生成する。
-	*/
-	::Effekseer::TextureLoaderRef CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override { return nullptr; };
-
-	/**
-		@brief	モデル読込クラスを生成する。
-	*/
+	::Effekseer::TextureLoaderRef CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
 	::Effekseer::ModelLoaderRef CreateModelLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override { return nullptr; };
-
-    ::Effekseer::MaterialLoaderRef CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override { return nullptr; };
+    ::Effekseer::MaterialLoaderRef CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface = nullptr) override;
 
 	void SetBackgroundInternal(Urho3D::Texture2D* background);
 
@@ -242,5 +201,3 @@ void AddDistortionPixelUniformLayout(Effekseer::CustomVector<Effekseer::Backend:
 Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(EffekseerRenderer::RendererShaderType type);
 
 } // namespace EffekseerUrho3D
-
-#endif // __EFFEKSEERRENDERER_LLGI_RENDERER_IMPLEMENTED_H__

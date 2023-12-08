@@ -15,7 +15,7 @@
 #include "../EffekseerRendererCommon/EffekseerRenderer.TrackRendererBase.h"
 #include "../EffekseerRendererCommon/ModelLoader.h"
 #include "../EffekseerRendererCommon/TextureLoader.h"
-
+#include "../EffekseerMaterialCompiler/DirectX12/EffekseerMaterialCompilerDX12.h"
 //#include <iostream>
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include "../../Graphics/GraphicsUtils.h"
@@ -129,6 +129,7 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 RendererRef Renderer::Create(Urho3D::RenderDevice* renderDevice, int32_t squareMaxCount, bool isReversedDepth)
 {
     auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(squareMaxCount);
+    renderer->materialCompiler_ = new Effekseer::MaterialCompilerDX12();
     if (renderer->Initialize(renderDevice, isReversedDepth))
     {
         return renderer;
@@ -765,20 +766,21 @@ int32_t RendererImplemented::GetSquareMaxCount() const
 	return ::Effekseer::TrackRendererRef(new ::EffekseerRenderer::TrackRendererBase<RendererImplemented, false>(this));
 }
 
-// ::Effekseer::TextureLoaderRef RendererImplemented::CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface)
-// {
-// 	return ::EffekseerRenderer::CreateTextureLoader(graphicsDevice_, fileInterface, ::Effekseer::ColorSpaceType::Gamma);
-// }
-// 
+::Effekseer::TextureLoaderRef RendererImplemented::CreateTextureLoader(::Effekseer::FileInterfaceRef fileInterface)
+{
+	//return ::EffekseerRenderer::CreateTextureLoader(graphicsDevice_, fileInterface, ::Effekseer::ColorSpaceType::Gamma);
+    return EffekseerUrho3D::CreateTextureLoader(graphicsDevice_->GetRenderDevice()->GetContext(), graphicsDevice_, ::Effekseer::ColorSpaceType::Gamma);
+}
+
 // ::Effekseer::ModelLoaderRef RendererImplemented::CreateModelLoader(::Effekseer::FileInterfaceRef fileInterface)
 // {
 // 	return ::Effekseer::MakeRefPtr<EffekseerRenderer::ModelLoader>(graphicsDevice_, fileInterface);
 // }
-// 
-// ::Effekseer::MaterialLoaderRef RendererImplemented::CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface)
-// {
-// 	return ::Effekseer::MakeRefPtr<MaterialLoader>(graphicsDevice_, fileInterface, platformType_, materialCompiler_);
-// }
+
+::Effekseer::MaterialLoaderRef RendererImplemented::CreateMaterialLoader(::Effekseer::FileInterfaceRef fileInterface)
+{
+	return ::Effekseer::MakeRefPtr<MaterialLoader>(graphicsDevice_, fileInterface, platformType_, materialCompiler_);
+}
 
 void RendererImplemented::SetBackgroundInternal(Urho3D::Texture2D* background)
 {

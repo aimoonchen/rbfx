@@ -9,6 +9,11 @@
 #include <Effekseer.h>
 #include <memory>
 
+namespace LLGI
+{
+    struct CompilerResult;
+} // namespace LLGI
+
 namespace Effekseer
 {
 class Material;
@@ -30,7 +35,7 @@ private:
 	::Effekseer::MaterialRef LoadAcutually(::Effekseer::MaterialFile& materialFile, ::Effekseer::CompiledMaterialBinary* binary);
 
 protected:
-	virtual void Deserialize(uint8_t* data, uint32_t datasize/*, LLGI::CompilerResult& result*/);
+	virtual void Deserialize(uint8_t* data, uint32_t datasize, LLGI::CompilerResult& result);
 
 public:
 	MaterialLoader(Backend::GraphicsDeviceRef graphicsDevice,

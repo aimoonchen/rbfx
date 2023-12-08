@@ -13,12 +13,14 @@
 #include "RendererUrho3D/EffekseerUrho3D.Renderer.h"
 #include "LoaderUrho3D/EffekseerUrho3D.TextureLoader.h"
 #include "LoaderUrho3D/EffekseerUrho3D.ModelLoader.h"
-//#include "LoaderUrho3D/EffekseerUrho3D.MaterialLoader.h"
+#include "RendererUrho3D/EffekseerUrho3D.MaterialLoader.h"
 #include "LoaderUrho3D/EffekseerBGFX.MaterialLoader.h"
 #include "LoaderUrho3D/EffekseerUrho3D.CurveLoader.h"
 #include "LoaderUrho3D/EffekseerUrho3D.SoundLoader.h"
 #include "SoundUrho3D/EffekseerUrho3D.SoundPlayer.h"
 #include "Utils/EffekseerUrho3D.Utils.h"
+#include "Utils/EffekseerUrho3D.File.h"
+
 #include "EffekseerSystem.h"
 #include "EffekseerEffect.h"
 
@@ -90,10 +92,10 @@ EffekseerSystem::EffekseerSystem(Urho3D::Context* context)
 	m_manager->SetRingRenderer(m_renderer->CreateRingRenderer());
     m_manager->SetModelRenderer(m_renderer->CreateModelRenderer());
 	//m_manager->SetSoundPlayer(Effekseer::MakeRefPtr<EffekseerUrho3D::SoundPlayer>(sound));
-
-    m_manager->SetTextureLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::TextureLoader>(context, m_renderer->GetGraphicsDevice()));
+    auto fileInterface = Effekseer::MakeRefPtr<EffekseerUrho3D::FileInterface>(context);
+    m_manager->SetTextureLoader(m_renderer->CreateTextureLoader(fileInterface));
     m_manager->SetModelLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::ModelLoader>(context));
-    //	m_manager->SetMaterialLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::MaterialLoader>());
+    m_manager->SetMaterialLoader(m_renderer->CreateMaterialLoader(fileInterface));
     m_manager->SetCurveLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::CurveLoader>());
     // m_manager->SetSoundLoader(Effekseer::MakeRefPtr<EffekseerUrho3D::SoundLoader>(sound));
     

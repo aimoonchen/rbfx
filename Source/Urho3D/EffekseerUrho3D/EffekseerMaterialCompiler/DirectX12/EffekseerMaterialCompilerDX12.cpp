@@ -1,11 +1,11 @@
-/*
 #include "EffekseerMaterialCompilerDX12.h"
 #include <iostream>
-
-#include "../3rdParty/LLGI/src/DX12/LLGI.CompilerDX12.h"
+#include "../../Utils/EffekseerUrho3D.Compiler.h"
+#include "CompilerDX12.h"
 #include "../HLSLGenerator/ShaderGenerator.h"
 
 #pragma comment(lib, "d3dcompiler.lib")
+
 
 namespace Effekseer
 {
@@ -119,7 +119,7 @@ public:
 
 CompiledMaterialBinary* MaterialCompilerDX12::Compile(MaterialFile* materialFile, int32_t maximumUniformCount, int32_t maximumTextureCount)
 {
-	auto compiler = LLGI::CreateSharedPtr(new LLGI::CompilerDX12());
+	auto compiler = std::make_shared<LLGI::CompilerDX12>();
 
 	auto binary = new CompiledMaterialBinaryDX12();
 
@@ -207,4 +207,3 @@ extern "C"
 	}
 }
 #endif
-*/
