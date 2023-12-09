@@ -230,10 +230,13 @@ public:
     void GetLevels(ea::vector<Image*>& levels);
     /// Get all stored mip levels starting from this.
     void GetLevels(ea::vector<const Image*>& levels) const;
+    //
+    void SetForceRGBA(bool force) { forceRGBA_ = force; }
+    bool IsForceRGBA() const { return forceRGBA_; }
 
 private:
     /// Decode an image using stb_image.
-    static unsigned char* GetImageData(Deserializer& source, int& width, int& height, unsigned& components);
+    static unsigned char* GetImageData(Deserializer& source, int& width, int& height, unsigned& components, bool forceRGBA = false);
     /// Free an image file's pixel data.
     static void FreeImageData(unsigned char* pixelData);
 
@@ -267,6 +270,8 @@ private:
         unsigned size;
     };
     ea::vector<astc_mip_info> astc_mip_infos_;
+    // TODO:
+    bool forceRGBA_{ false };
 };
 
 }

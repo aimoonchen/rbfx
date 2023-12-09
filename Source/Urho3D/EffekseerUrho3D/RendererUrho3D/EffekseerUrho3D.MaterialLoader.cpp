@@ -187,8 +187,6 @@ MaterialLoader ::~MaterialLoader()
             shaderFile->Write(binary->GetVertexShaderData(type), binary->GetVertexShaderSize(type));
             shaderFile->Close();
         }
-//         printf("----vs----\n");
-//         printf("%s\n", binary->GetVertexShaderData(type));
         auto fsFileName = "fs_" + fileName;
         if (isModel) {
             fsFileName += "_model";
@@ -200,8 +198,6 @@ MaterialLoader ::~MaterialLoader()
             shaderFile->Write(binary->GetPixelShaderData(type), binary->GetPixelShaderSize(type));
             shaderFile->Close();
         }
-//         printf("----fs----\n");
-//         printf("%s\n", binary->GetPixelShaderData(type));
         return graphicsDevice_->CreateShaderFromFile(("Shaders/HLSL/effekseer/custom/" + vsFileName + ".fx").c_str(), ("Shaders/HLSL/effekseer/custom/" + fsFileName + ".fx").c_str(), uniformLayout);
     };
 	for (int32_t st = 0; st < shaderTypeCount; st++)

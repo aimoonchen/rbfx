@@ -222,10 +222,10 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
     rasterizerDesc.ScissorEnable = Diligent::False;
 
-    if (key.state.CullingType == ::Effekseer::CullingType::Back) {
+    if (key.state.CullingType == ::Effekseer::CullingType::Front) {
         rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_FRONT : Diligent::CULL_MODE_BACK;
     }
-    else if (key.state.CullingType == ::Effekseer::CullingType::Front) {
+    else if (key.state.CullingType == ::Effekseer::CullingType::Back) {
         rasterizerDesc.CullMode = isReversedDepth_ ? Diligent::CULL_MODE_BACK : Diligent::CULL_MODE_FRONT;
     }
     else if (key.state.CullingType == ::Effekseer::CullingType::Double) {

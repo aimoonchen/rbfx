@@ -1,6 +1,7 @@
 #include "../../Core/Context.h"
 #include "../../Graphics/Texture2D.h"
 #include "../../Resource/ResourceCache.h"
+#include "../../IO/VirtualFileSystem.h"
 #include "EffekseerUrho3D.TextureLoader.h"
 #include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../Utils/EffekseerUrho3D.Utils.h"
@@ -21,17 +22,20 @@ Effekseer::TextureRef TextureLoader::Load(const char16_t* path, Effekseer::Textu
 {
 	static auto* cache = context_->GetSubsystem<Urho3D::ResourceCache>();
 	auto urho3dPath = ToGdString(path);
-	auto texture = cache->GetResource<Urho3D::Texture2D>(urho3dPath);
-	// Load by Godot
-// 	auto loader = godot::ResourceLoader::get_singleton();
-// 	auto resource = loader->load(gdpath);
-// 	if (!resource.is_valid())
-// 	{
-// 		return nullptr;
-// 	}
-// 
-// 	auto texture = (godot::ImageTexture*)resource.ptr();
-// 	texture->set_flags(godot::Texture::FLAG_MIPMAPS);
+
+    // TODO: convert to rgba image
+    auto texture = new Urho3D::Texture2D(context_);
+    auto image = ea::make_unique<Urho3D::Image>(context_);
+    image->SetForceRGBA(true);
+    auto vfs = context_->GetSubsystem<Urho3D::VirtualFileSystem>();
+    auto file = vfs->OpenFile(urho3dPath, Urho3D::FILE_READ);
+    if (file) {
+        if (image->Load(*file)) {
+            texture->SetData(image.get());
+        }
+    }
+
+	//auto texture = cache->GetResource<Urho3D::Texture2D>(urho3dPath);
 
 	auto backend = ::Effekseer::MakeRefPtr<Texture>();
 	backend->param_.Size[0] = (int32_t)texture->GetWidth();
