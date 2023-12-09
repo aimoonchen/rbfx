@@ -1,7 +1,8 @@
 #pragma once
 #include "Effekseer/Effekseer.Base.Pre.h"
 #include "Effekseer/Effekseer.File.h"
-#include "EASTL/unique_ptr.h"
+#include "../../IO/AbstractFile.h"
+//#include "EASTL/unique_ptr.h"
 
 namespace Urho3D {
     class Context;
@@ -12,10 +13,10 @@ namespace EffekseerUrho3D {
 class FileReader : public Effekseer::FileReader
 {
 private:
-    ea::unique_ptr<Urho3D::File> m_filePtr;
+    Urho3D::AbstractFilePtr m_filePtr;
 
 public:
-    FileReader(Urho3D::File* file);
+    FileReader(Urho3D::AbstractFilePtr file);
 
     ~FileReader() override;
 
@@ -31,10 +32,10 @@ public:
 class FileWriter : public Effekseer::FileWriter
 {
 private:
-    ea::unique_ptr<Urho3D::File> m_filePtr;
+    Urho3D::AbstractFilePtr m_filePtr;
 
 public:
-    FileWriter(Urho3D::File* file);
+    FileWriter(Urho3D::AbstractFilePtr file);
 
     ~FileWriter() override;
 

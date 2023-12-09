@@ -128,7 +128,7 @@ struct VS_Output
 	//float2 ScreenUV : TEXCOORD6;
 };
 
-cbuffer VSConstantBuffer : register(b0) {
+cbuffer VS_ConstantBuffer : register(b0) {
 
 float4x4 mCamera		: register(c0);
 float4x4 mProj			: register(c4);
@@ -168,7 +168,7 @@ struct VS_Output
 	//$C_OUT2$
 };
 
-cbuffer VSConstantBuffer : register(b0) {
+cbuffer VS_ConstantBuffer : register(b0) {
 
 float4x4 mCamera		: register(c0);
 float4x4 mProj			: register(c4);
@@ -308,7 +308,7 @@ struct VS_Output
 	//$C_OUT2$
 };
 
-cbuffer VSConstantBuffer : register(b0) {
+cbuffer VS_ConstantBuffer : register(b0) {
 )";
 
 	if (type == ShaderGeneratorTarget::DirectX9)
@@ -443,13 +443,13 @@ struct PS_Input
 	if (type == ShaderGeneratorTarget::DirectX9 || type == ShaderGeneratorTarget::DirectX11 || type == ShaderGeneratorTarget::PSSL)
 	{
 		ss << R"(
-cbuffer PSConstantBuffer : register(b1) {
+cbuffer PS_ConstantBuffer : register(b1) {
 )";
 	}
 	else
 	{
 		ss << R"(
-cbuffer PSConstantBuffer : register(b1) {
+cbuffer PS_ConstantBuffer : register(b1) {
 )";
 	}
 
@@ -487,7 +487,7 @@ float CalcDepthFade(float2 screenUV, float meshZ, float softParticleParam)
 	else
 	{
 		ss << R"(
-	float backgroundZ = efk_depth_texture.Sample(efk_depth_sampler, GetUVBack(screenUV)).x;
+	float backgroundZ = efk_depth.Sample(efk_depth_sampler, GetUVBack(screenUV)).x;
 )";
 	}
 
@@ -639,7 +639,7 @@ inline std::string GetMaterialPS_Suf2_Refraction(ShaderGeneratorTarget type)
 	else
 	{
 		ss << R"(
-	float4 bg = efk_background_texture.Sample(efk_background_sampler, distortUV);
+	float4 bg = efk_background.Sample(efk_background_sampler, distortUV);
 )";
 	}
 
@@ -709,8 +709,9 @@ void ShaderGenerator::ExportUniform(std::ostringstream& maincode, int32_t type, 
 
 void ShaderGenerator::ExportTexture(std::ostringstream& maincode, const char* name, int32_t registerId)
 {
-	maincode << "Texture2D " << name << "_texture : register(t" << registerId << ");" << std::endl;
-
+    //TODO: modify for dilegent engine
+	//maincode << "Texture2D " << name << "_texture : register(t" << registerId << ");" << std::endl;
+    maincode << "Texture2D " << name << " : register(t" << registerId << ");" << std::endl;
 	if (target_ == ShaderGeneratorTarget::DirectX9)
 	{
 		maincode << "sampler2D " << name << "_sampler : register(s" << registerId << ");" << std::endl;
@@ -1086,7 +1087,7 @@ ShaderData ShaderGenerator::GenerateShader(MaterialFile* materialFile,
 				{
 					baseCode = Replace(baseCode,
 									   keyP,
-									   prefix + std::string(materialFile->GetTextureName(i)) + "_texture.SampleLevel(" +
+									   prefix + std::string(materialFile->GetTextureName(i)) + ".SampleLevel(" +
 										   materialFile->GetTextureName(i) + "_sampler,GetUV(");
 					baseCode = Replace(baseCode, keyS, "),0)" + suffix);
 				}
@@ -1094,7 +1095,7 @@ ShaderData ShaderGenerator::GenerateShader(MaterialFile* materialFile,
 				{
 					baseCode = Replace(baseCode,
 									   keyP,
-									   prefix + std::string(materialFile->GetTextureName(i)) + "_texture.Sample(" + materialFile->GetTextureName(i) +
+									   prefix + std::string(materialFile->GetTextureName(i)) + ".Sample(" + materialFile->GetTextureName(i) +
 										   "_sampler,GetUV(");
 					baseCode = Replace(baseCode, keyS, "))" + suffix);
 				}

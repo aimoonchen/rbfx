@@ -3,11 +3,12 @@
 #include "../../Core/Context.h"
 #include "../../Resource/ResourceCache.h"
 #include "../../IO/File.h"
+#include "../../IO/VirtualFileSystem.h"
 
 namespace EffekseerUrho3D {
-FileReader::FileReader(Urho3D::File* filePtr)
+FileReader::FileReader(Urho3D::AbstractFilePtr filePtr)
+    : m_filePtr{ filePtr }
 {
-    m_filePtr.reset(filePtr);
 }
 
 FileReader::~FileReader()
@@ -35,9 +36,9 @@ size_t FileReader::GetLength() const
     return m_filePtr->GetSize();
 }
 
-FileWriter::FileWriter(Urho3D::File* filePtr)
+FileWriter::FileWriter(Urho3D::AbstractFilePtr filePtr)
+    : m_filePtr{ filePtr }
 {
-    m_filePtr.reset(filePtr);
 }
 
 FileWriter::~FileWriter()
@@ -52,7 +53,7 @@ size_t FileWriter::Write(const void* buffer, size_t size)
 
 void FileWriter::Flush()
 {
-    m_filePtr->Flush();
+    //m_filePtr->Flush();
 }
 
 void FileWriter::Seek(int position)
@@ -77,11 +78,15 @@ FileInterface::FileInterface(Urho3D::Context* context)
 
 Effekseer::FileReaderRef FileInterface::OpenRead(const char16_t* path)
 {
-    return Effekseer::MakeRefPtr<FileReader>(new Urho3D::File(context_, ToGdString(path), Urho3D::FILE_READ));
+    auto vfs = context_->GetSubsystem<Urho3D::VirtualFileSystem>();
+    auto file = vfs->OpenFile(ToGdString(path), Urho3D::FILE_READ);
+    return file ? Effekseer::MakeRefPtr<FileReader>(file) : nullptr;
 }
 
 Effekseer::FileWriterRef FileInterface::OpenWrite(const char16_t* path)
 {
-    return Effekseer::MakeRefPtr<FileWriter>(new Urho3D::File(context_, ToGdString(path), Urho3D::FILE_WRITE));
+    auto vfs = context_->GetSubsystem<Urho3D::VirtualFileSystem>();
+    auto file = vfs->OpenFile(ToGdString(path), Urho3D::FILE_WRITE);
+    return Effekseer::MakeRefPtr<FileWriter>(file);
 }
 }

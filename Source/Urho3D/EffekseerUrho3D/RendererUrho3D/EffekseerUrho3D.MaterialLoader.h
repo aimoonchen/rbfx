@@ -34,6 +34,7 @@ private:
 
 	::Effekseer::MaterialRef LoadAcutually(::Effekseer::MaterialFile& materialFile, ::Effekseer::CompiledMaterialBinary* binary);
 
+    ea::string currentPath_;
 protected:
 	virtual void Deserialize(uint8_t* data, uint32_t datasize, LLGI::CompilerResult& result);
 

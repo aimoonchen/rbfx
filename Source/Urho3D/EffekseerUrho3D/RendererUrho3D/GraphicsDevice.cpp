@@ -217,7 +217,7 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
     formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32_FLOAT)]    = { 3, Diligent::VALUE_TYPE::VT_FLOAT32 };
     formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R32G32B32A32_FLOAT)] = { 4, Diligent::VALUE_TYPE::VT_FLOAT32 };
 	formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM)]     = { 4, Diligent::VALUE_TYPE::VT_UINT8 };
-    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UINT)]      = { 4, Diligent::VALUE_TYPE::VT_UINT8 };
+    formatMap[static_cast<int32_t>(Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UINT)]      = { 1, Diligent::VALUE_TYPE::VT_UINT32 };
 
 	elements_.resize(elementCount);
     effekseerElements_.resize(elementCount);
@@ -233,7 +233,8 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
         const auto& e = effekseerElements_[i];
         const auto& type = formatMap[static_cast<int32_t>(e.Format)];
         // dx12
-        elements_[i] = Diligent::LayoutElement("TEXCOORD", i, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
+        bool emptySemantic = e.SemanticName.empty();
+        elements_[i] = Diligent::LayoutElement(emptySemantic ? "TEXCOORD" : e.SemanticName.c_str(), emptySemantic ? i : e.SemanticIndex, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
         //elements_[i] = Diligent::LayoutElement(e.SemanticName.c_str(), e.SemanticIndex, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
         //elements_[i] = Diligent::LayoutElement(i, (e.SemanticName == "TEXCOORD") ? e.SemanticIndex + 1 : 1, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_INSTANCE, 1);
         offset += EFFEKSEER_ELEMENT_TYPESIZES[type.second] * type.first;
@@ -262,7 +263,34 @@ Shader ::~Shader()
 	Effekseer::SafeRelease(graphicsDevice_);
 }
 
-bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize)
+static Diligent::RefCntAutoPtr<Diligent::IShader> create_shader(Urho3D::RenderDevice* device,
+    Diligent::SHADER_TYPE shaderType,
+    const char* name,
+    const void* source,
+    size_t sourceLength = 0)
+{
+    Diligent::ShaderCreateInfo ShaderCI;
+    // Tell the system that the shader source code is in HLSL.
+    // For OpenGL, the engine will convert this into GLSL under the hood.
+    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
+    // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+    ShaderCI.Desc.UseCombinedTextureSamplers = true;
+    ShaderCI.Desc.ShaderType = shaderType;
+    ShaderCI.EntryPoint = "main";
+    ShaderCI.Desc.Name = name;
+    if (sourceLength > 0) {
+        ShaderCI.ByteCode = source;
+        ShaderCI.ByteCodeSize = sourceLength;
+    }
+    else {
+        ShaderCI.Source = (const char*)source;
+    }
+    Diligent::RefCntAutoPtr<Diligent::IShader> shader;
+    device->GetRenderDevice()->CreateShader(ShaderCI, &shader);
+    return shader;
+}
+
+bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize, Effekseer::Backend::UniformLayoutRef& layout)
 {
 // 	auto vsd = Deserialize(vertexShaderData, vertexShaderDataSize);
 // 	auto psd = Deserialize(pixelShaderData, pixelShaderDataSize);
@@ -271,8 +299,10 @@ bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, co
 //     pixelShader_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateShader(psd.data(), static_cast<int32_t>(psd.size())));
 //     
 // 	return vertexShader_ != nullptr && pixelShader_ != nullptr;
-    assert(false);
-    return false;
+    auto renderDevice = graphicsDevice_->GetRenderDevice();
+    vertexShader_ = create_shader(renderDevice, Diligent::SHADER_TYPE_VERTEX, "mem vs shader", vertexShaderData, vertexShaderDataSize);
+    pixelShader_ = create_shader(renderDevice, Diligent::SHADER_TYPE_PIXEL, "mem ps shader", pixelShaderData, pixelShaderDataSize);
+    return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
 bool Shader::Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout)
@@ -461,11 +491,11 @@ Effekseer::Backend::VertexLayoutRef GraphicsDevice::CreateVertexLayout(const Eff
 	return ret;
 }
 
-Effekseer::Backend::ShaderRef GraphicsDevice::CreateShaderFromBinary(const void* vsData, int32_t vsDataSize, const void* psData, int32_t psDataSize)
+Effekseer::Backend::ShaderRef GraphicsDevice::CreateShaderFromCodes(const char* vsCode, const char* psCode, Effekseer::Backend::UniformLayoutRef uniformLayout)
 {
 	auto ret = Effekseer::MakeRefPtr<Shader>(this);
 
-	if (!ret->Init(vsData, vsDataSize, psData, psDataSize))
+	if (!ret->Init(vsCode, 0, psCode, 0, uniformLayout))
 	{
 		return nullptr;
 	}

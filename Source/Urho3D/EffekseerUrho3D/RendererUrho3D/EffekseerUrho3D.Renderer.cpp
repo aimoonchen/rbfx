@@ -877,7 +877,9 @@ void RendererImplemented::CommitUniformAndTextures(Diligent::IPipelineState* pip
             auto texture = static_cast<EffekseerUrho3D::Texture*>(m_currentTextures_[i].Get());
             const auto& srv = texture->GetTexture()->GetHandles().srv_;
             //shaderResourceVariables[samplerNames[j++]]->Set(srv);
-            shaderResourceVariables[j++]->Set(srv);
+            if (shaderResourceVariables[j]) {
+                shaderResourceVariables[j++]->Set(srv);
+            }
         }
     }
 }

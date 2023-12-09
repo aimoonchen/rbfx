@@ -6,12 +6,41 @@
 
 #include "Effekseer/Material/Effekseer.CompiledMaterial.h"
 #include "../Utils/EffekseerUrho3D.Compiler.h"
+#include "../Utils/EffekseerUrho3D.Utils.h"
+#include "../../Core/Context.h"
+#include "../../IO/FileSystem.h"
+#include "../../IO/File.h"
+//#include "../../IO/VirtualFileSystem.h"
+#include "../../RenderAPI/RenderDevice.h"
+
 #undef min
 
 namespace EffekseerUrho3D
 {
 
 static const int LLGI_InstanceCount = 40;
+
+Effekseer::CustomVector<Effekseer::CustomString<char>> StoreTextureLocations(
+    const ::Effekseer::MaterialFile& materialFile)
+{
+    Effekseer::CustomVector<Effekseer::CustomString<char>> texLoc;
+
+    int32_t maxInd = -1;
+    for (int32_t ti = 0; ti < materialFile.GetTextureCount(); ti++)
+    {
+        maxInd = Effekseer::Max(maxInd, materialFile.GetTextureIndex(ti));
+    }
+
+    texLoc.resize(maxInd + 1);
+    for (int32_t ti = 0; ti < materialFile.GetTextureCount(); ti++)
+    {
+        texLoc[materialFile.GetTextureIndex(ti)] = materialFile.GetTextureName(ti);
+    }
+
+    texLoc.emplace_back("efk_background");
+    texLoc.emplace_back("efk_depth");
+    return texLoc;
+}
 
 void MaterialLoader::Deserialize(uint8_t* data, uint32_t datasize, LLGI::CompilerResult& result)
 {
@@ -63,6 +92,7 @@ MaterialLoader ::~MaterialLoader()
 
 ::Effekseer::MaterialRef MaterialLoader::Load(const char16_t* path)
 {
+    currentPath_ = ToGdString(path);
 	// code file
 	{
 		auto binaryPath = std::u16string(path) + u"d";
@@ -129,14 +159,58 @@ MaterialLoader ::~MaterialLoader()
 	{
 		shaderTypeCount = 2;
 	}
+    // TODO: runtime shader generate on mobile platform?
+    auto dir = graphicsDevice_->GetRenderDevice()->GetContext()->GetSubsystem<Urho3D::FileSystem>()->GetProgramDir() + "Assets/Engine/Shaders/HLSL/effekseer/custom/";
+//     dir.replace("/build/", "/");
+//     dir.replace("/Debug/", "/");
+//     dir.replace("/Release/", "/");
+    //ea::string dir = "Shaders/HLSL/effekseer/custom/";
+    auto startPos = currentPath_.rfind('/');
+    auto fileName = ea::string(currentPath_.substr(startPos + 1, currentPath_.rfind('.') - startPos - 1).c_str());
 
+    Effekseer::CustomVector<Effekseer::Backend::UniformLayoutElement> uniformLayoutElements;
+    auto uniformLayout = Effekseer::MakeRefPtr<Effekseer::Backend::UniformLayout>(StoreTextureLocations(materialFile), uniformLayoutElements);
+
+    auto create_shader = [this, &dir, &fileName](::Effekseer::CompiledMaterialBinary* binary,
+                             Effekseer::MaterialShaderType type, Effekseer::Backend::UniformLayoutRef uniformLayout, bool isModel)
+    {
+        auto context = graphicsDevice_->GetRenderDevice()->GetContext();
+        //auto vfs = context->GetSubsystem<Urho3D::VirtualFileSystem>();
+        auto vsFileName = "vs_" + fileName;
+        if (isModel) {
+            vsFileName += "_model";
+        }
+        auto shaderFile = std::make_unique<Urho3D::File>(context);
+        auto fullName = dir + vsFileName + ".fx";
+        auto exist = context->GetSubsystem<Urho3D::FileSystem>()->FileExists(fullName);
+        if (/*!exist && */ shaderFile->Open(dir + vsFileName + ".fx", Urho3D::FILE_WRITE)) {
+            shaderFile->Write(binary->GetVertexShaderData(type), binary->GetVertexShaderSize(type));
+            shaderFile->Close();
+        }
+//         printf("----vs----\n");
+//         printf("%s\n", binary->GetVertexShaderData(type));
+        auto fsFileName = "fs_" + fileName;
+        if (isModel) {
+            fsFileName += "_model";
+        }
+        fullName = dir + fsFileName + ".fx";
+        exist = context->GetSubsystem<Urho3D::FileSystem>()->FileExists(fullName);
+        shaderFile = std::make_unique<Urho3D::File>(context);
+        if (/*!exist && */ shaderFile->Open(dir + fsFileName + ".fx", Urho3D::FILE_WRITE)) {
+            shaderFile->Write(binary->GetPixelShaderData(type), binary->GetPixelShaderSize(type));
+            shaderFile->Close();
+        }
+//         printf("----fs----\n");
+//         printf("%s\n", binary->GetPixelShaderData(type));
+        return graphicsDevice_->CreateShaderFromFile(("Shaders/HLSL/effekseer/custom/" + vsFileName + ".fx").c_str(), ("Shaders/HLSL/effekseer/custom/" + fsFileName + ".fx").c_str(), uniformLayout);
+    };
 	for (int32_t st = 0; st < shaderTypeCount; st++)
 	{
 		Shader* shader = nullptr;
 		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, false, st, LLGI_InstanceCount);
-
 		if (material->IsSimpleVertex)
 		{
+            /*
 			LLGI::CompilerResult resultVS;
 			LLGI::CompilerResult resultPS;
 
@@ -161,24 +235,27 @@ MaterialLoader ::~MaterialLoader()
 				ds.Size = static_cast<int32_t>(resultPS.Binary[i].size());
 				dataPS.emplace_back(ds);
 			}
-
+            */
 			auto vl = EffekseerRenderer::GetMaterialSimpleVertexLayout(graphicsDevice_).DownCast<Backend::VertexLayout>();
 
-			auto vs_shader_data = Backend::Serialize(dataVS);
-			auto ps_shader_data = Backend::Serialize(dataPS);
+// 			auto vs_shader_data = Backend::Serialize(dataVS);
+// 			auto ps_shader_data = Backend::Serialize(dataPS);
 
 			shader = Shader::Create(
 				graphicsDevice_,
-				graphicsDevice_->CreateShaderFromBinary(
-					vs_shader_data.data(),
-					(int32_t)vs_shader_data.size(),
-					ps_shader_data.data(),
-					(int32_t)ps_shader_data.size()),
+// 				graphicsDevice_->CreateShaderFromBinaryEx(
+// 					vs_shader_data.data(),
+// 					(int32_t)vs_shader_data.size(),
+// 					ps_shader_data.data(),
+// 					(int32_t)ps_shader_data.size(),
+//                     uniformLayout),
+                create_shader(binary, shaderTypes[st], uniformLayout, false),
 				vl,
 				"MaterialStandardRenderer");
 		}
 		else
 		{
+            /*
 			LLGI::CompilerResult resultVS;
 			LLGI::CompilerResult resultPS;
 
@@ -203,18 +280,20 @@ MaterialLoader ::~MaterialLoader()
 				ds.Size = static_cast<int32_t>(resultPS.Binary[i].size());
 				dataPS.emplace_back(ds);
 			}
-
+            */
 			auto vl = EffekseerRenderer::GetMaterialSpriteVertexLayout(graphicsDevice_, static_cast<int32_t>(materialFile.GetCustomData1Count()), static_cast<int32_t>(materialFile.GetCustomData2Count())).DownCast<Backend::VertexLayout>();
 
-			auto vs_shader_data = Backend::Serialize(dataVS);
-			auto ps_shader_data = Backend::Serialize(dataPS);
+// 			auto vs_shader_data = Backend::Serialize(dataVS);
+// 			auto ps_shader_data = Backend::Serialize(dataPS);
 
 			shader = Shader::Create(graphicsDevice_,
-									graphicsDevice_->CreateShaderFromBinary(
-										vs_shader_data.data(),
-										(int32_t)vs_shader_data.size(),
-										ps_shader_data.data(),
-										(int32_t)ps_shader_data.size()),
+// 									graphicsDevice_->CreateShaderFromBinaryEx(
+// 										vs_shader_data.data(),
+// 										(int32_t)vs_shader_data.size(),
+// 										ps_shader_data.data(),
+// 										(int32_t)ps_shader_data.size(),
+//                                         uniformLayout),
+                                    create_shader(binary, shaderTypes[st], uniformLayout, false),
 									vl,
 									"MaterialStandardRenderer");
 		}
@@ -243,6 +322,7 @@ MaterialLoader ::~MaterialLoader()
 
 	for (int32_t st = 0; st < shaderTypeCount; st++)
 	{
+        /*
 		LLGI::CompilerResult resultVS;
 		LLGI::CompilerResult resultPS;
 
@@ -268,22 +348,24 @@ MaterialLoader ::~MaterialLoader()
 			ds.Size = static_cast<int32_t>(resultPS.Binary[i].size());
 			dataPS.emplace_back(ds);
 		}
-
+        */
 		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, true, st, LLGI_InstanceCount);
 
 		// compile
 		std::string log;
 		auto vl = EffekseerRenderer::GetMaterialModelVertexLayout(graphicsDevice_).DownCast<Backend::VertexLayout>();
 
-		auto vs_shader_data = Backend::Serialize(dataVS);
-		auto ps_shader_data = Backend::Serialize(dataPS);
+// 		auto vs_shader_data = Backend::Serialize(dataVS);
+// 		auto ps_shader_data = Backend::Serialize(dataPS);
 
 		auto shader = Shader::Create(graphicsDevice_,
-									 graphicsDevice_->CreateShaderFromBinary(
-										 vs_shader_data.data(),
-										 (int32_t)vs_shader_data.size(),
-										 ps_shader_data.data(),
-										 (int32_t)ps_shader_data.size()),
+// 									 graphicsDevice_->CreateShaderFromBinaryEx(
+// 										 vs_shader_data.data(),
+// 										 (int32_t)vs_shader_data.size(),
+// 										 ps_shader_data.data(),
+// 										 (int32_t)ps_shader_data.size(),
+//                                          uniformLayout),
+                                     create_shader(binary, shaderTypesModel[st], uniformLayout, true),
 									 vl,
 									 "MaterialStandardModelRenderer");
 

@@ -4,7 +4,7 @@
 #include "CompilerDX12.h"
 #include "../HLSLGenerator/ShaderGenerator.h"
 
-#pragma comment(lib, "d3dcompiler.lib")
+//#pragma comment(lib, "d3dcompiler.lib")
 
 
 namespace Effekseer
@@ -62,6 +62,10 @@ private:
 
 	std::array<std::vector<uint8_t>, static_cast<int32_t>(MaterialShaderType::Max)> pixelShaders_;
 
+    std::array<std::string, static_cast<int32_t>(MaterialShaderType::Max)> vertexCodes_;
+
+    std::array<std::string, static_cast<int32_t>(MaterialShaderType::Max)> pixelCodes_;
+
 public:
 	CompiledMaterialBinaryDX12()
 	{
@@ -83,22 +87,26 @@ public:
 
 	const uint8_t* GetVertexShaderData(MaterialShaderType type) const override
 	{
-		return vertexShaders_.at(static_cast<int>(type)).data();
+		//return vertexShaders_.at(static_cast<int>(type)).data();
+        return (const uint8_t*)vertexCodes_.at(static_cast<int>(type)).data();
 	}
 
 	int32_t GetVertexShaderSize(MaterialShaderType type) const override
 	{
-		return (int32_t)vertexShaders_.at(static_cast<int>(type)).size();
+		//return (int32_t)vertexShaders_.at(static_cast<int>(type)).size();
+        return (int32_t)vertexCodes_.at(static_cast<int>(type)).size();
 	}
 
 	const uint8_t* GetPixelShaderData(MaterialShaderType type) const override
 	{
-		return pixelShaders_.at(static_cast<int>(type)).data();
+		//return pixelShaders_.at(static_cast<int>(type)).data();
+        return (const uint8_t*)pixelCodes_.at(static_cast<int>(type)).data();
 	}
 
 	int32_t GetPixelShaderSize(MaterialShaderType type) const override
 	{
-		return (int32_t)pixelShaders_.at(static_cast<int>(type)).size();
+		//return (int32_t)pixelShaders_.at(static_cast<int>(type)).size();
+        return (int32_t)pixelCodes_.at(static_cast<int>(type)).size();
 	}
 
 	int AddRef() override
@@ -115,60 +123,72 @@ public:
 	{
 		return ReferenceObject::GetRef();
 	}
+
+    void SetVertexShaderCode(MaterialShaderType type, std::string&& code)
+    {
+        vertexCodes_.at(static_cast<int>(type)) = code;
+    }
+
+    void SetPixelShaderCode(MaterialShaderType type, std::string&& code)
+    {
+        pixelCodes_.at(static_cast<int>(type)) = code;
+    }
 };
 
 CompiledMaterialBinary* MaterialCompilerDX12::Compile(MaterialFile* materialFile, int32_t maximumUniformCount, int32_t maximumTextureCount)
 {
-	auto compiler = std::make_shared<LLGI::CompilerDX12>();
+//	auto compiler = std::make_shared<LLGI::CompilerDX12>();
 
 	auto binary = new CompiledMaterialBinaryDX12();
 
-	auto convertToVectorVS = [compiler](const std::string& str) -> std::vector<uint8_t> {
-		std::vector<uint8_t> ret;
+// 	auto convertToVectorVS = [compiler](const std::string& str) -> std::vector<uint8_t> {
+// 		std::vector<uint8_t> ret;
+// 
+// 		LLGI::CompilerResult result;
+// 		compiler->Compile(result, str.c_str(), LLGI::ShaderStageType::Vertex);
+// 
+// 		if (result.Binary.size() > 0)
+// 		{
+// 			Serialize(ret, result);
+// 		}
+// 		else
+// 		{
+// 			std::cout << "VertexShader Compile Error" << std::endl;
+// 			std::cout << str << std::endl;
+// 			std::cout << result.Message << std::endl;
+// 		}
+// 
+// 		return ret;
+// 	};
+// 
+// 	auto convertToVectorPS = [compiler](const std::string& str) -> std::vector<uint8_t> {
+// 		std::vector<uint8_t> ret;
+// 
+// 		LLGI::CompilerResult result;
+// 		compiler->Compile(result, str.c_str(), LLGI::ShaderStageType::Pixel);
+// 
+// 		if (result.Binary.size() > 0)
+// 		{
+// 			Serialize(ret, result);
+// 		}
+// 		else
+// 		{
+// 			std::cout << "PixelShader Compile Error" << std::endl;
+// 			std::cout << str << std::endl;
+// 			std::cout << result.Message << std::endl;
+// 		}
+// 
+// 		return ret;
+// 	};
 
-		LLGI::CompilerResult result;
-		compiler->Compile(result, str.c_str(), LLGI::ShaderStageType::Vertex);
-
-		if (result.Binary.size() > 0)
-		{
-			Serialize(ret, result);
-		}
-		else
-		{
-			std::cout << "VertexShader Compile Error" << std::endl;
-			std::cout << str << std::endl;
-			std::cout << result.Message << std::endl;
-		}
-
-		return ret;
-	};
-
-	auto convertToVectorPS = [compiler](const std::string& str) -> std::vector<uint8_t> {
-		std::vector<uint8_t> ret;
-
-		LLGI::CompilerResult result;
-		compiler->Compile(result, str.c_str(), LLGI::ShaderStageType::Pixel);
-
-		if (result.Binary.size() > 0)
-		{
-			Serialize(ret, result);
-		}
-		else
-		{
-			std::cout << "PixelShader Compile Error" << std::endl;
-			std::cout << str << std::endl;
-			std::cout << result.Message << std::endl;
-		}
-
-		return ret;
-	};
-
-	auto saveBinary = [&materialFile, &binary, &convertToVectorVS, &convertToVectorPS, &maximumUniformCount, &maximumTextureCount](MaterialShaderType type) {
+	auto saveBinary = [&materialFile, &binary, /*&convertToVectorVS, &convertToVectorPS,*/ &maximumUniformCount, &maximumTextureCount](MaterialShaderType type) {
 		auto generator = DirectX::ShaderGenerator(DirectX::ShaderGeneratorTarget::DirectX12);
 
 		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, 0, DX12_InstanceCount);
-		binary->SetVertexShaderData(type, convertToVectorVS(shader.CodeVS));
-		binary->SetPixelShaderData(type, convertToVectorPS(shader.CodePS));
+// 		binary->SetVertexShaderData(type, convertToVectorVS(shader.CodeVS));
+// 		binary->SetPixelShaderData(type, convertToVectorPS(shader.CodePS));
+        binary->SetVertexShaderCode(type, std::move(shader.CodeVS));
+        binary->SetPixelShaderCode(type, std::move(shader.CodePS));
 	};
 
 	if (materialFile->GetHasRefraction())
