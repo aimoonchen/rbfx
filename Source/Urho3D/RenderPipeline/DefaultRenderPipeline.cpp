@@ -27,6 +27,7 @@
 #include "../Core/Context.h"
 #include "../Graphics/Camera.h"
 #include "../Graphics/DebugRenderer.h"
+#include "../Graphics/MeshLine.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/GraphicsEvents.h"
 #include "../Graphics/OutlineGroup.h"
@@ -446,6 +447,15 @@ void DefaultRenderPipelineView::Render()
     sceneProcessor_->RenderSceneBatches("Alpha", camera, alphaPass_->GetBatches(),
         depthAndColorTextures, cameraParameters);
     sceneProcessor_->RenderSceneBatches("PostAlpha", camera, postAlphaPass_->GetBatches());
+
+    // TODO: MeshLine render()
+    auto meshLine = fullFrameInfo.scene_->GetComponent<MeshLine>();
+    if (meshLine && meshLine->IsEnabledEffective() && meshLine->HasContent())
+    {
+        renderBufferManager_->SetOutputRenderTargets();
+        meshLine->SetView(camera);
+        meshLine->Render();
+    }
 
     if (outlinePostProcessPass_->IsEnabled())
     {

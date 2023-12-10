@@ -5,6 +5,7 @@
 #include "EffekseerUrho3D.TextureLoader.h"
 #include "../RendererUrho3D/EffekseerUrho3D.RenderResources.h"
 #include "../Utils/EffekseerUrho3D.Utils.h"
+#include <STB/stb_image.h>
 
 namespace EffekseerUrho3D
 {
@@ -22,20 +23,56 @@ Effekseer::TextureRef TextureLoader::Load(const char16_t* path, Effekseer::Textu
 {
 	static auto* cache = context_->GetSubsystem<Urho3D::ResourceCache>();
 	auto urho3dPath = ToGdString(path);
-
+    Urho3D::Texture2D* texture{ nullptr };
     // TODO: convert to rgba image
-    auto texture = new Urho3D::Texture2D(context_);
-    auto image = ea::make_unique<Urho3D::Image>(context_);
-    image->SetForceRGBA(true);
     auto vfs = context_->GetSubsystem<Urho3D::VirtualFileSystem>();
     auto file = vfs->OpenFile(urho3dPath, Urho3D::FILE_READ);
     if (file) {
-        if (image->Load(*file)) {
+        auto dataSize = file->GetSize();
+        ea::shared_array<unsigned char> buffer(new unsigned char[dataSize]);
+        file->Read(buffer.get(), dataSize);
+        int width{ 0 };
+        int height{ 0 };
+        unsigned int components{ 0 };
+        auto pixels = (unsigned char*)stbi_load_from_memory(buffer.get(), dataSize, &width, &height, (int*)&components, 0);
+        if (components < 3) {
+            auto newPixels = ea::make_unique<uint8_t[]>(width * height * 4);
+            auto buf = newPixels.get();
+            if (components == 2) {
+                // Gray+Alpha
+                for (int h = 0; h < height; h++) {
+                    for (int w = 0; w < width; w++) {
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 2 + 0];
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 2 + 0];
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 2 + 0];
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 3] = pixels[(w + h * width) * 2 + 1];
+                    }
+                }
+            } else if (components == 1) {
+                // Gray
+                for (int h = 0; h < height; h++) {
+                    for (int w = 0; w < width; w++) {
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 1 + 0];
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 1 + 0];
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 1 + 0];
+                        ((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
+                    }
+                }
+            }
+            auto image = ea::make_unique<Urho3D::Image>(context_);
+            image->SetSize(width, height, 4);
+            image->SetData(newPixels.get());
+            texture = new Urho3D::Texture2D(context_);
             texture->SetData(image.get());
+        } else {
+            texture = cache->GetResource<Urho3D::Texture2D>(urho3dPath);
         }
+        stbi_image_free(pixels);
     }
 
-	//auto texture = cache->GetResource<Urho3D::Texture2D>(urho3dPath);
+    if (!texture) {
+        return nullptr;
+    }
 
 	auto backend = ::Effekseer::MakeRefPtr<Texture>();
 	backend->param_.Size[0] = (int32_t)texture->GetWidth();

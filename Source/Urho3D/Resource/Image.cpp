@@ -1162,7 +1162,7 @@ bool Image::BeginLoad(Deserializer& source)
         source.Seek(0);
         int width, height;
         unsigned components;
-        unsigned char* pixelData = GetImageData(source, width, height, components, forceRGBA_);
+        unsigned char* pixelData = GetImageData(source, width, height, components);
         if (!pixelData)
         {
             URHO3D_LOGERROR("Could not load image " + source.GetName() + ": " + ea::string(stbi_failure_reason()));
@@ -2728,64 +2728,13 @@ void Image::GetLevels(ea::vector<const Image*>& levels) const
     }
 }
 
-unsigned char* Image::GetImageData(Deserializer& source, int& width, int& height, unsigned& components, bool forceRGBA)
+unsigned char* Image::GetImageData(Deserializer& source, int& width, int& height, unsigned& components)
 {
     unsigned dataSize = source.GetSize();
 
     ea::shared_array<unsigned char> buffer(new unsigned char[dataSize]);
     source.Read(buffer.get(), dataSize);
-    auto pixels = (unsigned char*)stbi_load_from_memory(buffer.get(), dataSize, &width, &height, (int*)&components, 0);
-    if (forceRGBA && components < 4) {
-        auto newPixels = (unsigned char*)malloc(width * height * 4);
-        auto buf = newPixels;
-
-        if (components == 2)
-        {
-            // Gray+Alpha
-            for (int h = 0; h < height; h++)
-            {
-                for (int w = 0; w < width; w++)
-                {
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 2 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 2 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 2 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 3] = pixels[(w + h * width) * 2 + 1];
-                }
-            }
-        }
-        else if (components == 1)
-        {
-            // Gray
-            for (int h = 0; h < height; h++)
-            {
-                for (int w = 0; w < width; w++)
-                {
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 1 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 1 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 1 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
-                }
-            }
-        }
-        else
-        {
-            for (int h = 0; h < height; h++)
-            {
-                for (int w = 0; w < width; w++)
-                {
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 0] = pixels[(w + h * width) * 3 + 0];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 1] = pixels[(w + h * width) * 3 + 1];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 2] = pixels[(w + h * width) * 3 + 2];
-                    ((uint8_t*)buf)[(w + h * width) * 4 + 3] = 255;
-                }
-            }
-        }
-        
-        stbi_image_free(pixels);
-        pixels = newPixels;
-        components = 4;
-    }
-    return pixels;
+    return (unsigned char*)stbi_load_from_memory(buffer.get(), dataSize, &width, &height, (int*)&components, 0);
 }
 
 void Image::FreeImageData(unsigned char* pixelData)

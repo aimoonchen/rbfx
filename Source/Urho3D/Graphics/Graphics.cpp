@@ -31,6 +31,7 @@
 #include "../Graphics/Geometry.h"
 #include "../Graphics/CustomGeometry.h"
 #include "../Graphics/DebugRenderer.h"
+#include "../Graphics/MeshLine.h"
 #include "../Graphics/DecalSet.h"
 #include "../Graphics/GlobalIllumination.h"
 #include "../Graphics/Graphics.h"
@@ -724,6 +725,7 @@ void RegisterGraphicsLibrary(Context* context)
     Terrain::RegisterObject(context);
     TerrainPatch::RegisterObject(context);
     DebugRenderer::RegisterObject(context);
+    MeshLine::RegisterObject(context);
     Octree::RegisterObject(context);
     OutlineGroup::RegisterObject(context);
     Zone::RegisterObject(context);

@@ -1,7 +1,8 @@
 #pragma once
-#include "Urho3D/RenderAPI/PipelineState.h"
-#include "../Scene/Component.h"
 #include "../Math/Frustum.h"
+#include "../Scene/Component.h"
+#include "../RenderAPI/PipelineState.h"
+
 #include <vector>
 namespace Urho3D
 {
@@ -23,16 +24,19 @@ public:
     /// @nobind
     static void RegisterObject(Context* context);
 
-    struct LineDesc {
+    struct LineDesc
+    {
         // vs uniform
         Matrix3x4 model_mat;
         float width{1.0f};
         bool attenuation{false};
         Color color{1.0f, 1.0f, 1.0f, 1.0f};
+        Vector3 gradient[2]{{}, {}};
         // fs uniform
         Texture* tex{nullptr};
         Texture* alphaTex{nullptr};
         bool use_dash{false};
+        bool useGradient{false};
         float dash_array{0.0f};
         float dash_offset{0.0f};
         float dash_ratio{0.5f};
@@ -44,7 +48,7 @@ public:
         float depth_bias{0.0f};
         // for cache line
         uint32_t id;
-        bool cache{ false };
+        bool cache{false};
         bool visible{true};
     };
 
@@ -63,15 +67,18 @@ public:
     //
     void SetView(Camera* camera);
     void Render();
+
 private:
-    struct MeshLineVertex {
+    struct MeshLineVertex
+    {
         Vector3 position; // curr point, SEM_POSITION
         Vector3 prev; // prev point, SEM_NORMAL
         Vector4 next; // next point, SEM_TANGENT
         Vector4 param{0, 1, 0, 1.0}; // param, SEM_BINORMAL(side, width, counters, alpha_fade)
         Vector2 texcoord0; // texcoord, SEM_TEXCOORD
     };
-    struct DrawCall {
+    struct DrawCall
+    {
         uint16_t start_index{0};
         uint16_t count{0};
         LineDesc line_desc;
@@ -103,7 +110,8 @@ private:
     ea::vector<MeshLineVertex> vertex_data_;
     ea::vector<uint16_t> index_data_;
     uint32_t cache_id_{0};
-    struct LineCache {
+    struct LineCache
+    {
         LineDesc line_desc;
         ea::vector<ea::vector<MeshLineVertex>> vertex_data;
         ea::vector<uint16_t> index_data;
