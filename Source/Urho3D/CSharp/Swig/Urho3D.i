@@ -346,6 +346,7 @@ namespace SDL
 %include "Urho3D/Core/Spline.h"
 %include "Urho3D/Core/Mutex.h"
 %include "Urho3D/Core/Thread.h"
+%include "Urho3D/Core/ProcessUtils.h"
 
 %ignore Urho3D::WorkQueue::PostTask;
 %ignore Urho3D::WorkQueue::PostTaskForThread;
@@ -537,6 +538,8 @@ public:
 %include "Urho3D/Scene/SceneResolver.h"
 %include "Urho3D/Scene/UnknownComponent.h"
 %include "Urho3D/Scene/TrackedComponent.h"
+%include "Urho3D/Scene/PrefabTypes.h"
+%include "Urho3D/Scene/NodePrefab.h"
 %include "Urho3D/Scene/PrefabReference.h"
 %include "Urho3D/Scene/PrefabResource.h"
 %include "Urho3D/Scene/ShakeComponent.h"
@@ -709,6 +712,7 @@ public:
 %include "Urho3D/Graphics/TextureCube.h"
 %include "Urho3D/Graphics/Skeleton.h"
 %include "Urho3D/Graphics/Model.h"
+%include "Urho3D/Graphics/ModelView.h"
 %include "Urho3D/Graphics/StaticModel.h"
 %include "Urho3D/Graphics/StaticModelGroup.h"
 %include "Urho3D/Graphics/Animation.h"

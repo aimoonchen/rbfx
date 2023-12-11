@@ -73,9 +73,12 @@ public:
     Rml::ElementDocument* LoadDocument(const ea::string& path);
     /// Show or hide RmlUi debugger.
     void SetDebuggerVisible(bool visible);
-    /// Load a font resource for RmlUi to use. Set fallback parameter to true if font should be used as a fallback font for unsupported characters.
-    bool LoadFont(const ea::string& resourceName, bool fallback=false);
+    /// Load a font resource for RmlUi to use.
+    /// Set fallback parameter to true if font should be used as a fallback font for unsupported characters.
+    bool LoadFont(const ea::string& resourceName, bool fallback = false);
     bool LoadFont(const ea::string& familyName, const ea::string& resourceName, bool italic = false, bool bold = false, bool fallback = false);
+    /// Reload fonts from resource cache.
+    void ReloadFonts();
     /// Returns RmlUi context object.
     Rml::Context* GetRmlContext() const;
     /// Set UI scale aka dp to px ratio. 1.0 is default (pixel perfect).
