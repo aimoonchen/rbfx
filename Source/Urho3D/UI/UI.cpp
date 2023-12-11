@@ -469,7 +469,6 @@ void UI::RenderUpdate()
 
 void UI::Render()
 {
-    return;
     URHO3D_PROFILE("RenderUI");
 
     RenderDevice* renderDevice = GetSubsystem<RenderDevice>();

@@ -293,7 +293,7 @@ namespace Urho3D {
 //         scene->addChild(test_sprite);
 //         cocos2d::TTFConfig fontConfig;
 //         fontConfig.fontFilePath = "fonts/FZY3JW.TTF";
-//         fontConfig.fontSize = 24;
+//         fontConfig.fontSize = 36;
 //         auto test_label0 = cocos2d::Label::create();
 //         test_label0->setTTFConfig(fontConfig);
 //         test_label0->setString("HelloWorld 中文测试");
