@@ -32,6 +32,7 @@
 #include <Diligent/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include "../../../RenderAPI/RenderDevice.h"
 #include "../../../Resource/ResourceCache.h"
+#include "../../../Graphics/Graphics.h"
 CC_BACKEND_BEGIN
 
 static Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const char* name, int32_t size)
@@ -58,45 +59,46 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
     fsName = fsfile;
     auto renderer = Director::getInstance()->getRenderer();
     auto device = renderer->GetRenderDevice();
-    auto cache = device->GetSubsystem<Urho3D::ResourceCache>();
-    auto get_source_code = [cache](const char* filename, ea::string& sourceCode) {
-        auto shaderPath = ea::string{ "Shaders/HLSL/fairygui/" } + filename;
-        auto pFile = cache->GetFile(shaderPath);
-        unsigned dataSize = pFile->GetSize();
-        sourceCode.resize(dataSize + 1);
-        sourceCode[dataSize] = '\0';
-        if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
-            return false;
-        return true;
-        };
-
-    Diligent::ShaderCreateInfo ShaderCI;
-    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
-    ShaderCI.Desc.UseCombinedTextureSamplers = true;
-    ea::string sourceCode;
-    // Create a vertex shader
-    if (auto it = _cachedShaders.find(vsfile); it == _cachedShaders.end()) {
-        if (get_source_code(vsfile, sourceCode)) {
-            ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
-            ShaderCI.EntryPoint = "main";
-            ShaderCI.Desc.Name = vsfile;
-            ShaderCI.Source = sourceCode.data();
-            device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[vsfile]);
-        }
-    }
-    _vsShader = _cachedShaders[vsfile];
+//     auto cache = device->GetSubsystem<Urho3D::ResourceCache>();
+//     auto get_source_code = [cache](const char* filename, ea::string& sourceCode) {
+//         auto shaderPath = ea::string{ "Shaders/GLSL/fairygui/" } + filename;
+//         auto pFile = cache->GetFile(shaderPath);
+//         unsigned dataSize = pFile->GetSize();
+//         sourceCode.resize(dataSize + 1);
+//         sourceCode[dataSize] = '\0';
+//         if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
+//             return false;
+//         return true;
+//         };
+// 
+//     Diligent::ShaderCreateInfo ShaderCI;
+//     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+//     ShaderCI.Desc.UseCombinedTextureSamplers = true;
+//     ShaderCI.GLSLVersion = Diligent::ShaderVersion{3, 3};
+//     ea::string sourceCode;
+//     // Create a vertex shader
+//     if (auto it = _cachedShaders.find(vsfile); it == _cachedShaders.end()) {
+//         if (get_source_code(vsfile, sourceCode)) {
+//             ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+//             ShaderCI.EntryPoint = "main";
+//             ShaderCI.Desc.Name = vsfile;
+//             ShaderCI.Source = sourceCode.data();
+//             device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[vsfile]);
+//         }
+//     }
+    _vsShader = device->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::VS, vsfile, "");//_cachedShaders[vsfile];
 
     // Create a pixel shader
-    if (auto it = _cachedShaders.find(fsfile); it == _cachedShaders.end()) {
-        if (get_source_code(fsfile, sourceCode)) {
-            ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
-            ShaderCI.EntryPoint = "main";
-            ShaderCI.Desc.Name = fsfile;
-            ShaderCI.Source = sourceCode.data();
-            device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[fsfile]);
-        }
-    }
-    _fsShader = _cachedShaders[fsfile];
+//     if (auto it = _cachedShaders.find(fsfile); it == _cachedShaders.end()) {
+//         if (get_source_code(fsfile, sourceCode)) {
+//             ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+//             ShaderCI.EntryPoint = "main";
+//             ShaderCI.Desc.Name = fsfile;
+//             ShaderCI.Source = sourceCode.data();
+//             device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[fsfile]);
+//         }
+//     }
+    _fsShader = device->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::PS, fsfile, "");//_cachedShaders[fsfile];
 
     if (fsfile == positionColor_frag
         || fsfile == positionUColor_frag

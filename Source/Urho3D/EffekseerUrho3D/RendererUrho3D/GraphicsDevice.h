@@ -165,8 +165,10 @@ class Shader
 {
 private:
 	GraphicsDevice* graphicsDevice_ = nullptr;
-    Diligent::RefCntAutoPtr<Diligent::IShader> vertexShader_;
-    Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader_;
+//     Diligent::RefCntAutoPtr<Diligent::IShader> vertexShader_;
+//     Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader_;
+    Urho3D::SharedPtr<Urho3D::ShaderVariation> vertexShader_;
+    Urho3D::SharedPtr<Urho3D::ShaderVariation> pixelShader_;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> vertexUniformBuffer_;
     Diligent::RefCntAutoPtr<Diligent::IBuffer> pixelUniformBuffer_;
     //Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding_;
@@ -178,8 +180,8 @@ public:
 	bool Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize, Effekseer::Backend::UniformLayoutRef& layout);
     bool Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vsCodes, const Effekseer::CustomVector<Effekseer::StringView<char>>& psCodes, Effekseer::Backend::UniformLayoutRef& layout);
     bool Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout);
-    Diligent::IShader* GetVertexShader() const { return vertexShader_; }
-    Diligent::IShader* GetPixelShader() const { return pixelShader_; }
+    Diligent::IShader* GetVertexShader() const;
+    Diligent::IShader* GetPixelShader() const;
     Diligent::IBuffer* GetVertexUniformBuffer() const { return vertexUniformBuffer_; }
     Diligent::IBuffer* GetPixelUniformBuffer() const { return pixelUniformBuffer_; }
     //void SetShaderResourceBinding(Diligent::IShaderResourceBinding* srb);

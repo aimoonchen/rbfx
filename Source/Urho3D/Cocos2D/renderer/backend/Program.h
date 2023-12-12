@@ -34,10 +34,13 @@
 #include <vector>
 #include <unordered_map>
 #include <Diligent/Common/interface/RefCntAutoPtr.hpp>
+#include "../../../Container/Ptr.h"
+
 namespace Urho3D
 {
 class Texture2D;
 class RenderDevice;
+class ShaderVariation;
 } // namespace Urho3D
 namespace Diligent
 {
@@ -184,8 +187,10 @@ public:
     //
     ProgramType _programType = ProgramType::CUSTOM_PROGRAM; ///< built-in program type, initial value is CUSTOM_PROGRAM.
     Urho3D::RenderDevice* _device{ nullptr };
-    Diligent::IShader* _vsShader{ nullptr };
-    Diligent::IShader* _fsShader{ nullptr };
+//     Diligent::IShader* _vsShader{ nullptr };
+//     Diligent::IShader* _fsShader{ nullptr };
+    Urho3D::SharedPtr<Urho3D::ShaderVariation> _vsShader;
+    Urho3D::SharedPtr<Urho3D::ShaderVariation> _fsShader;
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
     Diligent::RefCntAutoPtr<Diligent::IBuffer>  _fsConstants{ nullptr };
     //Diligent::IShaderResourceBinding* _shaderResourceBinding{ nullptr };

@@ -455,12 +455,12 @@ static const char* kShaderName[] = {
 };
 
 static const char* kShaderFilepath[(int)EffekseerRenderer::RendererShaderType::Material][2] = {
-    {"Shaders/HLSL/effekseer/builtin/sprite_unlit_vs.fx",            "Shaders/HLSL/effekseer/builtin/model_unlit_ps.fx"}, // RendererShaderType::Unlit
-    {"Shaders/HLSL/effekseer/builtin/sprite_lit_vs.fx",              "Shaders/HLSL/effekseer/builtin/model_lit_ps.fx"}, // RendererShaderType::Lit
-    {"Shaders/HLSL/effekseer/builtin/sprite_distortion_vs.fx",       "Shaders/HLSL/effekseer/builtin/model_distortion_ps.fx"}, // RendererShaderType::BackDistortion
-    {"Shaders/HLSL/effekseer/builtin/ad_sprite_unlit_vs.fx",         "Shaders/HLSL/effekseer/builtin/ad_model_unlit_ps.fx"}, // RendererShaderType::AdvancedUnlit
-    {"Shaders/HLSL/effekseer/builtin/ad_sprite_lit_vs.fx",           "Shaders/HLSL/effekseer/builtin/ad_model_lit_ps.fx"}, // RendererShaderType::AdvancedLit
-    {"Shaders/HLSL/effekseer/builtin/ad_sprite_distortion_vs.fx",    "Shaders/HLSL/effekseer/builtin/ad_model_distortion_ps.fx"} // RendererShaderType::AdvancedBackDistortion
+    {"effekseer/builtin/sprite_unlit_vs",            "effekseer/builtin/model_unlit_ps"}, // RendererShaderType::Unlit
+    {"effekseer/builtin/sprite_lit_vs",              "effekseer/builtin/model_lit_ps"}, // RendererShaderType::Lit
+    {"effekseer/builtin/sprite_distortion_vs",       "effekseer/builtin/model_distortion_ps"}, // RendererShaderType::BackDistortion
+    {"effekseer/builtin/ad_sprite_unlit_vs",         "effekseer/builtin/ad_model_unlit_ps"}, // RendererShaderType::AdvancedUnlit
+    {"effekseer/builtin/ad_sprite_lit_vs",           "effekseer/builtin/ad_model_lit_ps"}, // RendererShaderType::AdvancedLit
+    {"effekseer/builtin/ad_sprite_distortion_vs",    "effekseer/builtin/ad_model_distortion_ps"} // RendererShaderType::AdvancedBackDistortion
 };
 
 bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,

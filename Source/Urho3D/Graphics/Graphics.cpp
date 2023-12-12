@@ -112,8 +112,10 @@ unsigned Graphics::maxBonesHWSkinned = 0;
 Graphics::Graphics(Context* context)
     : Object(context)
     , position_(SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED)
-    , shaderPath_("Shaders/HLSL/")
-    , shaderExtension_(".hlsl")
+//     , shaderPath_("Shaders/HLSL/")
+//     , shaderExtension_(".hlsl")
+    , shaderPath_("Shaders/GLSL/")
+    , shaderExtension_(".glsl")
     , apiName_("Diligent")
 {
     // TODO: This can be used to have DPI scaling work on Windows, but it leads to blurry fonts

@@ -44,6 +44,8 @@
 #include "../../Core/Context.h"
 #include "../../RenderAPI/RenderDevice.h"
 #include "../../Graphics/Texture2D.h"
+#include "../../Graphics/ShaderVariation.h"
+
 #include "Urho3DContext.h"
 
 NS_CC_BEGIN
@@ -975,8 +977,8 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
             depthStencilDesc.StencilWriteMask = frontFace.writeMask;
         }
 
-        PSOCreateInfo.pVS = currentProgram->_vsShader;
-        PSOCreateInfo.pPS = currentProgram->_fsShader;
+        PSOCreateInfo.pVS = currentProgram->_vsShader->GetHandle();
+        PSOCreateInfo.pPS = currentProgram->_fsShader->GetHandle();
 
         auto& inputLayout = PSOCreateInfo.GraphicsPipeline.InputLayout;
         if (commandType == RenderCommand::Type::TRIANGLES_COMMAND) {

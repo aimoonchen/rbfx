@@ -272,12 +272,13 @@ static Diligent::RefCntAutoPtr<Diligent::IShader> create_shader(Urho3D::RenderDe
     Diligent::ShaderCreateInfo ShaderCI;
     // Tell the system that the shader source code is in HLSL.
     // For OpenGL, the engine will convert this into GLSL under the hood.
-    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
+    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
     // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
     ShaderCI.Desc.UseCombinedTextureSamplers = true;
     ShaderCI.Desc.ShaderType = shaderType;
     ShaderCI.EntryPoint = "main";
     ShaderCI.Desc.Name = name;
+    ShaderCI.GLSLVersion = Diligent::ShaderVersion{ 3, 3 };
     if (sourceLength > 0) {
         ShaderCI.ByteCode = source;
         ShaderCI.ByteCodeSize = sourceLength;
@@ -292,16 +293,9 @@ static Diligent::RefCntAutoPtr<Diligent::IShader> create_shader(Urho3D::RenderDe
 
 bool Shader::Init(const void* vertexShaderData, int32_t vertexShaderDataSize, const void* pixelShaderData, int32_t pixelShaderDataSize, Effekseer::Backend::UniformLayoutRef& layout)
 {
-// 	auto vsd = Deserialize(vertexShaderData, vertexShaderDataSize);
-// 	auto psd = Deserialize(pixelShaderData, pixelShaderDataSize);
-// 
-//     vertexShader_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateShader(vsd.data(), static_cast<int32_t>(vsd.size())));
-//     pixelShader_ = LLGI::CreateSharedPtr(graphicsDevice_->GetGraphics()->CreateShader(psd.data(), static_cast<int32_t>(psd.size())));
-//     
-// 	return vertexShader_ != nullptr && pixelShader_ != nullptr;
-    auto renderDevice = graphicsDevice_->GetRenderDevice();
-    vertexShader_ = create_shader(renderDevice, Diligent::SHADER_TYPE_VERTEX, "mem vs shader", vertexShaderData, vertexShaderDataSize);
-    pixelShader_ = create_shader(renderDevice, Diligent::SHADER_TYPE_PIXEL, "mem ps shader", pixelShaderData, pixelShaderDataSize);
+//     auto renderDevice = graphicsDevice_->GetRenderDevice();
+//     vertexShader_ = create_shader(renderDevice, Diligent::SHADER_TYPE_VERTEX, "mem vs shader", vertexShaderData, vertexShaderDataSize);
+//     pixelShader_ = create_shader(renderDevice, Diligent::SHADER_TYPE_PIXEL, "mem ps shader", pixelShaderData, pixelShaderDataSize);
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
@@ -316,48 +310,52 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
     uniformLayout_ = layout;
 
     auto renderDevice = graphicsDevice_->GetRenderDevice();
-    auto cache = renderDevice->GetSubsystem<Urho3D::ResourceCache>();
 
-    auto get_source_code = [cache](const char* filename, ea::string& sourceCode, ea::string& shaderName) {
-        auto pFile = cache->GetFile(filename);
-        unsigned dataSize = pFile->GetSize();
-        sourceCode.resize(dataSize + 1);
-        sourceCode[dataSize] = '\0';
-        if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
-            return false;
-        ea::string_view strView = filename;
-        auto p0 = strView.find_last_of('/');
-        auto p1 = strView.find('.');
-        shaderName = strView.substr(p0 + 1, p1 - p0 - 1);
-        return true;
-    };
-    
-    Diligent::ShaderCreateInfo ShaderCI;
-    // Tell the system that the shader source code is in HLSL.
-    // For OpenGL, the engine will convert this into GLSL under the hood.
-    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
-    // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
-    ShaderCI.Desc.UseCombinedTextureSamplers = true;
-    ea::string sourceCode;
-    ea::string shaderName;
-    // Create a vertex shader
-    if (get_source_code(vertexFilename, sourceCode, shaderName))
-    {
-        ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
-        ShaderCI.EntryPoint = "main";
-        ShaderCI.Desc.Name = shaderName.data();
-        ShaderCI.Source = sourceCode.data();
-        renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &vertexShader_);
-    }
-    // Create a pixel shader
-    if (get_source_code(pixelFilename, sourceCode, shaderName))
-    {
-        ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
-        ShaderCI.EntryPoint = "main";
-        ShaderCI.Desc.Name = shaderName.data();
-        ShaderCI.Source = sourceCode.data();
-        renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &pixelShader_);
-    }
+    vertexShader_ = renderDevice->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::VS, vertexFilename, "");
+    pixelShader_ = renderDevice->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::PS, pixelFilename, "");
+
+//     auto cache = renderDevice->GetSubsystem<Urho3D::ResourceCache>();
+//     auto get_source_code = [cache](const char* filename, ea::string& sourceCode, ea::string& shaderName) {
+//         auto pFile = cache->GetFile(filename);
+//         unsigned dataSize = pFile->GetSize();
+//         sourceCode.resize(dataSize + 1);
+//         sourceCode[dataSize] = '\0';
+//         if (pFile->Read(sourceCode.data(), dataSize) != dataSize)
+//             return false;
+//         ea::string_view strView = filename;
+//         auto p0 = strView.find_last_of('/');
+//         auto p1 = strView.find('.');
+//         shaderName = strView.substr(p0 + 1, p1 - p0 - 1);
+//         return true;
+//     };
+//     
+//     Diligent::ShaderCreateInfo ShaderCI;
+//     // Tell the system that the shader source code is in HLSL.
+//     // For OpenGL, the engine will convert this into GLSL under the hood.
+//     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+//     // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+//     ShaderCI.Desc.UseCombinedTextureSamplers = true;
+//     ShaderCI.GLSLVersion = Diligent::ShaderVersion{ 3, 3 };
+//     ShaderCI.EntryPoint = "main";
+//     ea::string sourceCode;
+//     ea::string shaderName;
+//     // Create a vertex shader
+//     if (get_source_code(vertexFilename, sourceCode, shaderName))
+//     {
+//         ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+//         
+//         ShaderCI.Desc.Name = shaderName.data();
+//         ShaderCI.Source = sourceCode.data();
+//         renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &vertexShader_);
+//     }
+//     // Create a pixel shader
+//     if (get_source_code(pixelFilename, sourceCode, shaderName))
+//     {
+//         ShaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+//         ShaderCI.Desc.Name = shaderName.data();
+//         ShaderCI.Source = sourceCode.data();
+//         renderDevice->GetRenderDevice()->CreateShader(ShaderCI, &pixelShader_);
+//     }
     return vertexShader_ != nullptr && pixelShader_ != nullptr;
 }
 
@@ -365,6 +363,14 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
 // {
 //     shaderResourceBinding_ = srb;
 // }
+Diligent::IShader* Shader::GetVertexShader() const
+{
+    return vertexShader_->GetHandle();
+}
+Diligent::IShader* Shader::GetPixelShader() const
+{
+    return pixelShader_->GetHandle();
+}
 
 const Effekseer::Backend::UniformLayoutRef& Shader::GetUniformLayout() const
 {

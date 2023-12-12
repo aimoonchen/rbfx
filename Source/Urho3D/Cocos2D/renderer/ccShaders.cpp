@@ -29,33 +29,33 @@ THE SOFTWARE.
 NS_CC_BEGIN
 
 // backend shader file
-const char* positionColor_vert                   = "positionColor.vert";
-const char* positionColor_frag                   = "positionColor.frag";
-const char* positionTexture_vert                 = "positionTexture.vert";
-const char* positionTexture_frag                 = "positionTexture.frag";
-const char* positionTextureColor_vert            = "positionTextureColor.vert";
-const char* positionTextureColor_frag            = "positionTextureColor.frag";
-const char* positionTextureColorAlphaTest_frag   = "positionTextureColorAlphaTest.frag";
-const char* label_normal_frag                    = "label_normal.frag";
-const char* label_distanceNormal_frag            = "label_distanceNormal.frag";
-const char* labelOutline_frag                    = "label_outline.frag";
-const char* labelDistanceFieldGlow_frag          = "label_distanceFieldGlow.frag";
-const char* positionColorLengthTexture_vert      = "positionColorLengthTexture.vert";
-const char* positionColorLengthTexture_frag      = "positionColorLengthTexture.frag";
-const char* positionColorTextureAsPointsize_vert = "positionColorTextureAsPointsize.vert";
-const char* position_vert                        = "position.vert";
-const char* positionNoMVP_vert                   = "positionNoMVP.vert";
-const char* layer_radialGradient_frag            = "layer_radialGradient.frag";
-const char* grayScale_frag                       = "ui_Gray.frag";
-const char* positionTextureUColor_vert           = "positionTextureUColor.vert";
-const char* positionTextureUColor_frag           = "positionTextureUColor.frag";
-const char* positionUColor_vert                  = "positionUColor.vert";
-const char* positionUColor_frag                  = "positionUColor.frag";
-const char* etc1_frag                            = "etc1.frag";
-const char* etc1Gray_frag                        = "etc1_Gray.frag";
-const char* cameraClear_vert                     = "cameraClear.vert";
-const char* cameraClear_frag                     = "cameraClear.frag";
-const char* lineColor3D_frag                     = "lineColor.frag";
-const char* lineColor3D_vert                     = "lineColor.vert";
+const char* positionColor_vert                   = "fairygui/positionColor_vert";
+const char* positionColor_frag                   = "fairygui/positionColor_frag";
+const char* positionTexture_vert                 = "fairygui/positionTexture_vert";
+const char* positionTexture_frag                 = "fairygui/positionTexture_frag";
+const char* positionTextureColor_vert            = "fairygui/positionTextureColor_vert";
+const char* positionTextureColor_frag            = "fairygui/positionTextureColor_frag";
+const char* positionTextureColorAlphaTest_frag   = "fairygui/positionTextureColorAlphaTest_frag";
+const char* label_normal_frag                    = "fairygui/label_normal_frag";
+const char* label_distanceNormal_frag            = "fairygui/label_distanceNormal_frag";
+const char* labelOutline_frag                    = "fairygui/label_outline_frag";
+const char* labelDistanceFieldGlow_frag          = "fairygui/label_distanceFieldGlow_frag";
+const char* positionColorLengthTexture_vert      = "fairygui/positionColorLengthTexture_vert";
+const char* positionColorLengthTexture_frag      = "fairygui/positionColorLengthTexture_frag";
+const char* positionColorTextureAsPointsize_vert = "fairygui/positionColorTextureAsPointsize_vert";
+const char* position_vert                        = "fairygui/position_vert";
+const char* positionNoMVP_vert                   = "fairygui/positionNoMVP_vert";
+const char* layer_radialGradient_frag            = "fairygui/layer_radialGradient_frag";
+const char* grayScale_frag                       = "fairygui/ui_Gray_frag";
+const char* positionTextureUColor_vert           = "fairygui/positionTextureUColor_vert";
+const char* positionTextureUColor_frag           = "fairygui/positionTextureUColor_frag";
+const char* positionUColor_vert                  = "fairygui/positionUColor_vert";
+const char* positionUColor_frag                  = "fairygui/positionUColor_frag";
+const char* etc1_frag                            = "fairygui/etc1_frag";
+const char* etc1Gray_frag                        = "fairygui/etc1_Gray_frag";
+const char* cameraClear_vert                     = "fairygui/cameraClear_vert";
+const char* cameraClear_frag                     = "fairygui/cameraClear_frag";
+const char* lineColor3D_frag                     = "fairygui/lineColor_frag";
+const char* lineColor3D_vert                     = "fairygui/lineColor_vert";
 
 NS_CC_END
