@@ -124,5 +124,24 @@ private:
     ShaderResourceReflectionMap shaderResources_;
     ShaderResourceReflectionMap unorderedAccessViews_;
 };
+// TODO: modify for effekseer and fairgui
+#if GL_SUPPORTED || GLES_SUPPORTED
+class TemporaryGLProgram
+{
+public:
+    TemporaryGLProgram(ea::span<Diligent::IShader* const> shaders, bool separablePrograms);
+
+    ~TemporaryGLProgram();
+
+    unsigned int GetHandle() const { return programObject_; }
+    const VertexShaderAttributeVector& GetVertexAttributes() const { return vertexAttributes_; }
+    const StringVector& GetVertexAttributeNames() const { return vertexAttributeNames_; }
+
+private:
+    unsigned int programObject_{};
+    VertexShaderAttributeVector vertexAttributes_;
+    StringVector vertexAttributeNames_;
+};
+#endif
 
 } // namespace Urho3D

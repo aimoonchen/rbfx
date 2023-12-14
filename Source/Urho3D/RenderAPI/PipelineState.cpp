@@ -240,56 +240,133 @@ ea::pair<VertexShaderAttributeVector, StringVector> GetGLVertexAttributes(GLuint
     return {result, resultNames};
 }
 
-class TemporaryGLProgram
+// class TemporaryGLProgram
+// {
+// public:
+//     TemporaryGLProgram(ea::span<Diligent::IShader* const> shaders, bool separablePrograms)
+//     {
+//         programObject_ = glCreateProgram();
+//         if (!programObject_)
+//         {
+//             URHO3D_ASSERTLOG(false, "glCreateProgram() failed");
+//             return;
+//         }
+// 
+//         if (separablePrograms)
+//             glProgramParameteri(programObject_, GL_PROGRAM_SEPARABLE, GL_TRUE);
+// 
+//         for (Diligent::IShader* shader : shaders)
+//         {
+//             // Link only vertex shader if separable shader programs are used.
+//             if (shader && (!separablePrograms || shader->GetDesc().ShaderType == Diligent::SHADER_TYPE_VERTEX))
+//             {
+//                 glAttachShader(programObject_, static_cast<Diligent::IShaderGL*>(shader)->GetGLShaderHandle());
+//                 CHECK_ERROR_AND_RETURN("glAttachShader() failed");
+//             }
+//         }
+// 
+//         glLinkProgram(programObject_);
+//         CHECK_ERROR_AND_RETURN("glLinkProgram() failed");
+// 
+//         int isLinked = GL_FALSE;
+//         glGetProgramiv(programObject_, GL_LINK_STATUS, &isLinked);
+//         CHECK_ERROR_AND_RETURN("glGetProgramiv() failed");
+// 
+//         if (!isLinked)
+//         {
+//             int lengthWithNull = 0;
+//             glGetProgramiv(programObject_, GL_INFO_LOG_LENGTH, &lengthWithNull);
+// 
+//             ea::vector<char> shaderProgramInfoLog(lengthWithNull);
+//             glGetProgramInfoLog(programObject_, lengthWithNull, nullptr, shaderProgramInfoLog.data());
+// 
+//             URHO3D_LOGERROR("Failed to link shader program:\n{}", shaderProgramInfoLog.data());
+//             return;
+//         }
+// 
+//         const auto [attributes, names] = GetGLVertexAttributes(programObject_);
+//         vertexAttributes_ = attributes;
+//         vertexAttributeNames_ = names;
+//     }
+// 
+//     ~TemporaryGLProgram()
+//     {
+//         if (programObject_)
+//         {
+//             glDeleteProgram(programObject_);
+//             if (glGetError() != GL_NO_ERROR)
+//                 URHO3D_ASSERTLOG(false, "glDeleteProgram() failed");
+//         }
+//     }
+// 
+//     GLuint GetHandle() const { return programObject_; }
+//     const VertexShaderAttributeVector& GetVertexAttributes() const { return vertexAttributes_; }
+//     const StringVector& GetVertexAttributeNames() const { return vertexAttributeNames_; }
+// 
+// private:
+//     GLuint programObject_{};
+//     VertexShaderAttributeVector vertexAttributes_;
+//     StringVector vertexAttributeNames_;
+// };
+
+    #undef CHECK_ERROR_AND_RETURN
+#endif
+
+} // namespace
+#if GL_SUPPORTED || GLES_SUPPORTED
+    #define CHECK_ERROR_AND_RETURN(message) \
+        if (glGetError() != GL_NO_ERROR) \
+        { \
+            URHO3D_ASSERTLOG(false, message); \
+            return; \
+        }
+TemporaryGLProgram::TemporaryGLProgram(ea::span<Diligent::IShader* const> shaders, bool separablePrograms)
 {
-public:
-    TemporaryGLProgram(ea::span<Diligent::IShader* const> shaders, bool separablePrograms)
+    programObject_ = glCreateProgram();
+    if (!programObject_)
     {
-        programObject_ = glCreateProgram();
-        if (!programObject_)
-        {
-            URHO3D_ASSERTLOG(false, "glCreateProgram() failed");
-            return;
-        }
-
-        if (separablePrograms)
-            glProgramParameteri(programObject_, GL_PROGRAM_SEPARABLE, GL_TRUE);
-
-        for (Diligent::IShader* shader : shaders)
-        {
-            // Link only vertex shader if separable shader programs are used.
-            if (shader && (!separablePrograms || shader->GetDesc().ShaderType == Diligent::SHADER_TYPE_VERTEX))
-            {
-                glAttachShader(programObject_, static_cast<Diligent::IShaderGL*>(shader)->GetGLShaderHandle());
-                CHECK_ERROR_AND_RETURN("glAttachShader() failed");
-            }
-        }
-
-        glLinkProgram(programObject_);
-        CHECK_ERROR_AND_RETURN("glLinkProgram() failed");
-
-        int isLinked = GL_FALSE;
-        glGetProgramiv(programObject_, GL_LINK_STATUS, &isLinked);
-        CHECK_ERROR_AND_RETURN("glGetProgramiv() failed");
-
-        if (!isLinked)
-        {
-            int lengthWithNull = 0;
-            glGetProgramiv(programObject_, GL_INFO_LOG_LENGTH, &lengthWithNull);
-
-            ea::vector<char> shaderProgramInfoLog(lengthWithNull);
-            glGetProgramInfoLog(programObject_, lengthWithNull, nullptr, shaderProgramInfoLog.data());
-
-            URHO3D_LOGERROR("Failed to link shader program:\n{}", shaderProgramInfoLog.data());
-            return;
-        }
-
-        const auto [attributes, names] = GetGLVertexAttributes(programObject_);
-        vertexAttributes_ = attributes;
-        vertexAttributeNames_ = names;
+        URHO3D_ASSERTLOG(false, "glCreateProgram() failed");
+        return;
     }
 
-    ~TemporaryGLProgram()
+    if (separablePrograms)
+        glProgramParameteri(programObject_, GL_PROGRAM_SEPARABLE, GL_TRUE);
+
+    for (Diligent::IShader* shader : shaders)
+    {
+        // Link only vertex shader if separable shader programs are used.
+        if (shader && (!separablePrograms || shader->GetDesc().ShaderType == Diligent::SHADER_TYPE_VERTEX))
+        {
+            glAttachShader(programObject_, static_cast<Diligent::IShaderGL*>(shader)->GetGLShaderHandle());
+            CHECK_ERROR_AND_RETURN("glAttachShader() failed");
+        }
+    }
+
+    glLinkProgram(programObject_);
+    CHECK_ERROR_AND_RETURN("glLinkProgram() failed");
+
+    int isLinked = GL_FALSE;
+    glGetProgramiv(programObject_, GL_LINK_STATUS, &isLinked);
+    CHECK_ERROR_AND_RETURN("glGetProgramiv() failed");
+
+    if (!isLinked)
+    {
+        int lengthWithNull = 0;
+        glGetProgramiv(programObject_, GL_INFO_LOG_LENGTH, &lengthWithNull);
+
+        ea::vector<char> shaderProgramInfoLog(lengthWithNull);
+        glGetProgramInfoLog(programObject_, lengthWithNull, nullptr, shaderProgramInfoLog.data());
+
+        URHO3D_LOGERROR("Failed to link shader program:\n{}", shaderProgramInfoLog.data());
+        return;
+    }
+
+    const auto [attributes, names] = GetGLVertexAttributes(programObject_);
+    vertexAttributes_ = attributes;
+    vertexAttributeNames_ = names;
+}
+
+TemporaryGLProgram::~TemporaryGLProgram()
     {
         if (programObject_)
         {
@@ -298,21 +375,8 @@ public:
                 URHO3D_ASSERTLOG(false, "glDeleteProgram() failed");
         }
     }
-
-    GLuint GetHandle() const { return programObject_; }
-    const VertexShaderAttributeVector& GetVertexAttributes() const { return vertexAttributes_; }
-    const StringVector& GetVertexAttributeNames() const { return vertexAttributeNames_; }
-
-private:
-    GLuint programObject_{};
-    VertexShaderAttributeVector vertexAttributes_;
-    StringVector vertexAttributeNames_;
-};
-
     #undef CHECK_ERROR_AND_RETURN
 #endif
-
-} // namespace
 
 const ea::string& PipelineStateDesc::GetDebugName() const
 {

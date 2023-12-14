@@ -72,7 +72,7 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
 //         };
 // 
 //     Diligent::ShaderCreateInfo ShaderCI;
-//     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+//     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
 //     ShaderCI.Desc.UseCombinedTextureSamplers = true;
 //     ShaderCI.GLSLVersion = Diligent::ShaderVersion{3, 3};
 //     ea::string sourceCode;

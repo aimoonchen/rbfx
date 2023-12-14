@@ -35,6 +35,7 @@
 #include <Diligent/Common/interface/RefCntAutoPtr.hpp>
 #include <Diligent/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 #include <Diligent/Graphics/GraphicsEngine/interface/InputLayout.h>
+#include "../../RenderAPI/ShaderProgramReflection.h"
 
 namespace Diligent
 {
@@ -561,6 +562,7 @@ protected:
     {
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shaderResourceBinding;
         std::vector<Diligent::IShaderResourceVariable*> shaderResourceVariables;
+        Urho3D::SharedPtr<Urho3D::ShaderProgramReflection> reflection;
     };
     ea::map<StateKey, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> piplineStates_;
     ea::map<Diligent::IPipelineState*, SRBInfo> shaderResourceBindings_;

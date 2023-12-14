@@ -15,6 +15,8 @@
 namespace Urho3D
 {
 
+    // TODO: for effekseer and fairygui
+    bool g_keep_uniform_name = false;
 namespace
 {
 
@@ -117,6 +119,9 @@ unsigned GetUniformSize(const Diligent::ShaderCodeVariableDesc& uniformDesc)
 
 ea::optional<ea::string_view> SanitizeUniformName(ea::string_view name)
 {
+    if (g_keep_uniform_name) {
+        return name;
+    }
     const auto pos = name.find('c');
     if (pos == ea::string_view::npos || pos + 1 == name.length())
         return ea::nullopt;
@@ -126,6 +131,9 @@ ea::optional<ea::string_view> SanitizeUniformName(ea::string_view name)
 
 ea::optional<ea::string_view> SanitizeSRVName(ea::string_view name)
 {
+    if (g_keep_uniform_name) {
+        return name;
+    }
     if (name.empty() || name[0] != 's')
         return ea::nullopt;
 
@@ -134,6 +142,9 @@ ea::optional<ea::string_view> SanitizeSRVName(ea::string_view name)
 
 ea::optional<ea::string_view> SanitizeUAVName(ea::string_view name)
 {
+    if (g_keep_uniform_name) {
+        return name;
+    }
     if (name.empty() || name[0] != 'u')
         return ea::nullopt;
 

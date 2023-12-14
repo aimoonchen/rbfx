@@ -272,7 +272,7 @@ static Diligent::RefCntAutoPtr<Diligent::IShader> create_shader(Urho3D::RenderDe
     Diligent::ShaderCreateInfo ShaderCI;
     // Tell the system that the shader source code is in HLSL.
     // For OpenGL, the engine will convert this into GLSL under the hood.
-    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+    ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
     // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
     ShaderCI.Desc.UseCombinedTextureSamplers = true;
     ShaderCI.Desc.ShaderType = shaderType;
@@ -308,7 +308,6 @@ bool Shader::Init(const Effekseer::CustomVector<Effekseer::StringView<char>>& vs
 bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekseer::Backend::UniformLayoutRef& layout)
 {
     uniformLayout_ = layout;
-
     auto renderDevice = graphicsDevice_->GetRenderDevice();
 
     vertexShader_ = renderDevice->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::VS, vertexFilename, "");
@@ -332,7 +331,7 @@ bool Shader::Init(const char* vertexFilename, const char* pixelFilename, Effekse
 //     Diligent::ShaderCreateInfo ShaderCI;
 //     // Tell the system that the shader source code is in HLSL.
 //     // For OpenGL, the engine will convert this into GLSL under the hood.
-//     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+//     ShaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
 //     // OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
 //     ShaderCI.Desc.UseCombinedTextureSamplers = true;
 //     ShaderCI.GLSLVersion = Diligent::ShaderVersion{ 3, 3 };
