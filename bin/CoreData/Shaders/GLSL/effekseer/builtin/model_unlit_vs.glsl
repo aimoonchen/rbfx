@@ -25,19 +25,19 @@ struct VS_Output
     vec4 PosP;
 };
 
-uniform VS_ConstantBuffer
+layout(binding = 0) uniform VS_ConstantBuffer
 {
-    mat4 u_mCameraProj;
-    mat4 u_mModel_Inst[10];
-    vec4 u_fUV[10];
-    vec4 u_fModelColor[10];
-    vec4 u_vs_fLightDirection;
-    vec4 u_vs_fLightColor;
-    vec4 u_vs_fLightAmbient;
-    vec4 u_mUVInversed;
-};
+    mat4 mCameraProj;
+    mat4 mModel_Inst[10];
+    vec4 fUV[10];
+    vec4 fModelColor[10];
+    vec4 fLightDirection;
+    vec4 fLightColor;
+    vec4 fLightAmbient;
+    vec4 mUVInversed;
+} CBVS0;
 
-// uniform VS_ConstantBuffer CBVS0;
+// layout(binding = 0) uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec3 Input_Normal;
@@ -54,23 +54,23 @@ centroid out vec4 _VSPS_Color;
 centroid out vec2 _VSPS_UV;
 out vec4 _VSPS_PosP;
 
-mat4 spvWorkaroundRowMajor(mat4 wrap) { return wrap; }
+mat4 spvWorkaroundRowMajor(mat4 wrap) { return transpose(wrap); }
 
 VS_Output _main(VS_Input Input)
 {
     uint index = Input.Index;
-    mat4 mModel = spvWorkaroundRowMajor(u_mModel_Inst[index]);
-    vec4 uv = u_fUV[index];
-    vec4 modelColor = u_fModelColor[index] * Input.Color;
+    mat4 mModel = spvWorkaroundRowMajor(CBVS0.mModel_Inst[index]);
+    vec4 uv = CBVS0.fUV[index];
+    vec4 modelColor = CBVS0.fModelColor[index] * Input.Color;
     VS_Output Output = VS_Output(vec4(0.0), vec4(0.0), vec2(0.0), vec4(0.0));
     vec4 localPos = vec4(Input.Pos.x, Input.Pos.y, Input.Pos.z, 1.0);
-    vec4 worldPos = mModel * localPos;
-    Output.PosVS = spvWorkaroundRowMajor(u_mCameraProj) * worldPos;
+    vec4 worldPos = localPos * mModel;
+    Output.PosVS = worldPos * spvWorkaroundRowMajor(CBVS0.mCameraProj);
     Output.Color = modelColor;
     vec2 outputUV = Input.UV;
     outputUV.x = (outputUV.x * uv.z) + uv.x;
     outputUV.y = (outputUV.y * uv.w) + uv.y;
-    outputUV.y = u_mUVInversed.x + (u_mUVInversed.y * outputUV.y);
+    outputUV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * outputUV.y);
     Output.UV = outputUV;
     Output.PosP = Output.PosVS;
     return Output;

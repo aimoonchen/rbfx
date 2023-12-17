@@ -23,20 +23,17 @@
  * THE SOFTWARE.
  */
 
-#ifdef GL_ES
-precision lowp float;
-#endif
-
-uniform PSConstants {
+layout(binding = 1) uniform PSConstants {
     vec4 u_color;
 };
-uniform sampler2D u_texture;
+layout(binding = 0) uniform sampler2D u_texture;
 
-varying vec2 v_texCoord;
-
+in vec2 v_texCoord;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
-    gl_FragColor =  texture2D(u_texture, v_texCoord) * u_color;
+    gl_FragColor =  texture(u_texture, v_texCoord) * u_color;
 }
 // cbuffer PSConstants {
 //     float4 u_color;

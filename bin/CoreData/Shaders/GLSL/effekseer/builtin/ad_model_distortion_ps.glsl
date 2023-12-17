@@ -28,19 +28,19 @@ struct AdvancedParameter
     float AlphaThreshold;
 };
 
-uniform PS_ConstantBuffer
+layout(binding = 1) uniform PS_ConstantBuffer
 {
-    vec4 u_g_scale;
-    vec4 u_mUVInversedBack;
-    vec4 u_fFlipbookParameter;
-    vec4 u_fUVDistortionParameter;
-    vec4 u_fBlendTextureParameter;
-    vec4 u_softParticleParam;
-    vec4 u_reconstructionParam1;
-    vec4 u_reconstructionParam2;
-};
+    vec4 g_scale;
+    vec4 mUVInversedBack;
+    vec4 fFlipbookParameter;
+    vec4 fUVDistortionParameter;
+    vec4 fBlendTextureParameter;
+    vec4 softParticleParam;
+    vec4 reconstructionParam1;
+    vec4 reconstructionParam2;
+} CBPS0;
 
-// uniform PS_ConstantBuffer CBPS0;
+// layout(binding = 1) uniform PS_ConstantBuffer CBPS0;
 
 layout(binding = 3) uniform sampler2D Sampler_sampler_uvDistortionTex;
 layout(binding = 0) uniform sampler2D Sampler_sampler_colorTex;
@@ -203,29 +203,29 @@ vec4 _main(PS_Input Input)
     PS_Input param = Input;
     AdvancedParameter advancedParam = DisolveAdvancedParameter(param);
     vec2 param_1 = advancedParam.UVDistortionUV;
-    vec2 param_2 = u_fUVDistortionParameter.zw;
+    vec2 param_2 = CBPS0.fUVDistortionParameter.zw;
     bool param_3 = false;
     vec2 UVOffset = UVDistortionOffset(param_1, param_2, param_3, Sampler_sampler_uvDistortionTex);
-    UVOffset *= u_fUVDistortionParameter.x;
+    UVOffset *= CBPS0.fUVDistortionParameter.x;
     vec4 Output = texture(Sampler_sampler_colorTex, vec2(Input.UV_Others.xy) + UVOffset);
     Output.w *= Input.Color.w;
     vec4 param_4 = Output;
     float param_5 = advancedParam.FlipbookRate;
     bool param_6 = false;
-    ApplyFlipbook(param_4, u_fFlipbookParameter, Input.Color, advancedParam.FlipbookNextIndexUV + UVOffset, param_5, param_6, Sampler_sampler_colorTex);
+    ApplyFlipbook(param_4, CBPS0.fFlipbookParameter, Input.Color, advancedParam.FlipbookNextIndexUV + UVOffset, param_5, param_6, Sampler_sampler_colorTex);
     Output = param_4;
     vec4 AlphaTexColor = texture(Sampler_sampler_alphaTex, advancedParam.AlphaUV + UVOffset);
     Output.w *= (AlphaTexColor.x * AlphaTexColor.w);
     vec2 param_7 = advancedParam.BlendUVDistortionUV;
-    vec2 param_8 = u_fUVDistortionParameter.zw;
+    vec2 param_8 = CBPS0.fUVDistortionParameter.zw;
     bool param_9 = false;
     vec2 BlendUVOffset = UVDistortionOffset(param_7, param_8, param_9, Sampler_sampler_blendUVDistortionTex);
-    BlendUVOffset *= u_fUVDistortionParameter.y;
+    BlendUVOffset *= CBPS0.fUVDistortionParameter.y;
     vec4 BlendTextureColor = texture(Sampler_sampler_blendTex, advancedParam.BlendUV + BlendUVOffset);
     vec4 BlendAlphaTextureColor = texture(Sampler_sampler_blendAlphaTex, advancedParam.BlendAlphaUV + BlendUVOffset);
     BlendTextureColor.w *= (BlendAlphaTextureColor.x * BlendAlphaTextureColor.w);
     vec4 param_10 = Output;
-    ApplyTextureBlending(param_10, BlendTextureColor, u_fBlendTextureParameter.x);
+    ApplyTextureBlending(param_10, BlendTextureColor, CBPS0.fBlendTextureParameter.x);
     Output = param_10;
     if (Output.w <= max(0.0, advancedParam.AlphaThreshold))
     {
@@ -234,12 +234,12 @@ vec4 _main(PS_Input Input)
     vec2 pos = Input.PosP.xy / vec2(Input.PosP.w);
     vec2 posR = Input.ProjTangent.xy / vec2(Input.ProjTangent.w);
     vec2 posU = Input.ProjBinormal.xy / vec2(Input.ProjBinormal.w);
-    float xscale = (((Output.x * 2.0) - 1.0) * Input.Color.x) * u_g_scale.x;
-    float yscale = (((Output.y * 2.0) - 1.0) * Input.Color.y) * u_g_scale.x;
+    float xscale = (((Output.x * 2.0) - 1.0) * Input.Color.x) * CBPS0.g_scale.x;
+    float yscale = (((Output.y * 2.0) - 1.0) * Input.Color.y) * CBPS0.g_scale.x;
     vec2 uv = (pos + ((posR - pos) * xscale)) + ((posU - pos) * yscale);
     uv.x = (uv.x + 1.0) * 0.5;
     uv.y = 1.0 - ((uv.y + 1.0) * 0.5);
-    uv.y = u_mUVInversedBack.x + (u_mUVInversedBack.y * uv.y);
+    uv.y = CBPS0.mUVInversedBack.x + (CBPS0.mUVInversedBack.y * uv.y);
     uv.y = 1.0 - uv.y;
     vec3 color = vec3(texture(Sampler_sampler_backTex, uv).xyz);
     Output.x = color.x;
@@ -249,14 +249,14 @@ vec4 _main(PS_Input Input)
     vec2 screenUV = (screenPos.xy + vec2(1.0)) / vec2(2.0);
     screenUV.y = 1.0 - screenUV.y;
     screenUV.y = 1.0 - screenUV.y;
-    if (u_softParticleParam.w != 0.0)
+    if (CBPS0.softParticleParam.w != 0.0)
     {
         float backgroundZ = texture(Sampler_sampler_depthTex, screenUV).x;
         float param_11 = backgroundZ;
         float param_12 = screenPos.z;
-        vec4 param_13 = u_softParticleParam;
-        vec4 param_14 = u_reconstructionParam1;
-        vec4 param_15 = u_reconstructionParam2;
+        vec4 param_13 = CBPS0.softParticleParam;
+        vec4 param_14 = CBPS0.reconstructionParam1;
+        vec4 param_15 = CBPS0.reconstructionParam2;
         Output.w *= SoftParticle(param_11, param_12, param_13, param_14, param_15);
     }
     return Output;

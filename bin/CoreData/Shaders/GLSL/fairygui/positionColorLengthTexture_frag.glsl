@@ -19,16 +19,10 @@
  * SOFTWARE.
  */
 
-#ifdef GL_ES
-// #extension GL_OES_standard_derivatives : enable
-
-varying mediump vec4 v_color;
-varying mediump vec2 v_texcoord;
-#else
-varying vec4 v_color;
-varying vec2 v_texcoord;
-#endif
-
+in vec4 v_color;
+in vec2 v_texcoord;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
 // #if defined GL_OES_standard_derivatives

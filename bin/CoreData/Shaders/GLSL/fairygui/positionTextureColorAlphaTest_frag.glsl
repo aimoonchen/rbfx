@@ -22,21 +22,18 @@
  * THE SOFTWARE.
  */
 
-#ifdef GL_ES
-precision lowp float;
-#endif
+in vec4 v_fragmentColor;
+in vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-
-uniform PSConstants {
+layout(binding = 1) uniform PSConstants {
     float u_alpha_value;
 };
-uniform sampler2D u_texture;
-
+layout(binding = 0) uniform sampler2D u_texture;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
-    vec4 texColor = texture2D(u_texture, v_texCoord);
+    vec4 texColor = texture(u_texture, v_texCoord);
 
 // mimic: glAlphaFunc(GL_GREATER)
 // pass if ( incoming_pixel >= u_alpha_value ) => fail if incoming_pixel < u_alpha_value

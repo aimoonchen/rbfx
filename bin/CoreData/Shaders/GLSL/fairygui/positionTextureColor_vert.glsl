@@ -23,21 +23,16 @@
  * THE SOFTWARE.
  */
 
-attribute vec4 a_position;
-attribute vec4 a_color;
-attribute vec2 a_texCoord;
+layout(location = 0) in vec4 a_position;
+layout(location = 1) in vec4 a_color;
+layout(location = 2) in vec2 a_texCoord;
 
-uniform VSConstants {
+layout(binding = 0) uniform VSConstants {
     mat4 u_MVPMatrix;
 };
 
-#ifdef GL_ES
-varying lowp vec4 v_fragmentColor;
-varying mediump vec2 v_texCoord;
-#else
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-#endif
+out vec4 v_fragmentColor;
+out vec2 v_texCoord;
 
 void main()
 {

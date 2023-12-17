@@ -23,12 +23,9 @@
  * THE SOFTWARE.
  */
 
-#ifdef GL_ES
-precision lowp float;
-#endif
-
-varying vec4 v_fragmentColor;
-
+in vec4 v_fragmentColor;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
     gl_FragColor = v_fragmentColor;

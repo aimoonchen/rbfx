@@ -22,14 +22,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifdef GL_ES
-varying mediump vec2 v_texCoord;
-varying mediump vec4 v_color;
-#else
-varying vec2 v_texCoord;
-varying vec4 v_color;
-#endif
-
+in vec2 v_texCoord;
+in vec4 v_color;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
     gl_FragColor = v_color;

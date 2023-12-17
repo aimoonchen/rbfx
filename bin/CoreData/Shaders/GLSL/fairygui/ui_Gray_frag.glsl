@@ -22,18 +22,15 @@
  THE SOFTWARE.
  ****************************************************************************/
  
-#ifdef GL_ES
-precision mediump float;
-#endif
+in vec4 v_fragmentColor;
+in vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-
-uniform sampler2D u_texture;
-
+layout(binding = 0) uniform sampler2D u_texture;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main(void)
 {
-    vec4 c = texture2D(u_texture, v_texCoord);
+    vec4 c = texture(u_texture, v_texCoord);
      c = v_fragmentColor * c;
     gl_FragColor.xyz = vec3(0.2126*c.r + 0.7152*c.g + 0.0722*c.b);
     gl_FragColor.w = c.w;

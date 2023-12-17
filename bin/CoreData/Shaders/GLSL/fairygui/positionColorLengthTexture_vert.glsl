@@ -19,30 +19,14 @@
  * SOFTWARE.
  */
 
-#ifdef GL_ES
-precision lowp float;
-#endif
+layout(location = 0) in vec4 a_position;
+layout(location = 1) in vec4 a_color;
+layout(location = 2) in vec2 a_texCoord;
 
-#ifdef GL_ES
-attribute mediump vec4 a_position;
-attribute mediump vec2 a_texCoord;
-attribute mediump vec4 a_color;
+out vec4 v_color;
+out vec2 v_texcoord;
 
-varying mediump vec4 v_color;
-varying mediump vec2 v_texcoord;
-
-#else
-
-attribute vec4 a_position;
-attribute vec4 a_color;
-attribute vec2 a_texCoord;
-
-varying vec4 v_color;
-varying vec2 v_texcoord;
-
-#endif
-
-uniform VSConstants {
+layout(binding = 0) uniform VSConstants {
     mat4 u_MVPMatrix;
     float u_alpha;
 };

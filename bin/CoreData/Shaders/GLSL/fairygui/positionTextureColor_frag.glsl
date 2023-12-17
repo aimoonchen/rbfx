@@ -23,18 +23,15 @@
  * THE SOFTWARE.
  */
 
-#ifdef GL_ES
-precision lowp float;
-#endif
+in vec4 v_fragmentColor;
+in vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-
-uniform sampler2D u_texture;
-
+layout(binding = 0) uniform sampler2D u_texture;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
-    gl_FragColor = v_fragmentColor * texture2D(u_texture, v_texCoord);
+    gl_FragColor = v_fragmentColor * texture(u_texture, v_texCoord);
 }
 // Texture2D    u_texture;
 // SamplerState u_texture_sampler;

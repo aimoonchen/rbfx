@@ -23,16 +23,12 @@
  * THE SOFTWARE.
  */
 
-attribute vec3 a_position;
-attribute vec4 a_color;
+layout(location = 0) in vec3 a_position;
+layout(location = 1) in vec4 a_color;
 
 uniform mat4 u_MVPMatrix;
 
-#ifdef GL_ES
-varying lowp vec4 v_fragmentColor;
-#else
-varying vec4 v_fragmentColor;
-#endif
+out vec4 v_fragmentColor;
 
 void main()
 {

@@ -25,31 +25,22 @@
 /*
  * LICENSE ???
  */
-#ifdef GL_ES
-precision lowp float;
-#endif
+in vec4 v_fragmentColor;
+in vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-
-uniform PSConstants {
+layout(binding = 1) uniform PSConstants {
     vec4 u_effectColor;
     vec4 u_textColor;
     int u_effectType;
 };
 // uniform vec4 u_effectColor;
 // uniform vec4 u_textColor;
-uniform sampler2D u_texture;
-
-// #ifdef GL_ES
-// uniform lowp int u_effectType; // 0: None (Draw text), 1: Outline, 2: Shadow
-// #else
-// uniform int u_effectType;
-// #endif
-
+layout(binding = 0) uniform sampler2D u_texture;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
-    vec4 texColor = texture2D(u_texture, v_texCoord);
+    vec4 texColor = texture(u_texture, v_texCoord);
     // fontAlpha == 1 means the area of solid text (without edge)
     // fontAlpha == 0 means the area outside text, including outline area
     // fontAlpha == (0, 1) means the edge of text

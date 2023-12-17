@@ -22,24 +22,21 @@
  THE SOFTWARE.
  ****************************************************************************/
  
-#ifdef GL_ES
-precision lowp float;
-#endif
+in vec4 v_fragmentColor;
+in vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-
-uniform PSConstants {
+layout(binding = 1) uniform PSConstants {
     vec4 u_effectColor;
     vec4 u_textColor;
 };
 // uniform vec4 u_effectColor;
 // uniform vec4 u_textColor;
-uniform sampler2D u_texture;
-
+layout(binding = 0) uniform sampler2D u_texture;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
-    float dist = texture2D(u_texture, v_texCoord).a;
+    float dist = texture(u_texture, v_texCoord).a;
     //TODO: Implementation 'fwidth' for glsl 1.0
     //float width = fwidth(dist);
     //assign width for constant will lead to a little bit fuzzy,it's temporary measure.

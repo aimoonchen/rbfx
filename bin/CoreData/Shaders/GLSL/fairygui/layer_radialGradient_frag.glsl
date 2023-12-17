@@ -22,11 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifdef GL_ES
-precision highp float;
-#endif
-
-uniform PSConstants {
+layout(binding = 1) uniform PSConstants {
     vec4 u_startColor;
     vec4 u_endColor;
     vec2 u_center;
@@ -39,12 +35,9 @@ uniform PSConstants {
 // uniform float u_radius;
 // uniform float u_expand;
 
-#ifdef GL_ES
-varying lowp vec4 v_position;
-#else
-varying vec4 v_position;
-#endif
-
+in vec4 v_position;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
     float d = distance(v_position.xy, u_center) / u_radius;

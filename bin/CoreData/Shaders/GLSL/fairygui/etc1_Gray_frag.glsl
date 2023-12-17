@@ -23,20 +23,17 @@
  * THE SOFTWARE.
  */
 
-#ifdef GL_ES
-    precision mediump float;
-#endif
+in vec4 v_fragmentColor;
+in vec2 v_texCoord;
 
-varying vec4 v_fragmentColor;
-varying vec2 v_texCoord;
-
-uniform sampler2D u_texture;
-uniform sampler2D u_texture1;
-
+layout(binding = 0) uniform sampler2D u_texture;
+layout(binding = 1) uniform sampler2D u_texture1;
+layout(location = 0) out vec4 _output;
+#define gl_FragColor _output
 void main()
 {
-    vec4 texColor = texture2D(u_texture, v_texCoord);
-    texColor.a = texture2D(u_texture1, v_texCoord).r;
+    vec4 texColor = texture(u_texture, v_texCoord);
+    texColor.a = texture(u_texture1, v_texCoord).r;
     texColor.rgb *= texColor.a; // premultiply alpha channel
 
     texColor = v_fragmentColor * texColor;

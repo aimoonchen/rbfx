@@ -32,16 +32,16 @@ struct VS_Output
     vec4 PosP;
 };
 
-uniform VS_ConstantBuffer
+layout(binding = 0) uniform VS_ConstantBuffer
 {
-    mat4 u_mCamera;
-    mat4 u_mCameraProj;
-    vec4 u_mUVInversed;
-    vec4 u_flipbookParameter1;
-    vec4 u_flipbookParameter2;
-};
+    mat4 mCamera;
+    mat4 mCameraProj;
+    vec4 mUVInversed;
+    vec4 flipbookParameter1;
+    vec4 flipbookParameter2;
+} CBVS0;
 
-// uniform VS_ConstantBuffer CBVS0;
+// layout(binding = 0) uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec4 Input_Color;
@@ -64,7 +64,7 @@ out vec4 _VSPS_Blend_Alpha_Dist_UV;
 out vec4 _VSPS_Blend_FBNextIndex_UV;
 out vec4 _VSPS_PosP;
 
-mat4 spvWorkaroundRowMajor(mat4 wrap) { return wrap; }
+mat4 spvWorkaroundRowMajor(mat4 wrap) { return transpose(wrap); }
 
 vec2 GetFlipbookOriginUV(vec2 FlipbookUV, float FlipbookIndex, float DivideX, vec2 flipbookOneSize, vec2 flipbookOffset)
 {
@@ -153,23 +153,23 @@ void ApplyFlipbookVS(inout float flipbookRate, inout vec2 flipbookUV, vec4 flipb
 void CalculateAndStoreAdvancedParameter(VS_Input vsinput, inout VS_Output vsoutput)
 {
     vsoutput.Alpha_Dist_UV = vsinput.Alpha_Dist_UV;
-    vsoutput.Alpha_Dist_UV.y = u_mUVInversed.x + (u_mUVInversed.y * vsinput.Alpha_Dist_UV.y);
-    vsoutput.Alpha_Dist_UV.w = u_mUVInversed.x + (u_mUVInversed.y * vsinput.Alpha_Dist_UV.w);
+    vsoutput.Alpha_Dist_UV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsinput.Alpha_Dist_UV.y);
+    vsoutput.Alpha_Dist_UV.w = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsinput.Alpha_Dist_UV.w);
     vsoutput.Blend_FBNextIndex_UV.x = vsinput.BlendUV.x;
     vsoutput.Blend_FBNextIndex_UV.y = vsinput.BlendUV.y;
-    vsoutput.Blend_FBNextIndex_UV.y = u_mUVInversed.x + (u_mUVInversed.y * vsinput.BlendUV.y);
+    vsoutput.Blend_FBNextIndex_UV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsinput.BlendUV.y);
     vsoutput.Blend_Alpha_Dist_UV = vsinput.Blend_Alpha_Dist_UV;
-    vsoutput.Blend_Alpha_Dist_UV.y = u_mUVInversed.x + (u_mUVInversed.y * vsinput.Blend_Alpha_Dist_UV.y);
-    vsoutput.Blend_Alpha_Dist_UV.w = u_mUVInversed.x + (u_mUVInversed.y * vsinput.Blend_Alpha_Dist_UV.w);
+    vsoutput.Blend_Alpha_Dist_UV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsinput.Blend_Alpha_Dist_UV.y);
+    vsoutput.Blend_Alpha_Dist_UV.w = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsinput.Blend_Alpha_Dist_UV.w);
     float flipbookRate = 0.0;
     vec2 flipbookNextIndexUV = vec2(0.0);
     float param = flipbookRate;
     vec2 param_1 = flipbookNextIndexUV;
-    vec4 param_2 = u_flipbookParameter1;
-    vec4 param_3 = u_flipbookParameter2;
+    vec4 param_2 = CBVS0.flipbookParameter1;
+    vec4 param_3 = CBVS0.flipbookParameter2;
     float param_4 = vsinput.FlipbookIndex;
     vec2 param_5 = vsoutput.UV_Others.xy;
-    vec2 param_6 = vec2(u_mUVInversed.xy);
+    vec2 param_6 = vec2(CBVS0.mUVInversed.xy);
     ApplyFlipbookVS(param, param_1, param_2, param_3, param_4, param_5, param_6);
     flipbookRate = param;
     flipbookNextIndexUV = param_1;
@@ -186,11 +186,11 @@ VS_Output _main(VS_Input Input)
     vec4 worldTangent = vec4((Input.Tangent.xyz - vec3(0.5)) * 2.0, 0.0);
     vec4 worldBinormal = vec4(cross(worldNormal.xyz, worldTangent.xyz), 0.0);
     vec2 uv1 = Input.UV1;
-    uv1.y = u_mUVInversed.x + (u_mUVInversed.y * uv1.y);
+    uv1.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * uv1.y);
     Output.UV_Others.x = uv1.x;
     Output.UV_Others.y = uv1.y;
     vec4 worldPos = vec4(Input.Pos.x, Input.Pos.y, Input.Pos.z, 1.0);
-    Output.PosVS = spvWorkaroundRowMajor(u_mCameraProj) * worldPos;
+    Output.PosVS = worldPos * spvWorkaroundRowMajor(CBVS0.mCameraProj);
     Output.WorldN = worldNormal.xyz;
     Output.WorldB = worldBinormal.xyz;
     Output.WorldT = worldTangent.xyz;
