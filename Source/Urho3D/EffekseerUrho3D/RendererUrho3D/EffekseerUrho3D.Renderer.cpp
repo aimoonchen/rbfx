@@ -129,7 +129,7 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 RendererRef Renderer::Create(Urho3D::RenderDevice* renderDevice, int32_t squareMaxCount, bool isReversedDepth)
 {
     auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(squareMaxCount);
-    renderer->materialCompiler_ = new Effekseer::MaterialCompilerGL();
+    renderer->materialCompiler_ = new Effekseer::MaterialCompilerGL(renderDevice->GetBackend() == Urho3D::RenderBackend::Vulkan);
     if (renderer->Initialize(renderDevice, isReversedDepth))
     {
         return renderer;

@@ -30,8 +30,6 @@ layout(binding = 0) uniform VSConstants {
     mat4 u_MVPMatrix;
     float u_alpha;
 };
-// uniform float u_alpha;
-// uniform mat4 u_MVPMatrix;
 
 void main()
 {

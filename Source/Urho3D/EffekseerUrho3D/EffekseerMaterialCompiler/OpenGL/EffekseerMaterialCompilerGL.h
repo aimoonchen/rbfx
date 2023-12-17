@@ -11,7 +11,7 @@ class MaterialCompilerGL : public MaterialCompiler, public ReferenceObject
 {
 private:
 public:
-	MaterialCompilerGL() = default;
+    MaterialCompilerGL(bool isVulkan) : is_vulkan_{ isVulkan } {};
 
 	virtual ~MaterialCompilerGL() = default;
 
@@ -33,6 +33,8 @@ public:
 	{
 		return ReferenceObject::GetRef();
 	}
+private:
+    bool is_vulkan_{ false };
 };
 
 } // namespace Effekseer

@@ -84,10 +84,10 @@ CompiledMaterialBinary* MaterialCompilerGL::Compile(MaterialFile* materialFile, 
 		return ret;
 	};
 
-	auto saveBinary = [&materialFile, &binary, &convertToVector, &maximumUniformCount, &maximumTextureCount](MaterialShaderType type)
+	auto saveBinary = [this, &materialFile, &binary, &convertToVector, &maximumUniformCount, &maximumTextureCount](MaterialShaderType type)
 	{
 		GLSL::ShaderGenerator generator;
-		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, true, true, true, false, 0, false, false, false, InstanceCount);
+		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, true, true, true, false, 0, false, false, is_vulkan_, InstanceCount);
 		binary->SetVertexShaderData(type, convertToVector(shader.CodeVS));
 		binary->SetPixelShaderData(type, convertToVector(shader.CodePS));
 	};

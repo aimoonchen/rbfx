@@ -29,8 +29,6 @@ layout(binding = 1) uniform PSConstants {
     vec4 u_effectColor;
     vec4 u_textColor;
 };
-// uniform vec4 u_effectColor;
-// uniform vec4 u_textColor;
 layout(binding = 0) uniform sampler2D u_texture;
 layout(location = 0) out vec4 _output;
 #define gl_FragColor _output

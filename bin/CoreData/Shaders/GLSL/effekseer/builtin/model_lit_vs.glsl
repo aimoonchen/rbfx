@@ -93,7 +93,9 @@ VS_Output _main(VS_Input Input)
     Output.PosP = Output.PosVS;
     return Output;
 }
-
+#ifdef VULKAN
+#define gl_InstanceID gl_InstanceIndex
+#endif
 void main()
 {
     VS_Input Input;

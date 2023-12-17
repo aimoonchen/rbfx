@@ -29,8 +29,6 @@ layout(binding = 0) uniform VSConstants {
     mat4 u_MVPMatrix;
     vec4 u_color;
 };
-// uniform vec4 u_color;
-// uniform mat4 u_MVPMatrix;
 
 out vec4 v_fragmentColor;
 

@@ -29,11 +29,6 @@ layout(binding = 1) uniform PSConstants {
     float u_radius;
     float u_expand;
 };
-// uniform vec4 u_startColor;
-// uniform vec4 u_endColor;
-// uniform vec2 u_center;
-// uniform float u_radius;
-// uniform float u_expand;
 
 in vec4 v_position;
 layout(location = 0) out vec4 _output;
