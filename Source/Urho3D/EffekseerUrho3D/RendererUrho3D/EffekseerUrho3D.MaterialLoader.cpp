@@ -184,7 +184,7 @@ MaterialLoader ::~MaterialLoader()
         auto fullName = dir + vsFileName + ".glsl";
         auto exist = context->GetSubsystem<Urho3D::FileSystem>()->FileExists(fullName);
         if (/*!exist && */ shaderFile->Open(dir + vsFileName + ".glsl", Urho3D::FILE_WRITE)) {
-            shaderFile->Write(binary->GetVertexShaderData(type), binary->GetVertexShaderSize(type));
+            shaderFile->Write(binary->GetVertexShaderData(type), binary->GetVertexShaderSize(type) - 1);
             shaderFile->Close();
         }
         auto fsFileName = "fs_" + fileName;
@@ -195,7 +195,7 @@ MaterialLoader ::~MaterialLoader()
         exist = context->GetSubsystem<Urho3D::FileSystem>()->FileExists(fullName);
         shaderFile = std::make_unique<Urho3D::File>(context);
         if (/*!exist && */ shaderFile->Open(dir + fsFileName + ".glsl", Urho3D::FILE_WRITE)) {
-            shaderFile->Write(binary->GetPixelShaderData(type), binary->GetPixelShaderSize(type));
+            shaderFile->Write(binary->GetPixelShaderData(type), binary->GetPixelShaderSize(type) - 1);
             shaderFile->Close();
         }
         return graphicsDevice_->CreateShaderFromFile(("effekseer/custom/" + vsFileName).c_str(), ("effekseer/custom/" + fsFileName).c_str(), uniformLayout);
