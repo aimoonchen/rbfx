@@ -682,7 +682,7 @@ void ShaderGenerator::ExportHeader(std::ostringstream& maincode, MaterialFile* m
 	}
 
 	// Adhoc
-	if (true/*is450*/)
+	if (is450)
 	{
 		if (stage == 0)
 		{
@@ -717,18 +717,11 @@ void ShaderGenerator::ExportHeader(std::ostringstream& maincode, MaterialFile* m
 		maincode << g_material_fs_src_pre;
 	}
 
-	if (stage == 1)
+	if (isOutputDefined && stage == 1)
 	{
-        if (isOutputDefined)
-        {
-		    maincode << "#define FRAGCOLOR out_flagColor" << std::endl;
-            maincode << "layout(location = 0) out vec4 out_flagColor;" << std::endl;
-        }
-        else
-        {
-            maincode << "#define FRAGCOLOR gl_FragColor" << std::endl;
-        }
-        maincode << std::endl;
+		maincode << "#define FRAGCOLOR out_flagColor" << std::endl;
+		maincode << "layout(location = 0) out vec4 out_flagColor;" << std::endl;
+		maincode << std::endl;
 	}
 
 	// gradient
