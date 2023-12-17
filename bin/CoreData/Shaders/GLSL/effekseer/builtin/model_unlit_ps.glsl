@@ -11,29 +11,29 @@ struct PS_Input
     vec4 PosP;
 };
 
-struct PS_ConstantBuffer
+uniform PS_ConstantBuffer
 {
-    vec4 fLightDirection;
-    vec4 fLightColor;
-    vec4 fLightAmbient;
-    vec4 fFlipbookParameter;
-    vec4 fUVDistortionParameter;
-    vec4 fBlendTextureParameter;
-    vec4 fCameraFrontDirection;
-    vec4 fFalloffParameter;
-    vec4 fFalloffBeginColor;
-    vec4 fFalloffEndColor;
-    vec4 fEmissiveScaling;
-    vec4 fEdgeColor;
-    vec4 fEdgeParameter;
-    vec4 softParticleParam;
-    vec4 reconstructionParam1;
-    vec4 reconstructionParam2;
-    vec4 mUVInversedBack;
-    vec4 miscFlags;
+    vec4 u_fLightDirection;
+    vec4 u_fLightColor;
+    vec4 u_fLightAmbient;
+    vec4 u_fFlipbookParameter;
+    vec4 u_fUVDistortionParameter;
+    vec4 u_fBlendTextureParameter;
+    vec4 u_fCameraFrontDirection;
+    vec4 u_fFalloffParameter;
+    vec4 u_fFalloffBeginColor;
+    vec4 u_fFalloffEndColor;
+    vec4 u_fEmissiveScaling;
+    vec4 u_fEdgeColor;
+    vec4 u_fEdgeParameter;
+    vec4 u_softParticleParam;
+    vec4 u_reconstructionParam1;
+    vec4 u_reconstructionParam2;
+    vec4 u_mUVInversedBack;
+    vec4 u_miscFlags;
 };
 
-uniform PS_ConstantBuffer CBPS0;
+// uniform PS_ConstantBuffer CBPS0;
 
 layout(binding = 0) uniform sampler2D Sampler_sampler_colorTex;
 layout(binding = 1) uniform sampler2D Sampler_sampler_depthTex;
@@ -110,12 +110,12 @@ vec4 ConvertToScreen(vec4 c, bool isValid)
 
 vec4 _main(PS_Input Input)
 {
-    bool convertColorSpace = CBPS0.miscFlags.x != 0.0;
+    bool convertColorSpace = u_miscFlags.x != 0.0;
     vec4 param = texture(Sampler_sampler_colorTex, Input.UV);
     bool param_1 = convertColorSpace;
     vec4 Output = ConvertFromSRGBTexture(param, param_1) * Input.Color;
     vec4 _256 = Output;
-    vec3 _258 = _256.xyz * CBPS0.fEmissiveScaling.x;
+    vec3 _258 = _256.xyz * u_fEmissiveScaling.x;
     Output.x = _258.x;
     Output.y = _258.y;
     Output.z = _258.z;
@@ -123,15 +123,15 @@ vec4 _main(PS_Input Input)
     vec2 screenUV = (screenPos.xy + vec2(1.0)) / vec2(2.0);
     screenUV.y = 1.0 - screenUV.y;
     screenUV.y = 1.0 - screenUV.y;
-    screenUV.y = CBPS0.mUVInversedBack.x + (CBPS0.mUVInversedBack.y * screenUV.y);
-    if (CBPS0.softParticleParam.w != 0.0)
+    screenUV.y = u_mUVInversedBack.x + (u_mUVInversedBack.y * screenUV.y);
+    if (u_softParticleParam.w != 0.0)
     {
         float backgroundZ = texture(Sampler_sampler_depthTex, screenUV).x;
         float param_2 = backgroundZ;
         float param_3 = screenPos.z;
-        vec4 param_4 = CBPS0.softParticleParam;
-        vec4 param_5 = CBPS0.reconstructionParam1;
-        vec4 param_6 = CBPS0.reconstructionParam2;
+        vec4 param_4 = u_softParticleParam;
+        vec4 param_5 = u_reconstructionParam1;
+        vec4 param_6 = u_reconstructionParam2;
         Output.w *= SoftParticle(param_2, param_3, param_4, param_5, param_6);
     }
     if (Output.w == 0.0)

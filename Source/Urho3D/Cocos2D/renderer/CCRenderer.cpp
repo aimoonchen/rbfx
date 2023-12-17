@@ -48,10 +48,6 @@
 
 #include "Urho3DContext.h"
 
-namespace Urho3D
-{
-    extern bool g_keep_uniform_name;
-}
 NS_CC_BEGIN
 
 // helper
@@ -1049,31 +1045,29 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
         }
         
         auto& srbinfo = shaderResourceBindings_[pipelineState];
-        const bool isOpenGL = _device->GetBackend() == Urho3D::RenderBackend::OpenGL;
-        const bool hasSeparableShaderPrograms = _device->GetRenderDevice()->GetDeviceInfo().Features.SeparablePrograms;
-        URHO3D_ASSERT(isOpenGL || hasSeparableShaderPrograms);
-        Diligent::IShader* const shaderHandles[] = { currentProgram->_vsShader->GetHandle(), currentProgram->_fsShader->GetHandle() };
-        Urho3D::g_keep_uniform_name = true;
-        if (!isOpenGL)
-        {
-            srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(shaderHandles);
-        }
-        else
-        {
-#if GL_SUPPORTED || GLES_SUPPORTED
-            // On OpenGL we should create temporary program and reflect vertex inputs.
-            // If separable shader programs are not supported, we should also reflect everything else.
-            Urho3D::TemporaryGLProgram glProgram{shaderHandles, hasSeparableShaderPrograms};
-
-            if (hasSeparableShaderPrograms)
-                srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(shaderHandles);
-            else
-                srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(glProgram.GetHandle());
-#endif
-        }
-        Urho3D::g_keep_uniform_name = false;
+//         const bool isOpenGL = _device->GetBackend() == Urho3D::RenderBackend::OpenGL;
+//         const bool hasSeparableShaderPrograms = _device->GetRenderDevice()->GetDeviceInfo().Features.SeparablePrograms;
+//         URHO3D_ASSERT(isOpenGL || hasSeparableShaderPrograms);
+//         Diligent::IShader* const shaderHandles[] = { currentProgram->_vsShader->GetHandle(), currentProgram->_fsShader->GetHandle() };
+//         if (!isOpenGL)
+//         {
+//             srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(shaderHandles);
+//         }
+//         else
+//         {
+// #if GL_SUPPORTED || GLES_SUPPORTED
+//             // On OpenGL we should create temporary program and reflect vertex inputs.
+//             // If separable shader programs are not supported, we should also reflect everything else.
+//             Urho3D::TemporaryGLProgram glProgram{shaderHandles, hasSeparableShaderPrograms};
+// 
+//             if (hasSeparableShaderPrograms)
+//                 srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(shaderHandles);
+//             else
+//                 srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(glProgram.GetHandle());
+// #endif
+//         }
         pipelineState->CreateShaderResourceBinding(&srbinfo.shaderResourceBinding, true);
-        srbinfo.reflection->ConnectToShaderVariables(Urho3D::PipelineStateType::Graphics, srbinfo.shaderResourceBinding);
+        //srbinfo.reflection->ConnectToShaderVariables(Urho3D::PipelineStateType::Graphics, srbinfo.shaderResourceBinding);
 
         auto textureCount = currentProgram->_textureCount;
         if (textureCount > 0) {

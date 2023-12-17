@@ -18,7 +18,7 @@
 namespace EffekseerUrho3D
 {
 
-static const int LLGI_InstanceCount = 40;
+static const int s_InstanceCount = 10;
 
 Effekseer::CustomVector<Effekseer::CustomString<char>> StoreTextureLocations(
     const ::Effekseer::MaterialFile& materialFile)
@@ -160,7 +160,7 @@ MaterialLoader ::~MaterialLoader()
 		shaderTypeCount = 2;
 	}
     // TODO: runtime shader generate on mobile platform?
-    auto dir = graphicsDevice_->GetRenderDevice()->GetContext()->GetSubsystem<Urho3D::FileSystem>()->GetProgramDir() + "Assets/Engine/Shaders/HLSL/effekseer/custom/";
+    auto dir = graphicsDevice_->GetRenderDevice()->GetContext()->GetSubsystem<Urho3D::FileSystem>()->GetProgramDir() + "Assets/Engine/Shaders/GLSL/effekseer/custom/";
 //     dir.replace("/build/", "/");
 //     dir.replace("/Debug/", "/");
 //     dir.replace("/Release/", "/");
@@ -181,9 +181,9 @@ MaterialLoader ::~MaterialLoader()
             vsFileName += "_model";
         }
         auto shaderFile = std::make_unique<Urho3D::File>(context);
-        auto fullName = dir + vsFileName + ".fx";
+        auto fullName = dir + vsFileName + ".glsl";
         auto exist = context->GetSubsystem<Urho3D::FileSystem>()->FileExists(fullName);
-        if (/*!exist && */ shaderFile->Open(dir + vsFileName + ".fx", Urho3D::FILE_WRITE)) {
+        if (/*!exist && */ shaderFile->Open(dir + vsFileName + ".glsl", Urho3D::FILE_WRITE)) {
             shaderFile->Write(binary->GetVertexShaderData(type), binary->GetVertexShaderSize(type));
             shaderFile->Close();
         }
@@ -191,19 +191,19 @@ MaterialLoader ::~MaterialLoader()
         if (isModel) {
             fsFileName += "_model";
         }
-        fullName = dir + fsFileName + ".fx";
+        fullName = dir + fsFileName + ".glsl";
         exist = context->GetSubsystem<Urho3D::FileSystem>()->FileExists(fullName);
         shaderFile = std::make_unique<Urho3D::File>(context);
-        if (/*!exist && */ shaderFile->Open(dir + fsFileName + ".fx", Urho3D::FILE_WRITE)) {
+        if (/*!exist && */ shaderFile->Open(dir + fsFileName + ".glsl", Urho3D::FILE_WRITE)) {
             shaderFile->Write(binary->GetPixelShaderData(type), binary->GetPixelShaderSize(type));
             shaderFile->Close();
         }
-        return graphicsDevice_->CreateShaderFromFile(("Shaders/HLSL/effekseer/custom/" + vsFileName + ".fx").c_str(), ("Shaders/HLSL/effekseer/custom/" + fsFileName + ".fx").c_str(), uniformLayout);
+        return graphicsDevice_->CreateShaderFromFile(("effekseer/custom/" + vsFileName).c_str(), ("effekseer/custom/" + fsFileName).c_str(), uniformLayout);
     };
 	for (int32_t st = 0; st < shaderTypeCount; st++)
 	{
 		Shader* shader = nullptr;
-		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, false, st, LLGI_InstanceCount);
+		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, false, st, s_InstanceCount);
 		if (material->IsSimpleVertex)
 		{
             /*
@@ -247,7 +247,7 @@ MaterialLoader ::~MaterialLoader()
 //                     uniformLayout),
                 create_shader(binary, shaderTypes[st], uniformLayout, false),
 				vl,
-				"MaterialStandardRenderer");
+				"MaterialStandardRenderer Simple");
 		}
 		else
 		{
@@ -291,7 +291,7 @@ MaterialLoader ::~MaterialLoader()
 //                                         uniformLayout),
                                     create_shader(binary, shaderTypes[st], uniformLayout, false),
 									vl,
-									"MaterialStandardRenderer");
+									"MaterialStandardRenderer Sprite");
 		}
 
 		if (shader == nullptr)
@@ -345,7 +345,7 @@ MaterialLoader ::~MaterialLoader()
 			dataPS.emplace_back(ds);
 		}
         */
-		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, true, st, LLGI_InstanceCount);
+		auto parameterGenerator = EffekseerRenderer::MaterialShaderParameterGenerator(materialFile, true, st, s_InstanceCount);
 
 		// compile
 		std::string log;
@@ -438,7 +438,7 @@ MaterialLoader ::~MaterialLoader()
 			std::cout << "Error : Invalid material is loaded." << std::endl;
 			return nullptr;
 		}
-
+        
 		auto binary = ::Effekseer::CreateUniqueReference(materialCompiler_->Compile(&materialFile));
 
 		return LoadAcutually(materialFile, binary.get());

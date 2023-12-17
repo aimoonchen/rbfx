@@ -29,28 +29,28 @@ struct VS_Input
     uint Index;
 };
 
-struct VS_ConstantBuffer
+uniform VS_ConstantBuffer
 {
-    mat4 mCameraProj;
-    mat4 mModel_Inst[10];
-    vec4 fUV[10];
-    vec4 fAlphaUV[10];
-    vec4 fUVDistortionUV[10];
-    vec4 fBlendUV[10];
-    vec4 fBlendAlphaUV[10];
-    vec4 fBlendUVDistortionUV[10];
-    vec4 flipbookParameter1;
-    vec4 flipbookParameter2;
-    vec4 fFlipbookIndexAndNextRate[10];
-    vec4 fModelAlphaThreshold[10];
-    vec4 fModelColor[10];
-    vec4 fLightDirection;
-    vec4 fLightColor;
-    vec4 fLightAmbient;
-    vec4 mUVInversed;
+    mat4 u_mCameraProj;
+    mat4 u_mModel_Inst[10];
+    vec4 u_fUV[10];
+    vec4 u_fAlphaUV[10];
+    vec4 u_fUVDistortionUV[10];
+    vec4 u_fBlendUV[10];
+    vec4 u_fBlendAlphaUV[10];
+    vec4 u_fBlendUVDistortionUV[10];
+    vec4 u_flipbookParameter1;
+    vec4 u_flipbookParameter2;
+    vec4 u_fFlipbookIndexAndNextRate[10];
+    vec4 u_fModelAlphaThreshold[10];
+    vec4 u_fModelColor[10];
+    vec4 u_vs_fLightDirection;
+    vec4 u_vs_fLightColor;
+    vec4 u_vs_fLightAmbient;
+    vec4 u_mUVInversed;
 };
 
-uniform VS_ConstantBuffer CBVS0;
+// uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec3 Input_Normal;
@@ -173,11 +173,11 @@ void CalculateAndStoreAdvancedParameter(vec2 uv, vec2 uv1, vec4 alphaUV, vec4 uv
     vec2 flipbookNextIndexUV = vec2(0.0);
     float param = flipbookRate;
     vec2 param_1 = flipbookNextIndexUV;
-    vec4 param_2 = CBVS0.flipbookParameter1;
-    vec4 param_3 = CBVS0.flipbookParameter2;
+    vec4 param_2 = u_flipbookParameter1;
+    vec4 param_3 = u_flipbookParameter2;
     float param_4 = flipbookIndexAndNextRate;
     vec2 param_5 = uv1;
-    vec2 param_6 = vec2(CBVS0.mUVInversed.xy);
+    vec2 param_6 = vec2(u_mUVInversed.xy);
     ApplyFlipbookVS(param, param_1, param_2, param_3, param_4, param_5, param_6);
     flipbookRate = param;
     flipbookNextIndexUV = param_1;
@@ -185,38 +185,38 @@ void CalculateAndStoreAdvancedParameter(vec2 uv, vec2 uv1, vec4 alphaUV, vec4 uv
     vsoutput.Blend_FBNextIndex_UV.w = flipbookNextIndexUV.y;
     vsoutput.UV_Others.z = flipbookRate;
     vsoutput.UV_Others.w = modelAlphaThreshold;
-    vsoutput.Alpha_Dist_UV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsoutput.Alpha_Dist_UV.y);
-    vsoutput.Alpha_Dist_UV.w = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsoutput.Alpha_Dist_UV.w);
-    vsoutput.Blend_FBNextIndex_UV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsoutput.Blend_FBNextIndex_UV.y);
-    vsoutput.Blend_Alpha_Dist_UV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsoutput.Blend_Alpha_Dist_UV.y);
-    vsoutput.Blend_Alpha_Dist_UV.w = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * vsoutput.Blend_Alpha_Dist_UV.w);
+    vsoutput.Alpha_Dist_UV.y = u_mUVInversed.x + (u_mUVInversed.y * vsoutput.Alpha_Dist_UV.y);
+    vsoutput.Alpha_Dist_UV.w = u_mUVInversed.x + (u_mUVInversed.y * vsoutput.Alpha_Dist_UV.w);
+    vsoutput.Blend_FBNextIndex_UV.y = u_mUVInversed.x + (u_mUVInversed.y * vsoutput.Blend_FBNextIndex_UV.y);
+    vsoutput.Blend_Alpha_Dist_UV.y = u_mUVInversed.x + (u_mUVInversed.y * vsoutput.Blend_Alpha_Dist_UV.y);
+    vsoutput.Blend_Alpha_Dist_UV.w = u_mUVInversed.x + (u_mUVInversed.y * vsoutput.Blend_Alpha_Dist_UV.w);
 }
 
 VS_Output _main(VS_Input Input)
 {
     uint index = Input.Index;
-    mat4 mModel = spvWorkaroundRowMajor(CBVS0.mModel_Inst[index]);
-    vec4 uv = CBVS0.fUV[index];
-    vec4 alphaUV = CBVS0.fAlphaUV[index];
-    vec4 uvDistortionUV = CBVS0.fUVDistortionUV[index];
-    vec4 blendUV = CBVS0.fBlendUV[index];
-    vec4 blendAlphaUV = CBVS0.fBlendAlphaUV[index];
-    vec4 blendUVDistortionUV = CBVS0.fBlendUVDistortionUV[index];
-    vec4 modelColor = CBVS0.fModelColor[index] * Input.Color;
-    float flipbookIndexAndNextRate = CBVS0.fFlipbookIndexAndNextRate[index].x;
-    float modelAlphaThreshold = CBVS0.fModelAlphaThreshold[index].x;
+    mat4 mModel = spvWorkaroundRowMajor(u_mModel_Inst[index]);
+    vec4 uv = u_fUV[index];
+    vec4 alphaUV = u_fAlphaUV[index];
+    vec4 uvDistortionUV = u_fUVDistortionUV[index];
+    vec4 blendUV = u_fBlendUV[index];
+    vec4 blendAlphaUV = u_fBlendAlphaUV[index];
+    vec4 blendUVDistortionUV = u_fBlendUVDistortionUV[index];
+    vec4 modelColor = u_fModelColor[index] * Input.Color;
+    float flipbookIndexAndNextRate = u_fFlipbookIndexAndNextRate[index].x;
+    float modelAlphaThreshold = u_fModelAlphaThreshold[index].x;
     VS_Output Output = VS_Output(vec4(0.0), vec4(0.0), vec4(0.0), vec3(0.0), vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0));
     vec4 localPosition = vec4(Input.Pos.x, Input.Pos.y, Input.Pos.z, 1.0);
-    vec4 worldPos = localPosition * mModel;
-    Output.PosVS = worldPos * spvWorkaroundRowMajor(CBVS0.mCameraProj);
+    vec4 worldPos = mModel * localPosition;
+    Output.PosVS = spvWorkaroundRowMajor(u_mCameraProj) * worldPos;
     vec2 outputUV = Input.UV;
     outputUV.x = (outputUV.x * uv.z) + uv.x;
     outputUV.y = (outputUV.y * uv.w) + uv.y;
-    outputUV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * outputUV.y);
+    outputUV.y = u_mUVInversed.x + (u_mUVInversed.y * outputUV.y);
     Output.UV_Others.x = outputUV.x;
     Output.UV_Others.y = outputUV.y;
     vec4 localNormal = vec4(Input.Normal.x, Input.Normal.y, Input.Normal.z, 0.0);
-    localNormal = normalize(localNormal * mModel);
+    localNormal = normalize(mModel * localNormal);
     Output.WorldN = localNormal.xyz;
     Output.Color = modelColor;
     vec2 param = Input.UV;

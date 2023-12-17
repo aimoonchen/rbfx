@@ -232,11 +232,7 @@ bool VertexLayout::Init(const Effekseer::Backend::VertexLayoutElement* elements,
 	for (int32_t i = 0; i < elementCount; i++) {
         const auto& e = effekseerElements_[i];
         const auto& type = formatMap[static_cast<int32_t>(e.Format)];
-        // dx12
-        bool emptySemantic = e.SemanticName.empty();
-        elements_[i] = Diligent::LayoutElement(emptySemantic ? "TEXCOORD" : e.SemanticName.c_str(), emptySemantic ? i : e.SemanticIndex, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
-        //elements_[i] = Diligent::LayoutElement(e.SemanticName.c_str(), e.SemanticIndex, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
-        //elements_[i] = Diligent::LayoutElement(i, (e.SemanticName == "TEXCOORD") ? e.SemanticIndex + 1 : 1, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_INSTANCE, 1);
+        elements_[i] = Diligent::LayoutElement("ATTRIB", i, 0, type.first, type.second, (e.Format == Effekseer::Backend::VertexLayoutFormat::R8G8B8A8_UNORM), offset, stride, Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX, 0);
         offset += EFFEKSEER_ELEMENT_TYPESIZES[type.second] * type.first;
 	}
 

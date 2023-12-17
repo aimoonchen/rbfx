@@ -9,7 +9,7 @@
 
 namespace EffekseerUrho3D
 {
-const int LLGI_InstanceCount = 40;
+const int LLGI_InstanceCount = 10;
 
 ModelRenderer::ModelRenderer(RendererImplemented* renderer,
 							 Shader* shader_ad_lit,

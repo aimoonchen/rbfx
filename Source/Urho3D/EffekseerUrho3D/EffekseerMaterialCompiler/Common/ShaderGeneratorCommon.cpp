@@ -41,7 +41,11 @@ half4 LinearToSRGB(half4 c)
 
 half4 ConvertFromSRGBTexture(half4 c)
 {
-	if (predefined_uniform.z == 0.0)
+#ifdef COMPILEVS
+    if (predefined_uniform.z == 0.0)
+#else
+	if (fs_predefined_uniform.z == 0.0)
+#endif
 	{
 		return c;
 	}
@@ -51,7 +55,11 @@ half4 ConvertFromSRGBTexture(half4 c)
 
 half4 ConvertToScreen(half4 c)
 {
-	if (predefined_uniform.z == 0.0)
+#ifdef COMPILEVS
+    if (predefined_uniform.z == 0.0)
+#else
+	if (fs_predefined_uniform.z == 0.0)
+#endif
 	{
 		return c;
 	}

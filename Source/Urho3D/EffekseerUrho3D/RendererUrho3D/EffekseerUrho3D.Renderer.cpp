@@ -15,7 +15,7 @@
 #include "../EffekseerRendererCommon/EffekseerRenderer.TrackRendererBase.h"
 #include "../EffekseerRendererCommon/ModelLoader.h"
 #include "../EffekseerRendererCommon/TextureLoader.h"
-#include "../EffekseerMaterialCompiler/DirectX12/EffekseerMaterialCompilerDX12.h"
+#include "../EffekseerMaterialCompiler/OpenGL/EffekseerMaterialCompilerGL.h"
 //#include <iostream>
 #include <Diligent/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include "../../Graphics/GraphicsUtils.h"
@@ -129,7 +129,7 @@ Urho3D::TextureFormat ConvertTextureFormat(Effekseer::Backend::TextureFormatType
 RendererRef Renderer::Create(Urho3D::RenderDevice* renderDevice, int32_t squareMaxCount, bool isReversedDepth)
 {
     auto renderer = Effekseer::MakeRefPtr<RendererImplemented>(squareMaxCount);
-    renderer->materialCompiler_ = new Effekseer::MaterialCompilerDX12();
+    renderer->materialCompiler_ = new Effekseer::MaterialCompilerGL();
     if (renderer->Initialize(renderDevice, isReversedDepth))
     {
         return renderer;
@@ -343,24 +343,27 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> piplineState;
     auto device = renderDevice->GetRenderDevice();
     device->CreateGraphicsPipelineState(PSOCreateInfo, &piplineState);
-    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer")->Set(currentShader->GetVertexUniformBuffer());
-    piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer")->Set(currentShader->GetPixelUniformBuffer());
+
+    Diligent::IShaderResourceVariable* srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VS_ConstantBuffer");
+    if (!srv) {
+        srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_VERTEX, "VSConstantBuffer");
+    }
+    if (srv) {
+        srv->Set(currentShader->GetVertexUniformBuffer());
+    }
+    srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PS_ConstantBuffer");
+    if (!srv) {
+        srv = piplineState->GetStaticVariableByName(Diligent::SHADER_TYPE_PIXEL, "PSConstantBuffer");
+    }
+    if (srv) {
+        srv->Set(currentShader->GetPixelUniformBuffer());
+    }
+    
     auto& srbinfo = shaderResourceBindings_[piplineState];
     piplineState->CreateShaderResourceBinding(&srbinfo.shaderResourceBinding, true);
-//     if (uniformLayout != nullptr) {
-//         const auto& samplerNames = uniformLayout->GetTextures();
-//         auto samplerCount = samplerNames.size();
-//         if (samplerCount > 0) {
-//             srbinfo.shaderResourceVariables.reserve(samplerCount);
-//         }
-//         for (int i = 0; i < samplerCount; i++) {
-//             srbinfo.shaderResourceVariables.emplace_back(srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str()));
-//         }
-//     }
+
     const auto& samplerNames = uniformLayout->GetTextures();
     srbinfo.shaderResourceVariables.resize(samplerNames.size());
-    auto psShader = currentShader->GetPixelShader();
-    const unsigned numResources = psShader->GetResourceCount();
     auto get_index_by_name = [&samplerNames](const char* name) {
         for (int i = 0; i < samplerNames.size(); i++) {
             if (name == samplerNames[i]) {
@@ -369,21 +372,20 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
         }
         return -1;
     };
+
+    const unsigned numResources = srbinfo.shaderResourceBinding->GetVariableCount(Diligent::SHADER_TYPE_PIXEL);
     for (unsigned resourceIndex = 0; resourceIndex < numResources; ++resourceIndex) {
+        auto variable = srbinfo.shaderResourceBinding->GetVariableByIndex(Diligent::SHADER_TYPE_PIXEL, resourceIndex);
         Diligent::ShaderResourceDesc desc;
-        psShader->GetResourceDesc(resourceIndex, desc);
+        variable->GetResourceDesc(desc);
         int index = -1;
         switch (desc.Type) {
         case Diligent::SHADER_RESOURCE_TYPE_TEXTURE_SRV:
-            //srbinfo.shaderResourceVariables.insert({ desc.Name, srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, desc.Name) });
             // TODO: remove this compute
             index = get_index_by_name(desc.Name);
             assert(index >= 0);
-            srbinfo.shaderResourceVariables[index] = srbinfo.shaderResourceBinding->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, desc.Name);
+            srbinfo.shaderResourceVariables[index/*variable->GetIndex()*/] = variable;
             break;
-//         case Diligent::SHADER_RESOURCE_TYPE_CONSTANT_BUFFER:
-//         case Diligent::SHADER_RESOURCE_TYPE_TEXTURE_UAV:
-//             break;
         default: break;
         }
     }
@@ -1003,24 +1005,24 @@ Effekseer::CustomVector<Effekseer::CustomString<char>> GetTextureLocations(Effek
     Effekseer::CustomVector<Effekseer::CustomString<char>> texLoc;
 
     auto pushColor = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("colorTex"); };
+    { texLoc.emplace_back("Sampler_sampler_colorTex"); };
 
     auto pushDepth = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("depthTex"); };
+    { texLoc.emplace_back("Sampler_sampler_depthTex"); };
 
     auto pushBack = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("backTex"); };
+    { texLoc.emplace_back("Sampler_sampler_backTex"); };
 
     auto pushNormal = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc)
-    { texLoc.emplace_back("normalTex"); };
+    { texLoc.emplace_back("Sampler_sampler_normalTex"); };
 
     auto pushAdvancedRendererParameterLoc = [](Effekseer::CustomVector<Effekseer::CustomString<char>>& texLoc) -> void
     {
-        texLoc.emplace_back("alphaTex");
-        texLoc.emplace_back("uvDistortionTex");
-        texLoc.emplace_back("blendTex");
-        texLoc.emplace_back("blendAlphaTex");
-        texLoc.emplace_back("blendUVDistortionTex");
+        texLoc.emplace_back("Sampler_sampler_alphaTex");
+        texLoc.emplace_back("Sampler_sampler_uvDistortionTex");
+        texLoc.emplace_back("Sampler_sampler_blendTex");
+        texLoc.emplace_back("Sampler_sampler_blendAlphaTex");
+        texLoc.emplace_back("Sampler_sampler_blendUVDistortionTex");
     };
 
     pushColor(texLoc);

@@ -7,13 +7,13 @@
 namespace Effekseer
 {
 
-class MaterialCompilerDX12 : public MaterialCompiler, public ReferenceObject
+class MaterialCompilerGL : public MaterialCompiler, public ReferenceObject
 {
 private:
 public:
-	MaterialCompilerDX12() = default;
+	MaterialCompilerGL() = default;
 
-	virtual ~MaterialCompilerDX12() = default;
+	virtual ~MaterialCompilerGL() = default;
 
 	CompiledMaterialBinary* Compile(MaterialFile* materialFile, int32_t maximumUniformCount, int32_t maximumTextureCount);
 

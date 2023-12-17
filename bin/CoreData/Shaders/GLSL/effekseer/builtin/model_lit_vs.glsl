@@ -28,19 +28,19 @@ struct VS_Output
     vec4 PosP;
 };
 
-struct VS_ConstantBuffer
+uniform VS_ConstantBuffer
 {
-    mat4 mCameraProj;
-    mat4 mModel_Inst[10];
-    vec4 fUV[10];
-    vec4 fModelColor[10];
-    vec4 fLightDirection;
-    vec4 fLightColor;
-    vec4 fLightAmbient;
-    vec4 mUVInversed;
+    mat4 u_mCameraProj;
+    mat4 u_mModel_Inst[10];
+    vec4 u_fUV[10];
+    vec4 u_fModelColor[10];
+    vec4 u_vs_fLightDirection;
+    vec4 u_vs_fLightColor;
+    vec4 u_vs_fLightAmbient;
+    vec4 u_mUVInversed;
 };
 
-uniform VS_ConstantBuffer CBVS0;
+// uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec3 Input_Normal;
@@ -65,25 +65,25 @@ mat4 spvWorkaroundRowMajor(mat4 wrap) { return wrap; }
 VS_Output _main(VS_Input Input)
 {
     uint index = Input.Index;
-    mat4 mModel = spvWorkaroundRowMajor(CBVS0.mModel_Inst[index]);
-    vec4 uv = CBVS0.fUV[index];
-    vec4 modelColor = CBVS0.fModelColor[index] * Input.Color;
+    mat4 mModel = spvWorkaroundRowMajor(u_mModel_Inst[index]);
+    vec4 uv = u_fUV[index];
+    vec4 modelColor = u_fModelColor[index] * Input.Color;
     VS_Output Output = VS_Output(vec4(0.0), vec4(0.0), vec2(0.0), vec3(0.0), vec3(0.0), vec3(0.0), vec4(0.0));
     vec4 localPos = vec4(Input.Pos.x, Input.Pos.y, Input.Pos.z, 1.0);
-    vec4 worldPos = localPos * mModel;
-    Output.PosVS = worldPos * spvWorkaroundRowMajor(CBVS0.mCameraProj);
+    vec4 worldPos = mModel * localPos;
+    Output.PosVS = spvWorkaroundRowMajor(u_mCameraProj) * worldPos;
     Output.Color = modelColor;
     vec2 outputUV = Input.UV;
     outputUV.x = (outputUV.x * uv.z) + uv.x;
     outputUV.y = (outputUV.y * uv.w) + uv.y;
-    outputUV.y = CBVS0.mUVInversed.x + (CBVS0.mUVInversed.y * outputUV.y);
+    outputUV.y = u_mUVInversed.x + (u_mUVInversed.y * outputUV.y);
     Output.UV = outputUV;
     vec4 localNormal = vec4(Input.Normal.x, Input.Normal.y, Input.Normal.z, 0.0);
     vec4 localBinormal = vec4(Input.Binormal.x, Input.Binormal.y, Input.Binormal.z, 0.0);
     vec4 localTangent = vec4(Input.Tangent.x, Input.Tangent.y, Input.Tangent.z, 0.0);
-    vec4 worldNormal = localNormal * mModel;
-    vec4 worldBinormal = localBinormal * mModel;
-    vec4 worldTangent = localTangent * mModel;
+    vec4 worldNormal = mModel * localNormal;
+    vec4 worldBinormal = mModel * localBinormal;
+    vec4 worldTangent = mModel * localTangent;
     worldNormal = normalize(worldNormal);
     worldBinormal = normalize(worldBinormal);
     worldTangent = normalize(worldTangent);
