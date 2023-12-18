@@ -854,7 +854,7 @@ void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescri
     auto& shaderResourceVariables = shaderResourceBindings_[pipelineState].shaderResourceVariables;
     for (int32_t i = 0; i < currentProgram->_textureCount; i++) {
         auto texture = programState->_textures[i];
-        shaderResourceVariables[i]->Set(texture ? texture->GetHandles().srv_ : (Diligent::ITextureView*)nullptr);
+        shaderResourceVariables[i]->Set(texture ? texture->GetHandles().srv_ : (Diligent::ITextureView*)nullptr/*, Diligent::SET_SHADER_RESOURCE_FLAG_ALLOW_OVERWRITE*/);
     }
 }
 namespace {
@@ -1007,14 +1007,14 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
             ImtblSamplers.reserve(2);
             auto filterMode = Diligent::FILTER_TYPE::FILTER_TYPE_LINEAR;
             auto addressMode = Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_WRAP; //Diligent::TEXTURE_ADDRESS_MODE::TEXTURE_ADDRESS_CLAMP;
-            Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+            Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC/*Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE*/);
             ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture", Diligent::SamplerDesc{filterMode, filterMode, filterMode, addressMode, addressMode, addressMode});
             if (currentProgram->_textureCount == 2) {
-                Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+                Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC/*Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE*/);
                 ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, "u_texture1", Diligent::SamplerDesc{ filterMode, filterMode, filterMode, addressMode, addressMode, addressMode });
             }
             auto& resourceLayout = PSOCreateInfo.PSODesc.ResourceLayout;
-            resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+            resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC; 
             resourceLayout.Variables = Vars.data();
             resourceLayout.NumVariables = Vars.size();
             resourceLayout.ImmutableSamplers = ImtblSamplers.data();
@@ -1045,30 +1045,7 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
         }
         
         auto& srbinfo = shaderResourceBindings_[pipelineState];
-//         const bool isOpenGL = _device->GetBackend() == Urho3D::RenderBackend::OpenGL;
-//         const bool hasSeparableShaderPrograms = _device->GetRenderDevice()->GetDeviceInfo().Features.SeparablePrograms;
-//         URHO3D_ASSERT(isOpenGL || hasSeparableShaderPrograms);
-//         Diligent::IShader* const shaderHandles[] = { currentProgram->_vsShader->GetHandle(), currentProgram->_fsShader->GetHandle() };
-//         if (!isOpenGL)
-//         {
-//             srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(shaderHandles);
-//         }
-//         else
-//         {
-// #if GL_SUPPORTED || GLES_SUPPORTED
-//             // On OpenGL we should create temporary program and reflect vertex inputs.
-//             // If separable shader programs are not supported, we should also reflect everything else.
-//             Urho3D::TemporaryGLProgram glProgram{shaderHandles, hasSeparableShaderPrograms};
-// 
-//             if (hasSeparableShaderPrograms)
-//                 srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(shaderHandles);
-//             else
-//                 srbinfo.reflection = Urho3D::MakeShared<Urho3D::ShaderProgramReflection>(glProgram.GetHandle());
-// #endif
-//         }
         pipelineState->CreateShaderResourceBinding(&srbinfo.shaderResourceBinding, true);
-        //srbinfo.reflection->ConnectToShaderVariables(Urho3D::PipelineStateType::Graphics, srbinfo.shaderResourceBinding);
-
         auto textureCount = currentProgram->_textureCount;
         if (textureCount > 0) {
             srbinfo.shaderResourceVariables.reserve(textureCount);

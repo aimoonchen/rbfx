@@ -266,14 +266,14 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
         for (int i = 0; i < samplerCount; i++) {
             auto filterMode = fs[(int)state.TextureFilterTypes[i]];
             auto addressMode = ws[(int)state.TextureWrapTypes[i]];
-            Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(), Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE);
+            Vars.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(), Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC/*Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE*/);
             ImtblSamplers.emplace_back(Diligent::SHADER_TYPE_PIXEL, samplerNames[i].c_str(),
                 Diligent::SamplerDesc{ filterMode, filterMode, filterMode, addressMode, addressMode, addressMode }
             );
         }
     }
     auto& resourceLayout = PSOCreateInfo.PSODesc.ResourceLayout;
-    resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+    resourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC; 
     resourceLayout.Variables = Vars.data();
     resourceLayout.NumVariables = Vars.size();
     resourceLayout.ImmutableSamplers = ImtblSamplers.data();
@@ -889,7 +889,7 @@ void RendererImplemented::CommitUniformAndTextures(Diligent::IPipelineState* pip
             const auto& srv = texture->GetTexture()->GetHandles().srv_;
             //shaderResourceVariables[samplerNames[j++]]->Set(srv);
             if (shaderResourceVariables[j]) {
-                shaderResourceVariables[j++]->Set(srv);
+                shaderResourceVariables[j++]->Set(srv/*, Diligent::SET_SHADER_RESOURCE_FLAG_ALLOW_OVERWRITE*/);
             }
         }
     }

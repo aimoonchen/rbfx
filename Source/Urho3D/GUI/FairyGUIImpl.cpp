@@ -300,6 +300,14 @@ namespace Urho3D {
 //         test_label0->setPosition(cocos2d::Vec2(frameSize.x_ / 2, frameSize.y_ / 2));
 //         test_label0->setColor({255,0,0});
 //         scene->addChild(test_label0);
+//         fontConfig.fontFilePath = "fonts/FZY3JW.TTF";
+//         fontConfig.fontSize = 48;
+//         test_label0 = cocos2d::Label::create();
+//         test_label0->setTTFConfig(fontConfig);
+//         test_label0->setString("Other words");
+//         test_label0->setPosition(cocos2d::Vec2(frameSize.x_ / 2, frameSize.y_ / 2 - 100));
+//         test_label0->setColor({0, 255, 0});
+//         scene->addChild(test_label0);
 //         auto drawNode = cocos2d::DrawNode::create();
 //         scene->addChild(drawNode);
 //         drawNode->drawRect(cocos2d::Vec2(150, 150), cocos2d::Vec2(200, 200), cocos2d::Color4F(1, 1, 0, 1));
