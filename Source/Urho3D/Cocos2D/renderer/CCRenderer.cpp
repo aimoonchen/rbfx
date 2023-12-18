@@ -653,9 +653,9 @@ void Renderer::drawBatchedTriangles()
         beginRenderPass(_triBatchesToDraw[i].cmd);
 //         _commandBuffer->setVertexBuffer(_vertexBuffer);
 //         _commandBuffer->setIndexBuffer(_indexBuffer);
-        const Diligent::Uint64 offset = 0;
+        //const Diligent::Uint64 offset = 0;
         Diligent::IBuffer* pBuffs[] = { _vertexBuffer };
-        deviceContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+        deviceContext->SetVertexBuffers(0, 1, pBuffs, nullptr, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
         deviceContext->SetIndexBuffer(_indexBuffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
         auto& pipelineDescriptor = _triBatchesToDraw[i].cmd->getPipelineDescriptor();
@@ -693,9 +693,9 @@ void Renderer::drawCustomCommand(RenderCommand *command)
     beginRenderPass(command);
     //_commandBuffer->setVertexBuffer(cmd->getVertexBuffer());
     auto deviceContext = _device->GetImmediateContext();
-    const Diligent::Uint64 offset = 0;
+    //const Diligent::Uint64 offset = 0;
     Diligent::IBuffer* pBuffs[] = { cmd->getVertexBuffer() };
-    deviceContext->SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+    deviceContext->SetVertexBuffers(0, 1, pBuffs, nullptr, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
     
  //   _commandBuffer->setProgramState(cmd->getPipelineDescriptor().programState);
     

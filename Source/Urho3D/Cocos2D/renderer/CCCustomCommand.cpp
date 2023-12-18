@@ -68,7 +68,7 @@ void CustomCommand::init(float globalZOrder, const BlendFunc& blendFunc)
     blendDescriptor.destinationRGBBlendFactor = blendDescriptor.destinationAlphaBlendFactor = blendFunc.dst;
 }
 
-void CustomCommand::createVertexBuffer(std::size_t vertexSize, std::size_t capacity, BufferUsage usage, ea::vector<Diligent::LayoutElement> layout)
+void CustomCommand::createVertexBuffer(std::size_t vertexSize, std::size_t capacity, BufferUsage usage, ea::vector<Diligent::LayoutElement> layout, void* initData, std::size_t initSize)
 {
     _vertexBuffUsage = usage;
 //    CC_SAFE_RELEASE(_vertexBuffer);
@@ -87,10 +87,13 @@ void CustomCommand::createVertexBuffer(std::size_t vertexSize, std::size_t capac
         VertBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
     }
     VertBuffDesc.Size = vertexSize * capacity;
-    _device->GetRenderDevice()->CreateBuffer(VertBuffDesc, nullptr, &_vertexBuffer);
+    Diligent::BufferData VBData;
+    VBData.pData = initData;
+    VBData.DataSize = initSize;
+    _device->GetRenderDevice()->CreateBuffer(VertBuffDesc, initData ? &VBData : nullptr, &_vertexBuffer);
 }
 
-void CustomCommand::createIndexBuffer(IndexFormat format, std::size_t capacity, BufferUsage usage)
+void CustomCommand::createIndexBuffer(IndexFormat format, std::size_t capacity, BufferUsage usage, void* initData, std::size_t initSize)
 {
     _indexBuffUsage = usage;
 //    CC_SAFE_RELEASE(_indexBuffer);
@@ -111,7 +114,10 @@ void CustomCommand::createIndexBuffer(IndexFormat format, std::size_t capacity, 
     if (isDynamic) {
         IndBuffDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
     }
-    _device->GetRenderDevice()->CreateBuffer(IndBuffDesc, nullptr, &_indexBuffer);
+    Diligent::BufferData IBData;
+    IBData.pData = initData;
+    IBData.DataSize = initSize;
+    _device->GetRenderDevice()->CreateBuffer(IndBuffDesc, initData ? &IBData : nullptr, &_indexBuffer);
 }
 
 void CustomCommand::updateVertexBuffer(void* data, std::size_t offset, std::size_t length)
@@ -121,7 +127,7 @@ void CustomCommand::updateVertexBuffer(void* data, std::size_t offset, std::size
         _device->GetImmediateContext()->UpdateBuffer(_vertexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     } else {
         void* dst = nullptr;
-        _device->GetImmediateContext()->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE /*Diligent::MAP_FLAG_DISCARD*/, dst);
+        _device->GetImmediateContext()->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, (offset == 0) ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
         if (dst) {
             memcpy((uint8_t*)dst + offset, data, length);
             _device->GetImmediateContext()->UnmapBuffer(_vertexBuffer, Diligent::MAP_WRITE);
@@ -136,7 +142,7 @@ void CustomCommand::updateIndexBuffer(void* data, std::size_t offset, std::size_
         _device->GetImmediateContext()->UpdateBuffer(_indexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     } else {
         void* dst = nullptr;
-        _device->GetImmediateContext()->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_NO_OVERWRITE /*Diligent::MAP_FLAG_DISCARD*/, dst);
+        _device->GetImmediateContext()->MapBuffer(_indexBuffer, Diligent::MAP_WRITE, (offset == 0) ? Diligent::MAP_FLAG_DISCARD : Diligent::MAP_FLAG_NO_OVERWRITE, dst);
         if (dst) {
             memcpy((uint8_t*)dst + offset, data, length);
             _device->GetImmediateContext()->UnmapBuffer(_indexBuffer, Diligent::MAP_WRITE);
