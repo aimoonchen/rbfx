@@ -547,23 +547,22 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
         "Commit", &BillboardSet::Commit,
         "SetFaceCameraMode", &BillboardSet::SetFaceCameraMode,
         sol::base_classes, sol::bases<Drawable, Component>());
-    lua.new_usertype<Terrain>("Terrain",
-        "id", sol::var(StringHash("Terrain")),
-        "patch_size", sol::property(&Terrain::GetPatchSize, &Terrain::SetPatchSize),
-        "spacing", sol::property(&Terrain::GetSpacing, &Terrain::SetSpacing),
-        "smoothing", sol::property(&Terrain::GetSmoothing, &Terrain::SetSmoothing),
-        "height_map", sol::property(&Terrain::GetHeightMap, &Terrain::SetHeightMap),
-        "height_map", sol::property(&Terrain::GetHeightMap, &Terrain::SetHeightMap),
-        "material", sol::property(&Terrain::GetMaterial, &Terrain::SetMaterial),
-        "occluder", sol::property(&Terrain::IsOccluder, &Terrain::SetOccluder),
-        "GetHeight", &Terrain::GetHeight,
-        "GetNormal", &Terrain::GetNormal,
-        sol::base_classes, sol::bases<Component>()
-        );
+
+    auto bindTerrain = lua.new_usertype<Terrain>("Terrain", sol::base_classes, sol::bases<Component>());
+    bindTerrain["id"]           = sol::var(StringHash("Terrain"));
+    bindTerrain["patch_size"]   = sol::property(&Terrain::GetPatchSize, &Terrain::SetPatchSize);
+    bindTerrain["spacing"]      = sol::property(&Terrain::GetSpacing, &Terrain::SetSpacing);
+    bindTerrain["smoothing"]    = sol::property(&Terrain::GetSmoothing, &Terrain::SetSmoothing);
+    bindTerrain["height_map"]   = sol::property(&Terrain::GetHeightMap, &Terrain::SetHeightMap);
+    bindTerrain["height_map"]   = sol::property(&Terrain::GetHeightMap, &Terrain::SetHeightMap);
+    bindTerrain["material"]     = sol::property(&Terrain::GetMaterial, &Terrain::SetMaterial);
+    bindTerrain["occluder"]     = sol::property(&Terrain::IsOccluder, &Terrain::SetOccluder);
+    bindTerrain["GetHeight"]    = &Terrain::GetHeight;
+    bindTerrain["GetNormal"]    = &Terrain::GetNormal;
+
     lua.new_usertype<RenderPipeline>("RenderPipeline",
         "id", sol::var(StringHash("RenderPipeline")),
-        sol::base_classes, sol::bases<Component>()
-        );
+        sol::base_classes, sol::bases<Component>());
 //     lua.new_usertype<ProceduralSky>("ProceduralSky",
 //         "id", sol::var(StringHash("ProceduralSky")),
 //         "January", sol::var(ProceduralSky::January),
@@ -590,27 +589,26 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
 //         "GetSkyLuminanceGamma", &ProceduralSky::GetSkyLuminanceGamma,
 //         sol::base_classes, sol::bases<StaticModel, Drawable, Component>()
 //         );
-    lua.new_usertype<OutlineGroup>("OutlineGroup",
-        "id", sol::var(StringHash("OutlineGroup")),
-        "SetColor", &OutlineGroup::SetColor,
-        "GetOutlineMaterial", &OutlineGroup::GetOutlineMaterial,
-        "HasDrawables", &OutlineGroup::HasDrawables,
-        "ContainsDrawable", &OutlineGroup::ContainsDrawable,
-        "ClearDrawables", &OutlineGroup::ClearDrawables,
-        "AddDrawable", & OutlineGroup::AddDrawable,
-        "RemoveDrawable", &OutlineGroup::RemoveDrawable,
-        sol::base_classes, sol::bases<Component>());
-    lua.new_usertype<Text3D>("Text3D",
-        "id", sol::var(StringHash("Text3D")),
-        "material", sol::property(&Text3D::GetMaterial, &Text3D::SetMaterial),
-        "SetFont", [](Text3D* self, const ea::string& fontName) { self->SetFont(fontName); },
-        "SetFontSize", &Text3D::SetFontSize,
-        "SetText", &Text3D::SetText,
-        "SetColor", sol::resolve<void(const Color&)>(&Text3D::SetColor),
-        "SetOpacity", &Text3D::SetOpacity,
-        "SetFaceCameraMode", &Text3D::SetFaceCameraMode,
-        sol::base_classes, sol::bases<Drawable, Component>()
-        );
+    auto bindOutlineGroup = lua.new_usertype<OutlineGroup>("OutlineGroup", sol::base_classes, sol::bases<Component>());
+    bindOutlineGroup["id"]                  = sol::var(StringHash("OutlineGroup"));
+    bindOutlineGroup["SetColor"]            = &OutlineGroup::SetColor;
+    bindOutlineGroup["GetOutlineMaterial"]  = &OutlineGroup::GetOutlineMaterial;
+    bindOutlineGroup["HasDrawables"]        = &OutlineGroup::HasDrawables;
+    bindOutlineGroup["ContainsDrawable"]    = &OutlineGroup::ContainsDrawable;
+    bindOutlineGroup["ClearDrawables"]      = &OutlineGroup::ClearDrawables;
+    bindOutlineGroup["AddDrawable"]         = &OutlineGroup::AddDrawable;
+    bindOutlineGroup["RemoveDrawable"]      = &OutlineGroup::RemoveDrawable;
+        
+    auto bindText3D = lua.new_usertype<Text3D>("Text3D", sol::base_classes, sol::bases<Drawable, Component>());
+    bindText3D["id"]                = sol::var(StringHash("Text3D"));
+    bindText3D["material"]          = sol::property(&Text3D::GetMaterial, &Text3D::SetMaterial);
+    bindText3D["SetFont"]           = [](Text3D* self, const ea::string& fontName) { self->SetFont(fontName); };
+    bindText3D["SetFontSize"]       = &Text3D::SetFontSize;
+    bindText3D["SetText"]           = &Text3D::SetText;
+    bindText3D["SetColor"]          = sol::resolve<void(const Color&)>(&Text3D::SetColor);
+    bindText3D["SetOpacity"]        = &Text3D::SetOpacity;
+    bindText3D["SetFaceCameraMode"] = &Text3D::SetFaceCameraMode;
+        
 	lua["graphics_system"] = context->GetSubsystem<Graphics>();
 	lua["renderer_system"] = context->GetSubsystem<Renderer>();
 	RegisterConst(lua);
