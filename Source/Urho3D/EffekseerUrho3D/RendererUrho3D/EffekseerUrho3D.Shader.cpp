@@ -47,6 +47,7 @@ void Shader::SetVertexConstantBufferSize(int32_t size)
 {
 	ES_SAFE_DELETE_ARRAY(m_vertexConstantBuffer);
 	m_vertexConstantBuffer = new uint8_t[size];
+    memset((uint8_t*)m_vertexConstantBuffer, 0, size);
 	vertexConstantBufferSize = size;
     shader_->CreateVertexUniformBuffer(size);
 }
@@ -55,6 +56,7 @@ void Shader::SetPixelConstantBufferSize(int32_t size)
 {
 	ES_SAFE_DELETE_ARRAY(m_pixelConstantBuffer);
 	m_pixelConstantBuffer = new uint8_t[size];
+    memset((uint8_t*)m_pixelConstantBuffer, 0, size);
 	pixelConstantBufferSize = size;
     shader_->CreatePixelUniformBuffer(size);
 }

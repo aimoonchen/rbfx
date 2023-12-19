@@ -63,9 +63,12 @@ Effekseer::TextureRef TextureLoader::Load(const char16_t* path, Effekseer::Textu
             image->SetSize(width, height, 4);
             image->SetData(newPixels.get());
             texture = new Urho3D::Texture2D(context_);
+            texture->SetNumLevels(1);
             texture->SetData(image.get());
         } else {
             texture = cache->GetResource<Urho3D::Texture2D>(urho3dPath);
+            // TODO: no mipmap, not work
+            texture->SetNumLevels(1);
         }
         stbi_image_free(pixels);
     }

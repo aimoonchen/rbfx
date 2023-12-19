@@ -519,7 +519,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 	vlDistAd->MakeGenerated();
     // TODO: uniform layout for rbfx
     const auto texLocUnlit = GetTextureLocations(EffekseerRenderer::RendererShaderType::Unlit);
-    const auto texLocLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedLit);
+    const auto texLocLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::Lit);
     const auto texLocDist = GetTextureLocations(EffekseerRenderer::RendererShaderType::BackDistortion);
     const auto texLocAdUnlit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedUnlit);
     const auto texLocAdLit = GetTextureLocations(EffekseerRenderer::RendererShaderType::AdvancedLit);

@@ -259,7 +259,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
 		"width",sol::property(&Texture2D::GetWidth),
 		"height", sol::property(&Texture2D::GetHeight),
         "filter_mode", sol::property(&Texture2D::GetFilterMode, &Texture2D::SetFilterMode),
-        "render_surface", sol::property(&Texture2D::GetRenderSurface),
+        "GetRenderSurface", &Texture2D::GetRenderSurface,
         "SaveFile", [](Texture2D* self, const ea::string& filename) {
             static SharedPtr<Image> image;
             if (filename.empty()) {
