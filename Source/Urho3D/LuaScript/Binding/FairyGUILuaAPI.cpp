@@ -274,167 +274,162 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
 	uipackage["RemoveAllPackages"]		= &UIPackage::removeAllPackages;
 	uipackage["CreateObject"]			= [](const std::string& pkgName, const std::string& resName) { return UIPackage::createObject(pkgName, resName); };
 	uipackage["CreateObjectFromURL"]	= &UIPackage::createObjectFromURL;
-    fairygui.new_usertype<EventContext>("EventContext",
-        "GetData", [](EventContext* obj) { return (GObject*)obj->getData(); },
-        "GetDataAsString", [](EventContext* obj){ return obj->getDataValue().asString();},
-        "GetSender", [](EventContext* obj) { return (GObject*)obj->getSender(); },
-        "GetTouchId", [](EventContext* self) { return self->getInput()->getTouchId(); },
-        "PreventDefault", &EventContext::preventDefault
-        );
-    fairygui.new_usertype<GController>("GController",
-        "GetParent", &GController::getParent,
-        "SetParent", &GController::setParent,
-        "GetSelectedIndex", &GController::getSelectedIndex,
-        "SetSelectedIndex", sol::overload(
-            [](GController* self, int value){ self->setSelectedIndex(value); },
-            [](GController* self, int value, bool triggerEvent) { self->setSelectedIndex(value, triggerEvent); })
-        );
-    fairygui.new_usertype<PopupMenu>("PopupMenu",
-        "Create", sol::overload(
-            []() { return PopupMenu::create(); },
-            [](const ea::string& resourceURL) { return PopupMenu::create(resourceURL.c_str()); }),
-        "Show", sol::overload(
-            [](PopupMenu* self) { self->show(); },
-            [](PopupMenu* self, GObject* target, PopupDirection dir) { self->show(target, dir); }),
-        "AddItem", [](PopupMenu* self, const ea::string& caption, sol::function func) { self->addItem(caption.c_str(), [func](EventContext* context){ CALL_LUA(func, context) }); }
-        );
-	fairygui.new_usertype<GObject>("GObject",
-        "name", &GObject::name,
-        "GetParent", &GObject::getParent,
-		"SetPosition", &GObject::setPosition,
-        "GetPosition", [](GObject* obj) {
-            const auto& cv2 = obj->getPosition();
-            //return IntVector2((int32_t)cv2.x, (int32_t)cv2.y);
-            return Vector2(cv2.x, cv2.y);
-        },
-        "SetTouchable", &GObject::setTouchable,
-        "SetPivot", [](GObject* obj, float xv, float yv) { obj->setPivot(xv, yv); },
-        "GetX", &GObject::getX,
-        "GetY", &GObject::getY,
-        "GetWidth", &GObject::getWidth,
-        "GetHeight", &GObject::getHeight,
-        "SetWidth", &GObject::setWidth,
-        "SetHeight", &GObject::setHeight,
-        "SetRotation", &GObject::setRotation,
-        "GetRotation", &GObject::getRotation,
-        "SetScale", &GObject::setScale,
-        "SetSize", sol::overload(
-            [](GObject* self, const Vector2& size) { self->setSize(size.x_, size.y_); },
-            [](GObject* self, float w, float h) { self->setSize(w, h); },
-            [](GObject* self, float w, float h, bool ignorePivot) { self->setSize(w, h, ignorePivot); }),
-		"AddRelation", sol::overload(
-            [](GObject* self, GObject* target, RelationType relationType) { self->addRelation(target, relationType); },
-            [](GObject* self, GObject* target, RelationType relationType, bool usePercent) { self->addRelation(target, relationType, usePercent); }),
-		"SetSortingOrder", &GObject::setSortingOrder,
-        "SetDragBounds", [](GObject* obj, const Rect& rect) { obj->setDragBounds(FromUrhoRect(rect)); },
-        "AddEventListener", sol::overload(
-            [](GObject* obj, UIEventType eventType, sol::function func) { obj->addEventListener(eventType, [func](EventContext* context) { CALL_LUA(func, context) }); },
-            [](GObject* obj, UIEventType eventType, sol::function func, int eventTag) { obj->addEventListener(eventType, [func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); },
-            [](GObject* obj, UIEventType eventType, sol::function func, void* eventTag) { obj->addEventListener(eventType, [func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag));}),
-        "RemoveEventListener", sol::overload(
-            [](GObject* obj, UIEventType eventType) { obj->removeEventListener(eventType); },
-            [](GObject* obj, UIEventType eventType, int eventTag) { obj->removeEventListener(eventType, EventTag(eventTag)); },
-            [](GObject* obj, UIEventType eventType, void* eventTag) { obj->removeEventListener(eventType, EventTag(eventTag)); }),
-        "RemoveEventListeners", &GObject::removeEventListeners,
-        "AddClickListener", sol::overload(
-            [](GObject* obj, sol::function func) { obj->addClickListener([func](EventContext* context) { CALL_LUA(func, context) }); },
-            [](GObject* obj, sol::function func, int eventTag) { obj->addClickListener([func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); },
-            [](GObject* obj, sol::function func, void* eventTag) { obj->addClickListener([func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); }),
-        "RemoveClickListener", sol::overload(
-            [](GObject* obj, int eventTag) { obj->removeClickListener(EventTag(eventTag)); },
-            [](GObject* obj, void* eventTag) { obj->removeClickListener(EventTag(eventTag)); }),
-        "Center",  sol::overload(
-            [](GObject* self) { self->center(); },
-            [](GObject* self, bool restraint) { self->center(restraint); }),
-        "SetText", &GObject::setText,
-        "SetIcon", &GObject::setIcon,
-        "GetText", &GObject::getText,
-        "GetIcon", &GObject::getIcon,
-        "SetVisible", &GObject::setVisible,
-        "IsVisible", &GObject::isVisible,
-        "GetGroup", &GObject::getGroup,
-        "SetDraggable", &GObject::setDraggable,
-        "GetSize", [](GObject* self) {
-            auto size = self->getSize();
-            return Vector2{size.width, size.height};
-        },
-        "TransformRect", [](GObject* self, const Rect& rect, GObject* targetSpace) {
-            auto crect = self->transformRect(FromUrhoRect(rect), targetSpace);
-            return ToUrhoRect(crect);
-        },
-        "MakeFullScreen", &GObject::makeFullScreen,
-        "RemoveFromParent", &GObject::removeFromParent,
-        "GetSourceSize", [](GObject* obj) { return IntVector2{ (int)obj->sourceSize.width, (int)obj->sourceSize.height }; },
-        "GetInitSize", [](GObject* obj) { return IntVector2{ (int)obj->initSize.width, (int)obj->initSize.height }; },
-        "TreeNode", &GObject::treeNode
-	    );
-    fairygui.new_usertype<GLoader>("GLoader",
-        "GetIcon", &GLoader::getIcon,
-        "SetIcon", &GLoader::setIcon,
-        sol::base_classes, sol::bases<GObject>()
-        );
-    fairygui.new_usertype<GTextField>("GTextField",
-        "GetText", &GTextField::getText,
-        "SetText", &GTextField::setText,
-        "SetColor", [](GTextField* obj, uint8_t r, uint8_t g, uint8_t b){ obj->setColor({r, g, b});},
-        "SetFontSize", &GTextField::setFontSize,
-        "GetFontSize", &GTextField::getFontSize,
-        "SetOutlineColor", [](GTextField* obj, uint8_t r, uint8_t g, uint8_t b){ obj->setOutlineColor({r, g, b});},
-        "GetTextSize", [](GTextField* obj) { auto size = obj->getTextSize(); return IntVector2{ (int)size.width, (int)size.height }; },
-        sol::base_classes, sol::bases<GObject>());
 
-    fairygui.new_usertype<GGraph>("GGraph",
+    auto bindEventContext = fairygui.new_usertype<EventContext>("EventContext");
+    bindEventContext["GetData"] = [](EventContext* obj) { return (GObject*)obj->getData(); };
+    bindEventContext["GetDataAsString"] = [](EventContext* obj) { return obj->getDataValue().asString(); };
+    bindEventContext["GetSender"] = [](EventContext* obj) { return (GObject*)obj->getSender(); };
+    bindEventContext["GetTouchId"] = [](EventContext* self) { return self->getInput()->getTouchId(); };
+    bindEventContext["PreventDefault"] = &EventContext::preventDefault;
+
+    auto bindGController = fairygui.new_usertype<GController>("GController");
+    bindGController["GetParent"] = &GController::getParent;
+    bindGController["SetParent"] = &GController::setParent;
+    bindGController["GetSelectedIndex"] = &GController::getSelectedIndex;
+    bindGController["SetSelectedIndex"] = sol::overload(
+        [](GController* self, int value) { self->setSelectedIndex(value); },
+        [](GController* self, int value, bool triggerEvent) { self->setSelectedIndex(value, triggerEvent); });
+
+    auto bindPopupMenu = fairygui.new_usertype<PopupMenu>("PopupMenu");
+    bindPopupMenu["Create"] = sol::overload(
+        []() { return PopupMenu::create(); },
+        [](const ea::string& resourceURL) { return PopupMenu::create(resourceURL.c_str()); });
+    bindPopupMenu["Show"] = sol::overload(
+        [](PopupMenu* self) { self->show(); },
+        [](PopupMenu* self, GObject* target, PopupDirection dir) { self->show(target, dir); });
+    bindPopupMenu["AddItem"] = [](PopupMenu* self, const ea::string& caption, sol::function func) { self->addItem(caption.c_str(), [func](EventContext* context) { CALL_LUA(func, context) }); };
+
+	auto bindGObject = fairygui.new_usertype<GObject>("GObject");
+    bindGObject["name"]                 = &GObject::name;
+    bindGObject["GetParent"]            = &GObject::getParent;
+    bindGObject["SetPosition"]          = &GObject::setPosition;
+    bindGObject["GetPosition"]          = [](GObject* obj) {
+        const auto& cv2 = obj->getPosition();
+        //return IntVector2((int32_t)cv2.x, (int32_t)cv2.y);
+        return Vector2(cv2.x, cv2.y); };
+    bindGObject["SetTouchable"]         = &GObject::setTouchable;
+    bindGObject["SetPivot"]             = [](GObject* obj, float xv, float yv) { obj->setPivot(xv, yv); };
+    bindGObject["GetX"]                 = &GObject::getX;
+    bindGObject["GetY"]                 = &GObject::getY;
+    bindGObject["GetWidth"]             = &GObject::getWidth;
+    bindGObject["GetHeight"]            = &GObject::getHeight;
+    bindGObject["SetWidth"]             = &GObject::setWidth;
+    bindGObject["SetHeight"]            = &GObject::setHeight;
+    bindGObject["SetRotation"]          = &GObject::setRotation;
+    bindGObject["GetRotation"]          = &GObject::getRotation;
+    bindGObject["SetScale"]             = &GObject::setScale;
+    bindGObject["SetSize"]              = sol::overload(
+        [](GObject* self, const Vector2& size) { self->setSize(size.x_, size.y_); },
+        [](GObject* self, float w, float h) { self->setSize(w, h); },
+        [](GObject* self, float w, float h, bool ignorePivot) { self->setSize(w, h, ignorePivot); });
+    bindGObject["AddRelation"]          = sol::overload(
+        [](GObject* self, GObject* target, RelationType relationType) { self->addRelation(target, relationType); },
+        [](GObject* self, GObject* target, RelationType relationType, bool usePercent) { self->addRelation(target, relationType, usePercent); });
+    bindGObject["SetSortingOrder"]      = &GObject::setSortingOrder;
+    bindGObject["SetDragBounds"]        = [](GObject* obj, const Rect& rect) { obj->setDragBounds(FromUrhoRect(rect)); };
+    bindGObject["AddEventListener"]     = sol::overload(
+        [](GObject* obj, UIEventType eventType, sol::function func) { obj->addEventListener(eventType, [func](EventContext* context) { CALL_LUA(func, context) }); },
+        [](GObject* obj, UIEventType eventType, sol::function func, int eventTag) { obj->addEventListener(eventType, [func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); },
+        [](GObject* obj, UIEventType eventType, sol::function func, void* eventTag) { obj->addEventListener(eventType, [func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); });
+    bindGObject["RemoveEventListener"]  = sol::overload(
+        [](GObject* obj, UIEventType eventType) { obj->removeEventListener(eventType); },
+        [](GObject* obj, UIEventType eventType, int eventTag) { obj->removeEventListener(eventType, EventTag(eventTag)); },
+        [](GObject* obj, UIEventType eventType, void* eventTag) { obj->removeEventListener(eventType, EventTag(eventTag)); });
+    bindGObject["RemoveEventListeners"] = &GObject::removeEventListeners;
+    bindGObject["AddClickListener"]     = sol::overload(
+        [](GObject* obj, sol::function func) { obj->addClickListener([func](EventContext* context) { CALL_LUA(func, context) }); },
+        [](GObject* obj, sol::function func, int eventTag) { obj->addClickListener([func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); },
+        [](GObject* obj, sol::function func, void* eventTag) { obj->addClickListener([func](EventContext* context) { CALL_LUA(func, context) }, EventTag(eventTag)); });
+    bindGObject["RemoveClickListener"]  = sol::overload(
+        [](GObject* obj, int eventTag) { obj->removeClickListener(EventTag(eventTag)); },
+        [](GObject* obj, void* eventTag) { obj->removeClickListener(EventTag(eventTag)); });
+    bindGObject["Center"] = sol::overload(
+        [](GObject* self) { self->center(); },
+        [](GObject* self, bool restraint) { self->center(restraint); });
+    bindGObject["SetText"]              = &GObject::setText;
+    bindGObject["SetIcon"]              = &GObject::setIcon;
+    bindGObject["GetText"]              = &GObject::getText;
+    bindGObject["GetIcon"]              = &GObject::getIcon;
+    bindGObject["SetVisible"]           = &GObject::setVisible;
+    bindGObject["IsVisible"]            = &GObject::isVisible;
+    bindGObject["GetGroup"]             = &GObject::getGroup;
+    bindGObject["SetDraggable"]         = &GObject::setDraggable;
+    bindGObject["GetSize"]              = [](GObject* self) {
+        auto size = self->getSize();
+        return Vector2{ size.width, size.height }; };
+    bindGObject["TransformRect"]        = [](GObject* self, const Rect& rect, GObject* targetSpace) {
+        auto crect = self->transformRect(FromUrhoRect(rect), targetSpace);
+        return ToUrhoRect(crect); };
+    bindGObject["MakeFullScreen"]       = &GObject::makeFullScreen;
+    bindGObject["RemoveFromParent"]     = &GObject::removeFromParent;
+    bindGObject["GetSourceSize"]        = [](GObject* obj) { return IntVector2{ (int)obj->sourceSize.width, (int)obj->sourceSize.height }; };
+    bindGObject["GetInitSize"]          = [](GObject* obj) { return IntVector2{ (int)obj->initSize.width, (int)obj->initSize.height }; };
+    bindGObject["TreeNode"]             = &GObject::treeNode;
+	    
+    auto bindGLoader = fairygui.new_usertype<GLoader>("GLoader", sol::base_classes, sol::bases<GObject>());
+    bindGLoader["GetIcon"] = &GLoader::getIcon;
+    bindGLoader["SetIcon"] = &GLoader::setIcon;
+        
+    auto bindGTextField = fairygui.new_usertype<GTextField>("GTextField", sol::base_classes, sol::bases<GObject>());
+    bindGTextField["GetText"] = &GTextField::getText;
+    bindGTextField["SetText"] = &GTextField::setText;
+    bindGTextField["SetColor"] = [](GTextField* obj, uint8_t r, uint8_t g, uint8_t b) { obj->setColor({ r, g, b }); };
+    bindGTextField["SetFontSize"] = &GTextField::setFontSize;
+    bindGTextField["GetFontSize"] = &GTextField::getFontSize;
+    bindGTextField["SetOutlineColor"] = [](GTextField* obj, uint8_t r, uint8_t g, uint8_t b) { obj->setOutlineColor({ r, g, b }); };
+    bindGTextField["GetTextSize"] = [](GTextField* obj) { auto size = obj->getTextSize(); return IntVector2{ (int)size.width, (int)size.height }; };
+        
+
+    auto bindGGraph = fairygui.new_usertype<GGraph>("GGraph",
         sol::call_constructor, sol::factories([]() { return GGraph::create(); }),
-        "Create", &GGraph::create,
-        "DrawRect", [] (GGraph* obj, float aWidth, float aHeight, int lineSize, const Urho3D::Color& lineColor, const Urho3D::Color& fillColor) {
-            obj->drawRect(aWidth, aHeight, lineSize, Color4FFromUrhoColor(lineColor), Color4FFromUrhoColor(fillColor)); },
         sol::base_classes, sol::bases<GObject>());
-
+    bindGGraph["Create"] = &GGraph::create;
+    bindGGraph["DrawRect"] = [](GGraph* obj, float aWidth, float aHeight, int lineSize, const Urho3D::Color& lineColor, const Urho3D::Color& fillColor) {
+        obj->drawRect(aWidth, aHeight, lineSize, Color4FFromUrhoColor(lineColor), Color4FFromUrhoColor(fillColor)); };
+        
     fairygui.new_usertype<TextFormat>("TextFormat",
         "face", &TextFormat::face);
 
-    fairygui.new_usertype<GBasicTextField>("GBasicTextField",
-        "SetAutoSize", &GBasicTextField::setAutoSize,
-        "SetSingleLine", &GBasicTextField::setSingleLine,
-        "GetTextFormat", &GBasicTextField::getTextFormat,
-        "ApplyTextFormat", &GBasicTextField::applyTextFormat,
-        "SetText", &GBasicTextField::setText,
-        sol::base_classes, sol::bases<GTextField, GObject>());
+    auto bindGBasicTextField = fairygui.new_usertype<GBasicTextField>("GBasicTextField", sol::base_classes, sol::bases<GTextField, GObject>());
+    bindGBasicTextField["SetAutoSize"]      = &GBasicTextField::setAutoSize;
+    bindGBasicTextField["SetSingleLine"]    = &GBasicTextField::setSingleLine;
+    bindGBasicTextField["GetTextFormat"]    = &GBasicTextField::getTextFormat;
+    bindGBasicTextField["ApplyTextFormat"]  = &GBasicTextField::applyTextFormat;
+    bindGBasicTextField["SetText"]          = &GBasicTextField::setText;
     
-    fairygui.new_usertype<GRichTextField>("GRichTextField",
-        "SetAutoSize", &GRichTextField::setAutoSize,
-        "SetSingleLine", &GRichTextField::setSingleLine,
-        "GetTextFormat", &GRichTextField::getTextFormat,
-        "ApplyTextFormat", &GRichTextField::applyTextFormat,
-        sol::base_classes, sol::bases<GTextField, GObject>());
-    fairygui.new_usertype<Transition>("Transition",
-        "Play", sol::overload([](Transition* obj) { obj->play(); },
-            [](Transition* obj, sol::function func) { obj->play([func]() { CALL_LUA(func) }); },
-            [](Transition* obj, int times, float delay) { obj->play(times, delay); },
-            [](Transition* obj, int times, float delay, sol::function func) { obj->play(times, delay, [func]() { CALL_LUA(func) }); },
-            [](Transition* obj, int times, float delay, float startTime, float endTime) { obj->play(times, delay, startTime, endTime); }),
-        "SetHook", [](Transition* obj, const char* label, sol::function func) { obj->setHook(label, [func]() { CALL_LUA(func) }); }
-        );
-	fairygui.new_usertype<GComponent>("GComponent",
-		"AddChild",     &GComponent::addChild,
-        "RemoveChild",  &GComponent::removeChild,
-        "RemoveChildren", sol::overload(
-            [](GComponent* self) { self->removeChildren(); },
-            [](GComponent* self, int beginIndex, int endIndex) { self->removeChildren(beginIndex, endIndex); }),
-        "GetChild", &GComponent::getChild,
-        "GetChildAt",   &GComponent::getChildAt,
-        "GetChildById", [](GComponent* self, const ea::string& id){ return self->getChildById(id.c_str()); },
-        "GetController", &GComponent::getController,
-        "GetViewWidth", &GComponent::getViewWidth,
-        "NumChildren", &GComponent::numChildren,
-        "GetTransition", &GComponent::getTransition,
-        "IsChildInView", &GComponent::isChildInView,
-        "GetFirstChildInView", &GComponent::getFirstChildInView,
-        "EnsureBoundsCorrect", &GComponent::ensureBoundsCorrect,
-        "IsAncestorOf", &GComponent::isAncestorOf,
-        "GetScrollPane", &GComponent::getScrollPane,
-		sol::base_classes, sol::bases<GObject>());
-
+    auto bindGRichTextField = fairygui.new_usertype<GRichTextField>("GRichTextField", sol::base_classes, sol::bases<GTextField, GObject>());
+    bindGRichTextField["SetAutoSize"]       = &GRichTextField::setAutoSize;
+    bindGRichTextField["SetSingleLine"]     = &GRichTextField::setSingleLine;
+    bindGRichTextField["GetTextFormat"]     = &GRichTextField::getTextFormat;
+    bindGRichTextField["ApplyTextFormat"]   = &GRichTextField::applyTextFormat;
+        
+    auto bindTransition = fairygui.new_usertype<Transition>("Transition");
+    bindTransition["Play"] = sol::overload([](Transition* obj) { obj->play(); },
+        [](Transition* obj, sol::function func) { obj->play([func]() { CALL_LUA(func) }); },
+        [](Transition* obj, int times, float delay) { obj->play(times, delay); },
+        [](Transition* obj, int times, float delay, sol::function func) { obj->play(times, delay, [func]() { CALL_LUA(func) }); },
+        [](Transition* obj, int times, float delay, float startTime, float endTime) { obj->play(times, delay, startTime, endTime); });
+    bindTransition["SetHook"] = [](Transition* obj, const char* label, sol::function func) { obj->setHook(label, [func]() { CALL_LUA(func) }); };
+        
+	auto bindGComponent = fairygui.new_usertype<GComponent>("GComponent", sol::base_classes, sol::bases<GObject>());
+    bindGComponent["AddChild"]              = &GComponent::addChild;
+    bindGComponent["RemoveChild"]           = &GComponent::removeChild;
+    bindGComponent["RemoveChildren"]        = sol::overload(
+        [](GComponent* self) { self->removeChildren(); },
+        [](GComponent* self, int beginIndex, int endIndex) { self->removeChildren(beginIndex, endIndex); });
+    bindGComponent["GetChild"]              = &GComponent::getChild;
+    bindGComponent["GetChildAt"]            = &GComponent::getChildAt;
+    bindGComponent["GetChildById"]          = [](GComponent* self, const ea::string& id) { return self->getChildById(id.c_str()); };
+    bindGComponent["GetController"]         = &GComponent::getController;
+    bindGComponent["GetViewWidth"]          = &GComponent::getViewWidth;
+    bindGComponent["NumChildren"]           = &GComponent::numChildren;
+    bindGComponent["GetTransition"]         = &GComponent::getTransition;
+    bindGComponent["IsChildInView"]         = &GComponent::isChildInView;
+    bindGComponent["GetFirstChildInView"]   = &GComponent::getFirstChildInView;
+    bindGComponent["EnsureBoundsCorrect"]   = &GComponent::ensureBoundsCorrect;
+    bindGComponent["IsAncestorOf"]          = &GComponent::isAncestorOf;
+    bindGComponent["GetScrollPane"]         = &GComponent::getScrollPane;
+		
     fairygui.new_usertype<GGroup>("GGroup",
         "name", &GObject::name,
 		sol::base_classes, sol::bases<GObject>());
@@ -442,107 +437,106 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     fairygui.new_usertype<GImage>("GImage",
         sol::base_classes, sol::bases<GObject>());
 
-    fairygui.new_usertype<GRoot>("GRoot",
-        sol::call_constructor, sol::factories([]() { return std::make_unique<GRoot>(); }),
-        "ShowPopup", sol::overload(
-            [](GRoot* self, GObject* popup) { self->showPopup(popup); },
-            [](GRoot* self, GObject* popup, GObject* target, PopupDirection dir) { self->showPopup(popup, target, dir); }),
-        "GetTouchTarget", &GRoot::getTouchTarget,
-        "ShowModalWait", &GRoot::showModalWait,
-        "CloseModalWait", &GRoot::closeModalWait,
-        sol::base_classes, sol::bases<GComponent, GObject>()
-        );
-    fairygui.new_usertype<GButton>("GButton",
-        "IsChangeStateOnClick",     &GButton::isChangeStateOnClick,
-        "SetChangeStateOnClick",    &GButton::setChangeStateOnClick,
-        "SetTitle",                 &GButton::setTitle,
-        "SetText",                  &GButton::setText,
-        "SetIcon",                  &GButton::setIcon,
-        "GetText",                  &GButton::getText,
-        "GetIcon",                  &GButton::getIcon,
-        sol::base_classes,          sol::bases<GComponent, GObject>());
-    fairygui.new_usertype<GProgressBar>("GProgressBar",
-        "SetValue", &GProgressBar::setValue,
-        "GetValue", &GProgressBar::getValue,
-        "SetMin", &GProgressBar::setMin,
-        "GetMin", &GProgressBar::getMin,
-        "SetMax", &GProgressBar::setMax,
-        "GetMax", &GProgressBar::getMax,
-        sol::base_classes, sol::bases<GComponent, GObject>()
-        );
-    fairygui.new_usertype<ScrollPane>("ScrollPane",
-        "GetPosX", &ScrollPane::getPosX,
-        "GetPosY", &ScrollPane::getPosY,
-        "SetPosX", sol::overload([](ScrollPane* obj, float value) { obj->setPosX(value); }, [](ScrollPane* obj, float value, bool ani) { obj->setPosX(value, ani); }),
-        "SetPosY", sol::overload([](ScrollPane* obj, float value) { obj->setPosY(value); }, [](ScrollPane* obj, float value, bool ani) { obj->setPosY(value, ani); }),
-        "ScrollTop", [](ScrollPane* obj) { obj->scrollTop(); },
-        "ScrollBottom", [](ScrollPane* obj) { obj->scrollBottom(); },
-        "CancelDragging", &ScrollPane::cancelDragging,
-        "LockHeader", &ScrollPane::lockHeader,
-        "LockFooter", &ScrollPane::lockFooter,
-        "GetHeader", &ScrollPane::getHeader,
-        "GetFooter", &ScrollPane::getFooter,
-        "IsBottomMost", &ScrollPane::isBottomMost,
-        "IsRightMost", & ScrollPane::isRightMost
-        );
-    fairygui.new_usertype<GList>("GList",
-        "SetVirtual", sol::resolve<void()>(&GList::setVirtual),
-        "SetVirtualAndLoop", &GList::setVirtualAndLoop,
-        "SetNumItems", &GList::setNumItems,
-        "GetNumItems", &GList::getNumItems,
-        "AddSelection", &GList::addSelection,
-        "GetSelectedIndex", &GList::getSelectedIndex,
-        "SetSelectedIndex", &GList::setSelectedIndex,
-        "SetItemRenderer", [](GList* obj, sol::function func) { obj->itemRenderer = [func](int index, GObject* item) { CALL_LUA(func, index, item) }; },
-        "SetItemProvider", [](GList* obj, sol::function func) { obj->itemProvider = [func](int index) { CALL_LUA(func, index) return result.get<std::string>(); }; },
-        "AddItemFromPool", sol::overload(sol::resolve<GObject*()>(&GList::addItemFromPool), [](GList* obj, const char* url) { return obj->addItemFromPool(url); }),
+    auto bindGRoot = fairygui.new_usertype<GRoot>("GRoot", sol::call_constructor,
+        sol::factories([]() { return std::make_unique<GRoot>(); }),
         sol::base_classes, sol::bases<GComponent, GObject>());
-    fairygui.new_usertype<Window>("Window",
-        "Create",           &Window::create,
-        "Show",             &Window::show,
-        "Hide",             &Window::hide,
-        "HideImmediately",  &Window::hideImmediately,
-        "SetModal",         &Window::setModal,
-        "GetContentPane",   &Window::getContentPane,
-        "SetContentPane",   &Window::setContentPane,
-        "ShowModalWait",    sol::resolve<void()>(&Window::showModalWait),
-        "CloseModalWait",   sol::resolve<bool()>(&Window::closeModalWait),
-        sol::base_classes,  sol::bases<GComponent, GObject>());
-    fairygui.new_usertype<GTweener>("GTweener",
-        "SetTarget", sol::overload([](GTweener* obj, GObject* target) { return obj->setTarget(target); },
-            [](GTweener* obj, GObject* target, TweenPropType propType) { return obj->setTarget(target, propType); }),
-        "SetRepeat", [](GTweener* obj, int repeat) {obj->setRepeat(repeat); },
-        "OnStart", [](GTweener* obj, sol::function func) { obj->onStart([func](GTweener* tweener) { CALL_LUA(func, tweener) }); },
-        "OnUpdate", [](GTweener* obj, sol::function func) { obj->onUpdate([func](GTweener* tweener) { CALL_LUA(func, tweener) }); },
-        "OnComplete", [](GTweener* obj, sol::function func) { obj->onComplete([func]() { CALL_LUA(func) }); },
-        "OnComplete1", [](GTweener* obj, sol::function func) { obj->onComplete1([func](GTweener* tweener) { CALL_LUA(func, tweener) }); },
-        "value", [](GTweener* obj) { return Vector4{ obj->value.x, obj->value.y, obj->value.z, obj->value.w }; }
-    );
-    fairygui.new_usertype<GTween>("GTween",
-        "To", sol::overload([](float startValue, float endValue, float duration) { return GTween::to(startValue, endValue, duration); },
-            [](const Vector2& startValue, const Vector2& endValue, float duration) { return GTween::to(*(cocos2d::Vec2*)startValue.Data(), *(cocos2d::Vec2*)endValue.Data(), duration); },
-            [](const Vector3& startValue, const Vector3& endValue, float duration) { return GTween::to(*(cocos2d::Vec3*)startValue.Data(), *(cocos2d::Vec3*)endValue.Data(), duration); },
-            [](const Vector4& startValue, const Vector4& endValue, float duration) { return GTween::to(*(cocos2d::Vec4*)startValue.Data(), *(cocos2d::Vec4*)endValue.Data(), duration); },
-            [](const Color& startValue, const Color& endValue, float duration) { return GTween::to(Color4BFromUrhoColor(startValue), Color4BFromUrhoColor(endValue), duration); }),
-        "delayedCall", &GTween::delayedCall,
-        "Shake", [](const Vector2& startValue, float amplitude, float duration) { return GTween::shake(*(cocos2d::Vec2*)startValue.Data(), amplitude, duration); });
-    fairygui.new_usertype<GTreeNode>("GTreeNode",
-        "Create", sol::overload([]() { return GTreeNode::create(); }, [](bool isFolder) { return GTreeNode::create(isFolder); }),
-        "AddChild", &GTreeNode::addChild,
-        "SetData", &GTreeNode::setData,
-        "GetData", &GTreeNode::getData,
-        "SetTable", &GTreeNode::setTable,
-        "GetTable", &GTreeNode::getTable,
-        "GetCell", &GTreeNode::getCell,
-        "IsFolder", &GTreeNode::isFolder,
-        "GetText", &GTreeNode::getText
-        );
-    fairygui.new_usertype<GTree>("GTree",
-        "GetRootNode", &GTree::getRootNode,
-        "GetSelectedNode", &GTree::getSelectedNode,
-        "SetItemRenderer", [](GTree* obj, sol::function func) { obj->treeNodeRender = [func](GTreeNode* node, GComponent* obj) { CALL_LUA(func, node, obj) }; },
-        sol::base_classes, sol::bases<GList, GComponent, GObject>()
-        );
+    bindGRoot["ShowPopup"]      = sol::overload(
+        [](GRoot* self, GObject* popup) { self->showPopup(popup); },
+        [](GRoot* self, GObject* popup, GObject* target, PopupDirection dir) { self->showPopup(popup, target, dir); });
+    bindGRoot["GetTouchTarget"] = &GRoot::getTouchTarget;
+    bindGRoot["ShowModalWait"]  = &GRoot::showModalWait;
+    bindGRoot["CloseModalWait"] = &GRoot::closeModalWait;
+        
+    auto bindGButton = fairygui.new_usertype<GButton>("GButton", sol::base_classes, sol::bases<GComponent, GObject>());
+    bindGButton["IsChangeStateOnClick"]     = &GButton::isChangeStateOnClick;
+    bindGButton["SetChangeStateOnClick"]    = &GButton::setChangeStateOnClick;
+    bindGButton["SetTitle"]                 = &GButton::setTitle;
+    bindGButton["SetText"]                  = &GButton::setText;
+    bindGButton["SetIcon"]                  = &GButton::setIcon;
+    bindGButton["GetText"]                  = &GButton::getText;
+    bindGButton["GetIcon"]                  = &GButton::getIcon;
+        
+    auto bindGProgressBar = fairygui.new_usertype<GProgressBar>("GProgressBar", sol::base_classes, sol::bases<GComponent, GObject>());
+    bindGProgressBar["SetValue"]    = &GProgressBar::setValue;
+    bindGProgressBar["GetValue"]    = &GProgressBar::getValue;
+    bindGProgressBar["SetMin"]      = &GProgressBar::setMin;
+    bindGProgressBar["GetMin"]      = &GProgressBar::getMin;
+    bindGProgressBar["SetMax"]      = &GProgressBar::setMax;
+    bindGProgressBar["GetMax"]      = &GProgressBar::getMax;
+        
+    auto bindScrollPane = fairygui.new_usertype<ScrollPane>("ScrollPane");
+    bindScrollPane["GetPosX"]       = &ScrollPane::getPosX;
+    bindScrollPane["GetPosY"]       = &ScrollPane::getPosY;
+    bindScrollPane["SetPosX"]       = sol::overload([](ScrollPane* obj, float value) { obj->setPosX(value); }, [](ScrollPane* obj, float value, bool ani) { obj->setPosX(value, ani); });
+    bindScrollPane["SetPosY"]       = sol::overload([](ScrollPane* obj, float value) { obj->setPosY(value); }, [](ScrollPane* obj, float value, bool ani) { obj->setPosY(value, ani); });
+    bindScrollPane["ScrollTop"]     = [](ScrollPane* obj) { obj->scrollTop(); };
+    bindScrollPane["ScrollBottom"]  = [](ScrollPane* obj) { obj->scrollBottom(); };
+    bindScrollPane["CancelDragging"] = &ScrollPane::cancelDragging;
+    bindScrollPane["LockHeader"]    = &ScrollPane::lockHeader;
+    bindScrollPane["LockFooter"]    = &ScrollPane::lockFooter;
+    bindScrollPane["GetHeader"]     = &ScrollPane::getHeader;
+    bindScrollPane["GetFooter"]     = &ScrollPane::getFooter;
+    bindScrollPane["IsBottomMost"]  = &ScrollPane::isBottomMost;
+    bindScrollPane["IsRightMost"]   = &ScrollPane::isRightMost;
+        
+    auto bindGList = fairygui.new_usertype<GList>("GList", sol::base_classes, sol::bases<GComponent, GObject>());
+    bindGList["SetVirtual"]         = sol::resolve<void()>(&GList::setVirtual);
+    bindGList["SetVirtualAndLoop"]  = &GList::setVirtualAndLoop;
+    bindGList["SetNumItems"]        = &GList::setNumItems;
+    bindGList["GetNumItems"]        = &GList::getNumItems;
+    bindGList["AddSelection"]       = &GList::addSelection;
+    bindGList["GetSelectedIndex"]   = &GList::getSelectedIndex;
+    bindGList["SetSelectedIndex"]   = &GList::setSelectedIndex;
+    bindGList["SetItemRenderer"]    = [](GList* obj, sol::function func) { obj->itemRenderer = [func](int index, GObject* item) { CALL_LUA(func, index, item) }; };
+    bindGList["SetItemProvider"]    = [](GList* obj, sol::function func) { obj->itemProvider = [func](int index) { CALL_LUA(func, index) return result.get<std::string>(); }; };
+    bindGList["AddItemFromPool"]    = sol::overload(sol::resolve<GObject * ()>(&GList::addItemFromPool), [](GList* obj, const char* url) { return obj->addItemFromPool(url); });
+        
+    auto bindWindow = fairygui.new_usertype<Window>("Window", sol::base_classes, sol::bases<GComponent, GObject>());
+    bindWindow["Create"]            = &Window::create;
+    bindWindow["Show"]              = &Window::show;
+    bindWindow["Hide"]              = &Window::hide;
+    bindWindow["HideImmediately"]   = &Window::hideImmediately;
+    bindWindow["SetModal"]          = &Window::setModal;
+    bindWindow["GetContentPane"]    = &Window::getContentPane;
+    bindWindow["SetContentPane"]    = &Window::setContentPane;
+    bindWindow["ShowModalWait"]     = sol::resolve<void()>(&Window::showModalWait);
+    bindWindow["CloseModalWait"]    = sol::resolve<bool()>(&Window::closeModalWait);
+        
+    auto bindGTweener = fairygui.new_usertype<GTweener>("GTweener");
+    bindGTweener["SetTarget"]   = sol::overload([](GTweener* obj, GObject* target) { return obj->setTarget(target); },
+        [](GTweener* obj, GObject* target, TweenPropType propType) { return obj->setTarget(target, propType); });
+    bindGTweener["SetRepeat"]   = [](GTweener* obj, int repeat) {obj->setRepeat(repeat); };
+    bindGTweener["OnStart"]     = [](GTweener* obj, sol::function func) { obj->onStart([func](GTweener* tweener) { CALL_LUA(func, tweener) }); };
+    bindGTweener["OnUpdate"]    = [](GTweener* obj, sol::function func) { obj->onUpdate([func](GTweener* tweener) { CALL_LUA(func, tweener) }); };
+    bindGTweener["OnComplete"]  = [](GTweener* obj, sol::function func) { obj->onComplete([func]() { CALL_LUA(func) }); };
+    bindGTweener["OnComplete1"] = [](GTweener* obj, sol::function func) { obj->onComplete1([func](GTweener* tweener) { CALL_LUA(func, tweener) }); };
+    bindGTweener["value"]       = [](GTweener* obj) { return Vector4{ obj->value.x, obj->value.y, obj->value.z, obj->value.w }; };
+    
+    auto bindGTween = fairygui.new_usertype<GTween>("GTween");
+    bindGTween["To"]            = sol::overload([](float startValue, float endValue, float duration) { return GTween::to(startValue, endValue, duration); },
+        [](const Vector2& startValue, const Vector2& endValue, float duration) { return GTween::to(*(cocos2d::Vec2*)startValue.Data(), *(cocos2d::Vec2*)endValue.Data(), duration); },
+        [](const Vector3& startValue, const Vector3& endValue, float duration) { return GTween::to(*(cocos2d::Vec3*)startValue.Data(), *(cocos2d::Vec3*)endValue.Data(), duration); },
+        [](const Vector4& startValue, const Vector4& endValue, float duration) { return GTween::to(*(cocos2d::Vec4*)startValue.Data(), *(cocos2d::Vec4*)endValue.Data(), duration); },
+        [](const Color& startValue, const Color& endValue, float duration) { return GTween::to(Color4BFromUrhoColor(startValue), Color4BFromUrhoColor(endValue), duration); });
+    bindGTween["delayedCall"]   = &GTween::delayedCall;
+    bindGTween["Shake"]         = [](const Vector2& startValue, float amplitude, float duration) { return GTween::shake(*(cocos2d::Vec2*)startValue.Data(), amplitude, duration); };
+
+    auto bindGTreeNode = fairygui.new_usertype<GTreeNode>("GTreeNode");
+    bindGTreeNode["Create"] = sol::overload([]() { return GTreeNode::create(); }, [](bool isFolder) { return GTreeNode::create(isFolder); });
+    bindGTreeNode["AddChild"] = &GTreeNode::addChild;
+    bindGTreeNode["SetData"] = &GTreeNode::setData;
+    bindGTreeNode["GetData"] = &GTreeNode::getData;
+    bindGTreeNode["SetTable"] = &GTreeNode::setTable;
+    bindGTreeNode["GetTable"] = &GTreeNode::getTable;
+    bindGTreeNode["GetCell"] = &GTreeNode::getCell;
+    bindGTreeNode["IsFolder"] = &GTreeNode::isFolder;
+    bindGTreeNode["GetText"] = &GTreeNode::getText;
+        
+    auto bindGTree = fairygui.new_usertype<GTree>("GTree", sol::base_classes, sol::bases<GList, GComponent, GObject>());
+    bindGTree["GetRootNode"]        = &GTree::getRootNode;
+    bindGTree["GetSelectedNode"]    = &GTree::getSelectedNode;
+    bindGTree["SetItemRenderer"]    = [](GTree* obj, sol::function func) { obj->treeNodeRender = [func](GTreeNode* node, GComponent* obj) { CALL_LUA(func, node, obj) }; };
+        
     auto context = GetContext(lua.lua_state());
     fairygui["GetRoot"] = [context]() { return context->GetSubsystem<GUI>()->GetFairyGUIRoot(); };
     fairygui["CreateText"] = sol::overload(
@@ -582,12 +576,14 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     popupDirection["AUTO"] = PopupDirection::DOWN;
     popupDirection["UP"] = PopupDirection::UP;
     popupDirection["DOWN"] = PopupDirection::DOWN;
-    fairygui.new_usertype<FairyGUIScene>("FairyGUIScene",
+
+    auto bindFairyGUIScene = fairygui.new_usertype<FairyGUIScene>("FairyGUIScene",
         sol::call_constructor, sol::factories([]() { return std::unique_ptr<FairyGUIScene>(FairyGUIScene::create()); }),
-        "groot", &FairyGUIScene::_groot,
-        "Schedule", [](FairyGUIScene* obj, sol::function func, const char* key) { obj->schedule([func](float dt) { CALL_LUA(func, dt) }, key); },
-        "ScheduleOnce", [](FairyGUIScene* obj, sol::function func, float delay, const char* key) { obj->scheduleOnce([func](float dt) { CALL_LUA(func, dt) }, delay, key); },
         sol::base_classes, sol::bases<cocos2d::Scene>());
+    bindFairyGUIScene["groot"] = &FairyGUIScene::_groot;
+    bindFairyGUIScene["Schedule"] = [](FairyGUIScene* obj, sol::function func, const char* key) { obj->schedule([func](float dt) { CALL_LUA(func, dt) }, key); };
+    bindFairyGUIScene["ScheduleOnce"] = [](FairyGUIScene* obj, sol::function func, float delay, const char* key) { obj->scheduleOnce([func](float dt) { CALL_LUA(func, dt) }, delay, key); };
+        
     fairygui["SetDesignResolutionSize"] = [context](int w, int h) { return context->GetSubsystem<GUI>()->SetDesignResolutionSize(w, h); };
     fairygui["ReplaceScene"] = [context](FairyGUIScene* scene) { context->GetSubsystem<GUI>()->SetFairyGUIRoot(scene->_groot); };
     fairygui["ScheduleScriptFunc"] = [](sol::function func, float interval, bool paused) { return cocos2d::Director::getInstance()->getScheduler()->scheduleScriptFunc(func, interval, paused); };

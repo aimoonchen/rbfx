@@ -201,8 +201,10 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
 		sol::call_constructor, sol::factories([](float constantBias, float slopeScaledBias) { return BiasParameters(constantBias, slopeScaledBias); }));
     lua.new_usertype<CascadeParameters>("CascadeParameters",
 		sol::call_constructor, sol::factories([](float split1, float split2, float split3, float split4, float fadeStart) { return CascadeParameters(split1, split2, split3, split4, fadeStart); }));
-    lua.new_usertype<Material>("Material",
-        sol::call_constructor, sol::factories([context](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
+
+    auto bindMaterial = lua.new_usertype<Material>("Material",
+        sol::call_constructor,
+        sol::factories([context](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
             auto tech = new Technique(context);
             auto pass = tech->CreatePass(passName);
             pass->SetVertexShader(vs);
@@ -211,343 +213,342 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
             mtl->SetTechnique(0, tech);
             return mtl;
             }),
-        "scene", sol::property(&Material::GetScene, &Material::SetScene),
-        "render_order", sol::property(&Material::GetRenderOrder, &Material::SetRenderOrder),
-        "depth_bias", sol::property(&Material::GetDepthBias, &Material::SetDepthBias),
-        "fill_mode", sol::property(&Material::GetFillMode, &Material::SetFillMode),
-        "cull_mode", sol::property(&Material::GetCullMode, &Material::SetCullMode),
-        "occlusion", sol::property(&Material::GetOcclusion, &Material::SetOcclusion),
-        "shadow_cull_mode", sol::property(&Material::GetShadowCullMode, &Material::SetShadowCullMode),
-        "Clone", sol::overload(
-            [](Material* self) { return self->Clone().Detach(); },
-            [](Material* self, const ea::string& cloneName) { return self->Clone(cloneName).Detach(); }),
-        "SetTexture", [](Material* self, const char* name, Texture* texture) { self->SetTexture(name, texture); },
-        "SetUVTransform", sol::overload(
-            [](Material* self, const Vector2& offset, float rotation, const Vector2& repeat) { self->SetUVTransform(offset, rotation, repeat); },
-            [](Material* self, const Vector2& offset, float rotation, float repeat) { self->SetUVTransform(offset, rotation, repeat); }),
-        "SetShaderParameter", sol::overload(
-            [](Material* self, const ea::string& name, const Variant& value) { self->SetShaderParameter(name, value); },
-            [](Material* self, const ea::string& name, const Variant& value, bool isCustom) { self->SetShaderParameter(name, value, isCustom); }),
-        "SetShaderParameterAnimation", sol::overload(
-            [](Material* self, const ea::string& name, ValueAnimation* valueAnimation) { self->SetShaderParameterAnimation(name, valueAnimation); },
-            [](Material* self, const ea::string& name, ValueAnimation* valueAnimation, WrapMode wrapMode, float speed) { self->SetShaderParameterAnimation(name, valueAnimation, wrapMode, speed); }),
-        "SetShaderParameterAnimationWrapMode", &Material::SetShaderParameterAnimationWrapMode,
-        "SetShaderParameterAnimationSpeed", &Material::SetShaderParameterAnimationSpeed,
         sol::base_classes, sol::bases<Resource>());
-	lua.new_usertype<ResourceWithMetadata>("ResourceWithMetadata", sol::constructors<ResourceWithMetadata(Context*)>(),
+    bindMaterial["scene"]           = sol::property(&Material::GetScene, &Material::SetScene);
+    bindMaterial["render_order"]    = sol::property(&Material::GetRenderOrder, &Material::SetRenderOrder);
+    bindMaterial["depth_bias"]      = sol::property(&Material::GetDepthBias, &Material::SetDepthBias);
+    bindMaterial["fill_mode"]       = sol::property(&Material::GetFillMode, &Material::SetFillMode);
+    bindMaterial["cull_mode"]       = sol::property(&Material::GetCullMode, &Material::SetCullMode);
+    bindMaterial["occlusion"]       = sol::property(&Material::GetOcclusion, &Material::SetOcclusion);
+    bindMaterial["shadow_cull_mode"] = sol::property(&Material::GetShadowCullMode, &Material::SetShadowCullMode);
+    bindMaterial["Clone"]           = sol::overload(
+        [](Material* self) { return self->Clone().Detach(); },
+        [](Material* self, const ea::string& cloneName) { return self->Clone(cloneName).Detach(); });
+    bindMaterial["SetTexture"]                          = [](Material* self, const char* name, Texture* texture) { self->SetTexture(name, texture); };
+    bindMaterial["SetUVTransform"]                      = sol::overload(
+        [](Material* self, const Vector2& offset, float rotation, const Vector2& repeat) { self->SetUVTransform(offset, rotation, repeat); },
+        [](Material* self, const Vector2& offset, float rotation, float repeat) { self->SetUVTransform(offset, rotation, repeat); });
+    bindMaterial["SetShaderParameter"]                  = sol::overload(
+        [](Material* self, const ea::string& name, const Variant& value) { self->SetShaderParameter(name, value); },
+        [](Material* self, const ea::string& name, const Variant& value, bool isCustom) { self->SetShaderParameter(name, value, isCustom); });
+    bindMaterial["SetShaderParameterAnimation"]         = sol::overload(
+        [](Material* self, const ea::string& name, ValueAnimation* valueAnimation) { self->SetShaderParameterAnimation(name, valueAnimation); },
+        [](Material* self, const ea::string& name, ValueAnimation* valueAnimation, WrapMode wrapMode, float speed) { self->SetShaderParameterAnimation(name, valueAnimation, wrapMode, speed); });
+    bindMaterial["SetShaderParameterAnimationWrapMode"] = &Material::SetShaderParameterAnimationWrapMode;
+    bindMaterial["SetShaderParameterAnimationSpeed"]    = &Material::SetShaderParameterAnimationSpeed;
+        
+	lua.new_usertype<ResourceWithMetadata>("ResourceWithMetadata",
+        sol::constructors<ResourceWithMetadata(Context*)>(),
 		sol::base_classes, sol::bases<Resource>());
-    lua.new_usertype<Animation>("Animation",
-		"length", sol::property(&Animation::GetLength, &Animation::SetLength),
+
+    auto bindAnimation = lua.new_usertype<Animation>("Animation",
 		sol::base_classes, sol::bases<ResourceWithMetadata>());
-    lua.new_usertype<Model>("Model", sol::constructors<Model(Context*)>(),
-        "GetNumGeometries", &Model::GetNumGeometries,
-        "HideGeometry", [](Model* self, unsigned geomIndex) { self->GetGeometry(geomIndex, 0)->SetIndexBuffer(nullptr); },
-        "CreateRock", [context](int seed, int nsubdivisions) {
-            auto par_mesh = par_shapes_create_rock(seed, nsubdivisions);
-            return ParMeshToModel(context, par_mesh, false);
-        },
+    bindAnimation["length"]         = sol::property(&Animation::GetLength, &Animation::SetLength);
+
+    auto bindModel = lua.new_usertype<Model>("Model", sol::constructors<Model(Context*)>(),
 		sol::base_classes, sol::bases<ResourceWithMetadata>());
+    bindModel["GetNumGeometries"]   = &Model::GetNumGeometries;
+    bindModel["HideGeometry"]       = [](Model* self, unsigned geomIndex) { self->GetGeometry(geomIndex, 0)->SetIndexBuffer(nullptr); };
+    bindModel["CreateRock"]         = [context](int seed, int nsubdivisions) {
+        auto par_mesh = par_shapes_create_rock(seed, nsubdivisions);
+        return ParMeshToModel(context, par_mesh, false);
+    };
+
 	lua.new_usertype<Texture>("Texture", sol::constructors<Texture(Context*)>(),
 		sol::base_classes, sol::bases<ResourceWithMetadata>());
-    lua.new_usertype<Texture2D>("Texture2D",
-        sol::call_constructor, sol::factories([context]() {
+
+    auto bindTexture2D                  = lua.new_usertype<Texture2D>("Texture2D", sol::call_constructor,
+        sol::factories([context]() {
             // TODO:for water demo, the texture will be managed by engine
             return new Texture2D(context);
             // lua manage the object
             //return std::make_unique<Texture2D>(context);
             }),
-		"width",sol::property(&Texture2D::GetWidth),
-		"height", sol::property(&Texture2D::GetHeight),
-        "filter_mode", sol::property(&Texture2D::GetFilterMode, &Texture2D::SetFilterMode),
-        "GetRenderSurface", &Texture2D::GetRenderSurface,
-        "SaveFile", [](Texture2D* self, const ea::string& filename) {
-            static SharedPtr<Image> image;
-            if (filename.empty()) {
-                image = self->GetImage();
-            } else {
-                image->SaveFile({ "file", filename });
-                image = nullptr;
-            }
-        },
-        "SetSize", sol::overload(
-            [](Texture2D* self, int width, int height, unsigned format) { self->SetSize(width, height, (TextureFormat)format); },
-            [](Texture2D* self, int width, int height, unsigned format, TextureFlag usage) { self->SetSize(width, height, (TextureFormat)format, usage); },
-            [](Texture2D* self, int width, int height, unsigned format, TextureFlag usage, int multiSample) { self->SetSize(width, height, (TextureFormat)format, usage, multiSample); }),
-		sol::base_classes, sol::bases<Texture>());
-    lua.new_usertype<TextureCube>("TextureCube",
-        sol::base_classes, sol::bases<Texture>());
-    lua.new_usertype<RenderSurface>("RenderSurface",
-        "SetViewport", &RenderSurface::SetViewport,
-        "QueueUpdate", &RenderSurface::QueueUpdate,
-        "GetWidth", &RenderSurface::GetWidth,
-        "GetHeight", &RenderSurface::GetHeight
-        );
-    lua.new_usertype<Octree>("Octree",
-        "id", sol::var(StringHash("Octree")),
-        "AddManualDrawable", &Octree::AddManualDrawable,
-        "RemoveManualDrawable", &Octree::RemoveManualDrawable,
-        "RaycastSingle", [](Octree* self, const Ray& ray, RayQueryLevel level, float maxDistance, int drawableFlags) {
-            ea::vector<RayQueryResult> results;
-            RayOctreeQuery query(results, ray, level, maxDistance, (DrawableFlags)drawableFlags);
-            self->RaycastSingle(query);
-            Vector3 hitPos;
-            Drawable* hitDrawable = nullptr;
-            if (!results.empty()) {
-                RayQueryResult& result = results[0];
-                hitPos = result.position_;
-                hitDrawable = result.drawable_;
-            }
-            return std::make_tuple(hitPos, hitDrawable);
-        },
-        sol::base_classes, sol::bases<Component>()
-        );
-    lua.new_usertype<Viewport>("Viewport",
-		sol::call_constructor, sol::factories([context]() { return new Viewport(context); },
-			[context](Scene* scene, Camera* camera) { return new Viewport(context, scene, camera); }),
-        "SetScene", &Viewport::SetScene,
-        "GetScene", &Viewport::GetScene,
-        "SetCamera", &Viewport::SetCamera,
-        "GetCamera", &Viewport::GetCamera
-        );
-    lua.new_usertype<DebugRenderer>("DebugRenderer",
-        "id", sol::var(StringHash("DebugRenderer")),
-        "AddLine", sol::overload(
-            [](DebugRenderer* self, const Vector3& start, const Vector3& end, const Color& color) { self->AddLine(start, end, color); },
-            [](DebugRenderer* self, const Vector3& start, const Vector3& end, const Color& color, bool depthTest) {self->AddLine(start, end, color, depthTest); }),
-        "AddTriangle", sol::overload(
-            [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color) { self->AddTriangle(v1, v2, v3, color); },
-            [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color, bool depthTest) {self->AddTriangle(v1, v2, v3, color, depthTest); }),
-        sol::base_classes, sol::bases<Component>());
-    lua.new_usertype<MeshLine::LineDesc>("MeshLineDesc",
-        sol::call_constructor, sol::factories([]() { return MeshLine::LineDesc(); }),
-        "model_mat", &MeshLine::LineDesc::model_mat,
-        "color", &MeshLine::LineDesc::color,
-        "width", &MeshLine::LineDesc::width,
-        "attenuation", &MeshLine::LineDesc::attenuation,
-        "depth", &MeshLine::LineDesc::depth,
-        "depth_bias", &MeshLine::LineDesc::depth_bias,
-        "repeat", &MeshLine::LineDesc::repeat,
-        "visibility", &MeshLine::LineDesc::visibility,
-        "use_dash", &MeshLine::LineDesc::use_dash,
-        "dash_array", &MeshLine::LineDesc::dash_array,
-        "dash_offset", &MeshLine::LineDesc::dash_offset,
-        "dash_ratio", &MeshLine::LineDesc::dash_ratio,
-        "alpha_fade", &MeshLine::LineDesc::alpha_fade,
-        "texture", &MeshLine::LineDesc::tex,
-        "alpha_texture", &MeshLine::LineDesc::alphaTex,
-        "cache", &MeshLine::LineDesc::cache,
-        "visible", &MeshLine::LineDesc::visible);
-    lua.new_usertype<MeshLine>("MeshLine",
-        "id", sol::var(StringHash("MeshLine")),
-        "SetDepthBias", &MeshLine::SetDepthBias,
-        "RemoveLine", &MeshLine::RemoveLine,
-        "BeginLines", &MeshLine::BeginLines,
-        "AppendLine", [](MeshLine* self, std::vector<Vector3> points) { self->AppendLine(std::move(points)); },
-        "EndLines", &MeshLine::EndLines,
-        "AddGrid", &MeshLine::AddGrid,
-        "AddLine", sol::overload(
-            [](MeshLine* self, const Vector3& start, const Vector3& end, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(start, end, lineDesc); },
-            [](MeshLine* self, std::vector<Vector3> points, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(points, lineDesc); }),
-        sol::base_classes, sol::bases<Component>());
-	lua.new_usertype<Camera>("Camera",
-        "id", sol::var(StringHash("Camera")),
-		"far_clip", sol::property(&Camera::GetFarClip, &Camera::SetFarClip),
-        "near_clip", sol::property(&Camera::GetNearClip, &Camera::SetNearClip),
-		"fov", sol::property(&Camera::GetFov, &Camera::SetFov),
-        "view_mask", sol::property(&Camera::GetViewMask, &Camera::SetViewMask),
-        "auto_aspect_ratio", sol::property(&Camera::GetAutoAspectRatio, &Camera::SetAutoAspectRatio),
-        "use_reflection", sol::property(&Camera::GetUseReflection, &Camera::SetUseReflection),
-        "reflection_plane", sol::property(&Camera::GetReflectionPlane, &Camera::SetReflectionPlane),
-        "use_clipping", sol::property(&Camera::GetUseClipping, &Camera::SetUseClipping),
-        "clip_plane", sol::property(&Camera::GetClipPlane, &Camera::SetClipPlane),
-        "aspect_ratio", sol::property(&Camera::GetAspectRatio, &Camera::SetAspectRatio),
-        "WorldToScreenPoint", &Camera::WorldToScreenPoint,
-        "ScreenToWorldPoint", &Camera::ScreenToWorldPoint,
-        "GetScreenRay", &Camera::GetScreenRay,
-		sol::base_classes, sol::bases<Component>());
-	lua.new_usertype<Graphics>("Graphics",
-		"SetWindowIcon", &Graphics::SetWindowIcon,
-		"windowTitle", sol::property(&Graphics::GetWindowTitle, &Graphics::SetWindowTitle),
-//         "GetRGBFormat", &Graphics::GetRGBFormat,
-//         "SetSRGB", &Graphics::SetSRGB,
-//         "GetSRGB", &Graphics::GetSRGB,
-//         "GetSRGBSupport", &Graphics::GetSRGBSupport,
-//         "GetSRGBWriteSupport", &Graphics::GetSRGBWriteSupport,
-		"width", sol::property(&Graphics::GetWidth),
-        "height", sol::property(&Graphics::GetHeight),
-//         "GetNumPrimitives", &Graphics::GetNumPrimitives,
-//         "GetNumBatches", &Graphics::GetNumBatches,
-//         "SetBGFXCamera", &Graphics::SetBGFXCamera,
-//         "TakeScreenShot", sol::resolve<bool(const ea::string&)>(&Graphics::TakeScreenShot),
-        "GetStats", [](Graphics* self) {
-            const auto& stats = self->GetSubsystem<RenderDevice>()->GetStats();
-            static ea::string ret;
-            ret.clear();
-            ret.append_sprintf("DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_);
-            return ret;// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
+        sol::base_classes, sol::bases<Texture>()
+    );
+    bindTexture2D["width"]              = sol::property(&Texture2D::GetWidth);
+	bindTexture2D["height"]             = sol::property(&Texture2D::GetHeight);
+    bindTexture2D["filter_mode"]        = sol::property(&Texture2D::GetFilterMode, &Texture2D::SetFilterMode);
+    bindTexture2D["GetRenderSurface"]   = &Texture2D::GetRenderSurface;
+    bindTexture2D["SaveFile"]           = [](Texture2D* self, const ea::string& filename) {
+        static SharedPtr<Image> image;
+        if (filename.empty()) {
+            image = self->GetImage();
+        } else {
+            image->SaveFile({ "file", filename });
+            image = nullptr;
         }
-        );
-	lua.new_usertype<Renderer>("Renderer", sol::constructors<Renderer(Context*)>(),
-		"SetViewport", &Renderer::SetViewport,
-        "DrawDebugGeometry", &Renderer::DrawDebugGeometry);
-	lua.new_usertype<Drawable>("Drawable",
-		"cast_shadows", sol::property(&Drawable::GetCastShadows, &Drawable::SetCastShadows),
-        "view_mask", sol::property(&Drawable::GetViewMask, &Drawable::SetViewMask),
-        "light_mask", sol::property(&Drawable::GetLightMask, &Drawable::SetLightMask),
-        "shadow_mask", sol::property(&Drawable::GetShadowMask, &Drawable::SetShadowMask),
-        "SetCastShadows", &Drawable::SetCastShadows,
-        "SetGlobalIlluminationType", &Drawable::SetGlobalIlluminationType,
-        "IsInOctree", &Drawable::IsInOctree,
-        "SetOccluder", &Drawable::SetOccluder,
-        "GetBoundingBox", &Drawable::GetBoundingBox,
-        "GetWorldBoundingBox", &Drawable::GetWorldBoundingBox,
-		sol::base_classes, sol::bases<Component>());
-    lua.new_usertype<Zone>("Zone",
-        "id",           sol::var(StringHash("Zone")),
-		"bounding_box",	sol::property([](Zone* self) { return self->GetBoundingBox(); }, &Zone::SetBoundingBox),
-		"ambient_color", sol::property(&Zone::GetAmbientColor, &Zone::SetAmbientColor),
-        "ambient_brightness", sol::property(&Zone::GetAmbientBrightness, &Zone::SetAmbientBrightness),
-        "background_brightness", sol::property(&Zone::GetBackgroundBrightness, &Zone::SetBackgroundBrightness),
-		"fog_color",		sol::property(&Zone::GetFogColor, &Zone::SetFogColor),
-		"fog_start",		sol::property(&Zone::GetFogStart, &Zone::SetFogStart),
-		"fog_end",		sol::property(&Zone::GetFogEnd, &Zone::SetFogEnd),
-        //"SetProceduralSky", &Zone::SetProceduralSky,
-        "SetZoneTextureAttr", [](Zone* self, const ea::string& filename) { filename.empty() ? self->SetZoneTexture(nullptr) : self->SetZoneTextureAttr(ResourceRef(StringHash("TextureCube"), filename)); },
-		sol::base_classes, sol::bases<Drawable, Component>());
-	lua.new_usertype<Light>("Light",
-        "id", sol::var(StringHash("Light")),
-		"light_type", sol::property(&Light::GetLightType, &Light::SetLightType),
-        "range", sol::property(&Light::GetRange, &Light::SetRange),
-		"color", sol::property(&Light::GetColor, &Light::SetColor),
-        "brightness", sol::property(&Light::GetBrightness, &Light::SetBrightness),
-        "indirect_brightness", sol::property(&Light::GetIndirectBrightness, &Light::SetIndirectBrightness),
-        "fov", sol::property(&Light::GetFov, &Light::SetFov),
-        "ramp_texture", sol::property(&Light::GetRampTexture, &Light::SetRampTexture),
-		"shadow_bias", sol::property(&Light::GetShadowBias, &Light::SetShadowBias),
-		"shadow_cascade", sol::property(&Light::GetShadowCascade, &Light::SetShadowCascade),
-        "specular_intensity", sol::property(&Light::GetSpecularIntensity, &Light::SetSpecularIntensity),
-        "shadow_distance", sol::property(&Light::GetShadowDistance, &Light::SetShadowDistance),
-        "shadow_fade_distance", sol::property(&Light::GetShadowFadeDistance, &Light::SetShadowFadeDistance),
-        "shadow_resolution", sol::property(&Light::GetShadowResolution, &Light::SetShadowResolution),
-        "shadow_near_far_ratio", sol::property(&Light::GetShadowNearFarRatio, &Light::SetShadowNearFarRatio),
-		sol::base_classes, sol::bases<Drawable, Component>());
-    lua.new_usertype<StaticModel>("StaticModel",
-        "id", sol::var(StringHash("StaticModel")),
-		"model", sol::property(&StaticModel::GetModel, &StaticModel::SetModel),
-		"material", sol::property([](StaticModel* self) { return self->GetMaterial(0); }, [](StaticModel* self, Material* mtl ) { self->SetMaterial(mtl); }),
-        "SetModel", &StaticModel::SetModel,
-        "SetMaterial", sol::overload(
-			sol::resolve<void(Material*)>(&StaticModel::SetMaterial),
-            sol::resolve<bool(unsigned, Material*)>(&StaticModel::SetMaterial)),
-        "GetMaterial", sol::overload(
-            sol::resolve<Material*(void) const>(&StaticModel::GetMaterial),
-            sol::resolve<Material*(unsigned) const>(&StaticModel::GetMaterial)),
-        "RaycastSingle", [](StaticModel* self, const Ray& ray) {
-            ea::vector<RayQueryResult> results;
-            RayOctreeQuery query(results, ray);
-            self->ProcessRayQuery(query, results);
-            Vector3 hitPos;
-            bool hit = false;
-            if (!results.empty()) {
-                RayQueryResult& result = results[0];
-                hitPos = result.position_;
-                hit = true;
-            }
-            return std::make_tuple(hit, hitPos);
-        },
-        sol::base_classes, sol::bases<Drawable, Component>());
-	lua.new_usertype<AnimationState>("AnimationState",
-		"weight", sol::property(&AnimationState::GetWeight, &AnimationState::SetWeight),
-		"looped", sol::property(&AnimationState::IsLooped, &AnimationState::SetLooped),
-		"time", sol::property(&AnimationState::GetTime, &AnimationState::SetTime));
-	lua.new_usertype<AnimatedModel>("AnimatedModel",
-        "id", sol::var(StringHash("AnimatedModel")),
-		"model", sol::property(&AnimatedModel::GetModel, [](AnimatedModel* self, Model* model) { self->SetModel(model); }),
-		sol::base_classes, sol::bases<StaticModel, Drawable, Component>());
-    lua.new_usertype<AnimationParameters>("AnimationParameters",
-        sol::call_constructor, sol::factories(
+    };
+    bindTexture2D["SetSize"]            = sol::overload(
+        [](Texture2D* self, int width, int height, unsigned format) { self->SetSize(width, height, (TextureFormat)format); },
+        [](Texture2D* self, int width, int height, unsigned format, TextureFlag usage) { self->SetSize(width, height, (TextureFormat)format, usage); },
+        [](Texture2D* self, int width, int height, unsigned format, TextureFlag usage, int multiSample) { self->SetSize(width, height, (TextureFormat)format, usage, multiSample); }
+    );
+		
+    lua.new_usertype<TextureCube>("TextureCube", sol::base_classes, sol::bases<Texture>());
+
+    auto bindRenderSurface = lua.new_usertype<RenderSurface>("RenderSurface");
+    bindRenderSurface["SetViewport"]    = &RenderSurface::SetViewport;
+    bindRenderSurface["QueueUpdate"]    = &RenderSurface::QueueUpdate;
+    bindRenderSurface["GetWidth"]       = &RenderSurface::GetWidth;
+    bindRenderSurface["GetHeight"]      = &RenderSurface::GetHeight;
+
+    auto bindOctree = lua.new_usertype<Octree>("Octree", sol::base_classes, sol::bases<Component>());
+    bindOctree["id"]                    = sol::var(StringHash("Octree"));
+    bindOctree["AddManualDrawable"]     = &Octree::AddManualDrawable;
+    bindOctree["RemoveManualDrawable"]  = &Octree::RemoveManualDrawable;
+    bindOctree["RaycastSingle"]         = [](Octree* self, const Ray& ray, RayQueryLevel level, float maxDistance, int drawableFlags) {
+        ea::vector<RayQueryResult> results;
+        RayOctreeQuery query(results, ray, level, maxDistance, (DrawableFlags)drawableFlags);
+        self->RaycastSingle(query);
+        Vector3 hitPos;
+        Drawable* hitDrawable = nullptr;
+        if (!results.empty()) {
+            RayQueryResult& result = results[0];
+            hitPos = result.position_;
+            hitDrawable = result.drawable_;
+        }
+        return std::make_tuple(hitPos, hitDrawable);
+        };
+        
+    auto bindViewport = lua.new_usertype<Viewport>("Viewport", sol::call_constructor, sol::factories(
+            [context]() { return new Viewport(context); },
+            [context](Scene* scene, Camera* camera) { return new Viewport(context, scene, camera); })
+    );
+    bindViewport["SetScene"] = &Viewport::SetScene;
+    bindViewport["GetScene"] = &Viewport::GetScene;
+    bindViewport["SetCamera"] = &Viewport::SetCamera;
+    bindViewport["GetCamera"] = &Viewport::GetCamera;
+
+    auto bindDebugRenderer = lua.new_usertype<DebugRenderer>("DebugRenderer", sol::base_classes, sol::bases<Component>());
+    bindDebugRenderer["id"] = sol::var(StringHash("DebugRenderer"));
+    bindDebugRenderer["AddLine"] = sol::overload(
+            [](DebugRenderer* self, const Vector3& start, const Vector3& end, const Color& color) { self->AddLine(start, end, color); },
+            [](DebugRenderer* self, const Vector3& start, const Vector3& end, const Color& color, bool depthTest) {self->AddLine(start, end, color, depthTest); });
+    bindDebugRenderer["AddTriangle"] = sol::overload(
+        [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color) { self->AddTriangle(v1, v2, v3, color); },
+        [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color, bool depthTest) {self->AddTriangle(v1, v2, v3, color, depthTest); });
+        
+    auto bineMeshLineDesc = lua.new_usertype<MeshLine::LineDesc>("MeshLineDesc", sol::call_constructor, sol::factories([]() { return MeshLine::LineDesc(); }));
+    bineMeshLineDesc["model_mat"]       = &MeshLine::LineDesc::model_mat;
+    bineMeshLineDesc["color"]           = &MeshLine::LineDesc::color;
+    bineMeshLineDesc["width"]           = &MeshLine::LineDesc::width;
+    bineMeshLineDesc["attenuation"]     = &MeshLine::LineDesc::attenuation;
+    bineMeshLineDesc["depth"]           = &MeshLine::LineDesc::depth;
+    bineMeshLineDesc["depth_bias"]      = &MeshLine::LineDesc::depth_bias;
+    bineMeshLineDesc["repeat"]          = &MeshLine::LineDesc::repeat;
+    bineMeshLineDesc["visibility"]      = &MeshLine::LineDesc::visibility;
+    bineMeshLineDesc["use_dash"]        = &MeshLine::LineDesc::use_dash;
+    bineMeshLineDesc["dash_array"]      = &MeshLine::LineDesc::dash_array;
+    bineMeshLineDesc["dash_offset"]     = &MeshLine::LineDesc::dash_offset;
+    bineMeshLineDesc["dash_ratio"]      = &MeshLine::LineDesc::dash_ratio;
+    bineMeshLineDesc["alpha_fade"]      = &MeshLine::LineDesc::alpha_fade;
+    bineMeshLineDesc["texture"]         = &MeshLine::LineDesc::tex;
+    bineMeshLineDesc["alpha_texture"]   = &MeshLine::LineDesc::alphaTex;
+    bineMeshLineDesc["cache"]           = &MeshLine::LineDesc::cache;
+    bineMeshLineDesc["visible"]         = &MeshLine::LineDesc::visible;
+
+    auto bindMeshLine = lua.new_usertype<MeshLine>("MeshLine", sol::base_classes, sol::bases<Component>());
+    bindMeshLine["id"]              = sol::var(StringHash("MeshLine"));
+    bindMeshLine["SetDepthBias"]    = &MeshLine::SetDepthBias;
+    bindMeshLine["RemoveLine"]      = &MeshLine::RemoveLine;
+    bindMeshLine["BeginLines"]      = &MeshLine::BeginLines;
+    bindMeshLine["AppendLine"]      = [](MeshLine* self, std::vector<Vector3> points) { self->AppendLine(std::move(points)); };
+    bindMeshLine["EndLines"]        = &MeshLine::EndLines;
+    bindMeshLine["AddGrid"]         = &MeshLine::AddGrid;
+    bindMeshLine["AddLine"]         = sol::overload(
+        [](MeshLine* self, const Vector3& start, const Vector3& end, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(start, end, lineDesc); },
+        [](MeshLine* self, std::vector<Vector3> points, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(points, lineDesc); });
+        
+	auto bindCamera = lua.new_usertype<Camera>("Camera", sol::base_classes, sol::bases<Component>());
+    bindCamera["id"]                    = sol::var(StringHash("Camera"));
+    bindCamera["far_clip"]              = sol::property(&Camera::GetFarClip, &Camera::SetFarClip);
+    bindCamera["near_clip"]             = sol::property(&Camera::GetNearClip, &Camera::SetNearClip);
+    bindCamera["fov"]                   = sol::property(&Camera::GetFov, &Camera::SetFov);
+    bindCamera["view_mask"]             = sol::property(&Camera::GetViewMask, &Camera::SetViewMask);
+    bindCamera["auto_aspect_ratio"]     = sol::property(&Camera::GetAutoAspectRatio, &Camera::SetAutoAspectRatio);
+    bindCamera["use_reflection"]        = sol::property(&Camera::GetUseReflection, &Camera::SetUseReflection);
+    bindCamera["reflection_plane"]      = sol::property(&Camera::GetReflectionPlane, &Camera::SetReflectionPlane);
+    bindCamera["use_clipping"]          = sol::property(&Camera::GetUseClipping, &Camera::SetUseClipping);
+    bindCamera["clip_plane"]            = sol::property(&Camera::GetClipPlane, &Camera::SetClipPlane);
+    bindCamera["aspect_ratio"]          = sol::property(&Camera::GetAspectRatio, &Camera::SetAspectRatio);
+    bindCamera["WorldToScreenPoint"]    = &Camera::WorldToScreenPoint;
+    bindCamera["ScreenToWorldPoint"]    = &Camera::ScreenToWorldPoint;
+    bindCamera["GetScreenRay"]          = &Camera::GetScreenRay;
+		
+    auto bindGraphics = lua.new_usertype<Graphics>("Graphics");
+    bindGraphics["SetWindowIcon"]       = &Graphics::SetWindowIcon;
+    bindGraphics["windowTitle"]         = sol::property(&Graphics::GetWindowTitle, &Graphics::SetWindowTitle);
+    bindGraphics["width"]               = sol::property(&Graphics::GetWidth);
+    bindGraphics["height"]              = sol::property(&Graphics::GetHeight);
+    bindGraphics["GetStats"]            = [](Graphics* self) {
+        const auto& stats = self->GetSubsystem<RenderDevice>()->GetStats();
+        static ea::string ret;
+        ret.clear();
+        ret.append_sprintf("DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_);
+        return ret;// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
+    };
+
+    auto bindRenderer = lua.new_usertype<Renderer>("Renderer", sol::constructors<Renderer(Context*)>());
+    bindRenderer["SetViewport"] = &Renderer::SetViewport;
+    bindRenderer["DrawDebugGeometry"] = &Renderer::DrawDebugGeometry;
+
+	auto bindDrawable = lua.new_usertype<Drawable>("Drawable", sol::base_classes, sol::bases<Component>());
+    bindDrawable["cast_shadows"]                = sol::property(&Drawable::GetCastShadows, &Drawable::SetCastShadows);
+    bindDrawable["view_mask"]                   = sol::property(&Drawable::GetViewMask, &Drawable::SetViewMask);
+    bindDrawable["light_mask"]                  = sol::property(&Drawable::GetLightMask, &Drawable::SetLightMask);
+    bindDrawable["shadow_mask"]                 = sol::property(&Drawable::GetShadowMask, &Drawable::SetShadowMask);
+    bindDrawable["IsInOctree"]                  = &Drawable::IsInOctree;
+    bindDrawable["SetOccluder"]                 = &Drawable::SetOccluder;
+    bindDrawable["GetBoundingBox"]              = &Drawable::GetBoundingBox;
+    bindDrawable["SetCastShadows"]              = &Drawable::SetCastShadows;
+    bindDrawable["GetWorldBoundingBox"]         = &Drawable::GetWorldBoundingBox;
+    bindDrawable["SetGlobalIlluminationType"]   = &Drawable::SetGlobalIlluminationType;
+		
+    auto bindZone = lua.new_usertype<Zone>("Zone", sol::base_classes, sol::bases<Drawable, Component>());
+    bindZone["id"]                      = sol::var(StringHash("Zone"));
+    bindZone["bounding_box"]            = sol::property([](Zone* self) { return self->GetBoundingBox(); }, &Zone::SetBoundingBox);
+    bindZone["ambient_color"]           = sol::property(&Zone::GetAmbientColor, &Zone::SetAmbientColor);
+    bindZone["ambient_brightness"]      = sol::property(&Zone::GetAmbientBrightness, &Zone::SetAmbientBrightness);
+    bindZone["background_brightness"]   = sol::property(&Zone::GetBackgroundBrightness, &Zone::SetBackgroundBrightness);
+    bindZone["fog_color"]               = sol::property(&Zone::GetFogColor, &Zone::SetFogColor);
+    bindZone["fog_start"]               = sol::property(&Zone::GetFogStart, &Zone::SetFogStart);
+    bindZone["fog_end"]                 = sol::property(&Zone::GetFogEnd, &Zone::SetFogEnd);
+    //"SetProceduralSky", &Zone::SetProceduralSky,
+    bindZone["SetZoneTextureAttr"]      = [](Zone* self, const ea::string& filename) { filename.empty() ? self->SetZoneTexture(nullptr) : self->SetZoneTextureAttr(ResourceRef(StringHash("TextureCube"), filename)); };
+		
+	auto bindLight = lua.new_usertype<Light>("Light", sol::base_classes, sol::bases<Drawable, Component>());
+    bindLight["id"]                     = sol::var(StringHash("Light"));
+    bindLight["light_type"]             = sol::property(&Light::GetLightType, &Light::SetLightType);
+    bindLight["range"]                  = sol::property(&Light::GetRange, &Light::SetRange);
+    bindLight["color"]                  = sol::property(&Light::GetColor, &Light::SetColor);
+    bindLight["brightness"]             = sol::property(&Light::GetBrightness, &Light::SetBrightness);
+    bindLight["indirect_brightness"]    = sol::property(&Light::GetIndirectBrightness, &Light::SetIndirectBrightness);
+    bindLight["fov"]                    = sol::property(&Light::GetFov, &Light::SetFov);
+    bindLight["ramp_texture"]           = sol::property(&Light::GetRampTexture, &Light::SetRampTexture);
+    bindLight["shadow_bias"]            = sol::property(&Light::GetShadowBias, &Light::SetShadowBias);
+    bindLight["shadow_cascade"]         = sol::property(&Light::GetShadowCascade, &Light::SetShadowCascade);
+    bindLight["specular_intensity"]     = sol::property(&Light::GetSpecularIntensity, &Light::SetSpecularIntensity);
+    bindLight["shadow_distance"]        = sol::property(&Light::GetShadowDistance, &Light::SetShadowDistance);
+    bindLight["shadow_fade_distance"]   = sol::property(&Light::GetShadowFadeDistance, &Light::SetShadowFadeDistance);
+    bindLight["shadow_resolution"]      = sol::property(&Light::GetShadowResolution, &Light::SetShadowResolution);
+    bindLight["shadow_near_far_ratio"]  = sol::property(&Light::GetShadowNearFarRatio, &Light::SetShadowNearFarRatio);
+		
+    auto bindStaticModel = lua.new_usertype<StaticModel>("StaticModel", sol::base_classes, sol::bases<Drawable, Component>());
+    bindStaticModel["id"]           = sol::var(StringHash("StaticModel"));
+    bindStaticModel["model"]        = sol::property(&StaticModel::GetModel, &StaticModel::SetModel);
+    bindStaticModel["material"]     = sol::property([](StaticModel* self) { return self->GetMaterial(0); }, [](StaticModel* self, Material* mtl) { self->SetMaterial(mtl); });
+    bindStaticModel["SetModel"]     = &StaticModel::SetModel;
+    bindStaticModel["SetMaterial"]  = sol::overload(
+        sol::resolve<void(Material*)>(&StaticModel::SetMaterial),
+        sol::resolve<bool(unsigned, Material*)>(&StaticModel::SetMaterial));
+    bindStaticModel["GetMaterial"]  = sol::overload(
+        sol::resolve<Material * (void) const>(&StaticModel::GetMaterial),
+        sol::resolve<Material * (unsigned) const>(&StaticModel::GetMaterial));
+    bindStaticModel["RaycastSingle"] = [](StaticModel* self, const Ray& ray) {
+        ea::vector<RayQueryResult> results;
+        RayOctreeQuery query(results, ray);
+        self->ProcessRayQuery(query, results);
+        Vector3 hitPos;
+        bool hit = false;
+        if (!results.empty()) {
+            RayQueryResult& result = results[0];
+            hitPos = result.position_;
+            hit = true;
+        }
+        return std::make_tuple(hit, hitPos);
+        };
+        
+    auto bindAnimationState = lua.new_usertype<AnimationState>("AnimationState");
+    bindAnimationState["weight"] = sol::property(&AnimationState::GetWeight, &AnimationState::SetWeight);
+    bindAnimationState["looped"] = sol::property(&AnimationState::IsLooped, &AnimationState::SetLooped);
+	bindAnimationState["time"] = sol::property(&AnimationState::GetTime, &AnimationState::SetTime);
+
+	auto bindAnimatedModel = lua.new_usertype<AnimatedModel>("AnimatedModel", sol::base_classes, sol::bases<StaticModel, Drawable, Component>());
+    bindAnimatedModel["id"] = sol::var(StringHash("AnimatedModel"));
+    bindAnimatedModel["model"] = sol::property(&AnimatedModel::GetModel, [](AnimatedModel* self, Model* model) { self->SetModel(model); });
+
+    auto bindAnimationParameters = lua.new_usertype<AnimationParameters>("AnimationParameters", sol::call_constructor, sol::factories(
             [](Animation* animation) { return AnimationParameters(animation); },
-            [context](const ea::string& animationName) { return AnimationParameters(context, animationName); }),
-        "weight", &AnimationParameters::weight_,
-        "Looped", &AnimationParameters::Looped,
-        "StartBone", &AnimationParameters::StartBone,
-        "Layer", &AnimationParameters::Layer,
-        "Time", &AnimationParameters::Time,
-        "Additive", &AnimationParameters::Additive,
-        "Weight", &AnimationParameters::Weight,
-        "Speed", &AnimationParameters::Speed,
-        "AutoFadeOut", &AnimationParameters::AutoFadeOut,
-        "KeepOnCompletion", &AnimationParameters::KeepOnCompletion,
-        "KeepOnZeroWeight", &AnimationParameters::KeepOnZeroWeight
-        );
-	lua.new_usertype<AnimationController>("AnimationController",
-        "id", sol::var(StringHash("AnimationController")),
-		"SetSpeed", &AnimationController::SetSpeed,
-		"SetWeight", &AnimationController::SetWeight,
-		"SetTime", &AnimationController::SetTime,
-        "PlayNewExclusive", sol::overload(
-            [](AnimationController* self, const AnimationParameters& params) { return self->PlayNewExclusive(params); },
-            [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayNewExclusive(params, fadeInTime); }),
-		"PlayNew", sol::overload(
-			[](AnimationController* self, const AnimationParameters& params) { return self->PlayNew(params); },
-			[](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayNew(params, fadeInTime); }),
-        "PlayExistingExclusive", sol::overload(
-            [](AnimationController* self, const AnimationParameters& params) { return self->PlayExistingExclusive(params); },
-            [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayExistingExclusive(params, fadeInTime); }),
-        "PlayExisting", sol::overload(
-            [](AnimationController* self, const AnimationParameters& params) { return self->PlayExisting(params); },
-            [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayExisting(params, fadeInTime); }),
-		"Stop", sol::overload(
-			[](AnimationController* self, Animation* animation) { return self->Stop(animation); },
-			[](AnimationController* self, Animation* animation, float fadeTime) { return self->Stop(animation, fadeTime); }),
-		"IsPlaying", sol::overload(
-			sol::resolve<bool(const ea::string&)const>(&AnimationController::IsPlaying),
-			sol::resolve<bool(Animation*)const>(&AnimationController::IsPlaying)),
-        "Fade", sol::overload(sol::resolve<Animation*, float, float >(&AnimationController::Fade)),
-        "UpdateAnimationTime", &AnimationController::UpdateAnimationTime,
-        "UpdateAnimationWeight", sol::overload(
-            [](AnimationController* self, Animation* animation, float weight) { return self->UpdateAnimationWeight(animation, weight); },
-            [](AnimationController* self, Animation* animation, float weight, float fadeTime) { return self->UpdateAnimationWeight(animation, weight, fadeTime); }),
-        "UpdateAnimationSpeed", &AnimationController::UpdateAnimationSpeed,
-        "GetAnimationParameters", sol::resolve<const AnimationParameters&(unsigned) const>(&AnimationController::GetAnimationParameters),
-        "GetLastAnimationParameters", sol::overload(
-            [](AnimationController* self, Animation* animation) { return self->GetLastAnimationParameters(animation); },
-            [](AnimationController* self, Animation* animation, unsigned layer) { return self->GetLastAnimationParameters(animation, layer); }),
-        sol::base_classes, sol::bases<AnimationStateSource, Component>());
+            [context](const ea::string& animationName) { return AnimationParameters(context, animationName); }));
+    bindAnimationParameters["weight"]           = &AnimationParameters::weight_;
+    bindAnimationParameters["Looped"]           = &AnimationParameters::Looped;
+    bindAnimationParameters["StartBone"]        = &AnimationParameters::StartBone;
+    bindAnimationParameters["Layer"]            = &AnimationParameters::Layer;
+    bindAnimationParameters["Time"]             = &AnimationParameters::Time;
+    bindAnimationParameters["Additive"]         = &AnimationParameters::Additive;
+    bindAnimationParameters["Weight"]           = &AnimationParameters::Weight;
+    bindAnimationParameters["Speed"]            = &AnimationParameters::Speed;
+    bindAnimationParameters["AutoFadeOut"]      = &AnimationParameters::AutoFadeOut;
+    bindAnimationParameters["KeepOnCompletion"] = &AnimationParameters::KeepOnCompletion;
+    bindAnimationParameters["KeepOnZeroWeight"] = &AnimationParameters::KeepOnZeroWeight;
+
+	auto bindAnimationController = lua.new_usertype<AnimationController>("AnimationController", sol::base_classes, sol::bases<AnimationStateSource, Component>());
+    bindAnimationController["id"]                   = sol::var(StringHash("AnimationController"));
+    bindAnimationController["SetSpeed"]             = &AnimationController::SetSpeed;
+    bindAnimationController["SetWeight"]            = &AnimationController::SetWeight;
+    bindAnimationController["SetTime"]              = &AnimationController::SetTime;
+    bindAnimationController["PlayNewExclusive"]     = sol::overload(
+        [](AnimationController* self, const AnimationParameters& params) { return self->PlayNewExclusive(params); },
+        [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayNewExclusive(params, fadeInTime); });
+    bindAnimationController["PlayNew"]              = sol::overload(
+        [](AnimationController* self, const AnimationParameters& params) { return self->PlayNew(params); },
+        [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayNew(params, fadeInTime); });
+    bindAnimationController["PlayExistingExclusive"] = sol::overload(
+        [](AnimationController* self, const AnimationParameters& params) { return self->PlayExistingExclusive(params); },
+        [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayExistingExclusive(params, fadeInTime); });
+    bindAnimationController["PlayExisting"]         = sol::overload(
+        [](AnimationController* self, const AnimationParameters& params) { return self->PlayExisting(params); },
+        [](AnimationController* self, const AnimationParameters& params, float fadeInTime) { return self->PlayExisting(params, fadeInTime); });
+    bindAnimationController["Stop"]                 = sol::overload(
+        [](AnimationController* self, Animation* animation) { return self->Stop(animation); },
+        [](AnimationController* self, Animation* animation, float fadeTime) { return self->Stop(animation, fadeTime); });
+    bindAnimationController["IsPlaying"]            = sol::overload(
+        sol::resolve<bool(const ea::string&)const>(&AnimationController::IsPlaying),
+        sol::resolve<bool(Animation*)const>(&AnimationController::IsPlaying));
+    bindAnimationController["Fade"]                         = sol::overload(sol::resolve<Animation*, float, float >(&AnimationController::Fade));
+    bindAnimationController["UpdateAnimationTime"]          = &AnimationController::UpdateAnimationTime;
+    bindAnimationController["UpdateAnimationWeight"]        = sol::overload(
+        [](AnimationController* self, Animation* animation, float weight) { return self->UpdateAnimationWeight(animation, weight); },
+        [](AnimationController* self, Animation* animation, float weight, float fadeTime) { return self->UpdateAnimationWeight(animation, weight, fadeTime); });
+    bindAnimationController["UpdateAnimationSpeed"]         = &AnimationController::UpdateAnimationSpeed;
+    bindAnimationController["GetAnimationParameters"]       = sol::resolve<const AnimationParameters & (unsigned) const>(&AnimationController::GetAnimationParameters);
+    bindAnimationController["GetLastAnimationParameters"]   = sol::overload(
+        [](AnimationController* self, Animation* animation) { return self->GetLastAnimationParameters(animation); },
+        [](AnimationController* self, Animation* animation, unsigned layer) { return self->GetLastAnimationParameters(animation, layer); });
+        
 	lua.new_usertype<Skybox>("Skybox",
         "id", sol::var(StringHash("Skybox")),
         sol::base_classes, sol::bases<StaticModel, Drawable, Component>());
-    lua.new_usertype<DecalSet>("DecalSet",
-        "id", sol::var(StringHash("DecalSet")),
-        "material", sol::property(&DecalSet::GetMaterial, &DecalSet::SetMaterial),
-        "AddDecal", sol::overload(
-            [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV) {
-                return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV);
-            },
-            [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV, float timeToLive) {
-                return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV, timeToLive);
-            },
-            [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV, float timeToLive, float normalCutoff) {
-                return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV, timeToLive, normalCutoff);
-            }),
-        "RemoveDecals", &DecalSet::RemoveDecals,
-        "RemoveAllDecals", &DecalSet::RemoveAllDecals,
-        sol::base_classes, sol::bases<Drawable, Component>());
-    lua.new_usertype<Billboard>("Billboard",
-        "position", &Billboard::position_,
-        "size",     &Billboard::size_,
-        "rotation", &Billboard::rotation_,
-        "enabled",  &Billboard::enabled_);
-    lua.new_usertype<BillboardSet>("BillboardSet",
-        "id", sol::var(StringHash("BillboardSet")),
-        "num_billboards", sol::property(&BillboardSet::GetNumBillboards, &BillboardSet::SetNumBillboards),
-        "material", sol::property(&BillboardSet::GetMaterial, &BillboardSet::SetMaterial),
-        "sorted", sol::property(&BillboardSet::IsSorted, &BillboardSet::SetSorted),
-        "GetBillboard", &BillboardSet::GetBillboard,
-        "Commit", &BillboardSet::Commit,
-        "SetFaceCameraMode", &BillboardSet::SetFaceCameraMode,
-        sol::base_classes, sol::bases<Drawable, Component>());
 
+    auto bindDecalSet = lua.new_usertype<DecalSet>("DecalSet", sol::base_classes, sol::bases<Drawable, Component>());
+    bindDecalSet["id"] = sol::var(StringHash("DecalSet"));
+    bindDecalSet["material"] = sol::property(&DecalSet::GetMaterial, &DecalSet::SetMaterial);
+    bindDecalSet["AddDecal"] = sol::overload(
+        [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV) {
+            return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV); },
+        [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV, float timeToLive) {
+            return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV, timeToLive); },
+        [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV, float timeToLive, float normalCutoff) {
+            return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV, timeToLive, normalCutoff); });
+    bindDecalSet["RemoveDecals"] = &DecalSet::RemoveDecals;
+    bindDecalSet["RemoveAllDecals"] = &DecalSet::RemoveAllDecals;
+        
+    auto bindBillboard = lua.new_usertype<Billboard>("Billboard");
+    bindBillboard["position"]   = &Billboard::position_;
+    bindBillboard["size"]       = &Billboard::size_;
+    bindBillboard["rotation"]   = &Billboard::rotation_;
+    bindBillboard["enabled"]    = &Billboard::enabled_;
+
+    auto bindBillboardSet = lua.new_usertype<BillboardSet>("BillboardSet", sol::base_classes, sol::bases<Drawable, Component>());
+    bindBillboardSet["id"]                  = sol::var(StringHash("BillboardSet"));
+    bindBillboardSet["num_billboards"]      = sol::property(&BillboardSet::GetNumBillboards, &BillboardSet::SetNumBillboards);
+    bindBillboardSet["material"]            = sol::property(&BillboardSet::GetMaterial, &BillboardSet::SetMaterial);
+    bindBillboardSet["sorted"]              = sol::property(&BillboardSet::IsSorted, &BillboardSet::SetSorted);
+    bindBillboardSet["GetBillboard"]        = &BillboardSet::GetBillboard;
+    bindBillboardSet["Commit"]              = &BillboardSet::Commit;
+    bindBillboardSet["SetFaceCameraMode"]   = &BillboardSet::SetFaceCameraMode;
+        
     auto bindTerrain = lua.new_usertype<Terrain>("Terrain", sol::base_classes, sol::bases<Component>());
     bindTerrain["id"]           = sol::var(StringHash("Terrain"));
     bindTerrain["patch_size"]   = sol::property(&Terrain::GetPatchSize, &Terrain::SetPatchSize);

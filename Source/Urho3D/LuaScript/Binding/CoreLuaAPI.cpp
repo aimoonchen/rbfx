@@ -42,10 +42,10 @@ static void RegisterCoreConst(sol::state& lua)
 
 int sol2_CoreLuaAPI_open(sol::state& lua)
 {
-    lua["GetPlatform"] = []() { return Urho3D::GetPlatform(); };
-    lua["GetPlatformName"] = []() { return Urho3D::GetPlatformName(); };
+    lua["GetPlatform"]      = []() { return Urho3D::GetPlatform(); };
+    lua["GetPlatformName"]  = []() { return Urho3D::GetPlatformName(); };
     //
-    lua["GetUserID"] = []() {
+    lua["GetUserID"]        = []() {
         auto& engineParameters = Urho3D::GetEngineParameters();
         if (engineParameters.find(EP_USERID) != engineParameters.end()) {
             return engineParameters[EP_USERID].GetInt();
@@ -53,76 +53,78 @@ int sol2_CoreLuaAPI_open(sol::state& lua)
         return 0;
     };
     auto log = lua["log"].get_or_create<sol::table>();
-    log["Info"] = [](const ea::string& msg) { URHO3D_LOGINFO(msg); };
-    log["Warn"] = [](const ea::string& msg) { URHO3D_LOGWARNING(msg); };
-    log["Error"] = [](const ea::string& msg) { URHO3D_LOGERROR(msg); };
-    lua.new_usertype<StringHash>("StringHash",
-        sol::call_constructor, sol::factories([](const char* str) { return StringHash(str); },
-            [](const ea::string& str) { return StringHash(str); },
-            [](const ea::string_view& str) { return StringHash(str); },
-            [](const StringHash& rhs) { return StringHash(rhs); }));
-    lua.new_usertype<Object>("Object",
-        "GetType", &Object::GetType,
-        "GetTypeName", &Object::GetTypeName
+    log["Info"]     = [](const ea::string& msg) { URHO3D_LOGINFO(msg); };
+    log["Warn"]     = [](const ea::string& msg) { URHO3D_LOGWARNING(msg); };
+    log["Error"]    = [](const ea::string& msg) { URHO3D_LOGERROR(msg); };
+
+    lua.new_usertype<StringHash>("StringHash", sol::call_constructor,
+        sol::constructors<StringHash(const char* str),
+            StringHash(const ea::string&),
+            StringHash(const ea::string_view&),
+            StringHash(const StringHash&)>());
+
+    auto bindObject = lua.new_usertype<Object>("Object");
+    bindObject["GetType"]       = &Object::GetType;
+    bindObject["GetTypeName"]   = &Object::GetTypeName;
 //        "SendEvent", sol::overload(
 //            [](Object* self, StringHash name) { self->SendEvent(name); },
 //            [](Object* self, StringHash name, VariantMap& param) { self->SendEvent(name, param); })
-        );
-    lua.new_usertype<Variant>("Variant",
-        sol::call_constructor, sol::factories(
-            []() { return Variant(); },
-            [](int value) { return Variant(value); },
-            [](unsigned value) { return Variant(value); },
-            [](bool value) { return Variant(value); },
-            [](float value) { return Variant(value); },
-            [](const ea::string& value) { return Variant(value); },
-            [](const Vector2& value) { return Variant(value); },
-            [](const Vector3& value) { return Variant(value); },
-            [](const Vector4& value) { return Variant(value); },
-            [](const Quaternion& value) { return Variant(value); },
-            [](const Color& value) { return Variant(value); },
-            [](const ResourceRef& value) { return Variant(value); },
-            [](const ResourceRefList& value) { return Variant(value); },
-            [](const VariantVector& value) { return Variant(value); },
-            [](const VariantMap& value) { return Variant(value); },
-            [](const StringVector& value) { return Variant(value); },
-            [](const Rect& value) { return Variant(value); },
-            [](const IntRect& value) { return Variant(value); },
-            [](const IntVector2& value) { return Variant(value); },
-            [](const IntVector3& value) { return Variant(value); },
-            [](const Matrix3& value) { return Variant(value); },
-            [](const Matrix3x4& value) { return Variant(value); },
-            [](const Matrix4& value) { return Variant(value); },
-            [](const VectorBuffer& value) { return Variant(value); },
-            [](const StringHash& value) { return Variant(value); }
-        ),
-        "GetPtr",       [&lua](Variant* self, const ea::string& type) {
-            auto obj = self->GetPtr();
-            if (type == "Connection") {
-                return sol::make_object(lua.lua_state(), static_cast<const Connection*>(obj));
-            } else if (type == "Node") {
-                return sol::make_object(lua.lua_state(), static_cast<const Node*>(obj));
-            } else if (type == "CrowdAgent") {
-                return sol::make_object(lua.lua_state(), static_cast<const CrowdAgent*>(obj));
-            }
-            return sol::make_object(lua.lua_state(), static_cast<const void*>(obj));
-        },
-        "GetInt",       &Variant::GetInt,
-        "GetUInt",      &Variant::GetUInt,
-        "GetInt64",     &Variant::GetInt64,
-        "GetUInt64",    &Variant::GetUInt64,
-        "GetBool",      &Variant::GetBool,
-        "GetFloat",     &Variant::GetFloat,
-        "Quaternion",   &Variant::GetQuaternion,
-        "Color",        &Variant::GetColor,
-        "GetIntVector2",    &Variant::GetIntVector2,
-        "GetIntVector3",    &Variant::GetIntVector3,
-        "GetVector2",   &Variant::GetVector2,
-        "GetVector3",   &Variant::GetVector3,
-        "GetVector4",   &Variant::GetVector4,
-        "GetVectorBuffer",  &Variant::GetVectorBuffer,
-        "GetString",    &Variant::GetString//[](Variant* obj) { return std::string_view{(const char*)obj->GetBuffer().Buffer(), obj->GetBuffer().Size()}; }
-    );
+
+    auto bindVariant = lua.new_usertype<Variant>("Variant", sol::call_constructor,
+        sol::constructors<Variant(),
+            Variant(int),
+            Variant(unsigned),
+            Variant(bool),
+            Variant(float),
+            Variant(const ea::string&),
+            Variant(const Vector2&),
+            Variant(const Vector3&),
+            Variant(const Vector4&),
+            Variant(const Quaternion&),
+            Variant(const Color&),
+            Variant(const ResourceRef&),
+            Variant(const ResourceRefList&),
+            Variant(const VariantVector&),
+            Variant(const VariantMap&),
+            Variant(const StringVector&),
+            Variant(const Rect&),
+            Variant(const IntRect&),
+            Variant(const IntVector2&),
+            Variant(const IntVector3&),
+            Variant(const Matrix3&),
+            Variant(const Matrix3x4&),
+            Variant(const Matrix4&),
+            Variant(const VectorBuffer&),
+            Variant(const StringHash&)>());
+    bindVariant["GetPtr"]           = [&lua](Variant* self, const ea::string& type) {
+        auto obj = self->GetPtr();
+        if (type == "Connection") {
+            return sol::make_object(lua.lua_state(), static_cast<const Connection*>(obj));
+        }
+        else if (type == "Node") {
+            return sol::make_object(lua.lua_state(), static_cast<const Node*>(obj));
+        }
+        else if (type == "CrowdAgent") {
+            return sol::make_object(lua.lua_state(), static_cast<const CrowdAgent*>(obj));
+        }
+        return sol::make_object(lua.lua_state(), static_cast<const void*>(obj));
+        };
+    bindVariant["GetInt"]           = &Variant::GetInt;
+    bindVariant["GetUInt"]          = &Variant::GetUInt;
+    bindVariant["GetInt64"]         = &Variant::GetInt64;
+    bindVariant["GetUInt64"]        = &Variant::GetUInt64;
+    bindVariant["GetBool"]          = &Variant::GetBool;
+    bindVariant["GetFloat"]         = &Variant::GetFloat;
+    bindVariant["Quaternion"]       = &Variant::GetQuaternion;
+    bindVariant["Color"]            = &Variant::GetColor;
+    bindVariant["GetIntVector2"]    = &Variant::GetIntVector2;
+    bindVariant["GetIntVector3"]    = &Variant::GetIntVector3;
+    bindVariant["GetVector2"]       = &Variant::GetVector2;
+    bindVariant["GetVector3"]       = &Variant::GetVector3;
+    bindVariant["GetVector4"]       = &Variant::GetVector4;
+    bindVariant["GetVectorBuffer"]  = &Variant::GetVectorBuffer;
+    bindVariant["GetString"]        = &Variant::GetString;//[](Variant* obj) { return std::string_view{(const char*)obj->GetBuffer().Buffer(), obj->GetBuffer().Size()}; }
+    
 //     sol::automagic_enrollments enrollments;
 //     enrollments.less_than_operator = false;
 //     enrollments.less_than_operator = false;
