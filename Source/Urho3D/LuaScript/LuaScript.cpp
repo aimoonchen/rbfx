@@ -59,7 +59,6 @@ extern int sol2_GraphicsLuaAPI_open(sol::state&);
 extern int sol2_InputLuaAPI_open(sol::state&);
 extern int sol2_IOLuaAPI_open(sol::state&);
 extern int sol2_MathLuaAPI_open(sol::state&);
-extern int sol2_MathLuaAPI2_open(sol::state&);
 #ifdef URHO3D_NAVIGATION
 extern int sol2_NavigationLuaAPI_open(sol::state&);
 #endif
@@ -112,7 +111,6 @@ LuaScript::LuaScript(Context* context) :
 
     sol::state& solState = *statePtr;
     sol2_MathLuaAPI_open(solState);
-    sol2_MathLuaAPI2_open(solState);
     sol2_CoreLuaAPI_open(solState);
     sol2_IOLuaAPI_open(solState);
     sol2_ResourceLuaAPI_open(solState);
