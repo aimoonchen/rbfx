@@ -186,8 +186,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindNode["AddTag"]              = &Node::AddTag;
     bindNode["SetTags"]             = [](Node* self, const ea::string& tags) {
         self->RemoveAllTags();
-        self->AddTags(tags);
-        };
+        self->AddTags(tags); };
     bindNode["AddTags"]             = sol::overload(
         [](Node* self, const ea::string& tags) { self->AddTags(tags); },
         [](Node* self, const ea::string& tags, char separator) { self->AddTags(tags, separator); });
@@ -199,7 +198,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
             tags.emplace_back(tag.c_str());
         }
         return tags;
-        };
+    };
     bindNode["HasTag"]              = &Node::HasTag;
     bindNode["RemoveTag"]           = &Node::RemoveTag;
     bindNode["RemoveAllTags"]       = &Node::RemoveAllTags;
@@ -268,8 +267,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
             for (auto it : dest) {
                 stddest.emplace_back(it);
             }
-            return stddest;
-        });
+            return stddest; });
     bindNode["RemoveComponent"]     = sol::overload([](Node* self, StringHash type) { self->RemoveComponent(type); }, [](Node* self, Component* component) { self->RemoveComponent(component); });
     bindNode["RemoveComponents"]    = [](Node* self, StringHash type) { self->RemoveComponents(type); };
     bindNode["RemoveAllComponents"] = &Node::RemoveAllComponents;
@@ -277,7 +275,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         auto instance = self->CreateComponent<LuaScriptInstance>();
         instance->CreateObject(name);
         return instance->GetScriptObject();
-        };
+    };
     bindNode["SetEnabled"]          = sol::resolve<void(bool)>(&Node::SetEnabled);
     bindNode["SetEnabledRecursive"] = &Node::SetEnabledRecursive;
     bindNode["AddChild"]            = [](Node* self, Node* obj) { self->AddChild(obj); };
@@ -291,7 +289,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
             ret.push_back(child);
         }
         return ret;
-        };
+    };
     bindNode["GetChild"]                = sol::overload(
         [](Node* self, unsigned index) { return self->GetChild(index); },
         [](Node* self, const ea::string& name) { return self->GetChild(name); },
@@ -326,7 +324,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
             }
         }
         return ret;
-        };
+    };
     bindScene["Clear"]              = &Scene::Clear;
     bindScene["SetUpdateEnabled"]   = &Scene::SetUpdateEnabled;
     bindScene["IsUpdateEnabled"]    = &Scene::IsUpdateEnabled;
@@ -346,15 +344,15 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         [](ValueAnimation* self, float time, const StringHash& eventType) { self->SetEventFrame(time, eventType); },
         [](ValueAnimation* self, float time, const StringHash& eventType, const VariantMap& eventData) { self->SetEventFrame(time, eventType, eventData); });
  
-    lua.new_usertype<ObjectAnimation>("ObjectAnimation",
-        sol::call_constructor, sol::factories([context]() { return new ObjectAnimation(context); }),
-        "AddAttributeAnimation", sol::overload(
-            [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation) { self->AddAttributeAnimation(name, attributeAnimation); },
-            [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) { self->AddAttributeAnimation(name, attributeAnimation, wrapMode, speed); }),
-        "RemoveAttributeAnimation", sol::overload(
-            [](ObjectAnimation* self, const ea::string& name) { self->RemoveAttributeAnimation(name); },
-            [](ObjectAnimation* self, ValueAnimation* attributeAnimation) { self->RemoveAttributeAnimation(attributeAnimation); })
-    );
+    auto bindObjectAnimation = lua.new_usertype<ObjectAnimation>("ObjectAnimation",
+        sol::call_constructor, sol::factories([context]() { return new ObjectAnimation(context); }));
+    bindObjectAnimation["AddAttributeAnimation"] = sol::overload(
+        [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation) { self->AddAttributeAnimation(name, attributeAnimation); },
+        [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) { self->AddAttributeAnimation(name, attributeAnimation, wrapMode, speed); });
+    bindObjectAnimation["RemoveAttributeAnimation"] = sol::overload(
+        [](ObjectAnimation* self, const ea::string& name) { self->RemoveAttributeAnimation(name); },
+        [](ObjectAnimation* self, ValueAnimation* attributeAnimation) { self->RemoveAttributeAnimation(attributeAnimation); });
+    
     auto bindPrefabReference = lua.new_usertype<PrefabReference>("PrefabReference", sol::base_classes, sol::bases<Component>());
     bindPrefabReference["id"]                   = sol::var(StringHash("PrefabReference"));
     bindPrefabReference["SetPrefab"]            = sol::overload(
@@ -397,7 +395,6 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindRmlUIComponent["RemoveUpdateListener"]  = [](RmlUIComponent* self) { self->AddUpdateListener(nullptr); };
     bindRmlUIComponent["GetRenderTexture"]      = &RmlUIComponent::GetRenderTexture;
         
-
     lua.new_enum<PrefabInstanceFlag, true>("PrefabInstanceFlag", {
         { "None", PrefabInstanceFlag::None },
         { "UpdateName", PrefabInstanceFlag::UpdateName },

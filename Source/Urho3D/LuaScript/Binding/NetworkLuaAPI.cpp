@@ -59,21 +59,23 @@ int sol2_NetworkLuaAPI_open(sol::state& lua)
 {
 #if URHO3D_NETWORK
     auto context = GetContext(lua.lua_state());
-	lua.new_usertype<Connection>("Connection",
-        "scene", sol::property(&Connection::GetScene, &Connection::SetScene),
-        "SendMessage", [](Connection* obj, NetworkMessageId messageId, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->SendMessage(messageId, msg); },
-		"SendRemoteEvent", sol::resolve<void(StringHash, bool, const VariantMap&)>(&Connection::SendRemoteEvent),
-		"Disconnect", &Connection::Disconnect);
-	lua.new_usertype<Network>("Network",
-        "serverConnection", sol::property(&Network::GetServerConnection),
-        "serverRunning", sol::property(&Network::IsServerRunning),
-        "StartServer", [](Network* obj, unsigned short port) { obj->StartServer(port); },
-        "StopServer", &Network::StopServer,
-		"Connect", [](Network* obj, ea::string_view& url, Scene* scene, const VariantMap& identity) { return obj->Connect(url, scene, identity); },
-        "Disconnect", &Network::Disconnect,
-		"RegisterRemoteEvent", &Network::RegisterRemoteEvent,
-		"GetServerConnection", &Network::GetServerConnection,
-        "BroadcastMessage", [](Network* obj, int msgID, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->BroadcastMessage((NetworkMessageId)msgID, msg); });
+    auto bindConnection = lua.new_usertype<Connection>("Connection");
+    bindConnection["scene"]             = sol::property(&Connection::GetScene, &Connection::SetScene);
+    bindConnection["SendMessage"]       = [](Connection* obj, NetworkMessageId messageId, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->SendMessage(messageId, msg); };
+    bindConnection["SendRemoteEvent"]   = sol::resolve<void(StringHash, bool, const VariantMap&)>(&Connection::SendRemoteEvent);
+	bindConnection["Disconnect"]        = &Connection::Disconnect;
+
+	auto bindNetwork = lua.new_usertype<Network>("Network");
+    bindNetwork["serverConnection"]     = sol::property(&Network::GetServerConnection);
+    bindNetwork["serverRunning"]        = sol::property(&Network::IsServerRunning);
+    bindNetwork["StartServer"]          = [](Network* obj, unsigned short port) { obj->StartServer(port); };
+    bindNetwork["StopServer"]           = &Network::StopServer;
+    bindNetwork["Connect"]              = [](Network* obj, ea::string_view& url, Scene* scene, const VariantMap& identity) { return obj->Connect(url, scene, identity); };
+    bindNetwork["Disconnect"]           = &Network::Disconnect;
+    bindNetwork["RegisterRemoteEvent"]  = &Network::RegisterRemoteEvent;
+    bindNetwork["GetServerConnection"]  = &Network::GetServerConnection;
+    bindNetwork["BroadcastMessage"]     = [](Network* obj, int msgID, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->BroadcastMessage((NetworkMessageId)msgID, msg); };
+
     lua["network"] = context->GetSubsystem<Network>();
 	RegisterNetworkConst(lua);
 #endif

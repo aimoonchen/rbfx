@@ -111,6 +111,9 @@ public:
     bool HasStaticProbes() const { return !spatial_.immovableProbes_.empty(); }
     bool HasDynamicProbes() const { return !spatial_.movableProbes_.empty(); }
 
+    // TODO: for ProceduralSky
+    CubemapRenderer* GetCubemapRenderer() { return cubemapRenderer_.Get(); }
+
 protected:
     void OnSceneSet(Scene* scene) override;
     void OnComponentAdded(TrackedComponentBase* baseComponent) override;

@@ -287,6 +287,11 @@ public:
     const GraphicsSettings& GetSettings() const { return settings_; }
     /// @}
 
+    // TODO: ProceduralSky
+//     bool IsProceduralSky() const { return isProceduralSky_; }
+//     void SetProceduralSky(bool b) { isProceduralSky_ = b; }
+//     bool isProceduralSky_{ false };
+
 private:
     /// Create the application window icon.
     void CreateWindowIcon();

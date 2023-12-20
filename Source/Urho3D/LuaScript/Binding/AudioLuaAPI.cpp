@@ -45,14 +45,15 @@ int sol2_AudioLuaAPI_open(sol::state& solLua)
 {
     auto context = GetContext(solLua.lua_state());
     auto audio = solLua["Audio"].get_or_create<sol::table>();
-    audio.new_usertype<FMOD::Studio::EventInstance>("EventInstance",
-        "Start", &FMOD::Studio::EventInstance::start,
-        "Release", &FMOD::Studio::EventInstance::release,
-        "Stop", [](FMOD::Studio::EventInstance* self, bool fadeout) { self->stop(fadeout ? FMOD_STUDIO_STOP_ALLOWFADEOUT : FMOD_STUDIO_STOP_IMMEDIATE); },
-        "GetVolume", [](FMOD::Studio::EventInstance* self) { float volume = 0.0f; self->getVolume(&volume); return volume; },
-        "SetVolume", &FMOD::Studio::EventInstance::setVolume,
-        "GetPitch", [](FMOD::Studio::EventInstance* self) { float pitch = 0.0f; self->getPitch(&pitch); return pitch; },
-        "SetPitch", &FMOD::Studio::EventInstance::setPitch);
+    auto bindEventInstance = audio.new_usertype<FMOD::Studio::EventInstance>("EventInstance");
+    bindEventInstance["Start"]      = &FMOD::Studio::EventInstance::start;
+    bindEventInstance["Release"]    = &FMOD::Studio::EventInstance::release;
+    bindEventInstance["Stop"]       = [](FMOD::Studio::EventInstance* self, bool fadeout) { self->stop(fadeout ? FMOD_STUDIO_STOP_ALLOWFADEOUT : FMOD_STUDIO_STOP_IMMEDIATE); };
+    bindEventInstance["GetVolume"]  = [](FMOD::Studio::EventInstance* self) { float volume = 0.0f; self->getVolume(&volume); return volume; };
+    bindEventInstance["SetVolume"]  = &FMOD::Studio::EventInstance::setVolume;
+    bindEventInstance["GetPitch"]   = [](FMOD::Studio::EventInstance* self) { float pitch = 0.0f; self->getPitch(&pitch); return pitch; };
+    bindEventInstance["SetPitch"]   = &FMOD::Studio::EventInstance::setPitch;
+
     audio["LoadBank"] = [context](std::string_view filename) {
         return context->GetSubsystem<Audio>()->LoadBank(filename) != nullptr;
 //         auto bank = context->GetSubsystem<Audio>()->LoadBank(filename);

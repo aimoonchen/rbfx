@@ -60,12 +60,12 @@ int sol2_ResourceLuaAPI_open(sol::state& lua)
         "SCAN_HIDDEN", SCAN_HIDDEN,
         "SCAN_APPEND", SCAN_APPEND,
         "SCAN_RECURSIVE", SCAN_RECURSIVE);
-    lua.new_usertype<ResourceCache>("ResourceCache",
-        "GetResource", [](ResourceCache* obj, /*StringHash*/const char* typeName, const ea::string& filePath) {
-            return obj->GetResource(StringHash(typeName), filePath);
-        },
-        "GetFile", [](ResourceCache* obj, const ea::string& filePath) { return obj->GetFile(filePath).Detach(); },
-        "SetSearchPackagesFirst", &ResourceCache::SetSearchPackagesFirst,
+    auto bindResourceCache = lua.new_usertype<ResourceCache>("ResourceCache");
+    bindResourceCache["GetResource"]    = [](ResourceCache* obj, /*StringHash*/const char* typeName, const ea::string& filePath) {
+        return obj->GetResource(StringHash(typeName), filePath);
+        };
+    bindResourceCache["GetFile"]                = [](ResourceCache* obj, const ea::string& filePath) { return obj->GetFile(filePath).Detach(); };
+    bindResourceCache["SetSearchPackagesFirst"] = &ResourceCache::SetSearchPackagesFirst;
 //         "AddResourceDir", sol::overload(
 //             [](ResourceCache* self, const ea::string& pathName) { return self->AddResourceDir(pathName); },
 //             [](ResourceCache* self, const ea::string& pathName, unsigned priority) { return self->AddResourceDir(pathName, priority); }),
@@ -78,27 +78,28 @@ int sol2_ResourceLuaAPI_open(sol::state& lua)
 //             [](ResourceCache* self, const ea::string& fileName, bool releaseResources) { self->RemovePackageFile(fileName, releaseResources); },
 //             [](ResourceCache* self, const ea::string& fileName, bool releaseResources, bool forceRelease) { self->RemovePackageFile(fileName, releaseResources, forceRelease); }),
 //         "RemoveAllResourceDirs", &ResourceCache::RemoveAllResourceDirs,
-        "ReleaseResource", sol::overload(
-            [](ResourceCache* self, const ea::string& resourceName) { self->ReleaseResource(resourceName); },
-            [](ResourceCache* self, const ea::string& resourceName, bool force) { self->ReleaseResource(resourceName, force); }),
-        "ReleaseResources", sol::overload(
-            [](ResourceCache* self, const ea::string& partialName) { self->ReleaseResources(partialName); },
-            [](ResourceCache* self, const ea::string& partialName, bool force) { self->ReleaseResources(partialName, force); }),
-        "ReleaseAllResources", sol::overload(
-            [](ResourceCache* self) { self->ReleaseAllResources(); },
-            [](ResourceCache* self, bool force) { self->ReleaseAllResources(force); }),
-        "Scan", [](ResourceCache* self, const ea::string& pathName, const ea::string& filter, unsigned char flags) {
-            ea::vector<ea::string> result;
-            self->Scan(result, pathName, filter, ScanFlags(flags));
-            std::vector<std::string> stdresult;
-            stdresult.reserve(result.size());
-            for (auto& it : result) {
-                stdresult.emplace_back(it.c_str());
-            }
-            return stdresult;
+    bindResourceCache["ReleaseResource"]        = sol::overload(
+        [](ResourceCache* self, const ea::string& resourceName) { self->ReleaseResource(resourceName); },
+        [](ResourceCache* self, const ea::string& resourceName, bool force) { self->ReleaseResource(resourceName, force); });
+    bindResourceCache["ReleaseResources"]       = sol::overload(
+        [](ResourceCache* self, const ea::string& partialName) { self->ReleaseResources(partialName); },
+        [](ResourceCache* self, const ea::string& partialName, bool force) { self->ReleaseResources(partialName, force); });
+    bindResourceCache["ReleaseAllResources"]    = sol::overload(
+        [](ResourceCache* self) { self->ReleaseAllResources(); },
+        [](ResourceCache* self, bool force) { self->ReleaseAllResources(force); });
+    bindResourceCache["Scan"]                   = [](ResourceCache* self, const ea::string& pathName, const ea::string& filter, unsigned char flags) {
+        ea::vector<ea::string> result;
+        self->Scan(result, pathName, filter, ScanFlags(flags));
+        std::vector<std::string> stdresult;
+        stdresult.reserve(result.size());
+        for (auto& it : result) {
+            stdresult.emplace_back(it.c_str());
         }
-    );
+        return stdresult;
+        };
+    
     lua.new_usertype<Image>("Image", sol::constructors<Image(Context*)>());
+
     lua.new_usertype<XMLFile>("XMLFile", sol::constructors<XMLFile(Context*)>());
 
     lua.new_enum("JSONValueType",
@@ -113,7 +114,8 @@ int sol2_ResourceLuaAPI_open(sol::state& lua)
         "JSONNT_INT", JSONNumberType::JSONNT_INT,
         "JSONNT_UINT", JSONNumberType::JSONNT_UINT,
         "JSONNT_FLOAT_DOUBLE", JSONNumberType::JSONNT_FLOAT_DOUBLE);
-    lua.new_usertype<JSONValue>("JSONValue",
+
+    auto bindJSONValue = lua.new_usertype<JSONValue>("JSONValue",
         sol::call_constructor, sol::factories(
             []() { return JSONValue(); },
             [](JSONValueType valueType, JSONNumberType numberType) { return JSONValue(valueType, numberType); },
@@ -123,48 +125,46 @@ int sol2_ResourceLuaAPI_open(sol::state& lua)
             [](float value) { return JSONValue(value); },
             [](double value) { return JSONValue(value); },
             [](const char* value) { return JSONValue(value); }
-        ),
-        "SetType", &JSONValue::SetType,
-        "Set", &JSONValue::Set,
-        "Get", sol::overload(
-            sol::resolve<const JSONValue& (const ea::string&) const>(&JSONValue::Get),
-            sol::resolve<const JSONValue& (int) const>(&JSONValue::Get)),
-        "GetBool", &JSONValue::GetBool,
-        "GetInt", &JSONValue::GetInt,
-        "GetFloat", &JSONValue::GetFloat,
-        "GetDouble", &JSONValue::GetDouble,
-        "GetString", [](JSONValue* self, const ea::string& defaultValue) { return self->GetString(defaultValue); },
-        "GetArray", [](JSONValue* self) {
-            const auto& arrs = self->GetArray();
-            std::vector<JSONValue> ret;
-            ret.reserve(arrs.size());
-            for (auto& obj : arrs) {
-                ret.emplace_back(obj);
-            }
-            return ret;
-        },
-        "GetObject", [](JSONValue* self) {
-            const auto& objects = self->GetObject();
-            std::map<std::string, JSONValue> ret;
-            for (auto& obj : objects) {
-                ret.insert({ obj.first.c_str(), obj.second });
-            }
-            return ret;
-        },
-        "Push", &JSONValue::Push,
-        "Pop", &JSONValue::Pop,
-        "Insert", &JSONValue::Insert,
-        "Erase", sol::overload(sol::resolve<bool(const ea::string&)>(&JSONValue::Erase), sol::resolve<void(unsigned, unsigned)>(&JSONValue::Erase)),
-        "Contains", &JSONValue::Contains,
-        "Clear", &JSONValue::Clear,
-        "Resize", &JSONValue::Resize,
-        "Size", &JSONValue::Size
-        );
-    lua.new_usertype<JSONFile>("XMLFile", sol::constructors<JSONFile(Context*)>(),
-        "FromString", &JSONFile::FromString,
-        "ToString", &JSONFile::ToString,
-        "GetRoot", sol::resolve<JSONValue&()>(&JSONFile::GetRoot)
-        );
+        ));
+    bindJSONValue["SetType"]    = &JSONValue::SetType;
+    bindJSONValue["Set"]        = &JSONValue::Set;
+    bindJSONValue["Get"]        = sol::overload(
+        sol::resolve<const JSONValue & (const ea::string&) const>(&JSONValue::Get),
+        sol::resolve<const JSONValue & (int) const>(&JSONValue::Get));
+    bindJSONValue["GetBool"]    = &JSONValue::GetBool;
+    bindJSONValue["GetInt"]     = &JSONValue::GetInt;
+    bindJSONValue["GetFloat"]   = &JSONValue::GetFloat;
+    bindJSONValue["GetDouble"]  = &JSONValue::GetDouble;
+    bindJSONValue["GetString"]  = [](JSONValue* self, const ea::string& defaultValue) { return self->GetString(defaultValue); };
+    bindJSONValue["GetArray"]   = [](JSONValue* self) {
+        const auto& arrs = self->GetArray();
+        std::vector<JSONValue> ret;
+        ret.reserve(arrs.size());
+        for (auto& obj : arrs) {
+            ret.emplace_back(obj);
+        }
+        return ret; };
+    bindJSONValue["GetObject"]  = [](JSONValue* self) {
+        const auto& objects = self->GetObject();
+        std::map<std::string, JSONValue> ret;
+        for (auto& obj : objects) {
+            ret.insert({ obj.first.c_str(), obj.second });
+        }
+        return ret; };
+    bindJSONValue["Push"]       = &JSONValue::Push;
+    bindJSONValue["Pop"]        = &JSONValue::Pop;
+    bindJSONValue["Insert"]     = &JSONValue::Insert;
+    bindJSONValue["Erase"]      = sol::overload(sol::resolve<bool(const ea::string&)>(&JSONValue::Erase), sol::resolve<void(unsigned, unsigned)>(&JSONValue::Erase));
+    bindJSONValue["Contains"]   = &JSONValue::Contains;
+    bindJSONValue["Clear"]      = &JSONValue::Clear;
+    bindJSONValue["Resize"]     = &JSONValue::Resize;
+    bindJSONValue["Size"]       = &JSONValue::Size;
+        
+    auto bindXMLFile = lua.new_usertype<JSONFile>("XMLFile", sol::constructors<JSONFile(Context*)>());
+    bindXMLFile["FromString"]   = &JSONFile::FromString;
+    bindXMLFile["ToString"]     = &JSONFile::ToString;
+    bindXMLFile["GetRoot"]      = sol::resolve<JSONValue & ()>(&JSONFile::GetRoot);
+        
     lua["cache"] = context->GetSubsystem<ResourceCache>();
     return 0;
 }

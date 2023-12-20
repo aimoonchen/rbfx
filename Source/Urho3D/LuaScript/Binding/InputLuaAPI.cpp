@@ -82,59 +82,47 @@ static void RegisterInputConst(sol::state& lua)
 int sol2_InputLuaAPI_open(sol::state& lua)
 {
     auto input = lua["input"].get_or_create<sol::table>();
-//     input.new_usertype<Controls>("Controls",
-// 		sol::call_constructor, sol::factories([]() { return Controls(); }),
-// 		"buttons",&Controls::buttons_,
-// 		"yaw", &Controls::yaw_,
-// 		"pitch", &Controls::pitch_,
-//         "extraData", &Controls::extraData_,
-//         "Set", &Controls::Set,
-//         "IsDown", &Controls::IsDown,
-//         "IsPressed", &Controls::IsPressed);
 
-    input.new_usertype<TouchState>("TouchState",
-        "position", &TouchState::position_,
-        "delta", &TouchState::delta_,
-        "touchedElement", sol::property([](TouchState* obj) { return obj->touchedElement_.Get(); })
-    );
+    auto bindTouchState = input.new_usertype<TouchState>("TouchState");
+    bindTouchState["position"]          = &TouchState::position_;
+    bindTouchState["delta"]             = &TouchState::delta_;
+    bindTouchState["touchedElement"]    = sol::property([](TouchState* obj) { return obj->touchedElement_.Get(); });
 
     auto context = GetContext(lua.lua_state());
     auto gui = context->GetSubsystem<GUI>();
-    input.new_usertype<Input>(
-        "Input",
-        "GetNumJoysticks", &Input::GetNumJoysticks,
-        "AddScreenJoystick", &Input::AddScreenJoystick,
-        "SetScreenJoystickVisible", &Input::SetScreenJoystickVisible,
-        "GetNumJoysticks", &Input::GetNumJoysticks,
-        "SetMouseMode", &Input::SetMouseMode,
-        "GetNumTouches", &Input::GetNumTouches,
-        "GetTouch", &Input::GetTouch,
-        "GetKeyDown", &Input::GetKeyDown,
-        "GetKeyPress", &Input::GetKeyPress,
-        "GetMouseMove", &Input::GetMouseMove,
-        "GetMouseMoveWheel", &Input::GetMouseMoveWheel,
-        "GetMouseButtonDown", [](Input* self, MouseButton button) { return self->GetMouseButtonDown(button); },
-        "GetMouseButtonPress", [](Input* self, MouseButton button) { return self->GetMouseButtonPress(button); },
-        "touchEmulation", sol::property(&Input::GetTouchEmulation, &Input::SetTouchEmulation),
-        "mouseVisible", sol::property(&Input::IsMouseVisible, [](Input* self, bool enable) { self->SetMouseVisible(enable); }),
-        "mouseMode", sol::property(&Input::GetMouseMode, [](Input* self, MouseMode mode) { self->SetMouseMode(mode); }),
-        "mouseMove", sol::property(&Input::GetMouseMove),
-        "GetMousePosition", &Input::GetMousePosition,
-        "GetQualifierDown", [](Input* self, int qualifier) { return self->GetQualifierDown((Qualifier)qualifier); },
-        "GetQualifierPress", [](Input* self, int qualifier) { return self->GetQualifierPress((Qualifier)qualifier); },
-        // TODO: rework joystick
-        "CreateJoystick", [gui](const IntVector2& area, float scale) { gui->CreateJoystick(area, scale); },
-        "EnableJoystick", [gui](bool enabled) { return gui->EnableJoystick(enabled); },
-        "GetJoystickDegree", [gui]() { return gui->GetJoystickDegree(); },
-        "GetJoystickTouchID", [gui]() { return gui->GetJoystickTouchID(); },
-        "IsJoystickCapture", [gui]() { return gui->GetJoystickTouchID() != -1; },
-        sol::base_classes, sol::bases<Object>());
+    auto bindInput = input.new_usertype<Input>("Input", sol::base_classes, sol::bases<Object>());
+    bindInput["GetNumJoysticks"]        = &Input::GetNumJoysticks;
+    bindInput["AddScreenJoystick"]      = &Input::AddScreenJoystick;
+    bindInput["SetScreenJoystickVisible"] = &Input::SetScreenJoystickVisible;
+    bindInput["GetNumJoysticks"]        = &Input::GetNumJoysticks;
+    bindInput["SetMouseMode"]           = &Input::SetMouseMode;
+    bindInput["GetNumTouches"]          = &Input::GetNumTouches;
+    bindInput["GetTouch"]               = &Input::GetTouch;
+    bindInput["GetKeyDown"]             = &Input::GetKeyDown;
+    bindInput["GetKeyPress"]            = &Input::GetKeyPress;
+    bindInput["GetMouseMove"]           = &Input::GetMouseMove;
+    bindInput["GetMouseMoveWheel"]      = &Input::GetMouseMoveWheel;
+    bindInput["GetMouseButtonDown"]     = [](Input* self, MouseButton button) { return self->GetMouseButtonDown(button); };
+    bindInput["GetMouseButtonPress"]    = [](Input* self, MouseButton button) { return self->GetMouseButtonPress(button); };
+    bindInput["touchEmulation"]         = sol::property(&Input::GetTouchEmulation, &Input::SetTouchEmulation);
+    bindInput["mouseVisible"]           = sol::property(&Input::IsMouseVisible, [](Input* self, bool enable) { self->SetMouseVisible(enable); });
+    bindInput["mouseMode"]              = sol::property(&Input::GetMouseMode, [](Input* self, MouseMode mode) { self->SetMouseMode(mode); });
+    bindInput["mouseMove"]              = sol::property(&Input::GetMouseMove);
+    bindInput["GetMousePosition"]       = &Input::GetMousePosition;
+    bindInput["GetQualifierDown"]       = [](Input* self, int qualifier) { return self->GetQualifierDown((Qualifier)qualifier); };
+    bindInput["GetQualifierPress"]      = [](Input* self, int qualifier) { return self->GetQualifierPress((Qualifier)qualifier); };
+    // TODO: rework joystick
+    bindInput["CreateJoystick"]         = [gui](const IntVector2& area, float scale) { gui->CreateJoystick(area, scale); };
+    bindInput["EnableJoystick"]         = [gui](bool enabled) { return gui->EnableJoystick(enabled); };
+    bindInput["GetJoystickDegree"]      = [gui]() { return gui->GetJoystickDegree(); };
+    bindInput["GetJoystickTouchID"]     = [gui]() { return gui->GetJoystickTouchID(); };
+    bindInput["IsJoystickCapture"]      = [gui]() { return gui->GetJoystickTouchID() != -1; };
     //
-    input["MM_ABSOLUTE"] = MM_ABSOLUTE;
-    input["MM_RELATIVE"] = MM_RELATIVE;
-    input["MM_WRAP"] = MM_WRAP;
-    input["MM_FREE"] = MM_FREE;
-    input["MM_INVALID"] = MM_INVALID;
+    input["MM_ABSOLUTE"]    = MM_ABSOLUTE;
+    input["MM_RELATIVE"]    = MM_RELATIVE;
+    input["MM_WRAP"]        = MM_WRAP;
+    input["MM_FREE"]        = MM_FREE;
+    input["MM_INVALID"]     = MM_INVALID;
     
     RegisterKeyboard(input);
     RegisterInputConst(lua);

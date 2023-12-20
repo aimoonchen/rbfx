@@ -29,6 +29,7 @@
 #include "../Graphics/Octree.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Zone.h"
+#include "../Graphics/ProceduralSky.h"
 #include "../Resource/ImageCube.h"
 #include "../Resource/ResourceCache.h"
 #include "../Resource/ResourceEvents.h"
@@ -393,7 +394,7 @@ void Zone::UpdateCachedData()
     if (cachedTextureLighting_.IsInvalidated())
     {
         SphericalHarmonicsDot9 sh;
-        if (zoneTexture_)
+        if (zoneTexture_ && !proceduralSky_)
         {
             const ea::string& zoneTextureName = zoneTexture_->GetName();
             auto cache = GetSubsystem<ResourceCache>();
@@ -416,7 +417,7 @@ void Zone::UpdateCachedData()
     if (cachedAmbientAndBackgroundLighting_.IsInvalidated())
     {
         SphericalHarmonicsDot9 sh = zoneTexture_
-            ? cachedTextureLighting_.Get()
+            ? (proceduralSky_ ? SphericalHarmonicsDot9(proceduralSky_->GetSkyLuminance() * 0.1f) : cachedTextureLighting_.Get())
             : SphericalHarmonicsDot9(fogColor_.GammaToLinear());
 
         sh *= backgroundBrightness_;
@@ -461,6 +462,12 @@ void Zone::MarkCachedTextureDirty()
 {
     cachedTextureLighting_.Invalidate();
     reflectionProbeData_.Invalidate();
+}
+
+void Zone::SetProceduralSky(ProceduralSky* sky)
+{
+    //GetSubsystem<Graphics>()->SetProceduralSky(sky);
+    proceduralSky_ = sky;
 }
 
 }

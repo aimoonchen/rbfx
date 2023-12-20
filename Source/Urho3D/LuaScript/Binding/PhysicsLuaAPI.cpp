@@ -30,133 +30,130 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
     lua["CONSTRAINT_SLIDER"]    = CONSTRAINT_SLIDER;
     lua["CONSTRAINT_CONETWIST"] = CONSTRAINT_CONETWIST;
         
-    lua.new_usertype<RigidBody>("RigidBody",
-        "id",                       sol::var(StringHash("RigidBody")),
-        "position",                 sol::property(&RigidBody::GetPosition, &RigidBody::SetPosition),
-        "rotation",                 sol::property(&RigidBody::GetRotation, &RigidBody::SetRotation),
-        "mass",                     sol::property(&RigidBody::GetMass, &RigidBody::SetMass),
-        "friction",                 sol::property(&RigidBody::GetFriction, &RigidBody::SetFriction),
-        "rolling_friction",         sol::property(&RigidBody::GetRollingFriction, &RigidBody::SetRollingFriction),
-        "restitution",              sol::property(&RigidBody::GetRestitution, &RigidBody::SetRestitution),
-        "contact_threshold",        sol::property(&RigidBody::GetContactProcessingThreshold, &RigidBody::SetContactProcessingThreshold),
-        "angular_velocity",         sol::property(&RigidBody::GetAngularVelocity, &RigidBody::SetAngularVelocity),
-        "angular_factor",           sol::property(&RigidBody::GetAngularFactor, &RigidBody::SetAngularFactor),
-        "angular_rest_threshold",   sol::property(&RigidBody::GetAngularRestThreshold, &RigidBody::SetAngularRestThreshold),
-        "angular_damping",          sol::property(&RigidBody::GetAngularDamping, &RigidBody::SetAngularDamping),
-        "linear_velocity",          sol::property(&RigidBody::GetLinearVelocity, &RigidBody::SetLinearVelocity),
-        "linear_factor",            sol::property(&RigidBody::GetLinearFactor, &RigidBody::SetLinearFactor),
-        "linear_rest_threshold",    sol::property(&RigidBody::GetLinearRestThreshold, &RigidBody::SetLinearRestThreshold),
-        "linear_damping",           sol::property(&RigidBody::GetLinearDamping, &RigidBody::SetLinearDamping),
-        "collision_layer",          sol::property(&RigidBody::GetCollisionLayer, &RigidBody::SetCollisionLayer),
-        "collision_mask",           sol::property(&RigidBody::GetCollisionMask, &RigidBody::SetCollisionMask),
-        "SetCollisionLayerAndMask", &RigidBody::SetCollisionLayerAndMask,
-        "SetCcdRadius",             &RigidBody::SetCcdRadius,
-        "SetCcdMotionThreshold",    &RigidBody::SetCcdMotionThreshold,
-        "SetUseGravity",            &RigidBody::SetUseGravity,
-        "SetGravityOverride",       &RigidBody::SetGravityOverride,
-        "SetKinematic",             &RigidBody::SetKinematic,
-        "SetTrigger",               &RigidBody::SetTrigger,
-        "ApplyTorque",              &RigidBody::ApplyTorque,
-        "SetTransform",             &RigidBody::SetTransform,
-        "ApplyTorque",              &RigidBody::ApplyTorque,
-        "ApplyForce",               sol::overload(
+    auto bindRigidBody = lua.new_usertype<RigidBody>("RigidBody", sol::base_classes, sol::bases<Component>());
+        bindRigidBody["id"]                       = sol::var(StringHash("RigidBody"));
+        bindRigidBody["position"]                 = sol::property(&RigidBody::GetPosition, &RigidBody::SetPosition);
+        bindRigidBody["rotation"]                 = sol::property(&RigidBody::GetRotation, &RigidBody::SetRotation);
+        bindRigidBody["mass"]                     = sol::property(&RigidBody::GetMass, &RigidBody::SetMass);
+        bindRigidBody["friction"]                 = sol::property(&RigidBody::GetFriction, &RigidBody::SetFriction);
+        bindRigidBody["rolling_friction"]         = sol::property(&RigidBody::GetRollingFriction, &RigidBody::SetRollingFriction);
+        bindRigidBody["restitution"]              = sol::property(&RigidBody::GetRestitution, &RigidBody::SetRestitution);
+        bindRigidBody["contact_threshold"]        = sol::property(&RigidBody::GetContactProcessingThreshold, &RigidBody::SetContactProcessingThreshold);
+        bindRigidBody["angular_velocity"]         = sol::property(&RigidBody::GetAngularVelocity, &RigidBody::SetAngularVelocity);
+        bindRigidBody["angular_factor"]           = sol::property(&RigidBody::GetAngularFactor, &RigidBody::SetAngularFactor);
+        bindRigidBody["angular_rest_threshold"]   = sol::property(&RigidBody::GetAngularRestThreshold, &RigidBody::SetAngularRestThreshold);
+        bindRigidBody["angular_damping"]          = sol::property(&RigidBody::GetAngularDamping, &RigidBody::SetAngularDamping);
+        bindRigidBody["linear_velocity"]          = sol::property(&RigidBody::GetLinearVelocity, &RigidBody::SetLinearVelocity);
+        bindRigidBody["linear_factor"]            = sol::property(&RigidBody::GetLinearFactor, &RigidBody::SetLinearFactor);
+        bindRigidBody["linear_rest_threshold"]    = sol::property(&RigidBody::GetLinearRestThreshold, &RigidBody::SetLinearRestThreshold);
+        bindRigidBody["linear_damping"]           = sol::property(&RigidBody::GetLinearDamping, &RigidBody::SetLinearDamping);
+        bindRigidBody["collision_layer"]          = sol::property(&RigidBody::GetCollisionLayer, &RigidBody::SetCollisionLayer);
+        bindRigidBody["collision_mask"]           = sol::property(&RigidBody::GetCollisionMask, &RigidBody::SetCollisionMask);
+        bindRigidBody["SetCollisionLayerAndMask"] = &RigidBody::SetCollisionLayerAndMask;
+        bindRigidBody["SetCcdRadius"]             = &RigidBody::SetCcdRadius;
+        bindRigidBody["SetCcdMotionThreshold"]    = &RigidBody::SetCcdMotionThreshold;
+        bindRigidBody["SetUseGravity"]            = &RigidBody::SetUseGravity;
+        bindRigidBody["SetGravityOverride"]       = &RigidBody::SetGravityOverride;
+        bindRigidBody["SetKinematic"]             = &RigidBody::SetKinematic;
+        bindRigidBody["SetTrigger"]               = &RigidBody::SetTrigger;
+        bindRigidBody["ApplyTorque"]              = &RigidBody::ApplyTorque;
+        bindRigidBody["SetTransform"]             = &RigidBody::SetTransform;
+        bindRigidBody["ApplyTorque"]              = &RigidBody::ApplyTorque;
+        bindRigidBody["ApplyForce"]               = sol::overload(
             [](RigidBody* self, const Vector3& force) { self->ApplyForce(force); },
-            [](RigidBody* self, const Vector3& force, const Vector3& position) { self->ApplyForce(force, position); }),
-        "ApplyImpulse",             sol::overload(
+            [](RigidBody* self, const Vector3& force, const Vector3& position) { self->ApplyForce(force, position); });
+        bindRigidBody["ApplyImpulse"]             = sol::overload(
             [](RigidBody* self, const Vector3& impulse) { self->ApplyImpulse(impulse); },
-            [](RigidBody* self, const Vector3& impulse, const Vector3& position) { self->ApplyImpulse(impulse, position); }),
-        "ApplyTorqueImpulse",       &RigidBody::ApplyTorqueImpulse,
-        "ResetForces",              &RigidBody::ResetForces,
-        "Activate",                 &RigidBody::Activate,
-        "ReAddBodyToWorld",         &RigidBody::ReAddBodyToWorld,
-        "DisableMassUpdate",        &RigidBody::DisableMassUpdate,
-        "EnableMassUpdate",         &RigidBody::EnableMassUpdate,
-        "SetCollisionEventMode",    &RigidBody::SetCollisionEventMode,
-        sol::base_classes, sol::bases<Component>()
-        );
-    lua.new_usertype<CollisionShape>("CollisionShape",
-        "id",                       sol::var(StringHash("CollisionShape")),
-        "size",                     sol::property(&CollisionShape::GetSize, &CollisionShape::SetSize),
-        "margin",                   sol::property(&CollisionShape::GetMargin, &CollisionShape::SetMargin),
-        "position",                 sol::property(&CollisionShape::GetPosition, &CollisionShape::SetPosition),
-        "rotation",                 sol::property(&CollisionShape::GetRotation, &CollisionShape::SetRotation),
-        "SetBox",                   sol::overload(
+            [](RigidBody* self, const Vector3& impulse, const Vector3& position) { self->ApplyImpulse(impulse, position); });
+        bindRigidBody["ApplyTorqueImpulse"]       = &RigidBody::ApplyTorqueImpulse;
+        bindRigidBody["ResetForces"]              = &RigidBody::ResetForces;
+        bindRigidBody["Activate"]                 = &RigidBody::Activate;
+        bindRigidBody["ReAddBodyToWorld"]         = &RigidBody::ReAddBodyToWorld;
+        bindRigidBody["DisableMassUpdate"]        = &RigidBody::DisableMassUpdate;
+        bindRigidBody["EnableMassUpdate"]         = &RigidBody::EnableMassUpdate;
+        bindRigidBody["SetCollisionEventMode"]    = &RigidBody::SetCollisionEventMode;
+        
+    auto bindCollisionShape = lua.new_usertype<CollisionShape>("CollisionShape", sol::base_classes, sol::bases<Component>());
+        bindCollisionShape["id"]                       = sol::var(StringHash("CollisionShape"));
+        bindCollisionShape["size"]                     = sol::property(&CollisionShape::GetSize, &CollisionShape::SetSize);
+        bindCollisionShape["margin"]                   = sol::property(&CollisionShape::GetMargin, &CollisionShape::SetMargin);
+        bindCollisionShape["position"]                 = sol::property(&CollisionShape::GetPosition, &CollisionShape::SetPosition);
+        bindCollisionShape["rotation"]                 = sol::property(&CollisionShape::GetRotation, &CollisionShape::SetRotation);
+        bindCollisionShape["SetBox"]                   = sol::overload(
             [](CollisionShape* self, const Vector3& size) { self->SetBox(size); },
-            [](CollisionShape* self, const Vector3& size, const Vector3& position, const Quaternion& rotation) { self->SetBox(size, position, rotation); }),
-        "SetSphere",                sol::overload(
+            [](CollisionShape* self, const Vector3& size, const Vector3& position, const Quaternion& rotation) { self->SetBox(size, position, rotation); });
+        bindCollisionShape["SetSphere"]                = sol::overload(
             [](CollisionShape* self, float diameter) { self->SetSphere(diameter); },
-            [](CollisionShape* self, float diameter, const Vector3& position, const Quaternion& rotation) { self->SetSphere(diameter, position, rotation); }),
-        "SetStaticPlane",           sol::overload(
+            [](CollisionShape* self, float diameter, const Vector3& position, const Quaternion& rotation) { self->SetSphere(diameter, position, rotation); });
+        bindCollisionShape["SetStaticPlane"]           = sol::overload(
             [](CollisionShape* self) { self->SetStaticPlane(); },
-            [](CollisionShape* self, const Vector3& position, const Quaternion& rotation) { self->SetStaticPlane(position, rotation); }),
-        "SetCylinder",              sol::overload(
+            [](CollisionShape* self, const Vector3& position, const Quaternion& rotation) { self->SetStaticPlane(position, rotation); });
+        bindCollisionShape["SetCylinder"]              = sol::overload(
             [](CollisionShape* self, float diameter, float height) { self->SetCylinder(diameter, height); },
-            [](CollisionShape* self, float diameter, float height, const Vector3& position, const Quaternion& rotation) { self->SetCylinder(diameter, height, position, rotation); }),
-        "SetCapsule",               sol::overload(
+            [](CollisionShape* self, float diameter, float height, const Vector3& position, const Quaternion& rotation) { self->SetCylinder(diameter, height, position, rotation); });
+        bindCollisionShape["SetCapsule"]               = sol::overload(
             [](CollisionShape* self, float diameter, float height) { self->SetCapsule(diameter, height); },
-            [](CollisionShape* self, float diameter, float height, const Vector3& position, const Quaternion& rotation) { self->SetCapsule(diameter, height, position, rotation); }),
-        "SetCone",                  sol::overload(
+            [](CollisionShape* self, float diameter, float height, const Vector3& position, const Quaternion& rotation) { self->SetCapsule(diameter, height, position, rotation); });
+        bindCollisionShape["SetCone"]                  = sol::overload(
             [](CollisionShape* self, float diameter, float height) { self->SetCone(diameter, height); },
-            [](CollisionShape* self, float diameter, float height, const Vector3& position, const Quaternion& rotation) { self->SetCone(diameter, height, position, rotation); }),
-        "SetTriangleMesh",          sol::overload(
+            [](CollisionShape* self, float diameter, float height, const Vector3& position, const Quaternion& rotation) { self->SetCone(diameter, height, position, rotation); });
+        bindCollisionShape["SetTriangleMesh"]          = sol::overload(
             [](CollisionShape* self, Model* model) { self->SetTriangleMesh(model); },
-            [](CollisionShape* self, Model* model, unsigned lodLevel, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetTriangleMesh(model, lodLevel, scale, position, rotation); }),
-        "SetConvexHull",            sol::overload(
+            [](CollisionShape* self, Model* model, unsigned lodLevel, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetTriangleMesh(model, lodLevel, scale, position, rotation); });
+        bindCollisionShape["SetConvexHull"]            = sol::overload(
             [](CollisionShape* self, Model* model) { self->SetConvexHull(model); },
-            [](CollisionShape* self, Model* model, unsigned lodLevel, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetConvexHull(model, lodLevel, scale, position, rotation); }),
-        "SetCustomTriangleMesh",    sol::overload(
+            [](CollisionShape* self, Model* model, unsigned lodLevel, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetConvexHull(model, lodLevel, scale, position, rotation); });
+        bindCollisionShape["SetCustomTriangleMesh"]    = sol::overload(
             [](CollisionShape* self, CustomGeometry* custom) { self->SetCustomTriangleMesh(custom); },
-            [](CollisionShape* self, CustomGeometry* custom, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetCustomTriangleMesh(custom, scale, position, rotation); }),
-        "SetCustomConvexHull",      sol::overload(
+            [](CollisionShape* self, CustomGeometry* custom, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetCustomTriangleMesh(custom, scale, position, rotation); });
+        bindCollisionShape["SetCustomConvexHull"]      = sol::overload(
             [](CollisionShape* self, CustomGeometry* custom) { self->SetCustomConvexHull(custom); },
-            [](CollisionShape* self, CustomGeometry* custom, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetCustomConvexHull(custom, scale, position, rotation); }),
-        "SetTerrain",               &CollisionShape::SetTerrain,
-        "SetShapeType",             &CollisionShape::SetShapeType,
-        "SetModel",                 &CollisionShape::SetModel,
-        "SetLodLevel",              &CollisionShape::SetLodLevel,
-        sol::base_classes,          sol::bases<Component>()
-        );
-    lua.new_usertype<Constraint>("Constraint",
-        "id",                   sol::var(StringHash("Constraint")),
-        "constraint_type",      sol::property(&Constraint::GetConstraintType, &Constraint::SetConstraintType),
-        "position",             sol::property(&Constraint::GetPosition, &Constraint::SetPosition),
-        "rotation",             sol::property(&Constraint::GetRotation, &Constraint::SetRotation),
-        "other_position",       sol::property(&Constraint::GetOtherPosition, &Constraint::SetOtherPosition),
-        "other_rotation",       sol::property(&Constraint::GetRotation, &Constraint::SetOtherRotation),
-        "high_limit",           sol::property(&Constraint::GetHighLimit, &Constraint::SetHighLimit),
-        "low_limit",            sol::property(&Constraint::GetLowLimit, &Constraint::SetLowLimit),
-        "disable_collision",    sol::property(&Constraint::GetDisableCollision, &Constraint::SetDisableCollision),
-        "erp",                  sol::property(&Constraint::GetERP, &Constraint::SetERP),
-        "cfm",                  sol::property(&Constraint::GetCFM, &Constraint::SetCFM),
-        "SetAxis",              &Constraint::SetAxis,
-        "SetOtherAxis",         &Constraint::SetOtherAxis,
-        "GetWorldPosition",     &Constraint::GetWorldPosition,
-        "SetWorldPosition",     &Constraint::SetWorldPosition,
-        "SetOtherBody",         &Constraint::SetOtherBody,
-        "GetOtherBody",         &Constraint::GetOtherBody,
-        "GetOwnBody",           &Constraint::GetOwnBody,
-        "ReleaseConstraint",    &Constraint::ReleaseConstraint,
-        "ApplyFrames",          &Constraint::ApplyFrames,
-        sol::base_classes,      sol::bases<Component>()
-        );
-    lua.new_usertype<PhysicsRaycastResult>("PhysicsRaycastResult",
-        "position",     &PhysicsRaycastResult::position_,
-        "normal",       &PhysicsRaycastResult::normal_,
-        "distance",     &PhysicsRaycastResult::distance_,
-        "hit_fraction", &PhysicsRaycastResult::hitFraction_,
-        "rigid_body",   &PhysicsRaycastResult::body_
-    );
-    lua.new_usertype<PhysicsWorld>("PhysicsWorld",
-        "id",               sol::var(StringHash("PhysicsWorld")),
-        "fps",              sol::property(&PhysicsWorld::GetFps, &PhysicsWorld::SetFps),
-        "gravity",          sol::property(&PhysicsWorld::GetGravity, &PhysicsWorld::SetGravity),
-        "max_sub_steps",    sol::property(&PhysicsWorld::GetMaxSubSteps, &PhysicsWorld::SetMaxSubSteps),
-        "num_iterations",   sol::property(&PhysicsWorld::GetNumIterations, &PhysicsWorld::SetNumIterations),
-        "update_enabled",   sol::property(&PhysicsWorld::IsUpdateEnabled, &PhysicsWorld::SetUpdateEnabled),
-        "interpolation",    sol::property(&PhysicsWorld::GetInterpolation, &PhysicsWorld::SetInterpolation),
-        "internal_edge",    sol::property(&PhysicsWorld::GetInternalEdge, &PhysicsWorld::SetInternalEdge),
-        "split_impulse",    sol::property(&PhysicsWorld::GetSplitImpulse, &PhysicsWorld::SetSplitImpulse),
-        "Raycast", sol::overload(
+            [](CollisionShape* self, CustomGeometry* custom, const Vector3& scale, const Vector3& position, const Quaternion& rotation) { self->SetCustomConvexHull(custom, scale, position, rotation); });
+        bindCollisionShape["SetTerrain"]               = &CollisionShape::SetTerrain;
+        bindCollisionShape["SetShapeType"]             = &CollisionShape::SetShapeType;
+        bindCollisionShape["SetModel"]                 = &CollisionShape::SetModel;
+        bindCollisionShape["SetLodLevel"]              = &CollisionShape::SetLodLevel;
+        
+    auto bindConstraint = lua.new_usertype<Constraint>("Constraint", sol::base_classes, sol::bases<Component>());
+        bindConstraint["id"]                   = sol::var(StringHash("Constraint"));
+        bindConstraint["constraint_type"]      = sol::property(&Constraint::GetConstraintType, &Constraint::SetConstraintType);
+        bindConstraint["position"]             = sol::property(&Constraint::GetPosition, &Constraint::SetPosition);
+        bindConstraint["rotation"]             = sol::property(&Constraint::GetRotation, &Constraint::SetRotation);
+        bindConstraint["other_position"]       = sol::property(&Constraint::GetOtherPosition, &Constraint::SetOtherPosition);
+        bindConstraint["other_rotation"]       = sol::property(&Constraint::GetRotation, &Constraint::SetOtherRotation);
+        bindConstraint["high_limit"]           = sol::property(&Constraint::GetHighLimit, &Constraint::SetHighLimit);
+        bindConstraint["low_limit"]            = sol::property(&Constraint::GetLowLimit, &Constraint::SetLowLimit);
+        bindConstraint["disable_collision"]    = sol::property(&Constraint::GetDisableCollision, &Constraint::SetDisableCollision);
+        bindConstraint["erp"]                  = sol::property(&Constraint::GetERP, &Constraint::SetERP);
+        bindConstraint["cfm"]                  = sol::property(&Constraint::GetCFM, &Constraint::SetCFM);
+        bindConstraint["SetAxis"]              = &Constraint::SetAxis;
+        bindConstraint["SetOtherAxis"]         = &Constraint::SetOtherAxis;
+        bindConstraint["GetWorldPosition"]     = &Constraint::GetWorldPosition;
+        bindConstraint["SetWorldPosition"]     = &Constraint::SetWorldPosition;
+        bindConstraint["SetOtherBody"]         = &Constraint::SetOtherBody;
+        bindConstraint["GetOtherBody"]         = &Constraint::GetOtherBody;
+        bindConstraint["GetOwnBody"]           = &Constraint::GetOwnBody;
+        bindConstraint["ReleaseConstraint"]    = &Constraint::ReleaseConstraint;
+        bindConstraint["ApplyFrames"]          = &Constraint::ApplyFrames;
+        
+    auto bindPhysicsRaycastResult = lua.new_usertype<PhysicsRaycastResult>("PhysicsRaycastResult");
+        bindPhysicsRaycastResult["position"]     = &PhysicsRaycastResult::position_;
+        bindPhysicsRaycastResult["normal"]       = &PhysicsRaycastResult::normal_;
+        bindPhysicsRaycastResult["distance"]     = &PhysicsRaycastResult::distance_;
+        bindPhysicsRaycastResult["hit_fraction"] = &PhysicsRaycastResult::hitFraction_;
+        bindPhysicsRaycastResult["rigid_body"]   = &PhysicsRaycastResult::body_;
+    
+    auto bindPhysicsWorld = lua.new_usertype<PhysicsWorld>("PhysicsWorld", sol::base_classes, sol::bases<Component>());
+        bindPhysicsWorld["id"]               = sol::var(StringHash("PhysicsWorld"));
+        bindPhysicsWorld["fps"]              = sol::property(&PhysicsWorld::GetFps, &PhysicsWorld::SetFps);
+        bindPhysicsWorld["gravity"]          = sol::property(&PhysicsWorld::GetGravity, &PhysicsWorld::SetGravity);
+        bindPhysicsWorld["max_sub_steps"]    = sol::property(&PhysicsWorld::GetMaxSubSteps, &PhysicsWorld::SetMaxSubSteps);
+        bindPhysicsWorld["num_iterations"]   = sol::property(&PhysicsWorld::GetNumIterations, &PhysicsWorld::SetNumIterations);
+        bindPhysicsWorld["update_enabled"]   = sol::property(&PhysicsWorld::IsUpdateEnabled, &PhysicsWorld::SetUpdateEnabled);
+        bindPhysicsWorld["interpolation"]    = sol::property(&PhysicsWorld::GetInterpolation, &PhysicsWorld::SetInterpolation);
+        bindPhysicsWorld["internal_edge"]    = sol::property(&PhysicsWorld::GetInternalEdge, &PhysicsWorld::SetInternalEdge);
+        bindPhysicsWorld["split_impulse"]    = sol::property(&PhysicsWorld::GetSplitImpulse, &PhysicsWorld::SetSplitImpulse);
+        bindPhysicsWorld["Raycast"]          = sol::overload(
             [](PhysicsWorld* self, const Ray& ray, float maxDistance) {
                 ea::vector<PhysicsRaycastResult> result;
                 self->Raycast(result, ray, maxDistance);
@@ -180,8 +177,8 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
                     }
                 }
                 return ret;
-            }),
-        "RaycastSingle", sol::overload(
+            });
+        bindPhysicsWorld["RaycastSingle"]           = sol::overload(
             [](PhysicsWorld* self, const Ray& ray, float maxDistance) {
                 PhysicsRaycastResult result;
                 self->RaycastSingle(result, ray, maxDistance);
@@ -191,8 +188,8 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
                 PhysicsRaycastResult result;
                 self->RaycastSingle(result, ray, maxDistance, collisionMask);
                 return result;
-            }),
-        "RaycastSingleSegmented", sol::overload(
+            });
+        bindPhysicsWorld["RaycastSingleSegmented"]  = sol::overload(
             [](PhysicsWorld* self, const Ray& ray, float maxDistance, float segmentDistance) {
                 PhysicsRaycastResult result;
                 self->RaycastSingleSegmented(result, ray, maxDistance, segmentDistance);
@@ -202,36 +199,34 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
                 PhysicsRaycastResult result;
                 self->RaycastSingleSegmented(result, ray, maxDistance, segmentDistance, collisionMask);
                 return result;
-            }),
-        "DrawDebugGeometry", sol::resolve<void(bool)>(&PhysicsWorld::DrawDebugGeometry),
-        sol::base_classes,  sol::bases<Component>()
-        );
-    lua.new_usertype<KinematicCharacterController>("KinematicCharacterController",
-        "id",                       sol::var(StringHash("KinematicCharacterController")),
-        "gravity",                  sol::property(&KinematicCharacterController::GetGravity, &KinematicCharacterController::SetGravity),
-        "linear_damping",           sol::property(&KinematicCharacterController::GetLinearDamping, &KinematicCharacterController::SetLinearDamping),
-        "angular_damping",          sol::property(&KinematicCharacterController::GetAngularDamping, &KinematicCharacterController::SetAngularDamping),
-        "height",                   sol::property(&KinematicCharacterController::GetHeight, &KinematicCharacterController::SetHeight),
-        "diameter",                 sol::property(&KinematicCharacterController::GetDiameter, &KinematicCharacterController::SetDiameter),
-        "offset",                   sol::property(&KinematicCharacterController::GetOffset, &KinematicCharacterController::SetOffset),
-        "step_height",              sol::property(&KinematicCharacterController::GetStepHeight, &KinematicCharacterController::SetStepHeight),
-        "max_jump_height",          sol::property(&KinematicCharacterController::GetMaxJumpHeight, &KinematicCharacterController::SetMaxJumpHeight),
-        "fall_speed",               sol::property(&KinematicCharacterController::GetFallSpeed, &KinematicCharacterController::SetFallSpeed),
-        "jump_speed",               sol::property(&KinematicCharacterController::GetJumpSpeed, &KinematicCharacterController::SetJumpSpeed),
-        "max_slope",                sol::property(&KinematicCharacterController::GetMaxSlope, &KinematicCharacterController::SetMaxSlope),
-        "linear_velocity",          sol::property(&KinematicCharacterController::GetLinearVelocity, &KinematicCharacterController::SetLinearVelocity),
-        "angular_velocity",         sol::property(&KinematicCharacterController::GetAngularVelocity, &KinematicCharacterController::SetAngularVelocity),
-        "collision_layer",          sol::property(&KinematicCharacterController::GetCollisionLayer, &KinematicCharacterController::SetCollisionLayer),
-        "collision_mask",           sol::property(&KinematicCharacterController::GetCollisionMask, &KinematicCharacterController::SetCollisionMask),
-        "SetCollisionLayerAndMask", &KinematicCharacterController::SetCollisionLayerAndMask,
-        "SetWalkIncrement",         &KinematicCharacterController::SetWalkIncrement,
-        "OnGround",                 &KinematicCharacterController::OnGround,
-        "Jump",                     sol::overload(
+            });
+        bindPhysicsWorld["DrawDebugGeometry"]       = sol::resolve<void(bool)>(&PhysicsWorld::DrawDebugGeometry);
+        
+    auto bindKinematicCharacterController = lua.new_usertype<KinematicCharacterController>("KinematicCharacterController", sol::base_classes, sol::bases<Component>());
+        bindKinematicCharacterController["id"]                       = sol::var(StringHash("KinematicCharacterController"));
+        bindKinematicCharacterController["gravity"]                  = sol::property(&KinematicCharacterController::GetGravity, &KinematicCharacterController::SetGravity);
+        bindKinematicCharacterController["linear_damping"]           = sol::property(&KinematicCharacterController::GetLinearDamping, &KinematicCharacterController::SetLinearDamping);
+        bindKinematicCharacterController["angular_damping"]          = sol::property(&KinematicCharacterController::GetAngularDamping, &KinematicCharacterController::SetAngularDamping);
+        bindKinematicCharacterController["height"]                   = sol::property(&KinematicCharacterController::GetHeight, &KinematicCharacterController::SetHeight);
+        bindKinematicCharacterController["diameter"]                 = sol::property(&KinematicCharacterController::GetDiameter, &KinematicCharacterController::SetDiameter);
+        bindKinematicCharacterController["offset"]                   = sol::property(&KinematicCharacterController::GetOffset, &KinematicCharacterController::SetOffset);
+        bindKinematicCharacterController["step_height"]              = sol::property(&KinematicCharacterController::GetStepHeight, &KinematicCharacterController::SetStepHeight);
+        bindKinematicCharacterController["max_jump_height"]          = sol::property(&KinematicCharacterController::GetMaxJumpHeight, &KinematicCharacterController::SetMaxJumpHeight);
+        bindKinematicCharacterController["fall_speed"]               = sol::property(&KinematicCharacterController::GetFallSpeed, &KinematicCharacterController::SetFallSpeed);
+        bindKinematicCharacterController["jump_speed"]               = sol::property(&KinematicCharacterController::GetJumpSpeed, &KinematicCharacterController::SetJumpSpeed);
+        bindKinematicCharacterController["max_slope"]                = sol::property(&KinematicCharacterController::GetMaxSlope, &KinematicCharacterController::SetMaxSlope);
+        bindKinematicCharacterController["linear_velocity"]          = sol::property(&KinematicCharacterController::GetLinearVelocity, &KinematicCharacterController::SetLinearVelocity);
+        bindKinematicCharacterController["angular_velocity"]         = sol::property(&KinematicCharacterController::GetAngularVelocity, &KinematicCharacterController::SetAngularVelocity);
+        bindKinematicCharacterController["collision_layer"]          = sol::property(&KinematicCharacterController::GetCollisionLayer, &KinematicCharacterController::SetCollisionLayer);
+        bindKinematicCharacterController["collision_mask"]           = sol::property(&KinematicCharacterController::GetCollisionMask, &KinematicCharacterController::SetCollisionMask);
+        bindKinematicCharacterController["SetCollisionLayerAndMask"] = &KinematicCharacterController::SetCollisionLayerAndMask;
+        bindKinematicCharacterController["SetWalkIncrement"]         = &KinematicCharacterController::SetWalkIncrement;
+        bindKinematicCharacterController["OnGround"]                 = &KinematicCharacterController::OnGround;
+        bindKinematicCharacterController["Jump"]                     = sol::overload(
             [](KinematicCharacterController* self) { self->Jump(); },
-            [](KinematicCharacterController* self, const Vector3& jump) { self->Jump(jump); }),
-        "ApplyImpulse",             &KinematicCharacterController::ApplyImpulse,
-        "CanJump",                  &KinematicCharacterController::CanJump,
-        sol::base_classes,          sol::bases<Component>()
-        );
+            [](KinematicCharacterController* self, const Vector3& jump) { self->Jump(jump); });
+        bindKinematicCharacterController["ApplyImpulse"]             = &KinematicCharacterController::ApplyImpulse;
+        bindKinematicCharacterController["CanJump"]                  = &KinematicCharacterController::CanJump;
+        
 	return 0;
 }

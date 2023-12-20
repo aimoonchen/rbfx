@@ -53,6 +53,7 @@
 #include "../Graphics/Technique.h"
 #include "../Graphics/Terrain.h"
 #include "../Graphics/TerrainPatch.h"
+#include "../Graphics/ProceduralSky.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/Texture2DArray.h"
 #include "../Graphics/Texture3D.h"
@@ -738,6 +739,7 @@ void RegisterGraphicsLibrary(Context* context)
     EffekseerEmitter::RegisterObject(context);
     ReflectionProbe::RegisterObject(context);
     ReflectionProbeManager::RegisterObject(context);
+    ProceduralSky::RegisterObject(context);
 }
 
 

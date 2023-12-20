@@ -47,7 +47,8 @@ int sol2_IOLuaAPI_open(sol::state& lua)
     bindSerializer["WriteQuaternion"]   = &Serializer::WriteQuaternion;
     bindSerializer["WriteVariantMap"]   = &Serializer::WriteVariantMap;
 
-    lua.new_usertype<AbstractFile>("AbstractFile", sol::base_classes, sol::bases<Deserializer, Serializer>());
+    lua.new_usertype<AbstractFile>("AbstractFile",
+        sol::base_classes, sol::bases<Deserializer, Serializer>());
 
     lua.new_usertype<VectorBuffer>("VectorBuffer",
         sol::call_constructor, sol::constructors<VectorBuffer(), VectorBuffer(const void*, unsigned)>(),
@@ -80,18 +81,18 @@ int sol2_IOLuaAPI_open(sol::state& lua)
     bindFileSystem["ReadTextFromFile"]      = [](FileSystem* self, const ea::string& fileName) {
         auto file = MakeShared<File>(self->GetContext(), fileName, FILE_READ);
         return file->IsOpen() ? file->ReadText() : ea::string{};
-        };
+    };
 
     auto bindVirtualFileSystem = lua.new_usertype<VirtualFileSystem>("VirtualFileSystem");
-    bindVirtualFileSystem["MountRoot"] = &VirtualFileSystem::MountRoot;
-    bindVirtualFileSystem["MountDir"] = sol::overload(
+    bindVirtualFileSystem["MountRoot"]              = &VirtualFileSystem::MountRoot;
+    bindVirtualFileSystem["MountDir"]               = sol::overload(
         [](VirtualFileSystem* self, const ea::string& path) { self->MountDir(path); },
         [](VirtualFileSystem* self, const ea::string& scheme, const ea::string& path) { self->MountDir(scheme, path); });
-    bindVirtualFileSystem["AutomountDir"] = sol::overload(
+    bindVirtualFileSystem["AutomountDir"]           = sol::overload(
         [](VirtualFileSystem* self, const ea::string& path) { self->AutomountDir(path); },
         [](VirtualFileSystem* self, const ea::string& scheme, const ea::string& path) { self->AutomountDir(scheme, path); });
-    bindVirtualFileSystem["MountPackage"] = &VirtualFileSystem::MountPackageFile;
-    bindVirtualFileSystem["Unmount"] = [](VirtualFileSystem* self, const ea::string& path) {
+    bindVirtualFileSystem["MountPackage"]           = &VirtualFileSystem::MountPackageFile;
+    bindVirtualFileSystem["Unmount"]                = [](VirtualFileSystem* self, const ea::string& path) {
         for (unsigned i = 0; i < self->NumMountPoints(); ++i) {
             auto mountPoint = self->GetMountPoint(i);
             const auto& dir = mountPoint->GetName();
@@ -100,11 +101,11 @@ int sol2_IOLuaAPI_open(sol::state& lua)
                 break;
             }
         }
-        };
-    bindVirtualFileSystem["UnmountAll"] = &VirtualFileSystem::UnmountAll;
-    bindVirtualFileSystem["GetAbsoluteFileName"] = [](VirtualFileSystem* self, const ea::string& path) {
+    };
+    bindVirtualFileSystem["UnmountAll"]             = &VirtualFileSystem::UnmountAll;
+    bindVirtualFileSystem["GetAbsoluteFileName"]    = [](VirtualFileSystem* self, const ea::string& path) {
         return self->GetAbsoluteNameFromIdentifier({ "", path });
-        };
+    };
 
     lua["filesystem"] = context->GetSubsystem<FileSystem>();
     lua["virtual_filesystem"] = context->GetSubsystem<VirtualFileSystem>();

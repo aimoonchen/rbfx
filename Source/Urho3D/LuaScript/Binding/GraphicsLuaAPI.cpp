@@ -309,12 +309,12 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
             hitDrawable = result.drawable_;
         }
         return std::make_tuple(hitPos, hitDrawable);
-        };
+    };
         
-    auto bindViewport = lua.new_usertype<Viewport>("Viewport", sol::call_constructor, sol::factories(
+    auto bindViewport = lua.new_usertype<Viewport>("Viewport",
+        sol::call_constructor, sol::factories(
             [context]() { return new Viewport(context); },
-            [context](Scene* scene, Camera* camera) { return new Viewport(context, scene, camera); })
-    );
+            [context](Scene* scene, Camera* camera) { return new Viewport(context, scene, camera); }));
     bindViewport["SetScene"] = &Viewport::SetScene;
     bindViewport["GetScene"] = &Viewport::GetScene;
     bindViewport["SetCamera"] = &Viewport::SetCamera;
@@ -381,13 +381,12 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bindGraphics["windowTitle"]         = sol::property(&Graphics::GetWindowTitle, &Graphics::SetWindowTitle);
     bindGraphics["width"]               = sol::property(&Graphics::GetWidth);
     bindGraphics["height"]              = sol::property(&Graphics::GetHeight);
-    bindGraphics["GetStats"]            = [](Graphics* self) {
+    bindGraphics["GetStats"] = [](Graphics* self) {
         const auto& stats = self->GetSubsystem<RenderDevice>()->GetStats();
         static ea::string ret;
         ret.clear();
         ret.append_sprintf("DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_);
-        return ret;// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
-    };
+        return ret; };// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
 
     auto bindRenderer = lua.new_usertype<Renderer>("Renderer", sol::constructors<Renderer(Context*)>());
     bindRenderer["SetViewport"] = &Renderer::SetViewport;
@@ -457,7 +456,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
             hit = true;
         }
         return std::make_tuple(hit, hitPos);
-        };
+    };
         
     auto bindAnimationState = lua.new_usertype<AnimationState>("AnimationState");
     bindAnimationState["weight"] = sol::property(&AnimationState::GetWeight, &AnimationState::SetWeight);
@@ -564,32 +563,32 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     lua.new_usertype<RenderPipeline>("RenderPipeline",
         "id", sol::var(StringHash("RenderPipeline")),
         sol::base_classes, sol::bases<Component>());
-//     lua.new_usertype<ProceduralSky>("ProceduralSky",
-//         "id", sol::var(StringHash("ProceduralSky")),
-//         "January", sol::var(ProceduralSky::January),
-//         "February", sol::var(ProceduralSky::February),
-//         "April", sol::var(ProceduralSky::April),
-//         "May", sol::var(ProceduralSky::May),
-//         "June", sol::var(ProceduralSky::June),
-//         "July", sol::var(ProceduralSky::July),
-//         "August", sol::var(ProceduralSky::August),
-//         "September", sol::var(ProceduralSky::September),
-//         "October", sol::var(ProceduralSky::October),
-//         "November", sol::var(ProceduralSky::November),
-//         "December", sol::var(ProceduralSky::December),
-//         "Init", sol::overload(
-//             [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time) { self->Init(verticalCount, horizontalCount, month, time); },
-//             [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time, uint32_t cubemapSize, const Vector3& northDir) { self->Init(verticalCount, horizontalCount, month, time, cubemapSize, northDir); }),
-//         "SetMonth", &ProceduralSky::SetMonth,
-//         "SetTime", &ProceduralSky::SetTime,
-//         "SetTimeScale", &ProceduralSky::SetTimeScale,
-//         "GetSunDirection", &ProceduralSky::GetSunDirection,
-//         "GetSunLuminance", &ProceduralSky::GetSunLuminance,
-//         "GetSunLuminanceGamma", &ProceduralSky::GetSunLuminanceGamma,
-//         "GetSkyLuminance", &ProceduralSky::GetSkyLuminance,
-//         "GetSkyLuminanceGamma", &ProceduralSky::GetSkyLuminanceGamma,
-//         sol::base_classes, sol::bases<StaticModel, Drawable, Component>()
-//         );
+
+    auto bindProceduralSky = lua.new_usertype<ProceduralSky>("ProceduralSky", sol::base_classes, sol::bases<StaticModel, Drawable, Component>());
+    bindProceduralSky["id"]                     = sol::var(StringHash("ProceduralSky"));
+    bindProceduralSky["Init"]                   = sol::overload(
+        [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time) { self->Init(verticalCount, horizontalCount, month, time); },
+        [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time, uint32_t cubemapSize, const Vector3& northDir) { self->Init(verticalCount, horizontalCount, month, time, cubemapSize, northDir); });
+    bindProceduralSky["January"]                = sol::var(ProceduralSky::January);
+    bindProceduralSky["February"]               = sol::var(ProceduralSky::February);
+    bindProceduralSky["April"]                  = sol::var(ProceduralSky::April);
+    bindProceduralSky["May"]                    = sol::var(ProceduralSky::May);
+    bindProceduralSky["June"]                   = sol::var(ProceduralSky::June);
+    bindProceduralSky["July"]                   = sol::var(ProceduralSky::July);
+    bindProceduralSky["August"]                 = sol::var(ProceduralSky::August);
+    bindProceduralSky["September"]              = sol::var(ProceduralSky::September);
+    bindProceduralSky["October"]                = sol::var(ProceduralSky::October);
+    bindProceduralSky["November"]               = sol::var(ProceduralSky::November);
+    bindProceduralSky["December"]               = sol::var(ProceduralSky::December);
+    bindProceduralSky["SetMonth"]               = &ProceduralSky::SetMonth;
+    bindProceduralSky["SetTime"]                = &ProceduralSky::SetTime;
+    bindProceduralSky["SetTimeScale"]           = &ProceduralSky::SetTimeScale;
+    bindProceduralSky["GetSunDirection"]        = &ProceduralSky::GetSunDirection;
+    bindProceduralSky["GetSunLuminance"]        = &ProceduralSky::GetSunLuminance;
+    bindProceduralSky["GetSunLuminanceGamma"]   = &ProceduralSky::GetSunLuminanceGamma;
+    bindProceduralSky["GetSkyLuminance"]        = &ProceduralSky::GetSkyLuminance;
+    bindProceduralSky["GetSkyLuminanceGamma"]   = &ProceduralSky::GetSkyLuminanceGamma;
+
     auto bindOutlineGroup = lua.new_usertype<OutlineGroup>("OutlineGroup", sol::base_classes, sol::bases<Component>());
     bindOutlineGroup["id"]                  = sol::var(StringHash("OutlineGroup"));
     bindOutlineGroup["SetColor"]            = &OutlineGroup::SetColor;
