@@ -413,7 +413,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bindZone["fog_color"]               = sol::property(&Zone::GetFogColor, &Zone::SetFogColor);
     bindZone["fog_start"]               = sol::property(&Zone::GetFogStart, &Zone::SetFogStart);
     bindZone["fog_end"]                 = sol::property(&Zone::GetFogEnd, &Zone::SetFogEnd);
-    //"SetProceduralSky", &Zone::SetProceduralSky,
+    bindZone["SetProceduralSky"]        = &Zone::SetProceduralSky,
     bindZone["SetZoneTextureAttr"]      = [](Zone* self, const ea::string& filename) { filename.empty() ? self->SetZoneTexture(nullptr) : self->SetZoneTextureAttr(ResourceRef(StringHash("TextureCube"), filename)); };
 		
 	auto bindLight = lua.new_usertype<Light>("Light", sol::base_classes, sol::bases<Drawable, Component>());

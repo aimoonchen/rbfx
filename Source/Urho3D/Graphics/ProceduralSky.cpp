@@ -496,10 +496,7 @@ void ProceduralSky::OnCubemapRendered(TextureCube* texture)
     ea::vector<SharedPtr<Image>> cubeImages(MAX_CUBEMAP_FACES);
     for (int i = 0; i < MAX_CUBEMAP_FACES; i++) {
         cubeImages[i] = texture->GetImage((CubeMapFace)i);
-//         assert(cubeImages[i]->readFrameNumber != 0);
-//         if (task->finish_frame_number == UINT_MAX) {
-//             task->finish_frame_number = cubeImages[i]->readFrameNumber;
-//         }
+        task->wait_frame_count == 0;
     }
     task->cube_image->SetFaceImages(cubeImages, texture->GetWidth());
     task->probe->SetEnabled(false);
@@ -514,14 +511,16 @@ void ProceduralSky::HandleBeginRendering(StringHash eventType, VariantMap& event
     }
     if (!m_readReadTask.empty()) {
         auto& task = m_readReadTask.front();
-//         auto frameNumber = GetSubsystem<Graphics>()->GetCurrentFrameNumber();
-//         if (frameNumber >= task->finish_frame_number) {
+        for (auto& t : m_readReadTask) {
+            t->wait_frame_count++;
+        }
+        if(task->wait_frame_count > 0) {
             auto zone = GetNode()->GetScene()->GetComponent<Zone>(true);
             zone->SetZoneTexture(task->probe->GetMixedProbeTexture());
             zone->SetProcedurelImageCube(task->cube_image.Get());
-//            task->finish_frame_number = UINT_MAX;
+            task->wait_frame_count = 0;
             m_readReadTask.pop_front();
-//        }
+        }
     }
     assert(m_readReadTask.size() < MaxRTCount);
     if (m_configDirty) {

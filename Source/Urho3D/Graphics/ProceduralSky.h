@@ -89,7 +89,7 @@ private:
     // dummy render texture, for trigger probe renderer
     SharedPtr<Texture2D> m_renderTexture;
     struct RenderTask {
-        uint32_t                finish_frame_number{ UINT_MAX };
+        uint32_t                wait_frame_count{ 0 };
         TextureCube*            texture{ nullptr };
         ReflectionProbe*        probe{ nullptr };
         SharedPtr<ImageCube>    cube_image;
