@@ -95,7 +95,7 @@ private:
         SharedPtr<ImageCube>    cube_image;
     };
     RenderTask m_renderTask[MaxRTCount];
-    ea::deque<RenderTask*> m_readReadTask;
+    ea::deque<RenderTask*> m_readyReadTask;
     ea::unordered_map<TextureCube*, RenderTask*> m_lookupMap;
 
     SharedPtr<Scene> m_scene;

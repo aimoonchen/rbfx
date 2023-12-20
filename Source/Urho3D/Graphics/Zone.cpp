@@ -173,6 +173,9 @@ void Zone::SetZoneTexture(Texture* texture)
     zoneTexture_ = texture;
     UpdateZoneTextureSubscription();
     MarkCachedTextureDirty();
+    if (proceduralSky_) {
+        MarkCachedAmbientDirty();
+    }
 }
 
 void Zone::SetHeightFog(bool enable)
@@ -398,7 +401,17 @@ void Zone::UpdateCachedData()
         {
             const ea::string& zoneTextureName = zoneTexture_->GetName();
             auto cache = GetSubsystem<ResourceCache>();
-            auto zoneImage = !zoneTextureName.empty() ? cache->GetTempResource<ImageCube>(zoneTextureName) : nullptr;
+            //
+            SharedPtr<ImageCube> imageCube;
+            ImageCube* zoneImage = nullptr;
+            if (!zoneTextureName.empty()) {
+                imageCube = cache->GetTempResource<ImageCube>(zoneTextureName);
+                zoneImage = imageCube.Get();
+            } else {
+                zoneImage = procedurelImageCube_;
+            }
+            // TODO: does't work?
+            //auto zoneImage = !zoneTextureName.empty() ? cache->GetTempResource<ImageCube>(zoneTextureName) : procedurelImageCube_;
             if (zoneImage)
                 sh = SphericalHarmonicsDot9(zoneImage->CalculateSphericalHarmonics());
             else

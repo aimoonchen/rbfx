@@ -496,12 +496,12 @@ void ProceduralSky::OnCubemapRendered(TextureCube* texture)
     ea::vector<SharedPtr<Image>> cubeImages(MAX_CUBEMAP_FACES);
     for (int i = 0; i < MAX_CUBEMAP_FACES; i++) {
         cubeImages[i] = texture->GetImage((CubeMapFace)i);
-        task->wait_frame_count == 0;
+        task->wait_frame_count = 0;
     }
     task->cube_image->SetFaceImages(cubeImages, texture->GetWidth());
     task->probe->SetEnabled(false);
-    m_readReadTask.push_back(task);
-    assert(m_readReadTask.size() <= MaxRTCount);
+    m_readyReadTask.push_back(task);
+    assert(m_readyReadTask.size() <= MaxRTCount);
 }
 
 void ProceduralSky::HandleBeginRendering(StringHash eventType, VariantMap& eventData)
@@ -509,9 +509,9 @@ void ProceduralSky::HandleBeginRendering(StringHash eventType, VariantMap& event
     if (!enabled_) {
         return;
     }
-    if (!m_readReadTask.empty()) {
-        auto& task = m_readReadTask.front();
-        for (auto& t : m_readReadTask) {
+    if (!m_readyReadTask.empty()) {
+        auto& task = m_readyReadTask.front();
+        for (auto& t : m_readyReadTask) {
             t->wait_frame_count++;
         }
         if(task->wait_frame_count > 0) {
@@ -519,10 +519,10 @@ void ProceduralSky::HandleBeginRendering(StringHash eventType, VariantMap& event
             zone->SetZoneTexture(task->probe->GetMixedProbeTexture());
             zone->SetProcedurelImageCube(task->cube_image.Get());
             task->wait_frame_count = 0;
-            m_readReadTask.pop_front();
+            m_readyReadTask.pop_front();
         }
     }
-    assert(m_readReadTask.size() < MaxRTCount);
+    assert(m_readyReadTask.size() < MaxRTCount);
     if (m_configDirty) {
         m_configDirty = false;
         update_uniform();
