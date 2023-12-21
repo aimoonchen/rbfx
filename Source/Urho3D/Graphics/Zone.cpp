@@ -173,9 +173,7 @@ void Zone::SetZoneTexture(Texture* texture)
     zoneTexture_ = texture;
     UpdateZoneTextureSubscription();
     MarkCachedTextureDirty();
-    if (proceduralSky_) {
-        MarkCachedAmbientDirty();
-    }
+    MarkCachedAmbientDirty();
 }
 
 void Zone::SetHeightFog(bool enable)

@@ -179,7 +179,66 @@ private:
 
     KeyMap m_keyMap;
 };
+namespace bx {
+static Quaternion invert(const Quaternion _a)
+{
+    return {
+        _a.w_,
+        -_a.x_,
+        -_a.y_,
+        -_a.z_,
+    };
+}
 
+static Vector3 mulXyz(const Quaternion _a, const Quaternion _b)
+{
+    const float ax = _a.x_;
+    const float ay = _a.y_;
+    const float az = _a.z_;
+    const float aw = _a.w_;
+
+    const float bx = _b.x_;
+    const float by = _b.y_;
+    const float bz = _b.z_;
+    const float bw = _b.w_;
+
+    return {
+        aw * bx + ax * bw + ay * bz - az * by,
+        aw * by - ax * bz + ay * bw + az * bx,
+        aw * bz + ax * by - ay * bx + az * bw,
+    };
+}
+
+static Quaternion mul(const Quaternion _a, const Quaternion _b)
+{
+    const float ax = _a.x_;
+    const float ay = _a.y_;
+    const float az = _a.z_;
+    const float aw = _a.w_;
+
+    const float bx = _b.x_;
+    const float by = _b.y_;
+    const float bz = _b.z_;
+    const float bw = _b.w_;
+
+    return {
+        aw * bw - ax * bx - ay * by - az * bz,
+        aw * bx + ax * bw + ay * bz - az * by,
+        aw * by - ax * bz + ay * bw + az * bx,
+        aw * bz + ax * by - ay * bx + az * bw,
+    };
+}
+
+static Vector3 mul(const Vector3 _v, const Quaternion _q)
+{
+    const Quaternion tmp0 = invert(_q);
+    const Quaternion qv = {0.0f, _v.x_, _v.y_, _v.z_};
+    const Quaternion tmp1 = mul(tmp0, qv);
+    const Vector3 result = mulXyz(tmp1, _q);
+
+    return result;
+}
+}
 // Controls sun position according to time, month, and observer's latitude.
 // Sun position computation based on Earth's orbital elements:
 // https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
@@ -245,11 +304,11 @@ private:
             asin(sin(latitude) * sin(m_delta) + cos(latitude) * cos(m_delta) * cos(hh));
 
         Quaternion rot0(ToDegrees(-azimuth), m_upDir);
-        const Vector3 dir = rot0 * m_northDir;
+        const Vector3 dir = bx::mul(m_northDir, rot0); //rot0 * m_northDir;
         const Vector3 uxd = m_upDir.CrossProduct(dir);
 
         const Quaternion rot1(ToDegrees(altitude), uxd);
-        m_sunDir = rot1 * dir;
+        m_sunDir = bx::mul(dir, rot1); //rot1 * dir;
     }
 
     float m_eclipticObliquity;
@@ -496,8 +555,8 @@ void ProceduralSky::OnCubemapRendered(TextureCube* texture)
     ea::vector<SharedPtr<Image>> cubeImages(MAX_CUBEMAP_FACES);
     for (int i = 0; i < MAX_CUBEMAP_FACES; i++) {
         cubeImages[i] = texture->GetImage((CubeMapFace)i);
-        task->wait_frame_count = 0;
     }
+//    task->wait_frame_count = 0;
     task->cube_image->SetFaceImages(cubeImages, texture->GetWidth());
     task->probe->SetEnabled(false);
     m_readyReadTask.push_back(task);
@@ -511,16 +570,15 @@ void ProceduralSky::HandleBeginRendering(StringHash eventType, VariantMap& event
     }
     if (!m_readyReadTask.empty()) {
         auto& task = m_readyReadTask.front();
-        for (auto& t : m_readyReadTask) {
-            t->wait_frame_count++;
-        }
-        if(task->wait_frame_count > 0) {
+//         for (auto& t : m_readyReadTask) {
+//             t->wait_frame_count++;
+//         }
+//         if(task->wait_frame_count > 1) {
             auto zone = GetNode()->GetScene()->GetComponent<Zone>(true);
             zone->SetZoneTexture(task->probe->GetMixedProbeTexture());
             zone->SetProcedurelImageCube(task->cube_image.Get());
-            task->wait_frame_count = 0;
             m_readyReadTask.pop_front();
-        }
+//        }
     }
     assert(m_readyReadTask.size() < MaxRTCount);
     if (m_configDirty) {

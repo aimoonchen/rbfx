@@ -84,7 +84,7 @@ private:
     int64_t m_timeOffset;
     float m_turbidity;
 
-    static constexpr uint16_t MaxRTCount{ 4 };
+    static constexpr uint16_t MaxRTCount{ 2 };
     uint16_t m_freeRenderIndex{ 0 };
     // dummy render texture, for trigger probe renderer
     SharedPtr<Texture2D> m_renderTexture;

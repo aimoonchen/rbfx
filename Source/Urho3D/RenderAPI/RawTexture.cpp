@@ -1016,7 +1016,7 @@ bool RawTexture::Read(unsigned slice, unsigned level, void* buffer, unsigned buf
     Diligent::MappedTextureSubresource mappedData;
     immediateContext->WaitForIdle();
     immediateContext->MapTextureSubresource(
-        stagingTexture, 0, 0, Diligent::MAP_READ, Diligent::MAP_FLAG_NONE, nullptr, mappedData);
+        stagingTexture, 0, 0, Diligent::MAP_READ, /*Diligent::MAP_FLAG_NONE*/Diligent::MAP_FLAG_DO_NOT_WAIT, nullptr, mappedData);
 
     if (!mappedData.pData)
     {
