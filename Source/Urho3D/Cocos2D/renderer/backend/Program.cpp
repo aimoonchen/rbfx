@@ -86,7 +86,13 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
 //             device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[vsfile]);
 //         }
 //     }
-    _vsShader = device->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::VS, vsfile, "");//_cachedShaders[vsfile];
+    Diligent::ISwapChain* swapChain = device->GetSwapChain();
+    const Diligent::SwapChainDesc& swapChainDesc = swapChain->GetDesc();
+    ea::string shaderDefines;
+    if (swapChainDesc.ColorBufferFormat == Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB
+        || swapChainDesc.ColorBufferFormat == Urho3D::TextureFormat::TEX_FORMAT_BGRA8_UNORM_SRGB)
+        shaderDefines += "URHO3D_LINEAR_OUTPUT ";
+    _vsShader = device->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::VS, vsfile, shaderDefines);//_cachedShaders[vsfile];
 
     // Create a pixel shader
 //     if (auto it = _cachedShaders.find(fsfile); it == _cachedShaders.end()) {
@@ -98,7 +104,7 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
 //             device->GetRenderDevice()->CreateShader(ShaderCI, &_cachedShaders[fsfile]);
 //         }
 //     }
-    _fsShader = device->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::PS, fsfile, "");//_cachedShaders[fsfile];
+    _fsShader = device->GetSubsystem<Urho3D::Graphics>()->GetShader(Urho3D::PS, fsfile, shaderDefines);//_cachedShaders[fsfile];
 
     if (fsfile == positionColor_frag
         || fsfile == positionUColor_frag

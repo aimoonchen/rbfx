@@ -51,6 +51,9 @@ void main()
     {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
+    #ifdef URHO3D_LINEAR_OUTPUT
+        gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+    #endif
 }
 // cbuffer PSConstants {
 //     float4 u_startColor;

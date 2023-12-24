@@ -44,6 +44,9 @@ void main()
     float mu = smoothstep(0.5, 1.0, sqrt(dist));
     vec4 color = u_effectColor*(1.0-alpha) + u_textColor*alpha;
     gl_FragColor = v_fragmentColor * vec4(color.rgb, max(alpha,mu)*color.a);
+    #ifdef URHO3D_LINEAR_OUTPUT
+        gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+    #endif
 }
 // cbuffer PSConstants {
 //     float4 u_effectColor;

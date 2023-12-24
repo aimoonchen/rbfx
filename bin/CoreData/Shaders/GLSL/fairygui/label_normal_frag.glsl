@@ -37,6 +37,9 @@ void main()
     gl_FragColor =  v_fragmentColor * vec4(u_textColor.rgb,// RGB from uniform
         u_textColor.a * texture(u_texture, v_texCoord).a// A from texture & uniform
     );
+    #ifdef URHO3D_LINEAR_OUTPUT
+        gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+    #endif
 }
 // cbuffer PSConstants {
 //     float4 u_textColor;

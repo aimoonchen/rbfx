@@ -42,6 +42,9 @@ void main()
         discard;
 
     gl_FragColor = texColor * v_fragmentColor;
+    #ifdef URHO3D_LINEAR_OUTPUT
+        gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+    #endif
 }
 // cbuffer PSConstants {
 //     float u_alpha_value;

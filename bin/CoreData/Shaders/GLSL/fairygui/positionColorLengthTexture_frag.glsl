@@ -30,6 +30,9 @@ void main()
 // #else
     gl_FragColor = v_color*step(0.0, 1.0 - length(v_texcoord));
 // #endif
+#ifdef URHO3D_LINEAR_OUTPUT
+    gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+#endif
 }
 // struct PSInput {
 //     float4 Pos          : SV_POSITION;

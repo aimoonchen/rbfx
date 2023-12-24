@@ -36,6 +36,9 @@ void main() {
     texColor.rgb *= texColor.a; // Premultiply with Alpha channel
 
     gl_FragColor = v_fragmentColor * texColor;
+    #ifdef URHO3D_LINEAR_OUTPUT
+        gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+    #endif
 }
 // Texture2D    u_texture;
 // SamplerState u_texture_sampler;

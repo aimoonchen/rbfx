@@ -29,6 +29,9 @@ layout(location = 0) out vec4 _output;
 void main()
 {
     gl_FragColor = v_color;
+    #ifdef URHO3D_LINEAR_OUTPUT
+        gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;
+    #endif
 }
 // struct PSInput {
 //     float4 Pos          : SV_POSITION;
