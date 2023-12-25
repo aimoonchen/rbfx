@@ -160,10 +160,10 @@ THE SOFTWARE.
 #endif // CC_TARGET_PLATFORM == CC_PLATFORM_MAC
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
-    #include "platform/linux/CCApplication-linux.h"
-    #include "platform/desktop/CCGLViewImpl-desktop.h"
-    #include "platform/linux/CCGL-linux.h"
-    #include "platform/linux/CCStdC-linux.h"
+    // #include "platform/linux/CCApplication-linux.h"
+    // #include "platform/desktop/CCGLViewImpl-desktop.h"
+    // #include "platform/linux/CCGL-linux.h"
+    // #include "platform/linux/CCStdC-linux.h"
 #endif // CC_TARGET_PLATFORM == CC_PLATFORM_LINUX
 
 // script_support

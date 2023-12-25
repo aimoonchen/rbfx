@@ -149,7 +149,7 @@ public:
     /// Get the timestep for the next frame and sleep for frame limiting if necessary.
     void ApplyFrameLimit();
 
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
     /// Parse the engine startup parameters map from command line arguments.
     static void DefineParameters(CLI::App& commandLine, StringVariantMap& engineParameters);
 #endif

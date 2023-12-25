@@ -1061,7 +1061,7 @@ void Engine::ApplyFrameLimit()
         timeStep_ = lastTimeSteps_.back();
 }
 
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
 void Engine::DefineParameters(CLI::App& commandLine, StringVariantMap& engineParameters)
 {
     auto addFlagInternal = [&](const char* name, const char* description, CLI::callback_t fun) {

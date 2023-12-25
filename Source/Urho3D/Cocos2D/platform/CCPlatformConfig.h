@@ -94,7 +94,10 @@ THE SOFTWARE.
 
 // check user set platform
 #if ! CC_TARGET_PLATFORM
-    #error  "Cannot recognize the target platform; are you targeting an unsupported platform?"
+// EMSCRIPTEN ?
+    #undef  CC_TARGET_PLATFORM
+    #define CC_TARGET_PLATFORM         CC_PLATFORM_LINUX
+    // #error  "Cannot recognize the target platform; are you targeting an unsupported platform?"
 #endif
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)

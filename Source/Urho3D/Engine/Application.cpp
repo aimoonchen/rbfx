@@ -55,7 +55,7 @@ void RunFrame(void* data)
 }
 #endif
 
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
 /// Command line parser.
 static CLI::App commandLine_{};
 #endif
@@ -209,7 +209,7 @@ void Application::HandleLogMessage(StringHash eventType, VariantMap& eventData)
         startupErrors_ += error + "\n";
     }
 }
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
 CLI::App& Application::GetCommandLineParser()
 {
     return commandLine_;

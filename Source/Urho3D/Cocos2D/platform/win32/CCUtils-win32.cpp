@@ -25,6 +25,7 @@ THE SOFTWARE.
 ****************************************************************************/
 #include "base/ccMacros.h"
 #include "platform/CCPlatformMacros.h"
+#if CC_TARGET_PLATFORM == CC_PLATFORM_WIN32
 #include "platform/win32/CCUtils-win32.h"
 
 #include <sstream>
@@ -107,3 +108,4 @@ std::string UTF8StringToMultiByte(const std::string& strUtf8)
 }
 
 NS_CC_END
+#endif

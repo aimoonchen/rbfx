@@ -22,7 +22,7 @@
 
 #pragma once
 
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
 
 #include <sstream>
 #include <EASTL/vector.h>
