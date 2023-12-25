@@ -473,6 +473,7 @@ void Zone::MarkCachedTextureDirty()
 {
     cachedTextureLighting_.Invalidate();
     reflectionProbeData_.Invalidate();
+    cachedAmbientAndBackgroundLighting_.Invalidate();
 }
 
 void Zone::SetProceduralSky(ProceduralSky* sky)
