@@ -84,8 +84,8 @@ int sol2_InputLuaAPI_open(sol::state& lua)
     auto input = lua["input"].get_or_create<sol::table>();
 
     auto bindTouchState = input.new_usertype<TouchState>("TouchState");
-    bindTouchState["position"]          = &TouchState::position_;
-    bindTouchState["delta"]             = &TouchState::delta_;
+    bindTouchState["position"]          = sol::property(&TouchState::position_);
+    bindTouchState["delta"]             = sol::property(&TouchState::delta_);
     bindTouchState["touchedElement"]    = sol::property([](TouchState* obj) { return obj->touchedElement_.Get(); });
 
     auto context = GetContext(lua.lua_state());

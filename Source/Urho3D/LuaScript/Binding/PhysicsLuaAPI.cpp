@@ -137,11 +137,11 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
         bindConstraint["ApplyFrames"]          = &Constraint::ApplyFrames;
         
     auto bindPhysicsRaycastResult = lua.new_usertype<PhysicsRaycastResult>("PhysicsRaycastResult");
-        bindPhysicsRaycastResult["position"]     = &PhysicsRaycastResult::position_;
-        bindPhysicsRaycastResult["normal"]       = &PhysicsRaycastResult::normal_;
-        bindPhysicsRaycastResult["distance"]     = &PhysicsRaycastResult::distance_;
-        bindPhysicsRaycastResult["hit_fraction"] = &PhysicsRaycastResult::hitFraction_;
-        bindPhysicsRaycastResult["rigid_body"]   = &PhysicsRaycastResult::body_;
+        bindPhysicsRaycastResult["position"]     = sol::property(&PhysicsRaycastResult::position_);
+        bindPhysicsRaycastResult["normal"]       = sol::property(&PhysicsRaycastResult::normal_);
+        bindPhysicsRaycastResult["distance"]     = sol::property(&PhysicsRaycastResult::distance_);
+        bindPhysicsRaycastResult["hit_fraction"] = sol::property(&PhysicsRaycastResult::hitFraction_);
+        bindPhysicsRaycastResult["rigid_body"]   = sol::property(&PhysicsRaycastResult::body_);
     
     auto bindPhysicsWorld = lua.new_usertype<PhysicsWorld>("PhysicsWorld", sol::base_classes, sol::bases<Component>());
         bindPhysicsWorld["id"]               = sol::var(StringHash("PhysicsWorld"));

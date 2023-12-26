@@ -25,8 +25,8 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     auto bindIntVector2 = math3d.new_usertype<IntVector2>("IntVector2",
         sol::call_constructor,
         sol::constructors<IntVector2(), IntVector2(int, int)>());
-	bindIntVector2["x"]     = &IntVector2::x_;
-    bindIntVector2["y"]     = &IntVector2::y_;
+	bindIntVector2["x"]     = sol::property(&IntVector2::x_);
+    bindIntVector2["y"]     = sol::property(&IntVector2::y_);
     bindIntVector2["ZERO"]  = sol::var(std::ref(IntVector2::ZERO));
     bindIntVector2["LEFT"]  = sol::var(std::ref(IntVector2::LEFT));
     bindIntVector2["RIGHT"] = sol::var(std::ref(IntVector2::RIGHT));
@@ -45,8 +45,8 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     auto bindVector2 = math3d.new_usertype<Vector2>("Vector2",
         sol::call_constructor,
         sol::constructors<Vector2(), Vector2(float, float)>());
-    bindVector2["x"]        = &Vector2::x_;
-    bindVector2["y"]        = &Vector2::y_;
+    bindVector2["x"]        = sol::property(&Vector2::x_);
+    bindVector2["y"]        = sol::property(&Vector2::y_);
     bindVector2["ZERO"]     = sol::var(std::ref(Vector2::ZERO));
     bindVector2["LEFT"]     = sol::var(std::ref(Vector2::LEFT));
     bindVector2["RIGHT"]    = sol::var(std::ref(Vector2::RIGHT));
@@ -97,9 +97,9 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindVector3[sol::meta_function::division]       = sol::overload(
         sol::resolve<Vector3(const Vector3&) const>(&Vector3::operator/),
         sol::resolve<Vector3(float) const>(&Vector3::operator/));
-	bindVector3["x"]        = &Vector3::x_;
-	bindVector3["y"]        = &Vector3::y_;
-	bindVector3["z"]        = &Vector3::z_;
+	bindVector3["x"]        = sol::property(&Vector3::x_);
+	bindVector3["y"]        = sol::property(&Vector3::y_);
+	bindVector3["z"]        = sol::property(&Vector3::z_);
     bindVector3["ZERO"]     = sol::var(std::ref(Vector3::ZERO));
     bindVector3["LEFT"]     = sol::var(std::ref(Vector3::LEFT));
     bindVector3["RIGHT"]    = sol::var(std::ref(Vector3::RIGHT));
@@ -112,10 +112,10 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     auto bindVector4 = math3d.new_usertype<Vector4>("Vector4",
         sol::call_constructor,
         sol::constructors<Vector4(), Vector4(float, float, float, float), Vector4(const Vector3&, float)>());
-    bindVector4["x"] = &Vector4::x_;
-    bindVector4["y"] = &Vector4::y_;
-    bindVector4["z"] = &Vector4::z_;
-    bindVector4["w"] = &Vector4::w_;
+    bindVector4["x"] = sol::property(&Vector4::x_);
+    bindVector4["y"] = sol::property(&Vector4::y_);
+    bindVector4["z"] = sol::property(&Vector4::z_);
+    bindVector4["w"] = sol::property(&Vector4::w_);
 
     auto bindQuaternion = math3d.new_usertype<Quaternion>("Quaternion",
         sol::call_constructor,
@@ -128,10 +128,10 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         Quaternion(const Vector3&, const Vector3&),
         Quaternion(const Vector3&, const Vector3&, const Vector3&)>());
 
-    bindQuaternion["w"]                 = &Quaternion::w_;
-    bindQuaternion["x"]                 = &Quaternion::x_;
-    bindQuaternion["y"]                 = &Quaternion::y_;
-    bindQuaternion["z"]                 = &Quaternion::z_;
+    bindQuaternion["w"]                 = sol::property(&Quaternion::w_);
+    bindQuaternion["x"]                 = sol::property(&Quaternion::x_);
+    bindQuaternion["y"]                 = sol::property(&Quaternion::y_);
+    bindQuaternion["z"]                 = sol::property(&Quaternion::z_);
     bindQuaternion["YawAngle"]          = &Quaternion::YawAngle;
     bindQuaternion["PitchAngle"]        = &Quaternion::PitchAngle;
     bindQuaternion["RollAngle"]         = &Quaternion::RollAngle;
@@ -158,10 +158,10 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         Color(uint8_t, uint8_t, uint8_t),
         Color(uint8_t, uint8_t, uint8_t, uint8_t)>());
 
-	bindColor["r"]                  = &Color::r_;
-	bindColor["g"]                  = &Color::g_;
-	bindColor["b"]                  = &Color::b_;
-    bindColor["a"]                  = &Color::a_;
+	bindColor["r"]                  = sol::property(&Color::r_);
+	bindColor["g"]                  = sol::property(&Color::g_);
+	bindColor["b"]                  = sol::property(&Color::b_);
+    bindColor["a"]                  = sol::property(&Color::a_);
     bindColor["WHITE"]              = sol::var(std::ref(Color::WHITE));
     bindColor["GRAY"]               = sol::var(std::ref(Color::GRAY));
     bindColor["BLACK"]              = sol::var(std::ref(Color::BLACK));
@@ -206,8 +206,8 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     auto bindBoundingBox = math3d.new_usertype<BoundingBox>("BoundingBox",
         sol::call_constructor,
         sol::constructors<BoundingBox(), BoundingBox(float min, float max), BoundingBox(const Vector3 & min, const Vector3 & max)>());
-    bindBoundingBox["min"]      = &BoundingBox::min_;
-    bindBoundingBox["max"]      = &BoundingBox::max_;
+    bindBoundingBox["min"]      = sol::property(&BoundingBox::min_);
+    bindBoundingBox["max"]      = sol::property(&BoundingBox::max_);
     bindBoundingBox["Define"]   = sol::overload([](BoundingBox* self, const Vector3& point) { self->Define(point); }, sol::resolve<void(const Vector3&, const Vector3&)>(&BoundingBox::Define));
     bindBoundingBox["Merge"]    = sol::overload([](BoundingBox* self, const Vector3& point) { self->Merge(point); }, sol::resolve<void(const BoundingBox&)>(&BoundingBox::Merge));
     bindBoundingBox["Clip"]     = &BoundingBox::Clip;
@@ -228,8 +228,8 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindRect["Top"]     = &Rect::Top;
     bindRect["Right"]   = &Rect::Right;
     bindRect["Bottom"]  = &Rect::Bottom;
-    bindRect["min"]     = &Rect::min_;
-    bindRect["max"]     = &Rect::max_;
+    bindRect["min"]     = sol::property(&Rect::min_);
+    bindRect["max"]     = sol::property(&Rect::max_);
 
     math3d.new_usertype<Plane>("Plane",
         sol::call_constructor,
@@ -245,8 +245,8 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         //sol::resolve<float(const Frustum&, bool) const>(&Ray::HitDistance),
         //sol::resolve<float(const Sphere&) const>(&Ray::HitDistance),
         [](Ray* self, const Vector3& v0, const Vector3& v1, const Vector3& v2) { return self->HitDistance(v0, v1, v2); });
-    bindRay["origin"] = &Ray::origin_;
-    bindRay["direction"] = &Ray::direction_;
+    bindRay["origin"]       = sol::property(&Ray::origin_);
+    bindRay["direction"]    = sol::property(&Ray::direction_);
 
 	math3d["Random"] = sol::overload(
 		sol::resolve<float(void)>(&Random),

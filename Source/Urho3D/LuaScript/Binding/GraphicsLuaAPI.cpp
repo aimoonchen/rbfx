@@ -330,23 +330,23 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
         [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color, bool depthTest) {self->AddTriangle(v1, v2, v3, color, depthTest); });
         
     auto bineMeshLineDesc = lua.new_usertype<MeshLine::LineDesc>("MeshLineDesc", sol::call_constructor, sol::factories([]() { return MeshLine::LineDesc(); }));
-    bineMeshLineDesc["model_mat"]       = &MeshLine::LineDesc::model_mat;
-    bineMeshLineDesc["color"]           = &MeshLine::LineDesc::color;
-    bineMeshLineDesc["width"]           = &MeshLine::LineDesc::width;
-    bineMeshLineDesc["attenuation"]     = &MeshLine::LineDesc::attenuation;
-    bineMeshLineDesc["depth"]           = &MeshLine::LineDesc::depth;
-    bineMeshLineDesc["depth_bias"]      = &MeshLine::LineDesc::depth_bias;
-    bineMeshLineDesc["repeat"]          = &MeshLine::LineDesc::repeat;
-    bineMeshLineDesc["visibility"]      = &MeshLine::LineDesc::visibility;
-    bineMeshLineDesc["use_dash"]        = &MeshLine::LineDesc::use_dash;
-    bineMeshLineDesc["dash_array"]      = &MeshLine::LineDesc::dash_array;
-    bineMeshLineDesc["dash_offset"]     = &MeshLine::LineDesc::dash_offset;
-    bineMeshLineDesc["dash_ratio"]      = &MeshLine::LineDesc::dash_ratio;
-    bineMeshLineDesc["alpha_fade"]      = &MeshLine::LineDesc::alpha_fade;
-    bineMeshLineDesc["texture"]         = &MeshLine::LineDesc::tex;
-    bineMeshLineDesc["alpha_texture"]   = &MeshLine::LineDesc::alphaTex;
-    bineMeshLineDesc["cache"]           = &MeshLine::LineDesc::cache;
-    bineMeshLineDesc["visible"]         = &MeshLine::LineDesc::visible;
+    bineMeshLineDesc["model_mat"]       = sol::property(&MeshLine::LineDesc::model_mat);
+    bineMeshLineDesc["color"]           = sol::property(&MeshLine::LineDesc::color);
+    bineMeshLineDesc["width"]           = sol::property(&MeshLine::LineDesc::width);
+    bineMeshLineDesc["attenuation"]     = sol::property(&MeshLine::LineDesc::attenuation);
+    bineMeshLineDesc["depth"]           = sol::property(&MeshLine::LineDesc::depth);
+    bineMeshLineDesc["depth_bias"]      = sol::property(&MeshLine::LineDesc::depth_bias);
+    bineMeshLineDesc["repeat"]          = sol::property(&MeshLine::LineDesc::repeat);
+    bineMeshLineDesc["visibility"]      = sol::property(&MeshLine::LineDesc::visibility);
+    bineMeshLineDesc["use_dash"]        = sol::property(&MeshLine::LineDesc::use_dash);
+    bineMeshLineDesc["dash_array"]      = sol::property(&MeshLine::LineDesc::dash_array);
+    bineMeshLineDesc["dash_offset"]     = sol::property(&MeshLine::LineDesc::dash_offset);
+    bineMeshLineDesc["dash_ratio"]      = sol::property(&MeshLine::LineDesc::dash_ratio);
+    bineMeshLineDesc["alpha_fade"]      = sol::property(&MeshLine::LineDesc::alpha_fade);
+    bineMeshLineDesc["texture"]         = sol::property(&MeshLine::LineDesc::tex);
+    bineMeshLineDesc["alpha_texture"]   = sol::property(&MeshLine::LineDesc::alphaTex);
+    bineMeshLineDesc["cache"]           = sol::property(&MeshLine::LineDesc::cache);
+    bineMeshLineDesc["visible"]         = sol::property(&MeshLine::LineDesc::visible);
 
     auto bindMeshLine = lua.new_usertype<MeshLine>("MeshLine", sol::base_classes, sol::bases<Component>());
     bindMeshLine["id"]              = sol::var(StringHash("MeshLine"));
@@ -470,8 +470,8 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     auto bindAnimationParameters = lua.new_usertype<AnimationParameters>("AnimationParameters", sol::call_constructor, sol::factories(
             [](Animation* animation) { return AnimationParameters(animation); },
             [context](const ea::string& animationName) { return AnimationParameters(context, animationName); }));
-    bindAnimationParameters["weight"]           = &AnimationParameters::weight_;
-    bindAnimationParameters["Looped"]           = &AnimationParameters::Looped;
+    bindAnimationParameters["weight"]           = sol::property(&AnimationParameters::weight_);
+    bindAnimationParameters["Looped"]           = sol::property(&AnimationParameters::Looped);
     bindAnimationParameters["StartBone"]        = &AnimationParameters::StartBone;
     bindAnimationParameters["Layer"]            = &AnimationParameters::Layer;
     bindAnimationParameters["Time"]             = &AnimationParameters::Time;
@@ -534,10 +534,10 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bindDecalSet["RemoveAllDecals"] = &DecalSet::RemoveAllDecals;
         
     auto bindBillboard = lua.new_usertype<Billboard>("Billboard");
-    bindBillboard["position"]   = &Billboard::position_;
-    bindBillboard["size"]       = &Billboard::size_;
-    bindBillboard["rotation"]   = &Billboard::rotation_;
-    bindBillboard["enabled"]    = &Billboard::enabled_;
+    bindBillboard["position"]   = sol::property(&Billboard::position_);
+    bindBillboard["size"]       = sol::property(&Billboard::size_);
+    bindBillboard["rotation"]   = sol::property(&Billboard::rotation_);
+    bindBillboard["enabled"]    = sol::property(&Billboard::enabled_);
 
     auto bindBillboardSet = lua.new_usertype<BillboardSet>("BillboardSet", sol::base_classes, sol::bases<Drawable, Component>());
     bindBillboardSet["id"]                  = sol::var(StringHash("BillboardSet"));

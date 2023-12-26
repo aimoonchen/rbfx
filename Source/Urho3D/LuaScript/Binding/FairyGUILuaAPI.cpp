@@ -300,7 +300,7 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     bindPopupMenu["AddItem"] = [](PopupMenu* self, const ea::string& caption, sol::function func) { self->addItem(caption.c_str(), [func](EventContext* context) { CALL_LUA(func, context) }); };
 
 	auto bindGObject = fairygui.new_usertype<GObject>("GObject");
-    bindGObject["name"]                 = &GObject::name;
+    bindGObject["name"]                 = sol::property(&GObject::name);
     bindGObject["GetParent"]            = &GObject::getParent;
     bindGObject["SetPosition"]          = &GObject::setPosition;
     bindGObject["GetPosition"]          = [](GObject* obj) {
@@ -387,8 +387,7 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     bindGGraph["DrawRect"] = [](GGraph* obj, float aWidth, float aHeight, int lineSize, const Urho3D::Color& lineColor, const Urho3D::Color& fillColor) {
         obj->drawRect(aWidth, aHeight, lineSize, Color4FFromUrhoColor(lineColor), Color4FFromUrhoColor(fillColor)); };
         
-    fairygui.new_usertype<TextFormat>("TextFormat",
-        "face", &TextFormat::face);
+    fairygui.new_usertype<TextFormat>("TextFormat", "face", sol::property(&TextFormat::face));
 
     auto bindGBasicTextField = fairygui.new_usertype<GBasicTextField>("GBasicTextField", sol::base_classes, sol::bases<GTextField, GObject>());
     bindGBasicTextField["SetAutoSize"]      = &GBasicTextField::setAutoSize;
@@ -431,7 +430,7 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     bindGComponent["GetScrollPane"]         = &GComponent::getScrollPane;
 		
     fairygui.new_usertype<GGroup>("GGroup",
-        "name", &GObject::name,
+        "name", sol::property(&GObject::name),
 		sol::base_classes, sol::bases<GObject>());
     
     fairygui.new_usertype<GImage>("GImage",
@@ -580,7 +579,7 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     auto bindFairyGUIScene = fairygui.new_usertype<FairyGUIScene>("FairyGUIScene",
         sol::call_constructor, sol::factories([]() { return std::unique_ptr<FairyGUIScene>(FairyGUIScene::create()); }),
         sol::base_classes, sol::bases<cocos2d::Scene>());
-    bindFairyGUIScene["groot"] = &FairyGUIScene::_groot;
+    bindFairyGUIScene["groot"] = sol::property(&FairyGUIScene::_groot);
     bindFairyGUIScene["Schedule"] = [](FairyGUIScene* obj, sol::function func, const char* key) { obj->schedule([func](float dt) { CALL_LUA(func, dt) }, key); };
     bindFairyGUIScene["ScheduleOnce"] = [](FairyGUIScene* obj, sol::function func, float delay, const char* key) { obj->scheduleOnce([func](float dt) { CALL_LUA(func, dt) }, delay, key); };
         

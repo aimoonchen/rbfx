@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 #include "platform/CCPlatformConfig.h"
+#include "platform/CCDevice.h"
+#include "platform/CCFileUtils.h"
 #if CC_TARGET_PLATFORM == CC_PLATFORM_LINUX_
 #include "platform/CCDevice.h"
 #include "platform/CCFileUtils.h"
@@ -516,5 +518,15 @@ void Device::vibrate(float /*duration*/)
 {
 }
 
+NS_CC_END
+#endif
+#if CC_TARGET_PLATFORM == CC_PLATFORM_LINUX
+// TODO:
+NS_CC_BEGIN
+Data Device::getTextureDataForText(const char * text, const FontDefinition& textDefinition, TextAlign align, int &width, int &height, bool& hasPremultipliedAlpha)
+{
+    Data ret;
+    return ret;
+}
 NS_CC_END
 #endif
