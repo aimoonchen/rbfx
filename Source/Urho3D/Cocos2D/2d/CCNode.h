@@ -52,8 +52,6 @@ class Action;
 class LabelProtocol;
 class Scheduler;
 class ActionManager;
-class Component;
-class ComponentContainer;
 class EventDispatcher;
 class Scene;
 class Renderer;
@@ -1606,7 +1604,7 @@ public:
      * @param name A given name of component.
      * @return The Component by name.
      */
-    Component* getComponent(const std::string& name);
+    //Component* getComponent(const std::string& name);
 
     /**
      * Adds a component.
@@ -1614,7 +1612,7 @@ public:
      * @param component A given component.
      * @return True if added success.
      */
-    virtual bool addComponent(Component *component);
+    //virtual bool addComponent(Component *component);
 
     /**
      * Removes a component by its name.
@@ -1622,7 +1620,7 @@ public:
      * @param name A given name of component.
      * @return True if removed success.
      */
-    virtual bool removeComponent(const std::string& name);
+    //virtual bool removeComponent(const std::string& name);
 
     /** 
      * Removes a component by its pointer.
@@ -1630,11 +1628,11 @@ public:
      * @param component A given component.
      * @return True if removed success.
      */
-    virtual bool removeComponent(Component *component);
+    //virtual bool removeComponent(Component *component);
     /**
      * Removes all components
      */
-    virtual void removeAllComponents();
+    //virtual void removeAllComponents();
     /// @} end of component functions
     
     // overrides
@@ -1909,7 +1907,7 @@ protected:
     ccScriptType _scriptType;         ///< type of script binding, lua or javascript
 #endif
     
-    ComponentContainer *_componentContainer;        ///< Dictionary of components
+//    ComponentContainer *_componentContainer;        ///< Dictionary of components
     
     // opacity controls
     uint8_t     _displayedOpacity;

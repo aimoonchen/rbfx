@@ -66,8 +66,8 @@ int sol2_NetworkLuaAPI_open(sol::state& lua)
 	bindConnection["Disconnect"]        = &Connection::Disconnect;
 
 	auto bindNetwork = lua.new_usertype<Network>("Network");
-    bindNetwork["serverConnection"]     = sol::property(&Network::GetServerConnection);
-    bindNetwork["serverRunning"]        = sol::property(&Network::IsServerRunning);
+    bindNetwork["serverConnection"]     = sol::readonly_property(&Network::GetServerConnection);
+    bindNetwork["serverRunning"]        = sol::readonly_property(&Network::IsServerRunning);
     bindNetwork["StartServer"]          = [](Network* obj, unsigned short port) { obj->StartServer(port); };
     bindNetwork["StopServer"]           = &Network::StopServer;
     bindNetwork["Connect"]              = [](Network* obj, ea::string_view& url, Scene* scene, const VariantMap& identity) { return obj->Connect(url, scene, identity); };

@@ -34,8 +34,8 @@ int sol2_UILuaAPI_open(sol::state& lua)
     bindUIElement["opacity"]                = sol::property(&UIElement::GetOpacity, &UIElement::SetOpacity);
     bindUIElement["horizontalAlignment"]    = sol::property(&UIElement::GetHorizontalAlignment, &UIElement::SetHorizontalAlignment);
     bindUIElement["verticalAlignment"]      = sol::property(&UIElement::GetVerticalAlignment, &UIElement::SetVerticalAlignment);
-    bindUIElement["width"]                  = sol::property(&UIElement::GetWidth);
-    bindUIElement["height"]                 = sol::property(&UIElement::GetHeight);
+    bindUIElement["width"]                  = sol::readonly_property(&UIElement::GetWidth);
+    bindUIElement["height"]                 = sol::readonly_property(&UIElement::GetHeight);
     
     lua.new_usertype<BorderImage>("BorderImage", sol::constructors<BorderImage(Context*)>(), sol::base_classes, sol::bases<UIElement>());
 
@@ -58,8 +58,8 @@ int sol2_UILuaAPI_open(sol::state& lua)
     bindText["textAlignment"]   = sol::property(&Text::GetTextAlignment, &Text::SetTextAlignment);
         
     auto bindUI = lua.new_usertype<UI>("UI", sol::constructors<UI(Context*)>());
-    bindUI["root"]              = sol::property(&UI::GetRoot);
-    bindUI["focusElement"]      = sol::property(&UI::GetFocusElement);
+    bindUI["root"]              = sol::readonly_property(&UI::GetRoot);
+    bindUI["focusElement"]      = sol::readonly_property(&UI::GetFocusElement);
 
     auto context = GetContext(lua);
     lua["ui"] = context->GetSubsystem<UI>();

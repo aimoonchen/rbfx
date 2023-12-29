@@ -19416,7 +19416,7 @@ namespace sol { namespace function_detail {
 		}
 
 		template <bool is_yielding, bool no_trampoline>
-		static int call(lua_State* L) noexcept(std::is_nothrow_copy_assignable_v<T>) {
+		static int call(lua_State* L) /*noexcept(std::is_nothrow_copy_assignable_v<T>)*/ {
 			int nr;
 			if constexpr (no_trampoline) {
 				nr = real_call(L);
@@ -19456,7 +19456,7 @@ namespace sol { namespace function_detail {
 		}
 
 		template <bool is_yielding, bool no_trampoline>
-		static int call(lua_State* L) noexcept(std::is_nothrow_copy_assignable_v<T>) {
+		static int call(lua_State* L) /*noexcept(std::is_nothrow_copy_assignable_v<T>)*/ {
 			int nr;
 			if constexpr (no_trampoline) {
 				nr = real_call(L);

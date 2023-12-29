@@ -338,27 +338,27 @@ int sol2_RmlUI_open(sol::state& lua)
     rmlui["uicontext"].get_or_create<sol::table>();
     rmlui["script"].get_or_create<sol::table>();
     rmlui.new_enum("ModalFlag",
-        "None", Rml::ModalFlag::None,
-        "Modal", Rml::ModalFlag::Modal,
-        "Keep", Rml::ModalFlag::Keep);
+        "None",     Rml::ModalFlag::None,
+        "Modal",    Rml::ModalFlag::Modal,
+        "Keep",     Rml::ModalFlag::Keep);
     rmlui.new_enum("FocusFlag",
-        "None", Rml::FocusFlag::None,
+        "None",     Rml::FocusFlag::None,
         "Document", Rml::FocusFlag::Document,
-        "Keep", Rml::FocusFlag::Keep,
-        "Auto", Rml::FocusFlag::Auto);
+        "Keep",     Rml::FocusFlag::Keep,
+        "Auto",     Rml::FocusFlag::Auto);
     rmlui.new_usertype<Rml::Variant>("Variant", "Get", [](Rml::Variant* self) { return self; });
 
     rmlui.new_usertype<Rml::Context>("Context",
-        "dimensions", sol::property(
+        "dimensions",       sol::property(
             [](Rml::Context* self) { auto dim = self->GetDimensions(); return Urho3D::IntVector2{dim.x, dim.y}; },
             [](Rml::Context* self, const Urho3D::IntVector2& dim) { self->SetDimensions({ dim.x_, dim.y_ }); }),
-        "dp_ratio", sol::property(&Rml::Context::GetDensityIndependentPixelRatio, &Rml::Context::SetDensityIndependentPixelRatio),
-        "focus_element", sol::property(&Rml::Context::GetFocusElement),
-        "hover_element", sol::property(&Rml::Context::GetHoverElement),
-        "name", sol::property(&Rml::Context::GetName),
-        "root_element", sol::property(&Rml::Context::GetRootElement),
-        "GetNumDocuments", &Rml::Context::GetNumDocuments,
-        "GetDocument", sol::overload(
+        "dp_ratio",         sol::property(&Rml::Context::GetDensityIndependentPixelRatio, &Rml::Context::SetDensityIndependentPixelRatio),
+        "focus_element",    sol::readonly_property(&Rml::Context::GetFocusElement),
+        "hover_element",    sol::readonly_property(&Rml::Context::GetHoverElement),
+        "name",             sol::readonly_property(&Rml::Context::GetName),
+        "root_element",     sol::readonly_property(&Rml::Context::GetRootElement),
+        "GetNumDocuments",  &Rml::Context::GetNumDocuments,
+        "GetDocument",      sol::overload(
             [](Rml::Context* self, const Rml::String& id) { return self->GetDocument(id); },
             [](Rml::Context* self, int index) { return self->GetDocument(index); }),
         "AddEventListener", [](Rml::Context* self, const Rml::String& event, sol::function function, bool capture, Rml::Element* element) {
@@ -395,74 +395,74 @@ int sol2_RmlUI_open(sol::state& lua)
         "StopImmediatePropagation", &Rml::Event::StopImmediatePropagation);
 
     rmlui.new_usertype<Rml::Element>("Element",
-        "attributes", sol::property(&Rml::Element::GetAttributes),
+        "attributes",           sol::readonly_property(&Rml::Element::GetAttributes),
         //TODO: "child_nodes", Proxy: lua pairs()
-        "class_name", sol::property(&Rml::Element::GetClassNames, &Rml::Element::SetClassNames),
-        "client_left", sol::property(&Rml::Element::GetClientLeft),
-        "client_height", sol::property(&Rml::Element::GetClientHeight),
-        "client_top", sol::property(&Rml::Element::GetClientTop),
-        "client_width", sol::property(&Rml::Element::GetClientWidth),
-        "first_child", sol::property(&Rml::Element::GetFirstChild),
-        "id", sol::property(&Rml::Element::GetId, &Rml::Element::SetId),
-        "inner_rml", sol::property(sol::resolve<Rml::String(void) const>(&Rml::Element::GetInnerRML), &Rml::Element::SetInnerRML),
-        "last_child", sol::property(&Rml::Element::GetLastChild),
-        "next_sibling", sol::property(&Rml::Element::GetNextSibling),
-        "offset_height", sol::property(&Rml::Element::GetOffsetHeight),
-        "offset_left", sol::property(&Rml::Element::GetOffsetLeft),
-        "offset_parent", sol::property(&Rml::Element::GetOffsetParent),
-        "offset_top", sol::property(&Rml::Element::GetOffsetTop),
-        "offset_width", sol::property(&Rml::Element::GetOffsetWidth),
-        "owner_document", sol::property(&Rml::Element::GetOwnerDocument),
-        "parent_node", sol::property(&Rml::Element::GetParentNode),
-        "previous_sibling", sol::property(&Rml::Element::GetPreviousSibling),
-        "scroll_height", sol::property(&Rml::Element::GetScrollHeight),
-        "scroll_left", sol::property(&Rml::Element::GetScrollLeft, &Rml::Element::SetScrollLeft),
-        "scroll_top", sol::property(&Rml::Element::GetScrollTop, &Rml::Element::SetScrollTop),
-        "scroll_width", sol::property(&Rml::Element::GetScrollWidth),
-        "style", sol::property([](Rml::Element* self, const Rml::String& name) { auto pro = self->GetProperty(name); return pro ? pro->ToString() : ""; }),
-        "tag_name", sol::property(&Rml::Element::GetTagName),
-        "GetAbsoluteOffset", [](Rml::Element* self) { auto offset = self->GetAbsoluteOffset(); return std::make_tuple(offset.x, offset.y); },
-        "GetProperty", [](Rml::Element* self, const Rml::String& name) { auto pro = self->GetProperty(name); return pro ? pro->ToString() : ""; },
-        "SetProperty", [](Rml::Element* self, const Rml::String& name, const Rml::String& value) { return self->SetProperty(name, value); },
-        "RemoveProperty", sol::resolve<void(const Rml::String&)>(&Rml::Element::RemoveProperty),
-        "SetAttribute", sol::overload(
+        "class_name",           sol::property(&Rml::Element::GetClassNames, &Rml::Element::SetClassNames),
+        "client_left",          sol::readonly_property(&Rml::Element::GetClientLeft),
+        "client_height",        sol::readonly_property(&Rml::Element::GetClientHeight),
+        "client_top",           sol::readonly_property(&Rml::Element::GetClientTop),
+        "client_width",         sol::readonly_property(&Rml::Element::GetClientWidth),
+        "first_child",          sol::readonly_property(&Rml::Element::GetFirstChild),
+        "id",                   sol::property(&Rml::Element::GetId, &Rml::Element::SetId),
+        "inner_rml",            sol::property(sol::resolve<Rml::String(void) const>(&Rml::Element::GetInnerRML), &Rml::Element::SetInnerRML),
+        "last_child",           sol::readonly_property(&Rml::Element::GetLastChild),
+        "next_sibling",         sol::readonly_property(&Rml::Element::GetNextSibling),
+        "offset_height",        sol::readonly_property(&Rml::Element::GetOffsetHeight),
+        "offset_left",          sol::readonly_property(&Rml::Element::GetOffsetLeft),
+        "offset_parent",        sol::readonly_property(&Rml::Element::GetOffsetParent),
+        "offset_top",           sol::readonly_property(&Rml::Element::GetOffsetTop),
+        "offset_width",         sol::readonly_property(&Rml::Element::GetOffsetWidth),
+        "owner_document",       sol::readonly_property(&Rml::Element::GetOwnerDocument),
+        "parent_node",          sol::readonly_property(&Rml::Element::GetParentNode),
+        "previous_sibling",     sol::readonly_property(&Rml::Element::GetPreviousSibling),
+        "scroll_height",        sol::readonly_property(&Rml::Element::GetScrollHeight),
+        "scroll_left",          sol::property(&Rml::Element::GetScrollLeft, &Rml::Element::SetScrollLeft),
+        "scroll_top",           sol::property(&Rml::Element::GetScrollTop, &Rml::Element::SetScrollTop),
+        "scroll_width",         sol::readonly_property(&Rml::Element::GetScrollWidth),
+        "style",                sol::property([](Rml::Element* self, const Rml::String& name) { auto pro = self->GetProperty(name); return pro ? pro->ToString() : ""; }),
+        "tag_name",             sol::readonly_property(&Rml::Element::GetTagName),
+        "GetAbsoluteOffset",    [](Rml::Element* self) { auto offset = self->GetAbsoluteOffset(); return std::make_tuple(offset.x, offset.y); },
+        "GetProperty",          [](Rml::Element* self, const Rml::String& name) { auto pro = self->GetProperty(name); return pro ? pro->ToString() : ""; },
+        "SetProperty",          [](Rml::Element* self, const Rml::String& name, const Rml::String& value) { return self->SetProperty(name, value); },
+        "RemoveProperty",       sol::resolve<void(const Rml::String&)>(&Rml::Element::RemoveProperty),
+        "SetAttribute",         sol::overload(
             [](Rml::Element* self, const Rml::String& name, bool value) { self->SetAttribute(name, value); },
             [](Rml::Element* self, const Rml::String& name, int value) { self->SetAttribute(name, value); },
             [](Rml::Element* self, const Rml::String& name, float value) { self->SetAttribute(name, value); },
             [](Rml::Element* self, const Rml::String& name, const Rml::String& value) { self->SetAttribute(name, value); }),
-        "AddEventListener", sol::overload(
+        "AddEventListener",     sol::overload(
             [](Rml::Element* self, const Rml::String& event, sol::function function) {
                 self->AddEventListener(event, new Rml::Lua::LuaEventListener(function, self));
             },
             [](Rml::Element* self, const Rml::String& event, sol::function function, bool capture) {
                 self->AddEventListener(event, new Rml::Lua::LuaEventListener(function, self), capture);
             }),
-        "AppendChild", sol::overload(
+        "AppendChild",          sol::overload(
             [](Rml::Element* self, Rml::ElementPtr& child) { return self->AppendChild(std::move(child)); },
             [](Rml::Element* self, Rml::ElementPtr& child, bool dom_element) { return self->AppendChild(std::move(child), dom_element); }),
-        "Blur", &Rml::Element::Blur,
-        "Click", &Rml::Element::Click,
-        "DispatchEvent", sol::overload(
+        "Blur",                 &Rml::Element::Blur,
+        "Click",                &Rml::Element::Click,
+        "DispatchEvent",        sol::overload(
             [](Rml::Element* self, const Rml::String& type, const Rml::Dictionary& parameters) { return self->DispatchEvent(type, parameters); },
             [](Rml::Element* self, const Rml::String& type, const Rml::Dictionary& parameters, bool interruptible, bool bubbles) { return self->DispatchEvent(type, parameters, interruptible, bubbles); }),
-        "Focus", &Rml::Element::Focus,
-        "GetAttribute", [](Rml::Element* self, const Rml::String& name) { return self->GetAttribute(name); },
-        "GetElementById", &Rml::Element::GetElementById,
+        "Focus",                &Rml::Element::Focus,
+        "GetAttribute",         [](Rml::Element* self, const Rml::String& name) { return self->GetAttribute(name); },
+        "GetElementById",       &Rml::Element::GetElementById,
         "GetElementsByTagName", &Rml::Element::GetElementsByTagName,
-        "QuerySelector", &Rml::Element::QuerySelector,
-        "QuerySelectorAll", &Rml::Element::QuerySelectorAll,
-        "HasAttribute", &Rml::Element::HasAttribute,
-        "HasChildNodes", &Rml::Element::HasChildNodes,
-        "InsertBefore", [](Rml::Element* self, Rml::ElementPtr& element, Rml::Element* adjacent_element) { return self->InsertBefore(std::move(element), adjacent_element); },
-        "IsClassSet", &Rml::Element::IsClassSet,
-        "RemoveAttribute", &Rml::Element::RemoveAttribute,
-        "RemoveChild", &Rml::Element::RemoveChild,
-        "ReplaceChild", [](Rml::Element* self, Rml::ElementPtr& inserted_element, Rml::Element* replaced_element) { return self->ReplaceChild(std::move(inserted_element), replaced_element); },
-        "ScrollIntoView", sol::resolve<void(bool)>(&Rml::Element::ScrollIntoView),
-        "SetClass", &Rml::Element::SetClass,
-        "GetNumChildren", &Rml::Element::GetNumChildren,
-        "GetChild", &Rml::Element::GetChild,
-        "Animate", sol::overload(
+        "QuerySelector",        &Rml::Element::QuerySelector,
+        "QuerySelectorAll",     &Rml::Element::QuerySelectorAll,
+        "HasAttribute",         &Rml::Element::HasAttribute,
+        "HasChildNodes",        &Rml::Element::HasChildNodes,
+        "InsertBefore",         [](Rml::Element* self, Rml::ElementPtr& element, Rml::Element* adjacent_element) { return self->InsertBefore(std::move(element), adjacent_element); },
+        "IsClassSet",           &Rml::Element::IsClassSet,
+        "RemoveAttribute",      &Rml::Element::RemoveAttribute,
+        "RemoveChild",          &Rml::Element::RemoveChild,
+        "ReplaceChild",         [](Rml::Element* self, Rml::ElementPtr& inserted_element, Rml::Element* replaced_element) { return self->ReplaceChild(std::move(inserted_element), replaced_element); },
+        "ScrollIntoView",       sol::resolve<void(bool)>(&Rml::Element::ScrollIntoView),
+        "SetClass",             &Rml::Element::SetClass,
+        "GetNumChildren",       &Rml::Element::GetNumChildren,
+        "GetChild",             &Rml::Element::GetChild,
+        "Animate",              sol::overload(
             [](Rml::Element* self, const Rml::String& name, sol::nested<Rml::Vector<Rml::TransformPrimitive>> trans, float duration) { return self->Animate(name, Rml::Transform::MakeProperty(trans.value()), duration); },
             [](Rml::Element* self, const Rml::String& name, sol::nested<Rml::Vector<Rml::TransformPrimitive>> trans, float duration, int tween_type, int tween_dir) { return self->Animate(name, Rml::Transform::MakeProperty(trans.value()), duration, Rml::Tween{ (Rml::Tween::Type)tween_type, (Rml::Tween::Direction)tween_dir }); },
             [](Rml::Element* self, const Rml::String& name, sol::nested<Rml::Vector<Rml::TransformPrimitive>> trans, float duration, int tween_type, int tween_dir, int num_iterations) { return self->Animate(name, Rml::Transform::MakeProperty(trans.value()), duration, Rml::Tween{ (Rml::Tween::Type)tween_type, (Rml::Tween::Direction)tween_dir }, num_iterations); },
@@ -477,12 +477,12 @@ int sol2_RmlUI_open(sol::state& lua)
                 auto start = PropertyFromString(name, start_value);
                 return self->Animate(name, PropertyFromString(name, value), duration, Rml::Tween{ (Rml::Tween::Type)tween_type, (Rml::Tween::Direction)tween_dir }, num_iterations, alternate_direction, delay, &start);
             }),
-        "AddAnimationKey", sol::overload(
+        "AddAnimationKey",      sol::overload(
             [](Rml::Element* self, const Rml::String& name, sol::nested<Rml::Vector<Rml::TransformPrimitive>> trans, float duration) { return self->AddAnimationKey(name, Rml::Transform::MakeProperty(trans.value()), duration); },
             [](Rml::Element* self, const Rml::String& name, sol::nested<Rml::Vector<Rml::TransformPrimitive>> trans, float duration, int tween_type, int tween_dir) { return self->AddAnimationKey(name, Rml::Transform::MakeProperty(trans.value()), duration, Rml::Tween{ (Rml::Tween::Type)tween_type, (Rml::Tween::Direction)tween_dir }); },
             [](Rml::Element* self, const Rml::String& name, const Rml::String& value, float duration) { return self->AddAnimationKey(name, PropertyFromString(name, value), duration); },
             [](Rml::Element* self, const Rml::String& name, const Rml::String& value, float duration, int tween_type, int tween_dir) { return self->AddAnimationKey(name, PropertyFromString(name, value), duration, Rml::Tween{ (Rml::Tween::Type)tween_type, (Rml::Tween::Direction)tween_dir }); }),
-        "GetRealElement", [](Rml::Element* self) { return self; }
+        "GetRealElement",       [](Rml::Element* self) { return self; }
         );
     rmlui.new_usertype<Rml::ElementDocument>("Document",
         "title", sol::property(&Rml::ElementDocument::GetTitle, &Rml::ElementDocument::SetTitle),

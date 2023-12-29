@@ -102,7 +102,7 @@ Node::Node()
 #if CC_ENABLE_SCRIPT_BINDING
 , _updateScriptHandler(0)
 #endif
-, _componentContainer(nullptr)
+//, _componentContainer(nullptr)
 , _displayedOpacity(255)
 , _realOpacity(255)
 , _displayedColor(Color3B::WHITE)
@@ -168,9 +168,9 @@ Node::~Node()
         child->_parent = nullptr;
     }
 
-    removeAllComponents();
+//    removeAllComponents();
     
-    CC_SAFE_DELETE(_componentContainer);
+//    CC_SAFE_DELETE(_componentContainer);
     
     stopAllActions();
     unscheduleAllCallbacks();
@@ -1910,18 +1910,18 @@ void Node::updateTransform()
 }
 
 // MARK: components
-
-Component* Node::getComponent(const std::string& name)
-{
+// 
+// Component* Node::getComponent(const std::string& name)
+// {
 //     if (_componentContainer)
 //         return _componentContainer->get(name);
-    
-    return nullptr;
-}
-
-bool Node::addComponent(Component *component)
-{
-    // lazy alloc
+//     
+//     return nullptr;
+// }
+// 
+// bool Node::addComponent(Component *component)
+// {
+//     // lazy alloc
 //     if (!_componentContainer)
 //         _componentContainer = new (std::nothrow) ComponentContainer(this);
 //     
@@ -1929,32 +1929,32 @@ bool Node::addComponent(Component *component)
 //     scheduleUpdate();
 //     
 //     return _componentContainer->add(component);
-    return false;
-}
-
-bool Node::removeComponent(const std::string& name)
-{
+//     return false;
+// }
+// 
+// bool Node::removeComponent(const std::string& name)
+// {
 //     if (_componentContainer)
 //         return _componentContainer->remove(name);
-    
-    return false;
-}
-
-bool Node::removeComponent(Component *component)
-{
+//     
+//     return false;
+// }
+// 
+// bool Node::removeComponent(Component *component)
+// {
 //     if (_componentContainer)
 //     {
 //         return _componentContainer->remove(component);
 //     }
-    
-    return false;
-}
-
-void Node::removeAllComponents()
-{
+//     
+//     return false;
+// }
+// 
+// void Node::removeAllComponents()
+// {
 //     if (_componentContainer)
 //         _componentContainer->removeAll();
-}
+// }
 
 // MARK: Opacity and Color
 

@@ -34,7 +34,7 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
         
     auto bindDynamicNavigationMesh = lua.new_usertype<DynamicNavigationMesh>("DynamicNavigationMesh", sol::base_classes, sol::bases<NavigationMesh, Component>());
     bindDynamicNavigationMesh["id"]                 = sol::var(StringHash("DynamicNavigationMesh"));
-    bindDynamicNavigationMesh["bounding_box"]       = sol::property(&DynamicNavigationMesh::GetBoundingBox);
+    bindDynamicNavigationMesh["bounding_box"]       = sol::readonly_property(&DynamicNavigationMesh::GetBoundingBox);
     bindDynamicNavigationMesh["Allocate"]           = &DynamicNavigationMesh::Allocate;
     bindDynamicNavigationMesh["GetTileData"]        = [](DynamicNavigationMesh* self, const IntVector2& tile) {
         const auto& tdata = self->GetTileData(tile);
@@ -60,16 +60,16 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
     bindDynamicNavigationMesh["SetDrawOffMeshConnections"]  = &DynamicNavigationMesh::SetDrawOffMeshConnections;
 
     auto bindCrowdObstacleAvoidanceParams = lua.new_usertype<CrowdObstacleAvoidanceParams>("CrowdObstacleAvoidanceParams");
-    bindCrowdObstacleAvoidanceParams["velBias"]         = sol::property(&CrowdObstacleAvoidanceParams::velBias);
-    bindCrowdObstacleAvoidanceParams["weightDesVel"]    = sol::property(&CrowdObstacleAvoidanceParams::weightDesVel);
-    bindCrowdObstacleAvoidanceParams["weightCurVel"]    = sol::property(&CrowdObstacleAvoidanceParams::weightCurVel);
-    bindCrowdObstacleAvoidanceParams["weightSide"]      = sol::property(&CrowdObstacleAvoidanceParams::weightSide);
-    bindCrowdObstacleAvoidanceParams["weightToi"]       = sol::property(&CrowdObstacleAvoidanceParams::weightToi);
-    bindCrowdObstacleAvoidanceParams["horizTime"]       = sol::property(&CrowdObstacleAvoidanceParams::horizTime);
-    bindCrowdObstacleAvoidanceParams["gridSize"]        = sol::property(&CrowdObstacleAvoidanceParams::gridSize);
-    bindCrowdObstacleAvoidanceParams["adaptiveDivs"]    = sol::property(&CrowdObstacleAvoidanceParams::adaptiveDivs);
-    bindCrowdObstacleAvoidanceParams["adaptiveRings"]   = sol::property(&CrowdObstacleAvoidanceParams::adaptiveRings);
-    bindCrowdObstacleAvoidanceParams["adaptiveDepth"]   = sol::property(&CrowdObstacleAvoidanceParams::adaptiveDepth);
+    bindCrowdObstacleAvoidanceParams["velBias"]         = &CrowdObstacleAvoidanceParams::velBias;
+    bindCrowdObstacleAvoidanceParams["weightDesVel"]    = &CrowdObstacleAvoidanceParams::weightDesVel;
+    bindCrowdObstacleAvoidanceParams["weightCurVel"]    = &CrowdObstacleAvoidanceParams::weightCurVel;
+    bindCrowdObstacleAvoidanceParams["weightSide"]      = &CrowdObstacleAvoidanceParams::weightSide;
+    bindCrowdObstacleAvoidanceParams["weightToi"]       = &CrowdObstacleAvoidanceParams::weightToi;
+    bindCrowdObstacleAvoidanceParams["horizTime"]       = &CrowdObstacleAvoidanceParams::horizTime;
+    bindCrowdObstacleAvoidanceParams["gridSize"]        = &CrowdObstacleAvoidanceParams::gridSize;
+    bindCrowdObstacleAvoidanceParams["adaptiveDivs"]    = &CrowdObstacleAvoidanceParams::adaptiveDivs;
+    bindCrowdObstacleAvoidanceParams["adaptiveRings"]   = &CrowdObstacleAvoidanceParams::adaptiveRings;
+    bindCrowdObstacleAvoidanceParams["adaptiveDepth"]   = &CrowdObstacleAvoidanceParams::adaptiveDepth;
         
     auto bindCrowdAgent = lua.new_usertype<CrowdAgent>("CrowdAgent", sol::base_classes, sol::bases<Component>());
     bindCrowdAgent["id"]                    = sol::var(StringHash("CrowdAgent"));

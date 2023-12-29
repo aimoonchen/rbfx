@@ -84,9 +84,9 @@ int sol2_InputLuaAPI_open(sol::state& lua)
     auto input = lua["input"].get_or_create<sol::table>();
 
     auto bindTouchState = input.new_usertype<TouchState>("TouchState");
-    bindTouchState["position"]          = sol::property(&TouchState::position_);
-    bindTouchState["delta"]             = sol::property(&TouchState::delta_);
-    bindTouchState["touchedElement"]    = sol::property([](TouchState* obj) { return obj->touchedElement_.Get(); });
+    bindTouchState["position"]          = sol::readonly_property(&TouchState::position_);
+    bindTouchState["delta"]             = sol::readonly_property(&TouchState::delta_);
+    bindTouchState["touchedElement"]    = sol::readonly_property([](TouchState* self) { return self->touchedElement_.Get(); });
 
     auto context = GetContext(lua.lua_state());
     auto gui = context->GetSubsystem<GUI>();
@@ -107,7 +107,7 @@ int sol2_InputLuaAPI_open(sol::state& lua)
     bindInput["touchEmulation"]         = sol::property(&Input::GetTouchEmulation, &Input::SetTouchEmulation);
     bindInput["mouseVisible"]           = sol::property(&Input::IsMouseVisible, [](Input* self, bool enable) { self->SetMouseVisible(enable); });
     bindInput["mouseMode"]              = sol::property(&Input::GetMouseMode, [](Input* self, MouseMode mode) { self->SetMouseMode(mode); });
-    bindInput["mouseMove"]              = sol::property(&Input::GetMouseMove);
+    bindInput["mouseMove"]              = sol::readonly_property(&Input::GetMouseMove);
     bindInput["GetMousePosition"]       = &Input::GetMousePosition;
     bindInput["GetQualifierDown"]       = [](Input* self, int qualifier) { return self->GetQualifierDown((Qualifier)qualifier); };
     bindInput["GetQualifierPress"]      = [](Input* self, int qualifier) { return self->GetQualifierPress((Qualifier)qualifier); };

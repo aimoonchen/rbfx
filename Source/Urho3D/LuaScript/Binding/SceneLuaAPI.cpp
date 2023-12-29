@@ -176,8 +176,8 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindNode["world_rotation"]      = sol::property(&Node::GetWorldRotation, &Node::SetWorldRotation);
     bindNode["world_position"]      = sol::property(&Node::GetWorldPosition, &Node::SetWorldPosition);
     bindNode["world_direction"]     = sol::property(&Node::GetWorldDirection, &Node::SetWorldDirection);
-    bindNode["world_up"]            = sol::property(&Node::GetWorldUp);
-    bindNode["world_right"]         = sol::property(&Node::GetWorldRight);
+    bindNode["world_up"]            = sol::readonly_property(&Node::GetWorldUp);
+    bindNode["world_right"]         = sol::readonly_property(&Node::GetWorldRight);
     bindNode["world_matrix"]        = sol::property(&Node::GetWorldTransform, sol::resolve<void(const Matrix3x4&)>(&Node::SetWorldTransform));
     bindNode["SetTransform"]        = sol::overload(
         [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetTransform(position, rotation); },
