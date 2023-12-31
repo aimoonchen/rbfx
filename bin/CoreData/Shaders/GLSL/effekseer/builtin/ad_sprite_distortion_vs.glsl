@@ -2,7 +2,9 @@
 #ifdef GL_ARB_shading_language_420pack
 #extension GL_ARB_shading_language_420pack : require
 #endif
-
+#ifdef GL_ES
+    precision highp float;
+#endif
 struct VS_Input
 {
     vec3 Pos;
@@ -31,7 +33,7 @@ struct VS_Output
     vec4 Blend_FBNextIndex_UV;
 };
 
-layout(binding = 0) uniform VS_ConstantBuffer
+uniform VS_ConstantBuffer
 {
     mat4 mCamera;
     mat4 mCameraProj;
@@ -40,7 +42,7 @@ layout(binding = 0) uniform VS_ConstantBuffer
     vec4 flipbookParameter2;
 } CBVS0;
 
-// layout(binding = 0) uniform VS_ConstantBuffer CBVS0;
+// uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec4 Input_Color;

@@ -18,10 +18,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
+#ifdef GL_ES
+    precision highp float;
+#endif
 in vec4 v_color;
 in vec2 v_texcoord;
-layout(location = 0) out vec4 _output;
+out vec4 _output;
 #define gl_FragColor _output
 void main()
 {

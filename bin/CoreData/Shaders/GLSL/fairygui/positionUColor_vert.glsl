@@ -22,10 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
+#ifdef GL_ES
+    precision highp float;
+    #define _LAYOUT(index)
+#else
+    #define _LAYOUT(index) layout(binding=index)
+#endif
 layout(location = 0) in vec4 a_position;
 
-layout(binding = 0) uniform VSConstants {
+_LAYOUT(0) uniform VSConstants {
     mat4 u_MVPMatrix;
     vec4 u_color;
 };

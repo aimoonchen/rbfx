@@ -2,7 +2,12 @@
 #ifdef GL_ARB_shading_language_420pack
 #extension GL_ARB_shading_language_420pack : require
 #endif
-
+#ifdef GL_ES
+    precision highp float;
+    #define _LAYOUT(index)
+#else
+    #define _LAYOUT(index) layout(binding=index)
+#endif
 struct PS_Input
 {
     vec4 PosVS;
@@ -11,7 +16,7 @@ struct PS_Input
     vec4 PosP;
 };
 
-layout(binding = 1) uniform PS_ConstantBuffer
+uniform PS_ConstantBuffer
 {
     vec4 fLightDirection;
     vec4 fLightColor;
@@ -33,10 +38,10 @@ layout(binding = 1) uniform PS_ConstantBuffer
     vec4 miscFlags;
 } CBPS0;
 
-// layout(binding = 1) uniform PS_ConstantBuffer CBPS0;
+// uniform PS_ConstantBuffer CBPS0;
 
-layout(binding = 0) uniform sampler2D Sampler_sampler_colorTex;
-layout(binding = 1) uniform sampler2D Sampler_sampler_depthTex;
+_LAYOUT(0) uniform sampler2D Sampler_sampler_colorTex;
+_LAYOUT(1) uniform sampler2D Sampler_sampler_depthTex;
 
 centroid in vec4 _VSPS_Color;
 centroid in vec2 _VSPS_UV;

@@ -21,8 +21,13 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-
-layout(binding = 0) uniform VSConstants {
+#ifdef GL_ES
+    precision highp float;
+    #define _LAYOUT(index)
+#else
+    #define _LAYOUT(index) layout(binding=index)
+#endif
+_LAYOUT(0) uniform VSConstants {
     float depth;
 };
 layout(location = 0) in vec4 a_position;

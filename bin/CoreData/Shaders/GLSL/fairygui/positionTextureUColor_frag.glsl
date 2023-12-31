@@ -22,14 +22,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-layout(binding = 1) uniform PSConstants {
+#ifdef GL_ES
+    precision highp float;
+    #define _LAYOUT(index)
+#else
+    #define _LAYOUT(index) layout(binding=index)
+#endif
+_LAYOUT(1) uniform PSConstants {
     vec4 u_color;
 };
-layout(binding = 0) uniform sampler2D u_texture;
+_LAYOUT(0) uniform sampler2D u_texture;
 
 in vec2 v_texCoord;
-layout(location = 0) out vec4 _output;
+out vec4 _output;
 #define gl_FragColor _output
 void main()
 {

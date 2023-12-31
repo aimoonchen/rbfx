@@ -5,7 +5,9 @@
 #ifdef GL_ARB_shader_draw_parameters
 #extension GL_ARB_shader_draw_parameters : enable
 #endif
-
+#ifdef GL_ES
+    precision highp float;
+#endif
 struct VS_Input
 {
     vec3 Pos;
@@ -28,7 +30,7 @@ struct VS_Output
     vec4 PosP;
 };
 
-layout(binding = 0) uniform VS_ConstantBuffer
+uniform VS_ConstantBuffer
 {
     mat4 mCameraProj;
     mat4 mModel_Inst[10];
@@ -40,7 +42,7 @@ layout(binding = 0) uniform VS_ConstantBuffer
     vec4 mUVInversed;
 } CBVS0;
 
-// layout(binding = 0) uniform VS_ConstantBuffer CBVS0;
+// uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec3 Input_Normal;

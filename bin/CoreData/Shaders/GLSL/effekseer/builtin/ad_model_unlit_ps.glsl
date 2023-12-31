@@ -2,7 +2,12 @@
 #ifdef GL_ARB_shading_language_420pack
 #extension GL_ARB_shading_language_420pack : require
 #endif
-
+#ifdef GL_ES
+    precision highp float;
+    #define _LAYOUT(index)
+#else
+    #define _LAYOUT(index) layout(binding=index)
+#endif
 struct PS_Input
 {
     vec4 PosVS;
@@ -27,7 +32,7 @@ struct AdvancedParameter
     float AlphaThreshold;
 };
 
-layout(binding = 1) uniform PS_ConstantBuffer
+uniform PS_ConstantBuffer
 {
     vec4 fLightDirection;
     vec4 fLightColor;
@@ -49,15 +54,15 @@ layout(binding = 1) uniform PS_ConstantBuffer
     vec4 miscFlags;
 } CBPS0;
 
-// layout(binding = 1) uniform PS_ConstantBuffer CBPS0;
+// uniform PS_ConstantBuffer CBPS0;
 
-layout(binding = 2) uniform sampler2D Sampler_sampler_uvDistortionTex;
-layout(binding = 0) uniform sampler2D Sampler_sampler_colorTex;
-layout(binding = 1) uniform sampler2D Sampler_sampler_alphaTex;
-layout(binding = 5) uniform sampler2D Sampler_sampler_blendUVDistortionTex;
-layout(binding = 3) uniform sampler2D Sampler_sampler_blendTex;
-layout(binding = 4) uniform sampler2D Sampler_sampler_blendAlphaTex;
-layout(binding = 6) uniform sampler2D Sampler_sampler_depthTex;
+_LAYOUT(2) uniform sampler2D Sampler_sampler_uvDistortionTex;
+_LAYOUT(0) uniform sampler2D Sampler_sampler_colorTex;
+_LAYOUT(1) uniform sampler2D Sampler_sampler_alphaTex;
+_LAYOUT(5) uniform sampler2D Sampler_sampler_blendUVDistortionTex;
+_LAYOUT(3) uniform sampler2D Sampler_sampler_blendTex;
+_LAYOUT(4) uniform sampler2D Sampler_sampler_blendAlphaTex;
+_LAYOUT(6) uniform sampler2D Sampler_sampler_depthTex;
 
 centroid in vec4 _VSPS_Color;
 centroid in vec4 _VSPS_UV_Others;
