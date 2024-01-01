@@ -1,13 +1,9 @@
 // version 330
+#include "../../common.glsl"
 #ifdef GL_ARB_shading_language_420pack
 #extension GL_ARB_shading_language_420pack : require
 #endif
-#ifdef GL_ES
-    precision highp float;
-    #define _LAYOUT(index)
-#else
-    #define _LAYOUT(index) layout(binding=index)
-#endif
+
 struct PS_Input
 {
     vec4 PosVS;

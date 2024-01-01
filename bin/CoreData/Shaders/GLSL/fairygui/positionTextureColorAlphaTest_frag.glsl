@@ -21,12 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifdef GL_ES
-    precision highp float;
-    #define _LAYOUT(index)
-#else
-    #define _LAYOUT(index) layout(binding=index)
-#endif
+#include "../common.glsl"
+
 in vec4 v_fragmentColor;
 in vec2 v_texCoord;
 

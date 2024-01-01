@@ -18,9 +18,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifdef GL_ES
-    precision highp float;
-#endif
+#include "../common.glsl"
+
 in vec4 v_color;
 in vec2 v_texcoord;
 out vec4 _output;

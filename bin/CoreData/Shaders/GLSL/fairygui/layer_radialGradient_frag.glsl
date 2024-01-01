@@ -21,12 +21,8 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#ifdef GL_ES
-    precision highp float;
-    #define _LAYOUT(index)
-#else
-    #define _LAYOUT(index) layout(binding=index)
-#endif
+#include "../common.glsl"
+
 _LAYOUT(1) uniform PSConstants {
     vec4 u_startColor;
     vec4 u_endColor;

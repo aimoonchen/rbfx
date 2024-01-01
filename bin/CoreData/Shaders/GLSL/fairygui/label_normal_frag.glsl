@@ -22,12 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifdef GL_ES
-    precision highp float;
-    #define _LAYOUT(index)
-#else
-    #define _LAYOUT(index) layout(binding=index)
-#endif
+#include "../common.glsl"
+
 in vec4 v_fragmentColor;
 in vec2 v_texCoord;
 
@@ -39,8 +35,14 @@ out vec4 _output;
 #define gl_FragColor _output
 void main()
 {
+    float tc = 1.0;
+#ifdef GL_ES
+    tc = texture(u_texture, v_texCoord).r; // texure format : R8_UNORM
+#else
+    tc = texture(u_texture, v_texCoord).a;
+#endif
     gl_FragColor =  v_fragmentColor * vec4(u_textColor.rgb,// RGB from uniform
-        u_textColor.a * texture(u_texture, v_texCoord).a// A from texture & uniform
+        u_textColor.a * tc// A from texture & uniform
     );
     #ifdef URHO3D_LINEAR_OUTPUT
         gl_FragColor.rgb *= gl_FragColor.rgb * (gl_FragColor.rgb * 0.305306011 + 0.682171111) + 0.012522878;

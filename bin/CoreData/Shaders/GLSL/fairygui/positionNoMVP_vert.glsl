@@ -21,9 +21,8 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#ifdef GL_ES
-    precision highp float;
-#endif
+#include "../common.glsl"
+
 layout(location = 0) in vec4 a_position;
 
 out vec4 v_position;

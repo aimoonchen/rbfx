@@ -1,10 +1,9 @@
 // version 330
+#include "../../common.glsl"
 #ifdef GL_ARB_shading_language_420pack
 #extension GL_ARB_shading_language_420pack : require
 #endif
-#ifdef GL_ES
-    precision highp float;
-#endif
+
 struct VS_Input
 {
     vec3 Pos;
