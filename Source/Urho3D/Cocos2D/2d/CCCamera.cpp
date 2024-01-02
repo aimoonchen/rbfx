@@ -444,12 +444,12 @@ void Camera::visit(Renderer* renderer, const Mat4 &parentTransform, uint32_t par
     return Node::visit(renderer, parentTransform, parentFlags);
 }
 
-void Camera::setBackgroundBrush(CameraBackgroundBrush* clearBrush)
-{
-//     CC_SAFE_RETAIN(clearBrush);
-//     CC_SAFE_RELEASE(_clearBrush);
-    _clearBrush = clearBrush;
-}
+// void Camera::setBackgroundBrush(CameraBackgroundBrush* clearBrush)
+// {
+// //     CC_SAFE_RETAIN(clearBrush);
+// //     CC_SAFE_RELEASE(_clearBrush);
+//     _clearBrush = clearBrush;
+// }
 
 bool Camera::isBrushValid()
 {

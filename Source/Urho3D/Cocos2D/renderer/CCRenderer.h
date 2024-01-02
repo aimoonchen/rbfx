@@ -229,7 +229,7 @@ public:
      * Get the render target flag.
      * @return The render target flag.
      */
-    RenderTargetFlag getRenderTargetFlag() const;
+    //RenderTargetFlag getRenderTargetFlag() const;
 
     // depth/stencil state.
 

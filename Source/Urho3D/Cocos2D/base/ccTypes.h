@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include "math/CCGeometry.h"
 #include "math/CCMath.h"
 #include "base/CCRef.h"
-#include "base/CCEnumClass.h"
+//#include "base/CCEnumClass.h"
 #include "renderer/backend/Types.h"
 
 /**
@@ -634,24 +634,24 @@ struct CC_DLL ScissorRect
     float height = 0;
 };
 
-enum class ClearFlag : uint8_t
-{
-    NONE = 0,
-    COLOR = 1,
-    DEPTH = 1 << 1,
-    STENCIL = 1 << 2,
-    ALL = COLOR | DEPTH | STENCIL
-};
-ENABLE_BITMASK_OPERATORS(ClearFlag)
-
-enum class RenderTargetFlag : uint8_t
-{
-    COLOR = 1,
-    DEPTH = 1 << 1,
-    STENCIL = 1 << 2,
-    ALL = COLOR | DEPTH | STENCIL
-};
-ENABLE_BITMASK_OPERATORS(RenderTargetFlag)
+// enum class ClearFlag : uint8_t
+// {
+//     NONE = 0,
+//     COLOR = 1,
+//     DEPTH = 1 << 1,
+//     STENCIL = 1 << 2,
+//     ALL = COLOR | DEPTH | STENCIL
+// };
+// ENABLE_BITMASK_OPERATORS(ClearFlag)
+// 
+// enum class RenderTargetFlag : uint8_t
+// {
+//     COLOR = 1,
+//     DEPTH = 1 << 1,
+//     STENCIL = 1 << 2,
+//     ALL = COLOR | DEPTH | STENCIL
+// };
+// ENABLE_BITMASK_OPERATORS(RenderTargetFlag)
 using TextureUsage = backend::TextureUsage;
 using PixelFormat = backend::PixelFormat;
 

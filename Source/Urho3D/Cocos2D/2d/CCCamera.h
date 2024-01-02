@@ -35,7 +35,7 @@ THE SOFTWARE.
 NS_CC_BEGIN
 
 class Scene;
-class CameraBackgroundBrush;
+//class CameraBackgroundBrush;
 
 /**
  * Note: 
@@ -258,12 +258,12 @@ public:
      * set the background brush. See CameraBackgroundBrush for more information.
      * @param clearBrush Brush used to clear the background
      */
-    void setBackgroundBrush(CameraBackgroundBrush* clearBrush);
+    //void setBackgroundBrush(CameraBackgroundBrush* clearBrush);
 
     /**
      * Get clear brush
      */
-    CameraBackgroundBrush* getBackgroundBrush() const { return _clearBrush; }
+    //CameraBackgroundBrush* getBackgroundBrush() const { return _clearBrush; }
 
     virtual void visit(Renderer* renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
 
@@ -311,7 +311,7 @@ protected:
     mutable bool _frustumDirty = true;
     int8_t  _depth = -1;                 //camera depth, the depth of camera with CameraFlag::DEFAULT flag is 0 by default, a camera with larger depth is drawn on top of camera with smaller depth
 
-    CameraBackgroundBrush* _clearBrush = nullptr; //brush used to clear the back ground
+//    CameraBackgroundBrush* _clearBrush = nullptr; //brush used to clear the back ground
 };
 
 NS_CC_END

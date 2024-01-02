@@ -53,7 +53,7 @@ THE SOFTWARE.
 #include "base/CCScheduler.h"
 #include "base/CCValue.h"
 #include "base/CCVector.h"
-#include "base/base64.h"
+//#include "base/base64.h"
 #include "base/ccConfig.h"
 #include "base/ccMacros.h"
 #include "base/ccTypes.h"
