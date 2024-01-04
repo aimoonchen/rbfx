@@ -1021,10 +1021,10 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
             resourceLayout.NumImmutableSamplers = ImtblSamplers.size();
         }
 
+        PSOCreateInfo.GraphicsPipeline.BlendDesc.IndependentBlendEnable = false;
         auto& blendDesc = PSOCreateInfo.GraphicsPipeline.BlendDesc.RenderTargets[0];
         blendDesc.BlendEnable = key.blendDescriptor.blendEnabled;
         if (key.blendDescriptor.blendEnabled) {
-            PSOCreateInfo.GraphicsPipeline.BlendDesc.IndependentBlendEnable = true;
             blendDesc.SrcBlend = blendFactorMap[(uint32_t)key.blendDescriptor.sourceRGBBlendFactor];
             blendDesc.DestBlend = blendFactorMap[(uint32_t)key.blendDescriptor.destinationRGBBlendFactor];
             blendDesc.BlendOp = blendOpMap[(uint32_t)key.blendDescriptor.rgbBlendOperation];

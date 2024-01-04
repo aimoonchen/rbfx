@@ -714,7 +714,11 @@ void PipelineState::CreateGPU(const GraphicsPipelineStateDesc& desc)
     ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
     ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaledDepthBias;
     ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = desc.slopeScaledDepthBias_;
+#if defined(__EMSCRIPTEN__)
+    ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = false;
+#else
     ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
+#endif
     ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = desc.scissorTestEnabled_;
     ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = !isOpenGL && desc.lineAntiAlias_;
 
