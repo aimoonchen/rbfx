@@ -202,10 +202,10 @@ void ValidateWindowSettings(WindowSettings& settings)
             settings.refreshRate_ = mode.refresh_rate;
     }
 
-#if defined(__EMSCRIPTEN__)
-    auto dpiScaling = emscripten_get_device_pixel_ratio();
-    settings.size_ *= (int)dpiScaling;
-#endif
+// #if defined(__EMSCRIPTEN__)
+//     auto dpiScaling = emscripten_get_device_pixel_ratio();
+//     settings.size_ *= (int)dpiScaling;
+// #endif
     // If fullscreen, snap to the closest matching mode
     if (settings.mode_ == WindowMode::Fullscreen)
     {

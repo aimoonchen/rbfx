@@ -630,6 +630,10 @@ void Renderer::drawBatchedTriangles()
     }
     batchesTotal++;
 
+#if defined(__EMSCRIPTEN__00)
+    deviceContext->UpdateBuffer(_vertexBuffer, vertexBufferFillOffset * sizeof(_verts[0]), _filledVertex * sizeof(_verts[0]), _verts, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+    deviceContext->UpdateBuffer(_indexBuffer, indexBufferFillOffset * sizeof(_indices[0]), _filledIndex * sizeof(_indices[0]), _indices, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+#else
     deviceContext->MapBuffer(_vertexBuffer, Diligent::MAP_WRITE, vertexBufferFillOffset != 0 ? Diligent::MAP_FLAG_NO_OVERWRITE : Diligent::MAP_FLAG_DISCARD, vertDst);
     if (vertDst) {
         memcpy((uint8_t*)vertDst + vertexBufferFillOffset * sizeof(_verts[0]), _verts, _filledVertex * sizeof(_verts[0]));
@@ -640,6 +644,7 @@ void Renderer::drawBatchedTriangles()
         memcpy((uint8_t*)indexDst + indexBufferFillOffset * sizeof(_indices[0]), _indices, _filledIndex * sizeof(_indices[0]));
         deviceContext->UnmapBuffer(_indexBuffer, Diligent::MAP_WRITE);
     }
+#endif
 // #ifdef CC_USE_METAL
 //     _vertexBuffer->updateSubData(_verts, vertexBufferFillOffset * sizeof(_verts[0]), _filledVertex * sizeof(_verts[0]));
 //     _indexBuffer->updateSubData(_indices, indexBufferFillOffset * sizeof(_indices[0]), _filledIndex * sizeof(_indices[0]));
