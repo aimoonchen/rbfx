@@ -140,7 +140,9 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
 // 		buffer_->Unlock();
 // 	}
 //  auto dirtied = blocks_.Allocate(size, offset);
-
+#if defined(__EMSCRIPTEN__)
+    renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+#else
     // TOOD: map a buffer_ for VertexBufferRing writing
     if (isDynamic_) {
         void* dst = nullptr;
@@ -152,6 +154,7 @@ void VertexBuffer::UpdateData(const void* src, int32_t size, int32_t offset)
     } else {
         renderDevice_->GetImmediateContext()->UpdateBuffer(buffer_, offset, size, src, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
+#endif
 }
 
 // void VertexBuffer::MakeAllDirtied()

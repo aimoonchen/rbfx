@@ -123,6 +123,9 @@ void CustomCommand::createIndexBuffer(IndexFormat format, std::size_t capacity, 
 void CustomCommand::updateVertexBuffer(void* data, std::size_t offset, std::size_t length)
 {   
     assert(_vertexBuffer);
+#if defined(__EMSCRIPTEN__)
+    _device->GetImmediateContext()->UpdateBuffer(_vertexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+#else
     if (_vertexBuffUsage == BufferUsage::STATIC) {
         _device->GetImmediateContext()->UpdateBuffer(_vertexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     } else {
@@ -133,11 +136,15 @@ void CustomCommand::updateVertexBuffer(void* data, std::size_t offset, std::size
             _device->GetImmediateContext()->UnmapBuffer(_vertexBuffer, Diligent::MAP_WRITE);
         }
     }
+#endif
 }
 
 void CustomCommand::updateIndexBuffer(void* data, std::size_t offset, std::size_t length)
 {
     assert(_indexBuffer);
+#if defined(__EMSCRIPTEN__)
+    _device->GetImmediateContext()->UpdateBuffer(_indexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+#else
     if (_indexBuffUsage == BufferUsage::STATIC) {
         _device->GetImmediateContext()->UpdateBuffer(_indexBuffer, offset, length, data, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     } else {
@@ -148,6 +155,7 @@ void CustomCommand::updateIndexBuffer(void* data, std::size_t offset, std::size_
             _device->GetImmediateContext()->UnmapBuffer(_indexBuffer, Diligent::MAP_WRITE);
         }
     }
+#endif
 }
 
 void CustomCommand::setVertexBuffer(Diligent::IBuffer *vertexBuffer)

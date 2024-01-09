@@ -630,7 +630,7 @@ void Renderer::drawBatchedTriangles()
     }
     batchesTotal++;
 
-#if defined(__EMSCRIPTEN__00)
+#if defined(__EMSCRIPTEN__)
     deviceContext->UpdateBuffer(_vertexBuffer, vertexBufferFillOffset * sizeof(_verts[0]), _filledVertex * sizeof(_verts[0]), _verts, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     deviceContext->UpdateBuffer(_indexBuffer, indexBufferFillOffset * sizeof(_indices[0]), _filledIndex * sizeof(_indices[0]), _indices, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 #else
