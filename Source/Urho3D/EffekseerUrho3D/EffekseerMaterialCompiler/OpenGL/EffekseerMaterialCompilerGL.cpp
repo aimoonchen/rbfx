@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "../../../RenderAPI/RenderAPIUtils.h"
 #include "../GLSLGenerator/ShaderGenerator.h"
 
 namespace Effekseer
@@ -87,7 +88,7 @@ CompiledMaterialBinary* MaterialCompilerGL::Compile(MaterialFile* materialFile, 
 	auto saveBinary = [this, &materialFile, &binary, &convertToVector, &maximumUniformCount, &maximumTextureCount](MaterialShaderType type)
 	{
 		GLSL::ShaderGenerator generator;
-		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, true, true, true, false, 0, false, false, is_vulkan_, InstanceCount);
+		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, true, true, !Urho3D::IsOpenGLESBackend(backend_), false, 0, false, false, (backend_ == Urho3D::RenderBackend::Vulkan), InstanceCount);
 		binary->SetVertexShaderData(type, convertToVector(shader.CodeVS));
 		binary->SetPixelShaderData(type, convertToVector(shader.CodePS));
 	};

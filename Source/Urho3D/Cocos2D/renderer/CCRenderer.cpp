@@ -951,7 +951,6 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
             rasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
         }
         rasterizerDesc.FrontCounterClockwise = true;
-        rasterizerDesc.DepthClipEnable = false;
         // Depth testing
         auto& depthStencilDesc = PSOCreateInfo.GraphicsPipeline.DepthStencilDesc;
         depthStencilDesc.DepthWriteEnable = false;

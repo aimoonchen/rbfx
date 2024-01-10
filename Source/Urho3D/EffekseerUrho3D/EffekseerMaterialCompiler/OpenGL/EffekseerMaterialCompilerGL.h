@@ -3,6 +3,7 @@
 
 #include "../../Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.h"
 #include <vector>
+#include "../../../RenderAPI/RenderAPIDefs.h"
 
 namespace Effekseer
 {
@@ -11,7 +12,7 @@ class MaterialCompilerGL : public MaterialCompiler, public ReferenceObject
 {
 private:
 public:
-    MaterialCompilerGL(bool isVulkan) : is_vulkan_{ isVulkan } {};
+    MaterialCompilerGL(Urho3D::RenderBackend backend) : backend_{ backend } {}
 
 	virtual ~MaterialCompilerGL() = default;
 
@@ -34,7 +35,7 @@ public:
 		return ReferenceObject::GetRef();
 	}
 private:
-    bool is_vulkan_{ false };
+    Urho3D::RenderBackend backend_;
 };
 
 } // namespace Effekseer

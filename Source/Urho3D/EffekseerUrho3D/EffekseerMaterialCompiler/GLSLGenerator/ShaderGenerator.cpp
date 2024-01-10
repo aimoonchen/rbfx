@@ -36,7 +36,7 @@ vec3 GetLightAmbientColor() {
 )";
 
 static const char* material_common_define_450 = R"(
-//#version 450
+// version 450
 #define LAYOUT(ind) layout(location = ind)
 #define lowp
 #define mediump
@@ -48,7 +48,7 @@ static const char* material_common_define_450 = R"(
 )";
 
 static const char* material_common_define_not_450 = R"(
-#define LAYOUT(ind) 
+#define LAYOUT(ind) layout(location = ind)
 #define IN in 
 #define OUT out 
 #define CENTROID centroid 
