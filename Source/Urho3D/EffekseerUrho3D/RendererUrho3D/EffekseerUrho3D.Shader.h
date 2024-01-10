@@ -64,15 +64,15 @@ public:
 	const Backend::VertexLayoutRef& GetVertexLayouts() { return vertexLayout_; }
     int32_t GetVertexSize() const { return vertexSize_; }
     const Effekseer::Backend::UniformLayoutRef& GetUniformLayout() const;
-	void SetVertexConstantBufferSize(int32_t size);
-	void SetPixelConstantBufferSize(int32_t size);
-	int32_t GetVertexConstantBufferSize() { return vertexConstantBufferSize; }
-	int32_t GetPixelConstantBufferSize() { return pixelConstantBufferSize; }
+	void SetVertexConstantBufferSize(int32_t size) override;
+	void SetPixelConstantBufferSize(int32_t size) override;
+	int32_t GetVertexConstantBufferSize() const { return vertexConstantBufferSize; }
+	int32_t GetPixelConstantBufferSize() const { return pixelConstantBufferSize; }
 
-	void* GetVertexConstantBuffer() { return m_vertexConstantBuffer; }
-	void* GetPixelConstantBuffer() { return m_pixelConstantBuffer; }
+	void* GetVertexConstantBuffer() override { return m_vertexConstantBuffer; }
+	void* GetPixelConstantBuffer() override { return m_pixelConstantBuffer; }
 
-	void SetConstantBuffer();
+	void SetConstantBuffer() override;
 };
 
 } // namespace EffekseerUrho3D

@@ -913,7 +913,13 @@ void RendererImplemented::DrawSprites(int32_t spriteCount, int32_t vertexOffset)
 
     Diligent::DrawIndexedAttribs DrawAttrs; // This is an indexed draw call
     DrawAttrs.IndexType = (currentIndexBuffer_->GetStrideType() == Effekseer::Backend::IndexBufferStrideType::Stride4) ? Diligent::VT_UINT32 : Diligent::VT_UINT16; // Index type
+#if defined(__EMSCRIPTEN__)
+    Diligent::Uint64 byteOffsets[] = { Diligent::Uint64(currentVertexBufferStride_ * vertexOffset) };
+    deviceContext_->SetVertexBuffers(0, 1, pBuffs, byteOffsets, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_NONE);
+#else
+    //BaseVertexSupported
     DrawAttrs.BaseVertex = vertexOffset;
+#endif
     if (m_renderMode == Effekseer::RenderMode::Normal) {
         DrawAttrs.NumIndices = spriteCount * 6;
 	} else {

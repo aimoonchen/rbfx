@@ -74,7 +74,7 @@ void Player::Setup()
 void Player::Start()
 {
     // Check for script file name from the arguments
-#ifdef _WIN32
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
     auto* input = GetSubsystem<Input>();
     input->SetMouseVisible(true);
 #endif

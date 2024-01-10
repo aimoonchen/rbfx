@@ -894,6 +894,8 @@ void RenderDevice::InitializeDevice()
     // Don't bother with deducing the format for now
     const bool isBGRA = false;
 
+    std::vector<Diligent::IDeviceContext*> ppContexts;
+    ppContexts.resize(2);
     Diligent::SwapChainDesc swapChainDesc{};
     swapChainDesc.ColorBufferFormat = colorFormats[isBGRA][windowSettings_.sRGB_];
     swapChainDesc.DepthBufferFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
@@ -944,8 +946,11 @@ void RenderDevice::InitializeDevice()
         createInfo.GraphicsAPIVersion = Diligent::Version{11, 0};
         createInfo.AdapterId = FindBestAdapter(factory_, createInfo.GraphicsAPIVersion, deviceSettings_.adapterId_);
 
-        factoryD3D12_->CreateDeviceAndContextsD3D12(createInfo, &renderDevice_, &deviceContext_);
 
+        createInfo.NumDeferredContexts = 1;
+        factoryD3D12_->CreateDeviceAndContextsD3D12(createInfo, &renderDevice_, ppContexts.data());
+        deviceContext_.Attach(ppContexts[0]);
+        deferredDeviceContext_.Attach(ppContexts[1]);
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> nativeSwapChain;
         factoryD3D12_->CreateSwapChainD3D12(
             renderDevice_, deviceContext_, swapChainDesc, fullscreenDesc, nativeWindow, &nativeSwapChain);
@@ -984,8 +989,11 @@ void RenderDevice::InitializeDevice()
         createInfo.IgnoreDebugMessageCount = _countof(ppIgnoreDebugMessages);
         createInfo.AdapterId = FindBestAdapter(factory_, createInfo.GraphicsAPIVersion, deviceSettings_.adapterId_);
 
-        factoryVulkan_->CreateDeviceAndContextsVk(createInfo, &renderDevice_, &deviceContext_);
 
+        createInfo.NumDeferredContexts = 1;
+        factoryVulkan_->CreateDeviceAndContextsVk(createInfo, &renderDevice_, ppContexts.data());
+        deviceContext_.Attach(ppContexts[0]);
+        deferredDeviceContext_.Attach(ppContexts[1]);
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> nativeSwapChain;
         factoryVulkan_->CreateSwapChainVk(renderDevice_, deviceContext_, swapChainDesc, nativeWindow, &nativeSwapChain);
         InitializeMultiSampleSwapChain(nativeSwapChain);
