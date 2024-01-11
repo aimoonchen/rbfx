@@ -28,7 +28,7 @@ struct VS_Output
     vec4 PosP;
 };
 
-uniform VS_ConstantBuffer
+_LAYOUT(0) uniform VS_ConstantBuffer
 {
     mat4 mCamera;
     mat4 mCameraProj;
@@ -37,7 +37,7 @@ uniform VS_ConstantBuffer
     vec4 flipbookParameter2;
 } CBVS0;
 
-// uniform VS_ConstantBuffer CBVS0;
+// _LAYOUT(0) uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec4 Input_Color;

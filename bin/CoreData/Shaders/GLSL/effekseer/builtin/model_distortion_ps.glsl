@@ -14,7 +14,7 @@ struct PS_Input
     vec4 Color;
 };
 
-uniform PS_ConstantBuffer
+_LAYOUT(1) uniform PS_ConstantBuffer
 {
     vec4 g_scale;
     vec4 mUVInversedBack;
@@ -26,7 +26,7 @@ uniform PS_ConstantBuffer
     vec4 reconstructionParam2;
 } CBPS0;
 
-// uniform PS_ConstantBuffer CBPS0;
+// _LAYOUT(1) uniform PS_ConstantBuffer CBPS0;
 
 _LAYOUT(0) uniform sampler2D Sampler_sampler_colorTex;
 _LAYOUT(1) uniform sampler2D Sampler_sampler_backTex;

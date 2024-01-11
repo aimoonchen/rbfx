@@ -28,7 +28,7 @@ struct AdvancedParameter
     float AlphaThreshold;
 };
 
-uniform PS_ConstantBuffer
+_LAYOUT(1) uniform PS_ConstantBuffer
 {
     vec4 fLightDirection;
     vec4 fLightColor;
@@ -50,7 +50,7 @@ uniform PS_ConstantBuffer
     vec4 miscFlags;
 } CBPS0;
 
-// uniform PS_ConstantBuffer CBPS0;
+// _LAYOUT(1) uniform PS_ConstantBuffer CBPS0;
 
 _LAYOUT(2) uniform sampler2D Sampler_sampler_uvDistortionTex;
 _LAYOUT(0) uniform sampler2D Sampler_sampler_colorTex;
