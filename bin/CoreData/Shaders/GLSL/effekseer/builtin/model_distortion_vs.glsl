@@ -28,7 +28,7 @@ struct VS_Output
     vec4 Color;
 };
 
-uniform VS_ConstantBuffer
+_LAYOUT(0) uniform VS_ConstantBuffer
 {
     mat4 mCameraProj;
     mat4 mModel_Inst[10];
@@ -40,7 +40,7 @@ uniform VS_ConstantBuffer
     vec4 mUVInversed;
 } CBVS0;
 
-// uniform VS_ConstantBuffer CBVS0;
+// _LAYOUT(0) uniform VS_ConstantBuffer CBVS0;
 
 layout(location = 0) in vec3 Input_Pos;
 layout(location = 1) in vec3 Input_Normal;
