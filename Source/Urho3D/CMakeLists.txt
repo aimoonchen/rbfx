@@ -166,7 +166,7 @@ foreach (var ${__cmake_variables})
         endif ()
     endif ()
 endforeach()
-
+add_compile_definitions(Py_NO_ENABLE_SHARED)
 target_compile_definitions(Urho3D PUBLIC -DNOMINMAX -DURHO3D_DEBUG=$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>)
 
 # Set platform definitions
@@ -236,6 +236,7 @@ set (PRIVATE_THIRD_PARTY_DEPENDENCIES
     SPIRV-Tools-opt
     SPIRV-Reflect
     Lua
+    Python
     astc
 )
 if (TARGET datachannel-wasm)

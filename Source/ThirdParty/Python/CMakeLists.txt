@@ -88,7 +88,7 @@ set(HEADER_FILES
     Objects/stringlib/split.h
     Objects/unicodetype_db.h
     Parser/tokenizer.h
-    # PC/errmap.h
+    PC/errmap.h
     # PC/pyconfig.h
     Python/importdl.h
     Python/stdlib_module_names.h
@@ -229,19 +229,15 @@ set(HEADER_FILES
     Include/internal/pycore_typevarobject.h      
     Include/internal/pycore_ucnhash.h      
     Include/internal/pycore_unionobject.h      
-    # $(zlibDir)/crc32.h
-    # $(zlibDir)/deflate.h
-    # $(zlibDir)/inffast.h
-    # $(zlibDir)/inffixed.h
-    # $(zlibDir)/inflate.h
-    # $(zlibDir)/inftrees.h
-    # $(zlibDir)/trees.h
-    # $(zlibDir)/zconf.h
-    # $(zlibDir)/zconf.in.h
-    # $(zlibDir)/zlib.h
-    # $(zlibDir)/zutil.h
     Include/internal/pycore_structseq.h
 )
+
+# source_group("Include" FILES ${HEADER_FILES})
+# source_group("Include\\cpython" FILES ${HEADER_FILES})
+# source_group("Include\\internal" FILES ${HEADER_FILES})
+# source_group("Include\\Objects" FILES ${HEADER_FILES})
+# source_group("Include\\Parser" FILES ${HEADER_FILES})
+# source_group("Python" FILES ${HEADER_FILES})
 
 set(SOURCE_FILES
     Modules/_abc.c
@@ -355,9 +351,8 @@ set(SOURCE_FILES
     Parser/tokenizer.c
     Parser/token.c
     # PC/winreg.c
-    # PC/config.c
+    PC/config.c
     # PC/dl_nt.c
-    # PC/msvcrtmodule.c
     Python/_warnings.c
     Python/asdl.c
     Python/assemble.c
@@ -369,12 +364,11 @@ set(SOURCE_FILES
     Python/codecs.c
     Python/compile.c
     Python/dynamic_annotations.c
-    Python/dynload_win.c
     Python/errors.c
     Python/fileutils.c
     Python/flowgraph.c
     Python/formatter_unicode.c
-    Python/frozen.c
+    # Python/frozen.c
     Python/future.c
     Python/getargs.c
     Python/getcompiler.c
@@ -418,14 +412,13 @@ set(SOURCE_FILES
     Python/traceback.c
     Python/tracemalloc.c
     Python/bootstrap_hash.c
-    Modules/_winapi.c
     Modules/_stat.c
     Python/pyhash.c
     Objects/namespaceobject.c
     Objects/interpreteridobject.c
     Modules/_opcode.c
     Modules/_tracemalloc.c
-    # PC/invalid_parameter_handler.c
+    PC/invalid_parameter_handler.c
     Objects/odictobject.c
     Modules/_contextvarsmodule.c
     # $(zlibDir)/adler32.c
@@ -453,32 +446,49 @@ set(SOURCE_FILES
     Objects/typevarobject.c
     Objects/unionobject.c
     Python/frame.c
-    Modules/getpath.c
+    # Modules/getpath.c
     Python/suggestions.c
     Python/Python-tokenize.c
     Modules/getbuildinfo.c
 )
+# if(WIN32)
+#     list(APPEND SOURCE_FILES
+#         Modules/_winapi.c
+#         Python/dynload_win.c
+#         PC/msvcrtmodule.c)
+# endif()
 add_compile_definitions(Py_BUILD_CORE)
 add_compile_definitions(Py_BUILD_CORE_BUILTIN)
+add_compile_definitions(VPATH="../..")
 include_directories("${PROJECT_SOURCE_DIR}/Include")
 include_directories("${PROJECT_SOURCE_DIR}/Include/internal")
 include_directories("${PROJECT_SOURCE_DIR}/Modules/_hacl/include")
 include_directories("${PROJECT_SOURCE_DIR}/Modules/_hacl/internal")
 include_directories("${PROJECT_SOURCE_DIR}/Python")
-if (WIN32)
+if(WIN32)
     include_directories("${PROJECT_SOURCE_DIR}/PC")
+else()
+    include_directories("${PROJECT_SOURCE_DIR}/Config")
 endif()
 
-add_library (Python STATIC ${SOURCE_FILES} ${HEADER_FILES})
+add_library (Python STATIC ${SOURCE_FILES})
 
-# target_include_directories(Python
-#     INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-# )
-
-# if (NOT MINI_URHO)
-#     install (DIRECTORY include/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
-#     if (NOT URHO3D_MERGE_STATIC_LIBS)
-#         install(TARGETS Python EXPORT Urho3D ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG})
-#     endif ()
-# endif ()
+target_include_directories(Python
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
+    PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
+)
+if(WIN32)
+    target_include_directories(Python
+        INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/PC>)
+else()
+    target_include_directories(Python
+        INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Config>)
+endif()
+if (NOT MINI_URHO)
+    install (DIRECTORY Include/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
+    install (DIRECTORY PC/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
+    install (DIRECTORY Config/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
+    if (NOT URHO3D_MERGE_STATIC_LIBS)
+        install(TARGETS Python EXPORT Urho3D ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG})
+    endif ()
+endif ()
