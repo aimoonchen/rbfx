@@ -67,90 +67,11 @@ set(HEADER_FILES
     Include/tupleobject.h
     Include/unicodeobject.h
     Include/weakrefobject.h
-    Modules/_math.h
-    Modules/rotatingtree.h
-    Modules/_io/_iomodule.h
-    Modules/cjkcodecs/alg_jisx0201.h
-    Modules/cjkcodecs/cjkcodecs.h
-    Modules/cjkcodecs/emu_jisx0213_2000.h
-    Modules/cjkcodecs/mappings_cn.h
-    Modules/cjkcodecs/mappings_hk.h
-    Modules/cjkcodecs/mappings_jisx0213_pair.h
-    Modules/cjkcodecs/mappings_jp.h
-    Modules/cjkcodecs/mappings_kr.h
-    Modules/cjkcodecs/mappings_tw.h
-    Modules/cjkcodecs/multibytecodec.h
-    Objects/stringlib/count.h
-    Objects/stringlib/fastsearch.h
-    Objects/stringlib/find.h
-    Objects/stringlib/partition.h
-    Objects/stringlib/replace.h
-    Objects/stringlib/split.h
-    Objects/unicodetype_db.h
-    Parser/tokenizer.h
-    PC/errmap.h
-    # PC/pyconfig.h
-    Python/importdl.h
-    Python/stdlib_module_names.h
-    Python/thread_nt.h
-    Python/condvar.h
+    Include/pyframe.h
     Include/pyhash.h
     Include/interpreteridobject.h
-    # Modules/hashtable.h
-    Parser/pegen.h
-    Parser/string_parser.h
-    Include/pyframe.h
-    Include/cpython/abstract.h      
-    Include/cpython/bytearrayobject.h      
-    Include/cpython/bytesobject.h      
-    Include/cpython/cellobject.h      
-    Include/cpython/ceval.h      
-    Include/cpython/classobject.h      
-    Include/cpython/code.h      
-    Include/cpython/compile.h
-    Include/cpython/complexobject.h
-    Include/cpython/context.h
-    Include/cpython/descrobject.h      
-    Include/cpython/dictobject.h      
-    Include/cpython/fileobject.h      
-    Include/cpython/fileutils.h      
-    Include/cpython/floatobject.h      
-    Include/cpython/import.h      
-    Include/cpython/listobject.h      
-    Include/cpython/longintrepr.h
-    Include/cpython/longobject.h
-    Include/cpython/memoryobject.h
-    Include/cpython/odictobject.h
-    Include/cpython/unicodeobject.h      
-    Include/cpython/warnings.h      
-    Include/cpython/weakrefobject.h      
-    Include/cpython/methodobject.h      
-    Include/cpython/modsupport.h      
-    Include/cpython/objimpl.h      
-    Include/cpython/object.h      
-    # Include/cpython/parser_interface.h
-    Include/cpython/picklebufobject.h
-    # Include/cpython/pyarena.h
-    Include/cpython/pyctype.h
-    Include/cpython/pydebug.h
-    Include/cpython/pyerrors.h      
-    Include/cpython/pyfpe.h
-    Include/cpython/pymem.h      
-    Include/cpython/pyframe.h      
-    Include/cpython/pylifecycle.h      
-    Include/cpython/pytime.h      
-    Include/cpython/tupleobject.h      
-    Include/cpython/traceback.h      
-    Include/cpython/frameobject.h      
-    Include/cpython/funcobject.h      
-    Include/cpython/genobject.h
-    Include/cpython/interpreteridobject.h      
-    Include/cpython/pythonrun.h      
-    Include/cpython/pythread.h      
-    Include/cpython/setobject.h      
-    Include/cpython/sysmodule.h      
-    Include/cpython/pystate.h      
-    Include/cpython/initconfig.h      
+)
+set(HEADER_FILES_INTERNAL       
     Include/internal/pycore_unicodeobject.h      
     Include/internal/pycore_unicodeobject_generated.h      
     Include/internal/pycore_warnings.h      
@@ -231,15 +152,74 @@ set(HEADER_FILES
     Include/internal/pycore_unionobject.h      
     Include/internal/pycore_structseq.h
 )
-
-# source_group("Include" FILES ${HEADER_FILES})
-# source_group("Include\\cpython" FILES ${HEADER_FILES})
-# source_group("Include\\internal" FILES ${HEADER_FILES})
-# source_group("Include\\Objects" FILES ${HEADER_FILES})
-# source_group("Include\\Parser" FILES ${HEADER_FILES})
-# source_group("Python" FILES ${HEADER_FILES})
-
-set(SOURCE_FILES
+set(HEADER_FILES_CPYTHON
+    Include/cpython/abstract.h      
+    Include/cpython/bytearrayobject.h      
+    Include/cpython/bytesobject.h      
+    Include/cpython/cellobject.h      
+    Include/cpython/ceval.h      
+    Include/cpython/classobject.h      
+    Include/cpython/code.h      
+    Include/cpython/compile.h
+    Include/cpython/complexobject.h
+    Include/cpython/context.h
+    Include/cpython/descrobject.h      
+    Include/cpython/dictobject.h      
+    Include/cpython/fileobject.h      
+    Include/cpython/fileutils.h      
+    Include/cpython/floatobject.h      
+    Include/cpython/import.h      
+    Include/cpython/listobject.h      
+    Include/cpython/longintrepr.h
+    Include/cpython/longobject.h
+    Include/cpython/memoryobject.h
+    Include/cpython/odictobject.h
+    Include/cpython/unicodeobject.h      
+    Include/cpython/warnings.h      
+    Include/cpython/weakrefobject.h      
+    Include/cpython/methodobject.h      
+    Include/cpython/modsupport.h      
+    Include/cpython/objimpl.h      
+    Include/cpython/object.h      
+    # Include/cpython/parser_interface.h
+    Include/cpython/picklebufobject.h
+    # Include/cpython/pyarena.h
+    Include/cpython/pyctype.h
+    Include/cpython/pydebug.h
+    Include/cpython/pyerrors.h      
+    Include/cpython/pyfpe.h
+    Include/cpython/pymem.h      
+    Include/cpython/pyframe.h      
+    Include/cpython/pylifecycle.h      
+    Include/cpython/pytime.h      
+    Include/cpython/tupleobject.h      
+    Include/cpython/traceback.h      
+    Include/cpython/frameobject.h      
+    Include/cpython/funcobject.h      
+    Include/cpython/genobject.h
+    Include/cpython/interpreteridobject.h      
+    Include/cpython/pythonrun.h      
+    Include/cpython/pythread.h      
+    Include/cpython/setobject.h      
+    Include/cpython/sysmodule.h      
+    Include/cpython/pystate.h      
+    Include/cpython/initconfig.h  
+)
+set(SOURCE_FILES_MODULES
+    Modules/_math.h
+    Modules/rotatingtree.h
+    Modules/_io/_iomodule.h
+    Modules/cjkcodecs/alg_jisx0201.h
+    Modules/cjkcodecs/cjkcodecs.h
+    Modules/cjkcodecs/emu_jisx0213_2000.h
+    Modules/cjkcodecs/mappings_cn.h
+    Modules/cjkcodecs/mappings_hk.h
+    Modules/cjkcodecs/mappings_jisx0213_pair.h
+    Modules/cjkcodecs/mappings_jp.h
+    Modules/cjkcodecs/mappings_kr.h
+    Modules/cjkcodecs/mappings_tw.h
+    Modules/cjkcodecs/multibytecodec.h
+    # Modules/hashtable.h
     Modules/_abc.c
     Modules/_bisectmodule.c
     Modules/_blake2/blake2module.c
@@ -308,6 +288,24 @@ set(SOURCE_FILES
     Modules/cjkcodecs/_codecs_kr.c
     Modules/cjkcodecs/_codecs_tw.c
     Modules/cjkcodecs/multibytecodec.c
+    Modules/_stat.c
+    Modules/_opcode.c
+    Modules/_tracemalloc.c
+    Modules/_contextvarsmodule.c
+    Modules/_xxsubinterpretersmodule.c
+    Modules/_xxinterpchannelsmodule.c
+    # Modules/getpath.c
+    Modules/getpath_noop.c
+    Modules/getbuildinfo.c
+)
+set(SOURCE_FILES_OBJECTS
+    Objects/stringlib/count.h
+    Objects/stringlib/fastsearch.h
+    Objects/stringlib/find.h
+    Objects/stringlib/partition.h
+    Objects/stringlib/replace.h
+    Objects/stringlib/split.h
+    Objects/unicodetype_db.h
     Objects/abstract.c
     # Objects/accu.c
     Objects/boolobject.c
@@ -347,12 +345,20 @@ set(SOURCE_FILES
     Objects/unicodectype.c
     Objects/unicodeobject.c
     Objects/weakrefobject.c
-    Parser/myreadline.c
-    Parser/tokenizer.c
-    Parser/token.c
-    # PC/winreg.c
-    PC/config.c
-    # PC/dl_nt.c
+    Objects/namespaceobject.c
+    Objects/interpreteridobject.c
+    Objects/odictobject.c
+    Objects/genericaliasobject.c
+    Objects/typevarobject.c
+    Objects/unionobject.c
+)
+set(SOURCE_FILES_PYTHON
+    # PC/errmap.h
+    # PC/pyconfig.h
+    # Python/importdl.h
+    Python/stdlib_module_names.h
+    Python/thread_nt.h
+    Python/condvar.h
     Python/_warnings.c
     Python/asdl.c
     Python/assemble.c
@@ -379,7 +385,7 @@ set(SOURCE_FILES
     Python/ceval_gil.c
     Python/hashtable.c
     Python/import.c
-    Python/importdl.c
+    # Python/importdl.c
     Python/initconfig.c
     Python/intrinsics.c
     Python/instrumentation.c
@@ -412,54 +418,54 @@ set(SOURCE_FILES
     Python/traceback.c
     Python/tracemalloc.c
     Python/bootstrap_hash.c
-    Modules/_stat.c
     Python/pyhash.c
-    Objects/namespaceobject.c
-    Objects/interpreteridobject.c
-    Modules/_opcode.c
-    Modules/_tracemalloc.c
-    PC/invalid_parameter_handler.c
-    Objects/odictobject.c
-    Modules/_contextvarsmodule.c
-    # $(zlibDir)/adler32.c
-    # $(zlibDir)/compress.c
-    # $(zlibDir)/crc32.c
-    # $(zlibDir)/deflate.c
-    # $(zlibDir)/infback.c
-    # $(zlibDir)/inffast.c
-    # $(zlibDir)/inflate.c
-    # $(zlibDir)/inftrees.c
-    # $(zlibDir)/trees.c
-    # $(zlibDir)/uncompr.c
-    # $(zlibDir)/zutil.c
     Python/hamt.c
+    Python/context.c
+    Python/frame.c
+    Python/suggestions.c
+    Python/Python-tokenize.c
+)
+set(SOURCE_FILES_PARSER
+    Parser/pegen.h
+    Parser/string_parser.h
+    Parser/tokenizer.h
+    Parser/myreadline.c
+    Parser/tokenizer.c
+    Parser/token.c
     Parser/parser.c
     Parser/pegen.c
     Parser/pegen_errors.c
     Parser/action_helpers.c
     Parser/peg_api.c
-    Modules/_xxsubinterpretersmodule.c
-    Modules/_xxinterpchannelsmodule.c
     Parser/string_parser.c
-    Python/context.c
-    Objects/genericaliasobject.c
-    Objects/typevarobject.c
-    Objects/unionobject.c
-    Python/frame.c
-    # Modules/getpath.c
-    Python/suggestions.c
-    Python/Python-tokenize.c
-    Modules/getbuildinfo.c
 )
+set(SOURCE_FILES_PC
+    # PC/winreg.c
+    # PC/dl_nt.c
+    PC/config.c
+    PC/invalid_parameter_handler.c
+)
+source_group("Include" FILES ${HEADER_FILES})
+source_group("Include\\cpython" FILES ${HEADER_FILES_CPYTHON})
+source_group("Include\\internal" FILES ${HEADER_FILES_INTERNAL})
+source_group("Modules" FILES ${SOURCE_FILES_MODULES})
+source_group("Objects" FILES ${SOURCE_FILES_OBJECTS})
+source_group("Python" FILES ${SOURCE_FILES_PYTHON})
+source_group("Parser" FILES ${SOURCE_FILES_PARSER})
+source_group("PC" FILES ${SOURCE_FILES_PC})
+
 # if(WIN32)
 #     list(APPEND SOURCE_FILES
 #         Modules/_winapi.c
 #         Python/dynload_win.c
 #         PC/msvcrtmodule.c)
 # endif()
+
 add_compile_definitions(Py_BUILD_CORE)
 add_compile_definitions(Py_BUILD_CORE_BUILTIN)
+add_compile_definitions(MS_NO_COREDLL)
 add_compile_definitions(VPATH="../..")
+
 include_directories("${PROJECT_SOURCE_DIR}/Include")
 include_directories("${PROJECT_SOURCE_DIR}/Include/internal")
 include_directories("${PROJECT_SOURCE_DIR}/Modules/_hacl/include")
@@ -471,7 +477,16 @@ else()
     include_directories("${PROJECT_SOURCE_DIR}/Config")
 endif()
 
-add_library (Python STATIC ${SOURCE_FILES})
+add_library(Python STATIC
+    ${HEADER_FILES}
+    ${HEADER_FILES_CPYTHON}
+    ${HEADER_FILES_INTERNAL}
+    ${SOURCE_FILES_MODULES}
+    ${SOURCE_FILES_OBJECTS}
+    ${SOURCE_FILES_PYTHON}
+    ${SOURCE_FILES_PARSER}
+    ${SOURCE_FILES_PC}
+)
 
 target_include_directories(Python
     INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
@@ -484,6 +499,7 @@ else()
     target_include_directories(Python
         INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Config>)
 endif()
+
 if (NOT MINI_URHO)
     install (DIRECTORY Include/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
     install (DIRECTORY PC/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
