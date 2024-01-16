@@ -33,7 +33,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-24', '-DANDROID=1',
-                          '-DBUILD_SHARED_LIBS=ON', '-DURHO3D_SAMPLES=OFF', '-DURHO3D_PLAYER=ON'
+                          '-DBUILD_SHARED_LIBS=OFF', '-DURHO3D_SAMPLES=OFF', '-DURHO3D_PLAYER=ON'
             }
         }
     }

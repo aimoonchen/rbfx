@@ -54,9 +54,55 @@ else ()
         if (NOT URHO3D_WIN32_CONSOLE)
             set (TARGET_TYPE WIN32)
         endif ()
+        if (WIN32)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE")
+        endif ()
+        if (APPLE)
+            set(ASSETS_FOLDER
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../bin/Assets"
+                )
+            # cocos_mark_multi_resources(kf_common_res RES_TO "Resources" FOLDERS ${ASSETS_FOLDER})
+            if(IOS)
+                set(APP_UI_RES
+                    # ios/Info.plist
+                    ios/LaunchScreen.storyboard
+                    ios/LaunchScreenBackground.png
+                    # ios/Images.xcassets
+                    )
+                list(APPEND SOURCE_FILES
+                    ${APP_UI_RES}
+                    )
+            elseif(MACOSX)
+                set(APP_UI_RES
+                    # mac/Icon.icns
+                    mac/Info.plist
+                    # mac/en.lproj/InfoPlist.strings
+                    )
+                list(APPEND SOURCE_FILES
+                    ${APP_UI_RES}
+                    )
+            endif()
+            # list(APPEND SOURCE_FILES ${kf_common_res})
+        endif()
         add_executable (Player ${TARGET_TYPE} ${SOURCE_FILES} PlayerHost.cpp)
         set (PLAYER_TARGET Player)
     endif ()
+endif ()
+
+if (APPLE)
+    set_target_properties(${PLAYER_TARGET} PROPERTIES RESOURCE "${APP_UI_RES}")
+    if(IOS)
+        set_xcode_property(${PLAYER_TARGET} INFOPLIST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist")
+        # set_xcode_property(${PLAYER_TARGET} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon-${APP_NAME}")
+        find_library(CORE_TEXT_LIBRARY CoreText)
+        find_library(ZLIB_LIBRARY z)
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${CORE_TEXT_LIBRARY})
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${ZLIB_LIBRARY})
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/lib/ios/libfmod_iphoneos.a)
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/lib/ios/libfmodstudio_iphoneos.a)
+    elseif(MACOSX)
+        set_xcode_property(${PLAYER_TARGET} INFOPLIST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/mac/Info.plist")
+    endif()
 endif ()
 
 if (TARGET libPlayer)
