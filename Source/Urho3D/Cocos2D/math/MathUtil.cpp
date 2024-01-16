@@ -23,7 +23,7 @@ This file was modified to fit the cocos2d-x project
 #include "base/ccMacros.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-#include <cpu-features.h>
+// #include <cpu-features.h>
 #endif
 
 //#define USE_NEON32        : neon 32 code will be used
@@ -103,28 +103,29 @@ float MathUtil::lerp(float from, float to, float alpha)
 
 bool MathUtil::isNeon32Enabled()
 {
-#ifdef USE_NEON32
-    return true;
-#elif (defined (INCLUDE_NEON32) && (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) )
-    class AnrdoidNeonChecker
-    {
-    public:
-        AnrdoidNeonChecker()
-        {
-            if (android_getCpuFamily() == ANDROID_CPU_FAMILY_ARM && (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
-                _isNeonEnabled = true;
-            else
-                _isNeonEnabled = false;
-        }
-        bool isNeonEnabled() const { return _isNeonEnabled; }
-    private:
-        bool _isNeonEnabled;
-    };
-    static AnrdoidNeonChecker checker;
-    return checker.isNeonEnabled();
-#else
     return false;
-#endif
+// #ifdef USE_NEON32
+//     return true;
+// #elif (defined (INCLUDE_NEON32) && (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) )
+//     class AnrdoidNeonChecker
+//     {
+//     public:
+//         AnrdoidNeonChecker()
+//         {
+//             if (android_getCpuFamily() == ANDROID_CPU_FAMILY_ARM && (android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
+//                 _isNeonEnabled = true;
+//             else
+//                 _isNeonEnabled = false;
+//         }
+//         bool isNeonEnabled() const { return _isNeonEnabled; }
+//     private:
+//         bool _isNeonEnabled;
+//     };
+//     static AnrdoidNeonChecker checker;
+//     return checker.isNeonEnabled();
+// #else
+//     return false;
+// #endif
 }
 
 bool MathUtil::isNeon64Enabled()

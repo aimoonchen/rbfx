@@ -2,7 +2,7 @@
  Copyright (c) 2013      Zynga Inc.
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- 
+
  http://www.cocos2d-x.org
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,7 +28,7 @@
 #if CC_TARGET_PLATFORM != CC_PLATFORM_WIN32 && CC_TARGET_PLATFORM != CC_PLATFORM_ANDROID
 #include <iconv.h>
 #elif CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
-#include "platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxHelper.h"
+//#include "platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxHelper.h"
 #endif
 #include "2d/CCFontFreeType.h"
 #include "base/ccUTF8.h"
@@ -47,7 +47,7 @@ const int FontAtlas::CacheTextureHeight = 512;
 const char* FontAtlas::CMD_PURGE_FONTATLAS = "__cc_PURGE_FONTATLAS";
 const char* FontAtlas::CMD_RESET_FONTATLAS = "__cc_RESET_FONTATLAS";
 
-FontAtlas::FontAtlas(Font &theFont) 
+FontAtlas::FontAtlas(Font &theFont)
 : _font(&theFont)
 {
     _font->retain();
@@ -61,7 +61,7 @@ FontAtlas::FontAtlas(Font &theFont)
 
         if (_fontFreeType->isDistanceFieldEnabled())
         {
-            _letterPadding += 2 * FontFreeType::DistanceMapSpread;    
+            _letterPadding += 2 * FontFreeType::DistanceMapSpread;
         }
 
         auto outlineSize = _fontFreeType->getOutlineSize();
@@ -70,7 +70,7 @@ FontAtlas::FontAtlas(Font &theFont)
             _lineHeight += 2 * outlineSize;
         }
 
-        
+
 #if CC_ENABLE_CACHE_TEXTURE_DATA
         auto eventDispatcher = Director::getInstance()->getEventDispatcher();
 
@@ -87,26 +87,26 @@ void FontAtlas::reinit()
         delete []_currentPageData;
         _currentPageData = nullptr;
     }
-    
+
     CC_SAFE_DELETE_ARRAY(_currentPageDataRGBA);
-    
+
     auto texture = new (std::nothrow) Urho3D::Texture2D(GetUrho3DContext());;
-    
+
     _currentPageDataSize = CacheTextureWidth * CacheTextureHeight;
-    
+
     auto outlineSize = _fontFreeType->getOutlineSize();
     if(outlineSize > 0)
     {
         _currentPageDataSize *= 2;
-        
+
         _currentPageDataSizeRGBA = _currentPageDataSize * 2;
         _currentPageDataRGBA = new (std::nothrow) unsigned char[_currentPageDataSizeRGBA];
         memset(_currentPageDataRGBA, 0, _currentPageDataSizeRGBA);
     }
-    
+
     _currentPageData = new (std::nothrow) unsigned char[_currentPageDataSize];
     memset(_currentPageData, 0, _currentPageDataSize);
-    
+
     initTextureWithZeros(texture);
 
     addTexture(texture,0);
@@ -140,12 +140,12 @@ FontAtlas::~FontAtlas()
 
 void FontAtlas::initTextureWithZeros(Urho3D::Texture2D *texture)
 {
-    char *zeros = nullptr;    
+    char *zeros = nullptr;
     Urho3D::TextureFormat pixelFormat;
     float outlineSize = _fontFreeType->getOutlineSize();
     size_t zeroBytes = 0;
     if (outlineSize > 0)
-    {    
+    {
         //metal do no support AI88 format
         pixelFormat = Urho3D::TextureFormat::TEX_FORMAT_RGBA8_UNORM; //backend::PixelFormat::RGBA8888;
         zeroBytes = CacheTextureWidth * CacheTextureWidth * 4;
@@ -167,13 +167,13 @@ void FontAtlas::initTextureWithZeros(Urho3D::Texture2D *texture)
 void FontAtlas::reset()
 {
     releaseTextures();
-    
+
     _currLineHeight = 0;
     _currentPage = 0;
     _currentPageOrigX = 0;
     _currentPageOrigY = 0;
     _letterDefinitions.clear();
-    
+
     reinit();
 }
 
@@ -250,7 +250,7 @@ void FontAtlas::conversionU32TOGB2312(const std::u32string& u32Text, std::unorde
         cocos2d::StringUtils::UTF32ToUTF16(u32Text, u16Text);
         WideCharToMultiByte(936, NULL, (LPCWCH)u16Text.c_str(), strLen, (LPSTR)gb2312Text, gb2312StrSize, NULL, NULL);
 #elif CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
-        conversionEncodingJNI((char*)u32Text.c_str(), gb2312StrSize, "UTF-32LE", gb2312Text, "GB2312");
+        // conversionEncodingJNI((char*)u32Text.c_str(), gb2312StrSize, "UTF-32LE", gb2312Text, "GB2312");
 #else
         if (_iconv == nullptr)
         {
@@ -318,9 +318,9 @@ void FontAtlas::findNewCharacters(const std::u32string& u32Text, std::unordered_
         // as `Label::_utf32Text` holds. If doing a `memset` or other memory operations, the orignal `Label::_utf32Text`
         // will be in an unknown state. Meanwhile, a bunch lots of logic which depends on `Label::_utf32Text`
         // will be broken.
-        
+
         // newChars = u32Text;
-        
+
         // Using `append` method is a workaround for this issue. So please be carefuly while using the assignment operator
         // of `std::u32string`.
         newChars.append(u32Text);
@@ -371,8 +371,8 @@ bool FontAtlas::prepareLetterDefinitions(const std::u32string& utf32Text)
     }
 
     if (!_currentPageData)
-        reinit(); 
-    
+        reinit();
+
     std::unordered_map<unsigned int, unsigned int> codeMapOfNewChar;
     findNewCharacters(utf32Text, codeMapOfNewChar);
     if (codeMapOfNewChar.empty())
@@ -419,7 +419,7 @@ bool FontAtlas::prepareLetterDefinitions(const std::u32string& utf32Text)
                     memset(_currentPageData, 0, _currentPageDataSize);
                     _currentPage++;
                     auto tex = new (std::nothrow) Urho3D::Texture2D(GetUrho3DContext());
-                    
+
                     initTextureWithZeros(tex);
 
 //                     if (_antialiasEnabled)
@@ -431,7 +431,7 @@ bool FontAtlas::prepareLetterDefinitions(const std::u32string& utf32Text)
 //                         tex->setAliasTexParameters();
 //                     }
                     addTexture(tex, _currentPage);
-                    
+
                     //tex->release();
                 }
             }

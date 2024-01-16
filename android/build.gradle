@@ -43,18 +43,39 @@ android {
             path "${projectSourceDir}/CMakeLists.txt"
         }
     }
+    signingConfigs {
+        release {
+            //if (project.hasProperty("RELEASE_STORE_FILE")) {
+                storeFile file('kfplayer.jks')
+                storePassword 'kf123456'
+                keyAlias 'kfplayer_key'
+                keyPassword 'kf123456'
+            //}
+        }
+    }
     buildTypes {
         release {
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt')
-
+            //if (project.hasProperty("RELEASE_STORE_FILE")) {
+                signingConfig signingConfigs.release
+            //}
+        }
+        debug {
+            debuggable true
+            jniDebuggable true
+            renderscriptDebuggable true
         }
     }
     sourceSets.main {
         manifest.srcFile 'AndroidManifest.xml'
         java.srcDirs = ['src', "${rbfxSourceDir}/Source/ThirdParty/SDL/android-project/app/src/main/java"]
         res.srcDirs = ['res']
-        assets.srcDirs = ['assets', "${rbfxSourceDir}/bin"]
+        // assets.srcDirs = ['assets', "${rbfxSourceDir}/bin"]
+        assets.srcDirs = ['assets', "${rbfxSourceDir}/KFPlayerAssets"]
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -69,4 +90,8 @@ allprojects {
         google()
         mavenCentral()
     }
+}
+
+dependencies {
+    implementation files('../Source/ThirdParty/fmod/android/core/lib/fmod.jar')
 }

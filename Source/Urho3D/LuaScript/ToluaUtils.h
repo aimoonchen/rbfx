@@ -43,9 +43,9 @@ using namespace Urho3D;
 #define tolua_pushurho3dstring(L, s) sol::stack::push(L, s.c_str()) // NOLINT(misc-macro-parentheses)
 
 /// Convert to String.
-const char* tolua_tourho3dstring(lua_State* L, int narg, const char* str);
+// const char* tolua_tourho3dstring(lua_State* L, int narg, const char* str);
 /// Convert to String.
-const char* tolua_tourho3dstring(lua_State* L, int narg, const ea::string& str);
+// const char* tolua_tourho3dstring(lua_State* L, int narg, const ea::string& str);
 
 /// Set context.
 void SetContext(lua_State* L, Context* context);
