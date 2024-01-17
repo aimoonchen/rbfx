@@ -21,6 +21,7 @@ buildscript {
 
 android {
     compileSdk 34
+    ndkVersion '26.1.10909125'
     defaultConfig {
         applicationId 'io.urho3d'
         versionCode 1
@@ -59,7 +60,8 @@ android {
             jniDebuggable false
             renderscriptDebuggable false
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                          'proguard-rules.pro'
             //if (project.hasProperty("RELEASE_STORE_FILE")) {
                 signingConfig signingConfigs.release
             //}
@@ -81,7 +83,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    ndkVersion '26.1.10909125'
     namespace 'com.kfengine.player'
 }
 
