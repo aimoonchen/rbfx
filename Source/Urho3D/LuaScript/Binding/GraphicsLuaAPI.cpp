@@ -30,6 +30,7 @@
 #include "../../Graphics/Geometry.h"
 #include "../../Graphics/IndexBuffer.h"
 #include "../../RenderPipeline/RenderPipeline.h"
+#include "../../RenderPipeline/ShaderConsts.h"
 #include "../../RenderAPI/RenderDevice.h"
 #include "../../Scene/Scene.h"
 #include "../../Scene/Component.h"
@@ -173,10 +174,31 @@ static void RegisterConst(sol::state& lua)
     GIType["UseLightMap"] = GlobalIlluminationType::UseLightMap;
     GIType["BlendLightProbes"] = GlobalIlluminationType::BlendLightProbes;
     auto graphic = lua["graphic"].get_or_create<sol::table>();
-    //graphic["TU_DIFFUSE"] = TU_DIFFUSE;
-    //graphic["TU_ENVIRONMENT"] = TU_ENVIRONMENT;
+    graphic.new_enum("TextureFormat",
+        "TEX_FORMAT_RGBA8_UNORM",       TextureFormat::TEX_FORMAT_RGBA8_UNORM,
+        "TEX_FORMAT_RGBA8_UNORM_SRGB",  TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB
+    );
+    graphic.new_enum("TextureFlag",
+        "None",                         TextureFlag::None,
+        "BindRenderTarget",             TextureFlag::BindRenderTarget,
+        "BindDepthStencil",             TextureFlag::BindDepthStencil,
+        "BindUnorderedAccess",          TextureFlag::BindUnorderedAccess,
+        "NoMultiSampledAutoResolve",    TextureFlag::NoMultiSampledAutoResolve
+    );
+
+    auto shaderResources = graphic["ShaderResources"].get_or_create<sol::table>();
+    shaderResources["Albedo"]       = ShaderResources::Albedo;
+    shaderResources["Normal"]       = ShaderResources::Normal;
+    shaderResources["Properties"]   = ShaderResources::Properties;
+    shaderResources["Emission"]     = ShaderResources::Emission;
+    shaderResources["Reflection0"]  = ShaderResources::Reflection0;
+    shaderResources["Reflection1"]  = ShaderResources::Reflection1;
+    shaderResources["LightRamp"]    = ShaderResources::LightRamp;
+    shaderResources["LightShape"]   = ShaderResources::LightShape;
+    shaderResources["ShadowMap"]    = ShaderResources::ShadowMap;
+    shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer;
+
     graphic["FILTER_BILINEAR"] = FILTER_BILINEAR;
-    //graphic["TEXTURE_RENDERTARGET"] = TEXTURE_RENDERTARGET;
     //
     graphic["RAY_AABB"] = RAY_AABB;
     graphic["RAY_OBB"] = RAY_OBB;
