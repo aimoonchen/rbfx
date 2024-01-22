@@ -29,7 +29,7 @@ class ShaderGenerator
 
 	void ExportUniform(std::ostringstream& maincode, int32_t type, const char* name);
 
-	void ExportTexture(std::ostringstream& maincode, const char* name, int bind, int stage);
+	void ExportTexture(std::ostringstream& maincode, const char* name, int bind, int stage, bool isVullan);
 
 	void ExportHeader(std::ostringstream& maincode, MaterialFile* materialFile, int stage, bool isSprite, bool isOutputDefined, bool is450);
 

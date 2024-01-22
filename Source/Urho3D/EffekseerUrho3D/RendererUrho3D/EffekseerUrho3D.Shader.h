@@ -17,8 +17,8 @@ private:
     const char* name_ = nullptr;
 	Backend::VertexLayoutRef vertexLayout_;
     int32_t vertexSize_{ 0 };
-	void* m_vertexConstantBuffer;
-	void* m_pixelConstantBuffer;
+    uint8_t* m_vertexConstantBuffer{ nullptr };
+    uint8_t* m_pixelConstantBuffer{ nullptr };
 	int32_t vertexConstantBufferSize = 0;
 	int32_t pixelConstantBufferSize = 0;
 

@@ -88,7 +88,7 @@ CompiledMaterialBinary* MaterialCompilerGL::Compile(MaterialFile* materialFile, 
 	auto saveBinary = [this, &materialFile, &binary, &convertToVector, &maximumUniformCount, &maximumTextureCount](MaterialShaderType type)
 	{
 		GLSL::ShaderGenerator generator;
-		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, true, true, !Urho3D::IsOpenGLESBackend(backend_), false, 0, false, false, (backend_ == Urho3D::RenderBackend::Vulkan), InstanceCount);
+		auto shader = generator.GenerateShader(materialFile, type, maximumUniformCount, maximumTextureCount, true, true, false/*!Urho3D::IsOpenGLESBackend(backend_)*/, false, 0, false, false, (backend_ == Urho3D::RenderBackend::Vulkan), InstanceCount);
 		binary->SetVertexShaderData(type, convertToVector(shader.CodeVS));
 		binary->SetPixelShaderData(type, convertToVector(shader.CodePS));
 	};

@@ -48,6 +48,9 @@ static const char* material_common_define_450 = R"(
 )";
 
 static const char* material_common_define_not_450 = R"(
+#ifdef GL_ES
+precision highp float;
+#endif
 #define LAYOUT(ind) layout(location = ind)
 #define IN in 
 #define OUT out 
@@ -79,7 +82,7 @@ static const char* material_common_vs_define = R"()"
 
 											   R"(
 
-
+#define TEX2D textureLod
 // Dummy
 float CalcDepthFade(vec2 screenUV, float meshZ, float softParticleParam) { return 1.0; }
 
@@ -112,13 +115,13 @@ LAYOUT(5) IN vec4 a_Color;
 )"
 	R"(
 
-LAYOUT(0) CENTROID OUT lowp vec4 v_VColor;
-LAYOUT(1) CENTROID OUT mediump vec2 v_UV1;
-LAYOUT(2) CENTROID OUT mediump vec2 v_UV2;
-LAYOUT(3) OUT mediump vec4 v_WorldN_PX;
-LAYOUT(4) OUT mediump vec4 v_WorldB_PY;
-LAYOUT(5) OUT mediump vec4 v_WorldT_PZ;
-LAYOUT(6) OUT mediump vec4 v_PosP;
+CENTROID OUT lowp vec4 v_VColor;
+CENTROID OUT mediump vec2 v_UV1;
+CENTROID OUT mediump vec2 v_UV2;
+OUT mediump vec4 v_WorldN_PX;
+OUT mediump vec4 v_WorldB_PY;
+OUT mediump vec4 v_WorldT_PZ;
+OUT mediump vec4 v_PosP;
 //$C_OUT1$
 //$C_OUT2$
 )";
@@ -238,13 +241,13 @@ LAYOUT(2) IN vec2 atTexCoord;
 )"
 
 	R"(
-LAYOUT(0) CENTROID OUT lowp vec4 v_VColor;
-LAYOUT(1) CENTROID OUT mediump vec2 v_UV1;
-LAYOUT(2) CENTROID OUT mediump vec2 v_UV2;
-LAYOUT(3) OUT mediump vec4 v_WorldN_PX;
-LAYOUT(4) OUT mediump vec4 v_WorldB_PY;
-LAYOUT(5) OUT mediump vec4 v_WorldT_PZ;
-LAYOUT(6) OUT mediump vec4 v_PosP;
+CENTROID OUT lowp vec4 v_VColor;
+CENTROID OUT mediump vec2 v_UV1;
+CENTROID OUT mediump vec2 v_UV2;
+OUT mediump vec4 v_WorldN_PX;
+OUT mediump vec4 v_WorldB_PY;
+OUT mediump vec4 v_WorldT_PZ;
+OUT mediump vec4 v_PosP;
 )";
 
 static const char g_material_sprite_vs_src_pre_simple_uniform[] =
@@ -271,13 +274,13 @@ LAYOUT(5) IN vec2 atTexCoord2;
 )"
 
 	R"(
-LAYOUT(0) CENTROID OUT lowp vec4 v_VColor;
-LAYOUT(1) CENTROID OUT mediump vec2 v_UV1;
-LAYOUT(2) CENTROID OUT mediump vec2 v_UV2;
-LAYOUT(3) OUT mediump vec4 v_WorldN_PX;
-LAYOUT(4) OUT mediump vec4 v_WorldB_PY;
-LAYOUT(5) OUT mediump vec4 v_WorldT_PZ;
-LAYOUT(6) OUT mediump vec4 v_PosP;
+CENTROID OUT lowp vec4 v_VColor;
+CENTROID OUT mediump vec2 v_UV1;
+CENTROID OUT mediump vec2 v_UV2;
+OUT mediump vec4 v_WorldN_PX;
+OUT mediump vec4 v_WorldB_PY;
+OUT mediump vec4 v_WorldT_PZ;
+OUT mediump vec4 v_PosP;
 //$C_OUT1$
 //$C_OUT2$
 )";
@@ -407,14 +410,14 @@ static const char g_material_sprite_vs_src_suf2[] =
 
 static const char g_material_fs_src_pre[] =
 	R"(
-
-LAYOUT(0) CENTROID IN lowp vec4 v_VColor;
-LAYOUT(1) CENTROID IN mediump vec2 v_UV1;
-LAYOUT(2) CENTROID IN mediump vec2 v_UV2;
-LAYOUT(3) IN mediump vec4 v_WorldN_PX;
-LAYOUT(4) IN mediump vec4 v_WorldB_PY;
-LAYOUT(5) IN mediump vec4 v_WorldT_PZ;
-LAYOUT(6) IN mediump vec4 v_PosP;
+#define TEX2D texture
+CENTROID IN lowp vec4 v_VColor;
+CENTROID IN mediump vec2 v_UV1;
+CENTROID IN mediump vec2 v_UV2;
+IN mediump vec4 v_WorldN_PX;
+IN mediump vec4 v_WorldB_PY;
+IN mediump vec4 v_WorldT_PZ;
+IN mediump vec4 v_PosP;
 //$C_PIN1$
 //$C_PIN2$
 
@@ -643,7 +646,7 @@ void ShaderGenerator::ExportUniform(std::ostringstream& maincode, int32_t type, 
 	maincode << "uniform " << GetType(type) << " " << name << ";" << std::endl;
 }
 
-void ShaderGenerator::ExportTexture(std::ostringstream& maincode, const char* name, int bind, int stage)
+void ShaderGenerator::ExportTexture(std::ostringstream& maincode, const char* name, int bind, int stage, bool isVullan)
 {
 	if (useUniformBlock_)
 	{
@@ -654,7 +657,13 @@ void ShaderGenerator::ExportTexture(std::ostringstream& maincode, const char* na
 		}
 		else
 		{
-			maincode << "layout(binding = " << (bind + textureBindingOffset_) << ") uniform sampler2D " << name << ";" << std::endl;
+            if (isVullan)
+            {
+                maincode << "layout(binding = " << (bind + textureBindingOffset_) << ") uniform sampler2D " << name << ";" << std::endl;
+            }
+            else {
+                maincode << "uniform sampler2D " << name << ";" << std::endl;
+            }
 		}
 	}
 	else
@@ -938,11 +947,11 @@ ShaderData ShaderGenerator::GenerateShader(MaterialFile* materialFile,
 		{
 			auto textureName = materialFile->GetTextureName(i);
 
-			ExportTexture(maincode, textureName, i, stage);
+			ExportTexture(maincode, textureName, i, stage, isVullan);
 		}
 
-		ExportTexture(maincode, "efk_background", actualTextureCount + 0, stage);
-		ExportTexture(maincode, "efk_depth", actualTextureCount + 1, stage);
+		ExportTexture(maincode, "efk_background", actualTextureCount + 0, stage, isVullan);
+		ExportTexture(maincode, "efk_depth", actualTextureCount + 1, stage, isVullan);
 
 		// Uniform block begin
 		if (useUniformBlock)
@@ -960,14 +969,27 @@ ShaderData ShaderGenerator::GenerateShader(MaterialFile* materialFile,
 			}
 			else
 			{
-				if (stage == 0)
-				{
-					maincode << "layout(binding = 0) uniform VS_ConstantBuffer {" << std::endl;
-				}
-				else if (stage == 1)
-				{
-					maincode << "layout(binding = 1) uniform PS_ConstantBuffer {" << std::endl;
-				}
+                if (isVullan)
+                {
+				    if (stage == 0)
+                    {
+                        maincode << "layout(binding = 0) uniform VS_ConstantBuffer {" << std::endl;
+                    }
+                    else if (stage == 1)
+                    {
+                        maincode << "layout(binding = 1) uniform PS_ConstantBuffer {" << std::endl;
+                    }
+                }
+                else {
+                    if (stage == 0)
+                    {
+                        maincode << "uniform VS_ConstantBuffer {" << std::endl;
+                    }
+                    else if (stage == 1)
+                    {
+                        maincode << "uniform PS_ConstantBuffer {" << std::endl;
+                    }
+                }
 			}
 		}
 
@@ -1163,11 +1185,11 @@ uniform vec4 customData2s[_INSTANCE_COUNT_];
 		}
 		shaderData.CodeVS = Replace(shaderData.CodeVS,
 									"//$C_OUT1$",
-									"LAYOUT(" + std::to_string(pvLayoutOffset) + ") " + "OUT mediump " +
+									"OUT mediump " +
 										GetType(materialFile->GetCustomData1Count()) + " v_CustomData1;");
 		shaderData.CodePS = Replace(shaderData.CodePS,
 									"//$C_PIN1$",
-									"LAYOUT(" + std::to_string(pvLayoutOffset) + ") " + "IN mediump " +
+									"IN mediump " +
 										GetType(materialFile->GetCustomData1Count()) + " v_CustomData1;");
 
 		layoutOffset += 1;
@@ -1185,11 +1207,11 @@ uniform vec4 customData2s[_INSTANCE_COUNT_];
 		}
 		shaderData.CodeVS = Replace(shaderData.CodeVS,
 									"//$C_OUT2$",
-									"LAYOUT(" + std::to_string(pvLayoutOffset) + ") " + "OUT mediump " +
+									"OUT mediump " +
 										GetType(materialFile->GetCustomData2Count()) + " v_CustomData2;");
 		shaderData.CodePS = Replace(shaderData.CodePS,
 									"//$C_PIN2$",
-									"LAYOUT(" + std::to_string(pvLayoutOffset) + ") " + "IN mediump " +
+									"IN mediump " +
 										GetType(materialFile->GetCustomData2Count()) + " v_CustomData2;");
 	}
 

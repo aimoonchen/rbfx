@@ -152,7 +152,7 @@ void FontAtlas::initTextureWithZeros(Urho3D::Texture2D *texture)
     }
     else
     {
-        pixelFormat = Urho3D::TextureFormat::TEX_FORMAT_A8_UNORM; //backend::PixelFormat::A8;
+        pixelFormat = Urho3D::TextureFormat::TEX_FORMAT_R8_UNORM;// TEX_FORMAT_A8_UNORM; //backend::PixelFormat::A8;
         zeroBytes = CacheTextureWidth * CacheTextureWidth;
     }
     zeros = new char[zeroBytes]();

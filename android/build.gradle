@@ -20,6 +20,7 @@ buildscript {
 }
 
 android {
+    namespace 'com.kfengine.player'
     compileSdk 34
     ndkVersion '26.1.10909125'
     defaultConfig {
@@ -33,8 +34,8 @@ android {
         }
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-24', '-DANDROID=1',
-                          '-DBUILD_SHARED_LIBS=OFF', '-DURHO3D_SAMPLES=OFF', '-DURHO3D_PLAYER=ON'
+                arguments '-DANDROID_STL=c++_static', '-DANDROID_PmLATFORM=android-24', '-DANDROID=1',
+                          '-DBUILD_SHARED_LIBS=ON', '-DURHO3D_SAMPLES=OFF', '-DURHO3D_PLAYER=ON'
             }
         }
     }
@@ -46,25 +47,18 @@ android {
     }
     signingConfigs {
         release {
-            //if (project.hasProperty("RELEASE_STORE_FILE")) {
-                storeFile file('kfplayer.jks')
-                storePassword 'kf123456'
-                keyAlias 'kfplayer_key'
-                keyPassword 'kf123456'
-            //}
+            storeFile file('kfplayer_apk.jks')
+            storePassword 'kf123456'
+            keyAlias 'kfplayer_key'
+            keyPassword 'kf123456'
         }
     }
     buildTypes {
         release {
-            debuggable false
-            jniDebuggable false
-            renderscriptDebuggable false
-            minifyEnabled true
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                          'proguard-rules.pro'
-            //if (project.hasProperty("RELEASE_STORE_FILE")) {
-                signingConfig signingConfigs.release
-            //}
+                'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
             debuggable true
@@ -83,7 +77,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    namespace 'com.kfengine.player'
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
 }
 
 allprojects {

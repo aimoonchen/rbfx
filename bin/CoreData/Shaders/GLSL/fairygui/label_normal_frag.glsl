@@ -36,11 +36,11 @@ out vec4 _output;
 void main()
 {
     float tc = 1.0;
-#ifdef GL_ES
+// #ifdef GL_ES
     tc = texture(u_texture, v_texCoord).r; // texure format : R8_UNORM
-#else
-    tc = texture(u_texture, v_texCoord).a;
-#endif
+// #else
+//     tc = texture(u_texture, v_texCoord).a;
+// #endif
     gl_FragColor =  v_fragmentColor * vec4(u_textColor.rgb,// RGB from uniform
         u_textColor.a * tc// A from texture & uniform
     );
