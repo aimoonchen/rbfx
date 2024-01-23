@@ -158,8 +158,6 @@ static void RegisterConst(sol::state& lua)
     lua["DEFAULT_SHADOWMAXEXTRUSION"]   = DEFAULT_SHADOWMAXEXTRUSION;
     lua["DEFAULT_SHADOWSPLIT"]          = DEFAULT_SHADOWSPLIT;
     lua["DEFAULT_TEMPERATURE"]          = DEFAULT_TEMPERATURE;
-//     lua["DEFAULT_RADIUS"]               = DEFAULT_RADIUS;
-//     lua["DEFAULT_LENGTH"]               = DEFAULT_LENGTH;
     lua["FC_NONE"]                      = FC_NONE;
     lua["FC_ROTATE_XYZ"]                = FC_ROTATE_XYZ;
     lua["FC_ROTATE_Y"]                  = FC_ROTATE_Y;
@@ -170,9 +168,9 @@ static void RegisterConst(sol::state& lua)
     lua["FC_AXIS_ANGLE"]                = FC_AXIS_ANGLE;
     //
     auto GIType = lua["GlobalIlluminationType"].get_or_create<sol::table>();
-    GIType["None"] = GlobalIlluminationType::None;
-    GIType["UseLightMap"] = GlobalIlluminationType::UseLightMap;
-    GIType["BlendLightProbes"] = GlobalIlluminationType::BlendLightProbes;
+    GIType["None"]              = GlobalIlluminationType::None;
+    GIType["UseLightMap"]       = GlobalIlluminationType::UseLightMap;
+    GIType["BlendLightProbes"]  = GlobalIlluminationType::BlendLightProbes;
     auto graphic = lua["graphic"].get_or_create<sol::table>();
     graphic.new_enum("TextureFormat",
         "TEX_FORMAT_RGBA8_UNORM",       TextureFormat::TEX_FORMAT_RGBA8_UNORM,
@@ -198,21 +196,21 @@ static void RegisterConst(sol::state& lua)
     shaderResources["ShadowMap"]    = ShaderResources::ShadowMap;
     shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer;
 
-    graphic["FILTER_BILINEAR"] = FILTER_BILINEAR;
+    graphic["FILTER_BILINEAR"]      = FILTER_BILINEAR;
     //
-    graphic["RAY_AABB"] = RAY_AABB;
-    graphic["RAY_OBB"] = RAY_OBB;
-    graphic["RAY_TRIANGLE"] = RAY_TRIANGLE;
-    graphic["RAY_TRIANGLE_UV"] = RAY_TRIANGLE_UV;
+    graphic["RAY_AABB"]             = RAY_AABB;
+    graphic["RAY_OBB"]              = RAY_OBB;
+    graphic["RAY_TRIANGLE"]         = RAY_TRIANGLE;
+    graphic["RAY_TRIANGLE_UV"]      = RAY_TRIANGLE_UV;
     //
-    graphic["DRAWABLE_UNDEFINED"] = DRAWABLE_UNDEFINED;
-    graphic["DRAWABLE_GEOMETRY"] = DRAWABLE_GEOMETRY;
-    graphic["DRAWABLE_LIGHT"] = DRAWABLE_LIGHT;
-    graphic["DRAWABLE_ZONE"] = DRAWABLE_ZONE;
-    graphic["DRAWABLE_GEOMETRY2D"] = DRAWABLE_GEOMETRY2D;
-    graphic["DRAWABLE_ANY"] = DRAWABLE_ANY;
+    graphic["DRAWABLE_UNDEFINED"]   = DRAWABLE_UNDEFINED;
+    graphic["DRAWABLE_GEOMETRY"]    = DRAWABLE_GEOMETRY;
+    graphic["DRAWABLE_LIGHT"]       = DRAWABLE_LIGHT;
+    graphic["DRAWABLE_ZONE"]        = DRAWABLE_ZONE;
+    graphic["DRAWABLE_GEOMETRY2D"]  = DRAWABLE_GEOMETRY2D;
+    graphic["DRAWABLE_ANY"]         = DRAWABLE_ANY;
     //
-    graphic["DEFAULT_VIEWMASK"] = DEFAULT_VIEWMASK;
+    graphic["DEFAULT_VIEWMASK"]     = DEFAULT_VIEWMASK;
 }
 
 int sol2_GraphicsLuaAPI_open(sol::state& lua)
