@@ -134,7 +134,9 @@ public:
     Diligent::IEngineFactory* GetFactory() { return factory_.RawPtr(); }
     Diligent::IRenderDevice* GetRenderDevice() { return renderDevice_.RawPtr(); }
     Diligent::IDeviceContext* GetImmediateContext() { return deviceContext_.RawPtr(); }
-    Diligent::IDeviceContext* GetDeferredContext() { return deferredDeviceContext_.RawPtr(); }
+    size_t GetDeferredContextCount() { return deferredDeviceContexts_.size(); }
+    Diligent::IDeviceContext* GetDeferredContextByIndex(int index) { return deferredDeviceContexts_[index].RawPtr(); }
+    std::vector<Diligent::RefCntAutoPtr<Diligent::IDeviceContext>>& GetDeferredContexts() { return deferredDeviceContexts_; }
     Diligent::ISwapChain* GetSwapChain() { return swapChain_.RawPtr(); }
     IntVector2 GetSwapChainSize() const;
     IntVector2 GetWindowSize() const;
@@ -199,7 +201,7 @@ private:
     Diligent::RefCntAutoPtr<Diligent::IEngineFactory> factory_;
     Diligent::RefCntAutoPtr<Diligent::IRenderDevice> renderDevice_;
     Diligent::RefCntAutoPtr<Diligent::IDeviceContext> deviceContext_;
-    Diligent::RefCntAutoPtr<Diligent::IDeviceContext> deferredDeviceContext_;
+    std::vector<Diligent::RefCntAutoPtr<Diligent::IDeviceContext>> deferredDeviceContexts_;
     Diligent::RefCntAutoPtr<Diligent::ISwapChain> swapChain_;
 
     SharedPtr<RenderContext> renderContext_;

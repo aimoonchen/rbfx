@@ -946,11 +946,13 @@ void RenderDevice::InitializeDevice()
         createInfo.GraphicsAPIVersion = Diligent::Version{11, 0};
         createInfo.AdapterId = FindBestAdapter(factory_, createInfo.GraphicsAPIVersion, deviceSettings_.adapterId_);
 
-
-        createInfo.NumDeferredContexts = 1;
+        createInfo.NumDeferredContexts = 3;
         factoryD3D12_->CreateDeviceAndContextsD3D12(createInfo, &renderDevice_, ppContexts.data());
         deviceContext_.Attach(ppContexts[0]);
-        deferredDeviceContext_.Attach(ppContexts[1]);
+        deferredDeviceContexts_.resize(createInfo.NumDeferredContexts);
+        for (size_t i = 0; i < createInfo.NumDeferredContexts; i++) {
+            deferredDeviceContexts_[i] = ppContexts[createInfo.NumImmediateContexts + i];
+        }
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> nativeSwapChain;
         factoryD3D12_->CreateSwapChainD3D12(
             renderDevice_, deviceContext_, swapChainDesc, fullscreenDesc, nativeWindow, &nativeSwapChain);
@@ -989,11 +991,13 @@ void RenderDevice::InitializeDevice()
         createInfo.IgnoreDebugMessageCount = _countof(ppIgnoreDebugMessages);
         createInfo.AdapterId = FindBestAdapter(factory_, createInfo.GraphicsAPIVersion, deviceSettings_.adapterId_);
 
-
-        createInfo.NumDeferredContexts = 1;
+        createInfo.NumDeferredContexts = 3;
         factoryVulkan_->CreateDeviceAndContextsVk(createInfo, &renderDevice_, ppContexts.data());
         deviceContext_.Attach(ppContexts[0]);
-        deferredDeviceContext_.Attach(ppContexts[1]);
+        deferredDeviceContexts_.resize(createInfo.NumDeferredContexts);
+        for (size_t i = 0; i < createInfo.NumDeferredContexts; i++) {
+            deferredDeviceContexts_[i] = ppContexts[createInfo.NumImmediateContexts + i];
+        }
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> nativeSwapChain;
         factoryVulkan_->CreateSwapChainVk(renderDevice_, deviceContext_, swapChainDesc, nativeWindow, &nativeSwapChain);
         InitializeMultiSampleSwapChain(nativeSwapChain);
