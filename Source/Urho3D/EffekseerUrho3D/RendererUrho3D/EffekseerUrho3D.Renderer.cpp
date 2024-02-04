@@ -480,7 +480,8 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 {
 	graphicsDevice_ = graphicsDevice;
     auto renderDevice = graphicsDevice_->GetRenderDevice();
-    deviceContext_ = renderDevice->GetImmediateContext();
+    immediateContext_ = renderDevice->GetImmediateContext();
+    backend_ = renderDevice->GetBackend();
 //	ChangeRenderPassPipelineState(key);
 	isReversedDepth_ = isReversedDepth;
 
@@ -489,7 +490,7 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 
 	// Generate vertex buffer
 	{
-		GetImpl()->InternalVertexBuffer = std::make_shared<EffekseerRenderer::VertexBufferRing>(graphicsDevice_, EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4, 1);
+		GetImpl()->InternalVertexBuffer = std::make_shared<EffekseerRenderer::VertexBufferRing>(graphicsDevice_, EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4, 3);
 		if (!GetImpl()->InternalVertexBuffer->GetIsValid())
 		{
 			GetImpl()->InternalVertexBuffer = nullptr;
@@ -691,7 +692,25 @@ void RendererImplemented::SetRestorationOfStatesFlag(bool flag)
 bool RendererImplemented::BeginRendering()
 {
 	assert(graphicsDevice_ != nullptr);
-
+    auto renderDevice = graphicsDevice_->GetRenderDevice();
+    if (false)//backend_ == Urho3D::RenderBackend::Vulkan || backend_ == Urho3D::RenderBackend::D3D12)
+    {
+        static const auto deferredContextCount = renderDevice->GetDeferredContextCount();
+        if (!releaseFlag_ && (currentDeferredContextIndex_ == (int32_t)deferredContextCount)) {
+            releaseFlag_ = true;
+        }
+        currentDeferredContextIndex_ = currentDeferredContextIndex_ % deferredContextCount;
+        deviceContext_ = renderDevice->GetDeferredContextByIndex(currentDeferredContextIndex_);
+        if (releaseFlag_) {
+            if (commandLists_[currentDeferredContextIndex_]) {
+                commandLists_[currentDeferredContextIndex_]->Release();
+            }
+            deviceContext_->FinishFrame();
+        }
+        deviceContext_->Begin(0);
+    } else {
+        deviceContext_ = immediateContext_;
+    }
 //    auto cl = commandList_.DownCast<::EffekseerUrho3D::CommandList>();
 //    cl->GetInternal()->Reset();
 // 	if (commandList_ == nullptr)
@@ -725,6 +744,12 @@ bool RendererImplemented::EndRendering()
 
 	currentIndexBuffer_ = nullptr;
 
+    if (false)//backend_ == Urho3D::RenderBackend::Vulkan || backend_ == Urho3D::RenderBackend::D3D12)
+    {
+        deviceContext_->FinishCommandList(&commandLists_[currentDeferredContextIndex_]);
+        immediateContext_->ExecuteCommandLists(1, &commandLists_[currentDeferredContextIndex_]);
+        currentDeferredContextIndex_++;
+    }
 	return true;
 }
 

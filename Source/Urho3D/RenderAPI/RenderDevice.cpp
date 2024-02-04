@@ -893,9 +893,9 @@ void RenderDevice::InitializeDevice()
 
     // Don't bother with deducing the format for now
     const bool isBGRA = false;
-
+    const size_t numDeferredContexts = 3;
     std::vector<Diligent::IDeviceContext*> ppContexts;
-    ppContexts.resize(2);
+    ppContexts.resize(numDeferredContexts + 1);
     Diligent::SwapChainDesc swapChainDesc{};
     swapChainDesc.ColorBufferFormat = colorFormats[isBGRA][windowSettings_.sRGB_];
     swapChainDesc.DepthBufferFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
@@ -946,12 +946,12 @@ void RenderDevice::InitializeDevice()
         createInfo.GraphicsAPIVersion = Diligent::Version{11, 0};
         createInfo.AdapterId = FindBestAdapter(factory_, createInfo.GraphicsAPIVersion, deviceSettings_.adapterId_);
 
-        createInfo.NumDeferredContexts = 3;
+        createInfo.NumDeferredContexts = numDeferredContexts;
         factoryD3D12_->CreateDeviceAndContextsD3D12(createInfo, &renderDevice_, ppContexts.data());
         deviceContext_.Attach(ppContexts[0]);
-        deferredDeviceContexts_.resize(createInfo.NumDeferredContexts);
-        for (size_t i = 0; i < createInfo.NumDeferredContexts; i++) {
-            deferredDeviceContexts_[i] = ppContexts[createInfo.NumImmediateContexts + i];
+        deferredDeviceContexts_.resize(numDeferredContexts);
+        for (size_t i = 0; i < numDeferredContexts; i++) {
+            deferredDeviceContexts_[i] = ppContexts[1 + i];
         }
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> nativeSwapChain;
         factoryD3D12_->CreateSwapChainD3D12(
@@ -991,12 +991,12 @@ void RenderDevice::InitializeDevice()
         createInfo.IgnoreDebugMessageCount = _countof(ppIgnoreDebugMessages);
         createInfo.AdapterId = FindBestAdapter(factory_, createInfo.GraphicsAPIVersion, deviceSettings_.adapterId_);
 
-        createInfo.NumDeferredContexts = 3;
+        createInfo.NumDeferredContexts = numDeferredContexts;
         factoryVulkan_->CreateDeviceAndContextsVk(createInfo, &renderDevice_, ppContexts.data());
         deviceContext_.Attach(ppContexts[0]);
-        deferredDeviceContexts_.resize(createInfo.NumDeferredContexts);
-        for (size_t i = 0; i < createInfo.NumDeferredContexts; i++) {
-            deferredDeviceContexts_[i] = ppContexts[createInfo.NumImmediateContexts + i];
+        deferredDeviceContexts_.resize(numDeferredContexts);
+        for (size_t i = 0; i < numDeferredContexts; i++) {
+            deferredDeviceContexts_[i] = ppContexts[1 + i];
         }
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> nativeSwapChain;
         factoryVulkan_->CreateSwapChainVk(renderDevice_, deviceContext_, swapChainDesc, nativeWindow, &nativeSwapChain);

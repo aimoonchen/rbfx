@@ -10,6 +10,7 @@ namespace Diligent
 {
     struct IPipelineState;
     struct IShaderResourceVariable;
+    struct ICommandList;
 }
 
 namespace EffekseerUrho3D
@@ -54,6 +55,11 @@ protected:
 	*/
 
 	Backend::GraphicsDeviceRef graphicsDevice_ = nullptr;
+    Urho3D::RenderBackend backend_;
+    int32_t currentDeferredContextIndex_{ 0 };
+    bool releaseFlag_{ false };
+    std::vector<Diligent::ICommandList*> commandLists_{nullptr, nullptr, nullptr};
+    Diligent::IDeviceContext* immediateContext_{ nullptr };
     Diligent::IDeviceContext* deviceContext_{ nullptr };
 	//std::shared_ptr<LLGI::RenderPassPipelineState> currentRenderPassPipelineState_ = nullptr;
 
