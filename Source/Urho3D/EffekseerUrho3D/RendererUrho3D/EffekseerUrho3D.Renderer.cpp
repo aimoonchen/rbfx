@@ -490,7 +490,12 @@ bool RendererImplemented::Initialize(Backend::GraphicsDeviceRef graphicsDevice,
 
 	// Generate vertex buffer
 	{
-		GetImpl()->InternalVertexBuffer = std::make_shared<EffekseerRenderer::VertexBufferRing>(graphicsDevice_, EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4, 3);
+        // TOOD: fix this, using VertexBufferRing for all
+        if (backend_ == Urho3D::RenderBackend::Vulkan) {
+            GetImpl()->InternalVertexBuffer = std::make_shared<EffekseerRenderer::VertexBufferMultiSize>(graphicsDevice_, EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4);
+        } else {
+            GetImpl()->InternalVertexBuffer = std::make_shared<EffekseerRenderer::VertexBufferRing>(graphicsDevice_, EffekseerRenderer::GetMaximumVertexSizeInAllTypes() * m_squareMaxCount * 4, 1/*3*/);
+        }
 		if (!GetImpl()->InternalVertexBuffer->GetIsValid())
 		{
 			GetImpl()->InternalVertexBuffer = nullptr;
