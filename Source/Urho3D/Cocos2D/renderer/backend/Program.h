@@ -181,6 +181,7 @@ public:
     void applyUniformBuffer(uint8_t* buffer, Urho3D::Texture2D* textures[]);
 //protected:
     Program(const char* vsfile, const char* fsfile, ProgramType programType = ProgramType::CUSTOM_PROGRAM);
+    ~Program();
     // for debug
     const char* vsName = nullptr;
     const char* fsName = nullptr;
@@ -191,8 +192,10 @@ public:
 //     Diligent::IShader* _fsShader{ nullptr };
     Urho3D::SharedPtr<Urho3D::ShaderVariation> _vsShader;
     Urho3D::SharedPtr<Urho3D::ShaderVariation> _fsShader;
-    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
-    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _fsConstants{ nullptr };
+//    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _vsConstants{ nullptr };
+//    Diligent::RefCntAutoPtr<Diligent::IBuffer>  _fsConstants{ nullptr };
+    Diligent::IBuffer*  _vsConstants{ nullptr };
+    Diligent::IBuffer*  _fsConstants{ nullptr };
     //Diligent::IShaderResourceBinding* _shaderResourceBinding{ nullptr };
     UniformLocation _builtinUniformLocation[UNIFORM_MAX];
     std::unordered_map<std::string, UniformLocation> _customUniform;

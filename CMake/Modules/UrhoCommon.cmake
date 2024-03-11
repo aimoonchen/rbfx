@@ -417,6 +417,61 @@ function (install_third_party_libs)
     endif ()
 endfunction ()
 
+# This little macro lets you set any XCode specific property, from ios.toolchain.cmake
+function(set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)
+    set_property(TARGET ${TARGET} PROPERTY XCODE_ATTRIBUTE_${XCODE_PROPERTY} ${XCODE_VALUE})
+endfunction(set_xcode_property)
+
+# mark `FILES` as resources, files will be put into sub-dir tree depend on its absolute path
+function(cocos_mark_resources)
+    set(oneValueArgs BASEDIR RESOURCEBASE)
+    set(multiValueArgs FILES)
+    cmake_parse_arguments(opt "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(NOT opt_RESOURCEBASE)
+        set(opt_RESOURCEBASE Resources)
+    endif()
+
+    get_filename_component(BASEDIR_ABS ${opt_BASEDIR} ABSOLUTE)
+    foreach(RES_FILE ${opt_FILES} ${opt_UNPARSED_ARGUMENTS})
+        get_filename_component(RES_FILE_ABS ${RES_FILE} ABSOLUTE)
+        file(RELATIVE_PATH RES ${BASEDIR_ABS} ${RES_FILE_ABS})
+        get_filename_component(RES_LOC ${RES} PATH)
+        set_source_files_properties(${RES_FILE} PROPERTIES
+                                    MACOSX_PACKAGE_LOCATION "${opt_RESOURCEBASE}/${RES_LOC}"
+                                    HEADER_FILE_ONLY 1
+                                    )
+
+        if(XCODE OR VS)
+            string(REPLACE "/" "\\" ide_source_group "${opt_RESOURCEBASE}/${RES_LOC}")
+            source_group("${ide_source_group}" FILES ${RES_FILE})
+        endif()
+    endforeach()
+endfunction()
+
+# mark `FILES` and files in `FOLDERS` as resource files, the destination is `RES_TO` folder
+# save all marked files in `res_out`
+function(cocos_mark_multi_resources res_out)
+    set(oneValueArgs RES_TO)
+    set(multiValueArgs FILES FOLDERS)
+    cmake_parse_arguments(opt "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(tmp_file_list)
+    foreach(cc_file ${opt_FILES})
+        get_filename_component(cc_file_abs ${cc_file} ABSOLUTE)
+        get_filename_component(file_dir ${cc_file_abs} DIRECTORY)
+        cocos_mark_resources(FILES ${cc_file_abs} BASEDIR ${file_dir} RESOURCEBASE ${opt_RES_TO})
+    endforeach()
+    list(APPEND tmp_file_list ${opt_FILES})
+
+    foreach(cc_folder ${opt_FOLDERS})
+        file(GLOB_RECURSE folder_files "${cc_folder}/*")
+        list(APPEND tmp_file_list ${folder_files})
+        cocos_mark_resources(FILES ${folder_files} BASEDIR ${cc_folder} RESOURCEBASE ${opt_RES_TO})
+    endforeach()
+    set(${res_out} ${tmp_file_list} PARENT_SCOPE)
+endfunction()
+
 macro (return_if_not_tool ToolName)
     string(TOUPPER "${ToolName}" _TOOL_NAME)
     string(TOUPPER "${URHO3D_TOOLS}" _URHO3D_TOOLS)

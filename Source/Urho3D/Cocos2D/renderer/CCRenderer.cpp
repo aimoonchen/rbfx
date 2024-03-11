@@ -839,7 +839,7 @@ void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescri
     auto deviceContext = _device->GetImmediateContext();
     if (programState->_vertexUniformBufferSize > 0) {
         Diligent::PVoid pMappedData{nullptr};
-        auto buffer = currentProgram->_vsConstants.RawPtr();
+        auto buffer = currentProgram->_vsConstants;
         deviceContext->MapBuffer(buffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, pMappedData);
         if (pMappedData) {
             memcpy(pMappedData, programState->_vertexUniformBuffer.get(), programState->_vertexUniformBufferSize);
@@ -849,7 +849,7 @@ void Renderer::commitUniformAndTextures(const PipelineDescriptor& pipelineDescri
 
     if (programState->_fragmentUniformBufferSize > 0) {
         Diligent::PVoid pMappedData{nullptr};
-        auto buffer = currentProgram->_fsConstants.RawPtr();
+        auto buffer = currentProgram->_fsConstants;
         deviceContext->MapBuffer(buffer, Diligent::MAP_WRITE, Diligent::MAP_FLAG_DISCARD, pMappedData);
         if (pMappedData) {
             memcpy(pMappedData, programState->_fragmentUniformBuffer.get(), programState->_fragmentUniformBufferSize);

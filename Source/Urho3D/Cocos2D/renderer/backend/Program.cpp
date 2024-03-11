@@ -35,7 +35,7 @@
 #include "../../../Graphics/Graphics.h"
 CC_BACKEND_BEGIN
 
-static Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const char* name, int32_t size)
+static Diligent::IBuffer* create_uniform_buffer(const char* name, int32_t size)
 {
     Diligent::BufferDesc CBDesc;
     CBDesc.Name = name;
@@ -45,7 +45,8 @@ static Diligent::RefCntAutoPtr<Diligent::IBuffer> create_uniform_buffer(const ch
     CBDesc.CPUAccessFlags = Diligent::CPU_ACCESS_WRITE;
 
     auto device = Director::getInstance()->getRenderer()->GetRenderDevice();
-    Diligent::RefCntAutoPtr<Diligent::IBuffer> pBuffer;
+//    Diligent::RefCntAutoPtr<Diligent::IBuffer> pBuffer;
+    Diligent::IBuffer* pBuffer = nullptr;
     device->GetRenderDevice()->CreateBuffer(CBDesc, nullptr, &pBuffer);
     return pBuffer;
 }
@@ -208,6 +209,16 @@ Program::Program(const char* vsfile, const char* fsfile, ProgramType programType
         auto ret = _customUniform.insert({ "u_color", {} });
         ret.first->second.shaderStage = ShaderStage::FRAGMENT;
         ret.first->second.location[1] = 0;
+    }
+}
+
+Program::~Program()
+{
+    if (_vsConstants) {
+        _vsConstants->Release();
+    }
+    if (_fsConstants) {
+        _fsConstants->Release();
     }
 }
 

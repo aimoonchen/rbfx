@@ -26,7 +26,7 @@ if (URHO3D_NO_EDITOR_PLAYER_EXE)
     add_library (libPlayer STATIC ${SOURCE_FILES})
     set (PLAYER_TARGET libPlayer)
 elseif (ANDROID OR URHO3D_CSHARP)
-    add_library (libPlayer MODULE ${SOURCE_FILES} PlayerHost.cpp)
+    add_library (libPlayer MODULE ${SOURCE_FILES} Player.cpp)
     set (PLAYER_TARGET libPlayer)
     if (URHO3D_CSHARP)
         add_target_csharp(
@@ -48,7 +48,7 @@ else ()
         set(USE_L_FLAGS "-s FETCH=1 -s MAX_WEBGL_VERSION=2 -s MIN_WEBGL_VERSION=2 -s FULL_ES3=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','setValue','getValue'] --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/../../KFPlayerAssets@/ --bind")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_L_FLAGS}")
         add_executable(main)
-        target_sources(main PRIVATE Player.cpp PlayerHost.cpp)
+        target_sources(main PRIVATE Player.cpp)
         set (PLAYER_TARGET main)
     else()
         if (NOT URHO3D_WIN32_CONSOLE)
@@ -67,7 +67,7 @@ else ()
                     # ios/Info.plist
                     ios/LaunchScreen.storyboard
                     ios/LaunchScreenBackground.png
-                    # ios/Images.xcassets
+                    ios/Images.xcassets
                     )
                 list(APPEND SOURCE_FILES
                     ${APP_UI_RES}
@@ -84,7 +84,7 @@ else ()
             endif()
             # list(APPEND SOURCE_FILES ${kf_common_res})
         endif()
-        add_executable (Player ${TARGET_TYPE} ${SOURCE_FILES} PlayerHost.cpp)
+        add_executable (Player ${TARGET_TYPE} ${SOURCE_FILES} Player.cpp)
         set (PLAYER_TARGET Player)
     endif ()
 endif ()
@@ -93,7 +93,7 @@ if (APPLE)
     set_target_properties(${PLAYER_TARGET} PROPERTIES RESOURCE "${APP_UI_RES}")
     if(IOS)
         set_xcode_property(${PLAYER_TARGET} INFOPLIST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist")
-        # set_xcode_property(${PLAYER_TARGET} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon-${APP_NAME}")
+        set_xcode_property(${PLAYER_TARGET} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon-${PLAYER_TARGET}")
         find_library(CORE_TEXT_LIBRARY CoreText)
         find_library(ZLIB_LIBRARY z)
         target_link_libraries(${PLAYER_TARGET} PRIVATE ${CORE_TEXT_LIBRARY})
@@ -118,17 +118,15 @@ if (WIN32)
     add_custom_command(TARGET ${PLAYER_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/windows/core/lib/fmod.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/windows/studio/lib/fmodstudio.dll
-        # ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/openssl/prebuilt/win64/libcrypto-1_1-x64.dll
-        # ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/openssl/prebuilt/win64/libssl-1_1-x64.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/zlib1.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/shaderc.exe
         $<TARGET_FILE_DIR:${PLAYER_TARGET}>)
 endif ()
-install(TARGETS ${PLAYER_TARGET}
-    LIBRARY DESTINATION ${DEST_LIBRARY_DIR_CONFIG}
-    RUNTIME DESTINATION ${DEST_BIN_DIR_CONFIG}
-    ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG}
-    BUNDLE  DESTINATION ${DEST_BIN_DIR_CONFIG}
-)
+# install(TARGETS ${PLAYER_TARGET}
+#     LIBRARY DESTINATION ${DEST_LIBRARY_DIR_CONFIG}
+#     RUNTIME DESTINATION ${DEST_BIN_DIR_CONFIG}
+#     ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG}
+#     BUNDLE  DESTINATION ${DEST_BIN_DIR_CONFIG}
+# )

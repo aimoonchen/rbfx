@@ -1,5 +1,9 @@
 project(Lua)
 
+if(IOS)
+    add_definitions(-DLUA_USE_IOS)
+endif()
+
 file (GLOB_RECURSE SOURCE_FILES src/*.c include/*.h)
 add_library (Lua STATIC ${SOURCE_FILES})
 
