@@ -236,7 +236,7 @@ set (PRIVATE_THIRD_PARTY_DEPENDENCIES
     SPIRV-Tools-opt
     SPIRV-Reflect
     Lua
-    Python
+    # Python
     astc
 )
 if (TARGET datachannel-wasm)
