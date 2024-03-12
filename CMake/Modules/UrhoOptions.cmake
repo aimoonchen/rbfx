@@ -238,7 +238,7 @@ option(URHO3D_PLAYER                            "Build player application"      
 cmake_dependent_option(URHO3D_EDITOR            "Build editor application"                              ${URHO3D_ENABLE_ALL} "DESKTOP"                       OFF)
 cmake_dependent_option(URHO3D_EXTRAS            "Build extra tools"                                     ${URHO3D_ENABLE_ALL} "NOT EMSCRIPTEN;NOT MOBILE;NOT UWP"    OFF)
 cmake_dependent_option(URHO3D_TOOLS             "Tools enabled. Bool or a list of tool target names."   ${URHO3D_ENABLE_ALL} "DESKTOP"                       OFF)
-option(URHO3D_SAMPLES                           "Build samples"                                         OFF)
+cmake_dependent_option(URHO3D_SAMPLES           "Build samples"                                         ${URHO3D_ENABLE_ALL} "DESKTOP"                       OFF)
 cmake_dependent_option(URHO3D_MERGE_STATIC_LIBS "Merge third party dependency libs to Urho3D.a"         OFF "NOT BUILD_SHARED_LIBS"                          OFF)
 option(URHO3D_NO_EDITOR_PLAYER_EXE              "Do not build editor or player executables."            OFF)
 option(URHO3D_COPY_DATA_DIRS                    "Copy data dirs instead of sym link."                   OFF)

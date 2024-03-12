@@ -37,7 +37,9 @@
 #if URHO3D_RMLUI
 #   include <Urho3D/RmlUI/RmlUI.h>
 #endif
-
+#if DESKTOP
+#include "Urho3D/Utility/HttpProxy.h"
+#endif
 namespace Urho3D
 {
 bool URHO3D_API RunLua(Context* context, const ea::string& scriptFileName);
@@ -65,8 +67,8 @@ void Player::Setup()
     engineParameters_[EP_WINDOW_MAXIMIZE] = false;
     engineParameters_[EP_BORDERLESS] = false;
     engineParameters_[EP_RESOURCE_PREFIX_PATHS] = ";..;../..";
-    engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::OpenGL);
-    //engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::Vulkan);
+    //engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::OpenGL);
+    engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::Vulkan);
 #endif
 
 // #if MOBILE
