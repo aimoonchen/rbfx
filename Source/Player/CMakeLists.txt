@@ -112,7 +112,6 @@ endif ()
 target_link_libraries(${PLAYER_TARGET} PUBLIC Urho3D)
 target_include_directories(${PLAYER_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-link_static_plugins (${PLAYER_TARGET} "${URHO3D_PLUGIN_LIST}")
 if (WIN32)
     set_property(TARGET ${PLAYER_TARGET} APPEND PROPERTY LINK_FLAGS "/SUBSYSTEM:CONSOLE")
     add_custom_command(TARGET ${PLAYER_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different

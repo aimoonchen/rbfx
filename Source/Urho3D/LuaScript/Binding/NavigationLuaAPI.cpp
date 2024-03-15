@@ -19,9 +19,9 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
     bindNavigationMesh["id"]                = sol::var(StringHash("NavigationMesh"));
         //"AddTile", [](NavigationMesh* self, const ea::vector<unsigned char>& tileData) { return self->AddTile(tileData); },
     bindNavigationMesh["Build"]             = sol::overload(
-        sol::resolve<bool()>(&NavigationMesh::Build),
-        sol::resolve<bool(const BoundingBox&)>(&NavigationMesh::Build),
-        sol::resolve<bool(const IntVector2&, const IntVector2&)>(&NavigationMesh::Build));
+        sol::resolve<bool()>(&NavigationMesh::Rebuild),
+        sol::resolve<bool(const BoundingBox&)>(&NavigationMesh::BuildTilesInRegion),
+        sol::resolve<bool(const IntVector2&, const IntVector2&)>(&NavigationMesh::BuildTiles));
     bindNavigationMesh["FindNearestPoint"]  = sol::overload(
         [](NavigationMesh* self, const Vector3& point) { return self->FindNearestPoint(point); },
         [](NavigationMesh* self, const Vector3& point, const Vector3& extents) { return self->FindNearestPoint(point, extents); });
@@ -34,7 +34,7 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
         
     auto bindDynamicNavigationMesh = lua.new_usertype<DynamicNavigationMesh>("DynamicNavigationMesh", sol::base_classes, sol::bases<NavigationMesh, Component>());
     bindDynamicNavigationMesh["id"]                 = sol::var(StringHash("DynamicNavigationMesh"));
-    bindDynamicNavigationMesh["bounding_box"]       = sol::readonly_property(&DynamicNavigationMesh::GetBoundingBox);
+    //bindDynamicNavigationMesh["bounding_box"]       = sol::readonly_property(&DynamicNavigationMesh::GetBoundingBox);
     bindDynamicNavigationMesh["Allocate"]           = &DynamicNavigationMesh::Allocate;
     bindDynamicNavigationMesh["GetTileData"]        = [](DynamicNavigationMesh* self, const IntVector2& tile) {
         const auto& tdata = self->GetTileData(tile);
@@ -43,7 +43,7 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
         return ret;
         };
     bindDynamicNavigationMesh["GetTileIndex"]       = &DynamicNavigationMesh::GetTileIndex;
-    bindDynamicNavigationMesh["GetNumTiles"]        = &DynamicNavigationMesh::GetNumTiles;
+    //bindDynamicNavigationMesh["GetNumTiles"]        = &DynamicNavigationMesh::GetNumTiles;
     bindDynamicNavigationMesh["AddTile"]            = [](DynamicNavigationMesh* self, const std::vector<unsigned char>& tileData) {
         ea::vector<unsigned char> tdata(tileData.size());
         memcpy(tdata.data(), tileData.data(), sizeof(unsigned char) * tileData.size());
