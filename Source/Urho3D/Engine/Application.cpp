@@ -68,8 +68,10 @@ Application::Application(Context* context, uint32_t width, uint32_t height)
     engineParameters_[EP_ENGINE_CLI_PARAMETERS] = true;
     // Create the Engine, but do not initialize it yet. Subsystems except Graphics & Renderer are registered at this point
     engine_ = new Engine(context);
-    engineParameters_[EP_WINDOW_WIDTH] = width == 0 ? DEFAULT_WINDOW_WIDTH : width;
-    engineParameters_[EP_WINDOW_HEIGHT] = height == 0 ? DEFAULT_WINDOW_HEIGHT : height;
+    if (engineParameters_[EP_WINDOW_WIDTH].GetInt() == 0 || engineParameters_[EP_WINDOW_HEIGHT].GetInt() == 0) {
+        engineParameters_[EP_WINDOW_WIDTH] = (width == 0) ? DEFAULT_WINDOW_WIDTH : width;
+        engineParameters_[EP_WINDOW_HEIGHT] = (height == 0) ? DEFAULT_WINDOW_HEIGHT : height;
+    }
     // Subscribe to log messages so that can show errors if ErrorExit() is called with empty message
     SubscribeToEvent(E_LOGMESSAGE, URHO3D_HANDLER(Application, HandleLogMessage));
 }
