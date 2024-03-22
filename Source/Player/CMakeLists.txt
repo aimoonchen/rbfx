@@ -20,8 +20,6 @@
 # THE SOFTWARE.
 #
 
-file (GLOB SOURCE_FILES *.cpp *.h)
-
 if (URHO3D_NO_EDITOR_PLAYER_EXE)
     add_library (libPlayer STATIC ${SOURCE_FILES})
     set (PLAYER_TARGET libPlayer)
