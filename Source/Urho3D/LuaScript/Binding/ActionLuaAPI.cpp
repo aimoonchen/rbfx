@@ -97,7 +97,7 @@ int sol2_ActionLuaAPI_open(sol::state& solLua)
         "CompleteAllActions", &ActionManager::CompleteAllActions,
         "CancelAllActions", &ActionManager::CancelAllActions,
         "CompleteAllActionsOnTarget", &ActionManager::CompleteAllActionsOnTarget,
-        "CancelAllActionsFromTarget", &ActionManager::CancelAllActionsFromTarget,
+        "CancelAllActionsFromTarget", [](ActionManager* self, Node* target) { self->CancelAllActionsFromTarget(target); },
         "CancelAction", &ActionManager::CancelAction,
         "GetNumActions", &ActionManager::GetNumActions,
         "AddAction", sol::overload(
