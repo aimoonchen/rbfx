@@ -99,12 +99,12 @@ int sol2_ActionLuaAPI_open(sol::state& solLua)
         "CompleteAllActionsOnTarget", &ActionManager::CompleteAllActionsOnTarget,
         "CancelAllActionsFromTarget", [](ActionManager* self, Node* target) { self->CancelAllActionsFromTarget(target); },
         "CancelAction", &ActionManager::CancelAction,
-        "GetNumActions", &ActionManager::GetNumActions,
+        "GetNumActions", [](ActionManager* self, Node* target) { return self->GetNumActions(target); },
         "AddAction", sol::overload(
             [](ActionManager* self, Actions::BaseAction* action, Node* target) { return self->AddAction(action, target); },
-            [](ActionManager* self, Actions::BaseAction* action, Node* target, bool paused) { self->AddAction(action, target, paused); },
+            [](ActionManager* self, Actions::BaseAction* action, Node* target, bool paused) { return self->AddAction(action, target, paused); },
             [](ActionManager* self, Actions::BaseAction* action, Component* target) { return self->AddAction(action, target); },
-            [](ActionManager* self, Actions::BaseAction* action, Component* target, bool paused) { self->AddAction(action, target, paused); }),
+            [](ActionManager* self, Actions::BaseAction* action, Component* target, bool paused) { return self->AddAction(action, target, paused); }),
         "GetEmptyAction", &ActionManager::GetEmptyAction,
         sol::base_classes, sol::bases<Object>());
 
