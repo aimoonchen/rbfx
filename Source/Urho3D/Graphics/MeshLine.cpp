@@ -374,7 +374,7 @@ MeshLine::LineDesc* MeshLine::AppendLine(const Vector3& start, const Vector3& en
 
 MeshLine::LineDesc* MeshLine::AppendLine(const std::vector<std::vector<Vector3>>& points, const LineDesc& lineDesc)
 {
-    if (points.size() < 2)
+    if (points.empty())
     {
         return nullptr;
     }
