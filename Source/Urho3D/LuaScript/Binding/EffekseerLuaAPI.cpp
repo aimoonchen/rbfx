@@ -18,7 +18,8 @@ int sol2_EffekseerLuaAPI_open(sol::state& lua)
 {
 	auto context = GetContext(lua.lua_state());
 	auto effekseer = lua["Effekseer"].get_or_create<sol::table>();
-    auto bindEffekseerEmitter = lua.new_usertype<EffekseerEmitter>("EffekseerEmitter");
+    auto bindEffekseerEmitter = lua.new_usertype<EffekseerEmitter>("EffekseerEmitter",
+        sol::base_classes, sol::bases<Drawable, Component>());
     bindEffekseerEmitter["id"]          = sol::var(StringHash("EffekseerEmitter"));
     bindEffekseerEmitter["SetEffect"]   = [](EffekseerEmitter* emitter, std::string_view filename) {
         auto cache = emitter->GetSubsystem<ResourceCache>();

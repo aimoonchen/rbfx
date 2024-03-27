@@ -4,6 +4,7 @@
 #include "../../Actions/ActionManager.h"
 #include "../../Scene/Component.h"
 #include "../../Scene/Node.h"
+#include "../../Graphics/Material.h"
 
 using namespace Urho3D;
 Urho3D::Context* GetContext(lua_State* L);
@@ -96,11 +97,23 @@ int sol2_ActionLuaAPI_open(sol::state& solLua)
     solLua.new_usertype<ActionManager>("ActionManager",
         "CompleteAllActions", &ActionManager::CompleteAllActions,
         "CancelAllActions", &ActionManager::CancelAllActions,
-        "CompleteAllActionsOnTarget", &ActionManager::CompleteAllActionsOnTarget,
-        "CancelAllActionsFromTarget", [](ActionManager* self, Node* target) { self->CancelAllActionsFromTarget(target); },
+        "CompleteAllActionsOnTarget", sol::overload(
+            [](ActionManager* self, Material* target) { self->CompleteAllActionsOnTarget(target); },
+            [](ActionManager* self, Node* target) { self->CompleteAllActionsOnTarget(target); },
+            [](ActionManager* self, Component* target) { self->CompleteAllActionsOnTarget(target); }),
+        "CancelAllActionsFromTarget",
+        sol::overload(
+            [](ActionManager* self, Material* target) { self->CancelAllActionsFromTarget(target); },
+            [](ActionManager* self, Node* target) { self->CancelAllActionsFromTarget(target); },
+            [](ActionManager* self, Component* target) { self->CancelAllActionsFromTarget(target); }),
         "CancelAction", &ActionManager::CancelAction,
-        "GetNumActions", [](ActionManager* self, Node* target) { return self->GetNumActions(target); },
+        "GetNumActions", sol::overload(
+            [](ActionManager* self, Material* target) { return self->GetNumActions(target); },
+            [](ActionManager* self, Node* target) { return self->GetNumActions(target); },
+            [](ActionManager* self, Component* target) { return self->GetNumActions(target); }),
         "AddAction", sol::overload(
+            [](ActionManager* self, Actions::BaseAction* action, Material* target) { return self->AddAction(action, target); },
+            [](ActionManager* self, Actions::BaseAction* action, Material* target, bool paused) { return self->AddAction(action, target, paused); },
             [](ActionManager* self, Actions::BaseAction* action, Node* target) { return self->AddAction(action, target); },
             [](ActionManager* self, Actions::BaseAction* action, Node* target, bool paused) { return self->AddAction(action, target, paused); },
             [](ActionManager* self, Actions::BaseAction* action, Component* target) { return self->AddAction(action, target); },
