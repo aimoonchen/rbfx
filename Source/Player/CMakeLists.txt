@@ -118,7 +118,6 @@ if (WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/zlib1.dll
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/shaderc.exe
         $<TARGET_FILE_DIR:${PLAYER_TARGET}>)
 endif ()
 # install(TARGETS ${PLAYER_TARGET}
