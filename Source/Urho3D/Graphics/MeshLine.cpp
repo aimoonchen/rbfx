@@ -66,7 +66,7 @@ void MeshLine::InitializePipelineStates()
     auto* graphics = GetSubsystem<Graphics>();
 
     auto createPipelineState = [&](PrimitiveType primitiveType, BlendMode blendMode, CompareMode depthCompare,
-                                   bool depthWriteEnabled, float bias)
+                                   bool depthWriteEnabled, float bias = 0.0f, float slopeScaledBias = 0.0f)
     {
         GraphicsPipelineStateDesc desc;
         InitializeInputLayout(desc.inputLayout_, {vertex_buffer_});
@@ -78,6 +78,7 @@ void MeshLine::InitializePipelineStates()
         desc.depthWriteEnabled_ = depthWriteEnabled;
         desc.blendMode_ = blendMode;
         desc.constantDepthBias_ = bias;
+        desc.slopeScaledDepthBias_ = slopeScaledBias;
         desc.debugName_ = "MeshLine PipelineState";
 
         return GetSubsystem<PipelineStateCache>()->GetGraphicsPipelineState(desc);
@@ -86,9 +87,9 @@ void MeshLine::InitializePipelineStates()
     for (bool blend : {false, true})
     {
         const BlendMode blendMode = blend ? BLEND_ALPHA : BLEND_REPLACE;
-        pipelineState_[blend] = createPipelineState(TRIANGLE_LIST, blendMode, CMP_LESSEQUAL, true, 0.0f);
-        pipelineStateBias_[blend] = createPipelineState(TRIANGLE_LIST, blendMode, CMP_LESSEQUAL, true, depth_bias_);
-        noDepthPipelineState_[blend] = createPipelineState(TRIANGLE_LIST, blendMode, CMP_ALWAYS, false, 0.0f);
+        pipelineState_[blend] = createPipelineState(TRIANGLE_LIST, blendMode, CMP_LESSEQUAL, true);
+        pipelineStateBias_[blend] = createPipelineState(TRIANGLE_LIST, blendMode, CMP_LESSEQUAL, true, depth_bias_, slope_scaled_depth_bias_);
+        noDepthPipelineState_[blend] = createPipelineState(TRIANGLE_LIST, blendMode, CMP_ALWAYS, false);
     }
 }
 
@@ -100,6 +101,12 @@ void MeshLine::SetView(Camera* camera)
     view_ = camera->GetView();
     projection_ = camera->GetProjection();
     gpuProjection_ = camera->GetGPUProjection();
+    gpuProjectionBias_ = gpuProjection_;
+    if (GetSubsystem<Graphics>()->GetRenderBackend() == RenderBackend::OpenGL) {
+        const float constantBias = 2.0f * depth_bias_;
+        gpuProjectionBias_.m22_ += gpuProjectionBias_.m32_ * constantBias;
+        gpuProjectionBias_.m23_ += gpuProjectionBias_.m33_ * constantBias;
+    }
     frustum_ = camera->GetFrustum();
     camera_ = camera;
 }
@@ -182,10 +189,11 @@ void MeshLine::Render()
         drawQueue->SetVertexBuffers({vertex_buffer_});
         drawQueue->SetIndexBuffer(index_buffer_);
         auto index = (lineDesc.color.a_ < 1.0f || !lineDesc.alpha_fade.Equals(Vector2::ZERO, 0.00001f)) ? 1 : 0;
-        auto pipelineState = lineDesc.depth ? pipelineState_[index] : noDepthPipelineState_[index];
-        // if (lineDesc.depth_bias > 0.0f) {
-        //     pipelineState = pipelineStateBias_[index];
-        // }
+        auto pipelineState = lineDesc.depth ? pipelineState_[index].Get() : noDepthPipelineState_[index].Get();
+        if (!Equals(lineDesc.depth_bias, 0.0f))
+        {
+            pipelineState = pipelineStateBias_[index].Get();
+        }
         drawQueue->SetPipelineState(pipelineState);
         if (lineDesc.tex)
         {
@@ -198,8 +206,16 @@ void MeshLine::Render()
         drawQueue->CommitShaderResources();
         if (drawQueue->BeginShaderParameterGroup(SP_CAMERA, true))
         {
-            drawQueue->AddShaderParameter(uProjection, gpuProjection_);
-            drawQueue->AddShaderParameter(uViewProjection, gpuProjection_ * view_);
+            if (!Equals(lineDesc.depth_bias, 0.0f))
+            {
+                drawQueue->AddShaderParameter(uProjection, gpuProjectionBias_);
+                drawQueue->AddShaderParameter(uViewProjection, gpuProjectionBias_ * view_);
+            }
+            else
+            {
+                drawQueue->AddShaderParameter(uProjection, gpuProjection_);
+                drawQueue->AddShaderParameter(uViewProjection, gpuProjection_ * view_);
+            }
             drawQueue->CommitShaderParameterGroup(SP_CAMERA);
         }
         if (drawQueue->BeginShaderParameterGroup(SP_OBJECT, true))
@@ -304,7 +320,7 @@ MeshLine::LineDesc* MeshLine::AddGrid(
         center_z = center_z + 0.5f * size;
     }
     auto half_grid_size = 0.5f * (size - gap);
-    auto bias = lineDesc.depth_bias;
+    float bias = 0.0f;//lineDesc.depth_bias;
     if (round > 0.0f)
     {
         lines.reserve(row * col);

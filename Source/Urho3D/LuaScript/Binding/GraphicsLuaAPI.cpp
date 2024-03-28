@@ -369,14 +369,15 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bineMeshLineDesc["visible"]         = &MeshLine::LineDesc::visible;
 
     auto bindMeshLine = lua.new_usertype<MeshLine>("MeshLine", sol::base_classes, sol::bases<Component>());
-    bindMeshLine["id"]              = sol::var(StringHash("MeshLine"));
-    bindMeshLine["SetDepthBias"]    = &MeshLine::SetDepthBias;
-    bindMeshLine["RemoveLine"]      = &MeshLine::RemoveLine;
-    bindMeshLine["BeginLines"]      = &MeshLine::BeginLines;
-    bindMeshLine["AppendLine"]      = [](MeshLine* self, std::vector<Vector3> points) { self->AppendLine(std::move(points)); };
-    bindMeshLine["EndLines"]        = &MeshLine::EndLines;
-    bindMeshLine["AddGrid"]         = &MeshLine::AddGrid;
-    bindMeshLine["AddLine"]         = sol::overload(
+    bindMeshLine["id"]                  = sol::var(StringHash("MeshLine"));
+    bindMeshLine["SetDepthBias"]        = &MeshLine::SetDepthBias;
+    bindMeshLine["SetSlopeScaledDepthBias"] = &MeshLine::SetSlopeScaledDepthBias;
+    bindMeshLine["RemoveLine"]          = &MeshLine::RemoveLine;
+    bindMeshLine["BeginLines"]          = &MeshLine::BeginLines;
+    bindMeshLine["AppendLine"]          = [](MeshLine* self, std::vector<Vector3> points) { self->AppendLine(std::move(points)); };
+    bindMeshLine["EndLines"]            = &MeshLine::EndLines;
+    bindMeshLine["AddGrid"]             = &MeshLine::AddGrid;
+    bindMeshLine["AddLine"]             = sol::overload(
         [](MeshLine* self, const Vector3& start, const Vector3& end, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(start, end, lineDesc); },
         [](MeshLine* self, std::vector<Vector3> points, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(points, lineDesc); });
         

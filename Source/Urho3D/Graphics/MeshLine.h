@@ -64,6 +64,7 @@ public:
     LineDesc* AppendLine(const std::vector<std::vector<Vector3>>& points, const LineDesc& lineDesc);
     void RemoveLine(MeshLine::LineDesc* line);
     void SetDepthBias(float bias) { depth_bias_ = bias; }
+    void SetSlopeScaledDepthBias(float bias) { slope_scaled_depth_bias_ = bias; }
     //
     void SetView(Camera* camera);
     void Render();
@@ -94,11 +95,13 @@ private:
     Matrix4 projection_;
     /// Projection transform in API-specific format.
     Matrix4 gpuProjection_;
+    Matrix4 gpuProjectionBias_;
     /// View frustum.
     Frustum frustum_;
     /// Active camera.
     WeakPtr<Camera> camera_;
-    float depth_bias_{0.01f};
+    float depth_bias_{-0.001f};
+    float slope_scaled_depth_bias_{};
     //
     SharedPtr<PipelineState> pipelineState_[2];
     SharedPtr<PipelineState> pipelineStateBias_[2];
