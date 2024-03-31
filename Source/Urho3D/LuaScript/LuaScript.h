@@ -73,7 +73,7 @@ public:
     bool HasEventHandler(Object* sender, const ea::string& eventName) const override;
 
     /// Execute script file. Return true if successful.
-    bool ExecuteFile(const ea::string& fileName);
+    bool ExecuteFile(const ea::string& fileName, bool fromui = false);
     /// Execute script string. Return true if successful.
     bool ExecuteString(const ea::string& string);
     /// Load script file on file system (i.e. not from resource cache). Return true if successful.

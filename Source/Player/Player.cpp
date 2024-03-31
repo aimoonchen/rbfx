@@ -144,7 +144,7 @@ void Player::Stop()
 void Player::get_script_filename()
 {
     const ea::vector<ea::string>& arguments = GetArguments();
-    scriptFileName_ = (arguments.size() && arguments[0][0] != '-') ? GetInternalPath(arguments[0]) : "Scripts/App.lua";
+    scriptFileName_ = (arguments.size() && arguments[0][0] != '-') ? GetInternalPath(arguments[0]) : "App.lua";
 }
 
 #if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !defined(IOS) && !defined(TVOS)

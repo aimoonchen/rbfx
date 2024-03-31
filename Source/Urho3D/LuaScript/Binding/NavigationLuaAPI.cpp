@@ -7,6 +7,7 @@
 #include "../../Navigation/CrowdAgent.h"
 #include "../../Navigation/CrowdManager.h"
 #include "../../Navigation/NavigationEvents.h"
+#include "../../Navigation/AStar/AStar.h"
 
 Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;
@@ -129,5 +130,36 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
     lua["CA_STATE_INVALID"]             = CA_STATE_INVALID;
     lua["CA_STATE_WALKING"]             = CA_STATE_WALKING;
     lua["CA_STATE_OFFMESH"]             = CA_STATE_OFFMESH;
+
+    // a star
+    auto astar = lua.new_usertype<AStar::Generator>("AStar",
+        sol::call_constructor, sol::factories([context]() { return std::make_unique<AStar::Generator>(); }),
+        "SetWorldSize", [](AStar::Generator* self, int xdim, int ydim) { self->setWorldSize({ xdim, ydim }); },
+        "SetDiagonalMovement", &AStar::Generator::setDiagonalMovement,
+        "SetHeuristic", [](AStar::Generator* self, int type) {
+            if (type == 0) {
+                self->setHeuristic(AStar::Heuristic::manhattan);
+            } else if (type == 1) {
+                self->setHeuristic(AStar::Heuristic::euclidean);
+            } else if (type == 2) {
+                self->setHeuristic(AStar::Heuristic::octagonal);
+            }
+        },
+        "FindPath", [](AStar::Generator* self, int sx, int sy, int tx, int ty) {
+            auto coordinateList = self->findPath({ sx, sy }, {tx, ty});
+            std::vector<int> ret;
+            if (!coordinateList.empty()) {
+                ret.reserve(2 * coordinateList.size());
+                for (const auto& it : coordinateList) {
+                    ret.emplace_back(it.x);
+                    ret.emplace_back(it.y);
+                }
+            }
+            return ret;
+        }
+        );
+    astar["Manhattan"] = sol::var(0);
+    astar["Euclidean"] = sol::var(1);
+    astar["Octagonal"] = sol::var(2);
     return 0;
 }

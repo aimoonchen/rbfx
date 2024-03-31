@@ -283,7 +283,7 @@ bool LuaScript::HasEventHandler(Object* sender, const ea::string& eventName) con
     return eventInvoker_->HasSubscribedToEvent(sender, eventName);
 }
 
-bool LuaScript::ExecuteFile(const ea::string& fileName)
+bool LuaScript::ExecuteFile(const ea::string& fileName, bool fromui)
 {
     URHO3D_PROFILE("ExecuteFile");
 
@@ -293,7 +293,7 @@ bool LuaScript::ExecuteFile(const ea::string& fileName)
 #endif
 
     auto* cache = GetSubsystem<ResourceCache>();
-    auto* luaFile = cache->GetResource<LuaFile>(fileName);
+    auto* luaFile = cache->GetResource<LuaFile>(fromui ? fileName : "Scripts/" + fileName);
     return luaFile && luaFile->LoadAndExecute(luaState_->lua_state());
 }
 
@@ -411,7 +411,8 @@ int LuaScript::AtPanic(lua_State* L)
 int LuaScript::Loader(lua_State* L)
 {
     // Get module name
-    ea::string fileName(luaL_checkstring(L, 1));
+    ea::string fileName("Scripts/");
+    fileName += luaL_checkstring(L, 1);
 
 #ifdef URHO3D_LUA_RAW_SCRIPT_LOADER
     // First attempt to load lua script file from the file system

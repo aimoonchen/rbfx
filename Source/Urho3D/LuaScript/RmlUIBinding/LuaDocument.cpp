@@ -54,7 +54,7 @@ void LuaDocument::LoadInlineScript(const String& context, const String& source_p
 
 void LuaDocument::LoadExternalScript(const String& source_path)
 {
-    bool ret = g_lua_script->ExecuteFile(source_path.c_str());
+    bool ret = g_lua_script->ExecuteFile(source_path.c_str(), true);
     if (!ret) {
         ;
     }

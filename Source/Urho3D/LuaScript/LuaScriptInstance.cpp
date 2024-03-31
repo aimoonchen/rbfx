@@ -823,7 +823,7 @@ sol::function* LuaScriptInstance::GetScriptObjectFunction(const ea::string& func
 void LuaScriptInstance::SetScriptFileAttr(const ResourceRef& value)
 {
     auto* cache = GetSubsystem<ResourceCache>();
-    SetScriptFile(cache->GetResource<LuaFile>(value.name_));
+    SetScriptFile(cache->GetResource<LuaFile>("Scripts/" + value.name_));
 }
 
 ResourceRef LuaScriptInstance::GetScriptFileAttr() const
