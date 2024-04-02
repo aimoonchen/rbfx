@@ -26,7 +26,7 @@ int sol2_ActionLuaAPI_open(sol::state& solLua)
         "IsDone", &ActionState::IsDone);
 
     solLua.new_usertype<ActionBuilder>("ActionBuilder",
-        sol::call_constructor, sol::factories([context]() { return ActionBuilder(context); }),
+        sol::call_constructor, sol::factories([context]() { return ActionBuilder(context, true); }),
         "Then", [](ActionBuilder* self, FiniteTimeAction* nextAction) { return self->Then(SharedPtr<Actions::FiniteTimeAction>(nextAction)); },
         "Also", [](ActionBuilder* self, FiniteTimeAction* nextAction) { return self->Also(SharedPtr<Actions::FiniteTimeAction>(nextAction)); },
         "MoveBy", sol::overload(

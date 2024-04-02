@@ -49,7 +49,7 @@ namespace AStar
         void setWorldSize(Vec2i worldSize_);
         void setDiagonalMovement(bool enable_);
         void setHeuristic(HeuristicFunction heuristic_);
-        CoordinateList findPath(Vec2i source_, Vec2i target_);
+        CoordinateList findPath(Vec2i source_, Vec2i target_, std::vector<int>* path_ = nullptr);
         void addCollision(Vec2i coordinates_);
         void removeCollision(Vec2i coordinates_);
         void clearCollisions();

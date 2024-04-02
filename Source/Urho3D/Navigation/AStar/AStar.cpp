@@ -64,7 +64,7 @@ void AStar::Generator::clearCollisions()
     walls.clear();
 }
 
-AStar::CoordinateList AStar::Generator::findPath(Vec2i source_, Vec2i target_)
+AStar::CoordinateList AStar::Generator::findPath(Vec2i source_, Vec2i target_, std::vector<int>* path_)
 {
     Node *current = nullptr;
     NodeSet openSet, closedSet;
@@ -115,10 +115,25 @@ AStar::CoordinateList AStar::Generator::findPath(Vec2i source_, Vec2i target_)
     }
 
     CoordinateList path;
-    while (current != nullptr) {
-        path.push_back(current->coordinates);
-        current = current->parent;
+    if (path_)
+    {
+        path_->reserve(128);
+        while (current != nullptr)
+        {
+            path_->push_back(current->coordinates.x);
+            path_->push_back(current->coordinates.y);
+            current = current->parent;
+        }
     }
+    else
+    {
+        while (current != nullptr)
+        {
+            path.push_back(current->coordinates);
+            current = current->parent;
+        }
+    }
+    
 
     releaseNodes(openSet);
     releaseNodes(closedSet);

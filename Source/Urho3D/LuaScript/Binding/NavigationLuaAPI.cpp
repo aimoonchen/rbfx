@@ -146,15 +146,8 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
             }
         },
         "FindPath", [](AStar::Generator* self, int sx, int sy, int tx, int ty) {
-            auto coordinateList = self->findPath({ sx, sy }, {tx, ty});
             std::vector<int> ret;
-            if (!coordinateList.empty()) {
-                ret.reserve(2 * coordinateList.size());
-                for (const auto& it : coordinateList) {
-                    ret.emplace_back(it.x);
-                    ret.emplace_back(it.y);
-                }
-            }
+            self->findPath({sx, sy}, {tx, ty}, &ret);
             return ret;
         }
         );
