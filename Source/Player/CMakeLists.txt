@@ -118,7 +118,11 @@ if (WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
         ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/zlib1.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/LuaPanda.lua
         $<TARGET_FILE_DIR:${PLAYER_TARGET}>)
+    add_custom_command(TARGET ${PLAYER_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/socket/core.dll
+        $<TARGET_FILE_DIR:${PLAYER_TARGET}>/socket/core.dll)
 endif ()
 # install(TARGETS ${PLAYER_TARGET}
 #     LIBRARY DESTINATION ${DEST_LIBRARY_DIR_CONFIG}

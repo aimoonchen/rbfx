@@ -408,24 +408,8 @@ void LuaScript::RegisterLoader()
     // LuaPanda Debug
     if (debugLua) {
         luaState_->script(R"(
-            local old_path = package.path
-            local old_cpath = package.cpath
-		    package.path  = package.path..";D:\\Github\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.lua"
-	        package.cpath = package.cpath..";D:\\Github\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.dll"
             require("LuaPanda").start("127.0.0.1",8818)
-            package.path = old_path
-            package.cpath = old_cpath
 	    )");
-
-//     luaState_->script(R"(
-//         local old_path = package.path
-//         local old_cpath = package.cpath
-// 		package.path  = package.path..";D:\\Github\\rbfx_v2\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.lua"
-// 	    package.cpath = package.cpath..";D:\\Github\\rbfx_v2\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.dll"
-//         require("LuaPanda").start("127.0.0.1",8818)
-//         package.path = old_path
-//         package.cpath = old_cpath
-// 	)");
     }
     (*luaState_)["package"]["searchers"] = luaState_->create_table_with(1, &LuaScript::Loader);
 }
