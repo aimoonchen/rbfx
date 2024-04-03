@@ -188,7 +188,7 @@ void MeshLine::Render()
         auto& lineDesc = draw_call.line_desc;
         drawQueue->SetVertexBuffers({vertex_buffer_});
         drawQueue->SetIndexBuffer(index_buffer_);
-        auto index = (lineDesc.color.a_ < 1.0f || !lineDesc.alpha_fade.Equals(Vector2::ZERO, 0.00001f)) ? 1 : 0;
+        auto index = (!Equals(lineDesc.color.a_, 1.0f) || !lineDesc.alpha_fade.Equals(Vector2::ZERO, 0.00001f)) ? 1 : 0;
         auto pipelineState = lineDesc.depth ? pipelineState_[index].Get() : noDepthPipelineState_[index].Get();
         if (!Equals(lineDesc.depth_bias, 0.0f))
         {

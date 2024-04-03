@@ -100,7 +100,7 @@ private:
     Frustum frustum_;
     /// Active camera.
     WeakPtr<Camera> camera_;
-    float depth_bias_{-0.001f};
+    float depth_bias_{-0.00001f};
     float slope_scaled_depth_bias_{};
     //
     SharedPtr<PipelineState> pipelineState_[2];
