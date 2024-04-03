@@ -1153,6 +1153,7 @@ void Engine::DefineParameters(CLI::App& commandLine, StringVariantMap& enginePar
     addOptionInt("-b,--sound-buffer", EP_SOUND_BUFFER, "Sound buffer size");
     addOptionInt("-r,--mix-rate", EP_SOUND_MIX_RATE, "Sound mixing rate");
     addOptionInt("--userid", EP_USERID, "User ID");
+    addOptionInt("--debug-lua", EP_DEBUG_LUA, "Debug Lua");
     addOptionString("--pp,--prefix-paths", EP_RESOURCE_PREFIX_PATHS, "Resource prefix paths")->envname("URHO3D_PREFIX_PATH")->type_name("path1;path2;...");
     addOptionString("--pr,--resource-paths", EP_RESOURCE_PATHS, "Resource paths")->type_name("path1;path2;...");
     addOptionString("--pf,--resource-packages", EP_RESOURCE_PACKAGES, "Resource packages")->type_name("path1;path2;...");

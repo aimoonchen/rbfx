@@ -27,6 +27,7 @@
 #include "../Core/Profiler.h"
 #include "../Engine/Engine.h"
 #include "../Engine/EngineEvents.h"
+#include "../Engine/EngineDefs.h"
 #include "../IO/File.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
@@ -87,6 +88,7 @@ Urho3D::LuaScript* g_lua_script = nullptr;
 
 namespace Urho3D
 {
+StringVariantMap& GetEngineParameters();
 
 LuaScript::LuaScript(Context* context) :
     Object(context),
@@ -387,28 +389,33 @@ void LuaScript::SetExecuteConsoleCommands(bool enable)
 
 void LuaScript::RegisterLoader()
 {
-//     auto L = luaState_->lua_state();
-//     // Get package.loaders table
-//     lua_getglobal(L, "package");
-//     //lua_getfield(L, -1, "loaders");
-//     lua_getfield(L, -1, "preload");
-//     // Add LuaScript::Loader to the end of the table
-//     lua_pushinteger(L, lua_rawlen(L, -1) + 1);
-//     lua_pushcfunction(L, &LuaScript::Loader);
-//     lua_settable(L, -3);
-//     lua_pop(L, 2);
-
+    //     auto L = luaState_->lua_state();
+    //     // Get package.loaders table
+    //     lua_getglobal(L, "package");
+    //     //lua_getfield(L, -1, "loaders");
+    //     lua_getfield(L, -1, "preload");
+    //     // Add LuaScript::Loader to the end of the table
+    //     lua_pushinteger(L, lua_rawlen(L, -1) + 1);
+    //     lua_pushcfunction(L, &LuaScript::Loader);
+    //     lua_settable(L, -3);
+    //     lua_pop(L, 2);
+    bool debugLua = false;
+    auto& engineParameters = GetEngineParameters();
+    if (engineParameters.find(EP_DEBUG_LUA) != engineParameters.end()) {
+        debugLua = engineParameters[EP_DEBUG_LUA].GetInt();
+    }
 
     // LuaPanda Debug
-//     luaState_->script(R"(
-//         local old_path = package.path
-//         local old_cpath = package.cpath
-// 		package.path  = package.path..";D:\\Github\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.lua"
-// 	    package.cpath = package.cpath..";D:\\Github\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.dll"
-//         require("LuaPanda").start("127.0.0.1",8818)
-//         package.path = old_path
-//         package.cpath = old_cpath
-// 	)");
+    if (debugLua) {
+        luaState_->script(R"(
+            local old_path = package.path
+            local old_cpath = package.cpath
+		    package.path  = package.path..";D:\\Github\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.lua"
+	        package.cpath = package.cpath..";D:\\Github\\rbfx\\bin\\Assets\\Engine\\Scripts\\?.dll"
+            require("LuaPanda").start("127.0.0.1",8818)
+            package.path = old_path
+            package.cpath = old_cpath
+	    )");
 
 //     luaState_->script(R"(
 //         local old_path = package.path
@@ -419,6 +426,7 @@ void LuaScript::RegisterLoader()
 //         package.path = old_path
 //         package.cpath = old_cpath
 // 	)");
+    }
     (*luaState_)["package"]["searchers"] = luaState_->create_table_with(1, &LuaScript::Loader);
 }
 
