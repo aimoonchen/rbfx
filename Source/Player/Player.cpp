@@ -94,6 +94,7 @@ void Player::Start()
     ea::string extension = GetExtension(scriptFileName_);
     if (extension == ".lua" || extension == ".luc") {
 #ifdef URHO3D_LUA
+        URHO3D_LOGINFOF("--------Lua entry--------: %s", scriptFileName_.c_str());
         if (RunLua(context_, scriptFileName_)) {
             return;
         }
@@ -144,7 +145,14 @@ void Player::Stop()
 void Player::get_script_filename()
 {
     const ea::vector<ea::string>& arguments = GetArguments();
-    scriptFileName_ = (arguments.size() && arguments[0][0] != '-') ? GetInternalPath(arguments[0]) : "App.lua";
+    if (arguments.size() && arguments[0][0] != '-') {
+        scriptFileName_ = GetInternalPath(arguments[0]);
+        // TODO: remove this, web's lua entry is 'Scripts/App.lua'
+        if (scriptFileName_.starts_with("Scripts/")) {
+            scriptFileName_ = scriptFileName_.substr(scriptFileName_.find_first_of('/') + 1);
+        }
+        URHO3D_LOGINFOF("--------Get lua entry from arguments--------: %s", scriptFileName_.c_str());
+    }
 }
 
 #if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !defined(IOS) && !defined(TVOS)
