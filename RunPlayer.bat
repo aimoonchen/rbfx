@@ -1,1 +1,1 @@
-.\build\bin\Debug\Player.exe App.lua --pr Assets/Engine --userid 10000 --width 1920 --height 1080
+.\build\bin\Release\Player.exe App.lua --pr Assets/Engine --userid 10000 --width 1920 --height 1080

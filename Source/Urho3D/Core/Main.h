@@ -56,9 +56,9 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int) \
 #define URHO3D_DEFINE_MAIN(function) \
 int main(int argc, char** argv) \
 { \
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); \
     uint32_t width = 1280; uint32_t height = 720; uint32_t msaa = 1; \
     if (Urho3D::ReadCommandLine(argc, argv, width, height, msaa) != 0) { return Urho3D::ConsoleMain(); } \
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); \
     Urho3D::ParseArguments(GetCommandLineW()); \
     return function; \
 }
@@ -67,6 +67,8 @@ int main(int argc, char** argv) \
 #define URHO3D_DEFINE_MAIN(function) \
 int main(int argc, char** argv) \
 { \
+    uint32_t width = 1280; uint32_t height = 720; uint32_t msaa = 1; \
+    if (Urho3D::ReadCommandLine(argc, argv, width, height, msaa) != 0) { return Urho3D::ConsoleMain(); } \
     Urho3D::ParseArguments(GetCommandLineW()); \
     int exitCode; \
     __try \
