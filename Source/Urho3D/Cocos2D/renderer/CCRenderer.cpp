@@ -939,6 +939,7 @@ Diligent::IPipelineState* Renderer::getOrCreateRenderPipeline(RenderCommand* com
         PSOCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
         PSOCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain->GetDesc().ColorBufferFormat;
         PSOCreateInfo.GraphicsPipeline.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
+        PSOCreateInfo.GraphicsPipeline.SmplDesc.Count = _device->GetWindowSettings().multiSample_;
         PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = primitiveTypeMap[(uint32_t)primitiveType];
 
         auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;

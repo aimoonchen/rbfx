@@ -216,7 +216,7 @@ Diligent::IPipelineState* RendererImplemented::GetOrCreatePiplineState()
     PSOCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain->GetDesc().ColorBufferFormat;
     // Use the depth buffer format from the swap chain
     PSOCreateInfo.GraphicsPipeline.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
-    
+    PSOCreateInfo.GraphicsPipeline.SmplDesc.Count = renderDevice->GetWindowSettings().multiSample_;
     PSOCreateInfo.GraphicsPipeline.PrimitiveTopology = currentTopologyType_;
 
     auto& rasterizerDesc = PSOCreateInfo.GraphicsPipeline.RasterizerDesc;
