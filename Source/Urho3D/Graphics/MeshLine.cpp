@@ -8,6 +8,7 @@
 #include "../Graphics/VertexBuffer.h"
 #include "../RenderAPI/RenderDevice.h"
 #include "../RenderAPI/RenderScope.h"
+#include "../Core/Spline.h"
 #include "MeshLine.h"
 
 #include "../DebugNew.h"
@@ -80,10 +81,9 @@ void MeshLine::InitializePipelineStates()
         desc.constantDepthBias_ = bias;
         desc.slopeScaledDepthBias_ = slopeScaledBias;
         desc.debugName_ = "MeshLine PipelineState";
-
+        desc.output_.multiSample_ = GetSubsystem<Urho3D::RenderDevice>()->GetWindowSettings().multiSample_;
         return GetSubsystem<PipelineStateCache>()->GetGraphicsPipelineState(desc);
     };
-
     for (bool blend : {false, true})
     {
         const BlendMode blendMode = blend ? BLEND_ALPHA : BLEND_REPLACE;
@@ -127,9 +127,10 @@ void MeshLine::Render()
     static StringHash alphaMap("AlphaMap");
 
     // test
-//     MeshLine::LineDesc lineDesc;
-//     lineDesc.width = 8.0f;
-//     lineDesc.attenuation = false;
+/*
+    MeshLine::LineDesc lineDesc;
+    lineDesc.width = 4.0f;
+    lineDesc.attenuation = false;
 //     std::vector<Vector3> points;
 //     points.reserve(100);
 //     for (int j = 0; j <= 360; j += 1)
@@ -139,6 +140,33 @@ void MeshLine::Render()
 //     AppendLine(points, lineDesc);
 //     AppendLine({{-5.0f, -5.0f, 0.0f}, {5.0f, 5.0f, 0.0f}}, lineDesc);
 //     AppendLine({{-5.0f, 5.0f, 0.0f}, {5.0f, -5.0f, 0.0f}}, lineDesc);
+
+    lineDesc.cache = true;
+    static bool firsttime = true;
+    if (firsttime)
+    {
+        firsttime = false;
+        float radius = 10.0f;
+        for (int i = 0; i < 10; i++)
+        {
+            std::vector<Vector3> positions;
+            positions.reserve(301);
+            ea::vector<Variant> points;
+            points.reserve(10);
+            for (int i = 0; i < 10; i++)
+            {
+                points.emplace_back(Vector3(Random(-radius, radius), Random(-radius, radius), Random(-radius, radius)));
+            }
+            Spline spline(points, CATMULL_ROM_CURVE);
+            for (int i = 0; i < 300; i++)
+            {
+                positions.emplace_back(spline.GetPoint((float)i / 300.0f).GetVector3());
+            }
+            positions.emplace_back(spline.GetPoint(1.0f).GetVector3());
+            AppendLine(positions, lineDesc);
+        }
+    }
+    */
     // end test
 
     UpdateData();
@@ -222,8 +250,9 @@ void MeshLine::Render()
         {
             drawQueue->AddShaderParameter(uModelMat, lineDesc.model_mat);
             auto* graphics = GetSubsystem<Graphics>();
-            Vector2 resolution{lineDesc.attenuation ? 1.0f : graphics->GetWidth(),
-                lineDesc.attenuation ? 1.0f : graphics->GetHeight()};
+            Vector2 resolution(graphics->GetWidth(), graphics->GetHeight());
+//             Vector2 resolution{lineDesc.attenuation ? 1.0f : graphics->GetWidth(),
+//                 lineDesc.attenuation ? 1.0f : graphics->GetHeight()};
             drawQueue->AddShaderParameter(
                 uResolution, Vector4{resolution.x_, resolution.y_, lineDesc.width, lineDesc.attenuation ? 1.0f : 0.0f});
             drawQueue->AddShaderParameter(

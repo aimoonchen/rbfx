@@ -50,7 +50,7 @@ void main() {
 
     // mat4 m = projectionMatrix * modelViewMatrix;
     mat4 m = cModelMat * cViewProjection;
-    vec4 finalPosition = vec4(position, 1.0) * m;
+    vec4 finalPosition = vec4(position, 1.0) * m * aspect;
     vec4 prevPos = vec4(previous, 1.0) * m;
     vec4 nextPos = vec4(next, 1.0) * m;
 
@@ -74,7 +74,7 @@ void main() {
     //normal *= projectionMatrix;
     if (sizeAttenuation == 0.) {
         normal.xy *= finalPosition.w;
-        normal.xy /= (vec4(resolution, 0., 1.) * projectionMatrix).xy;
+        normal.xy /= (vec4(resolution, 0., 1.) * projectionMatrix).xy * aspect;
     }
 
     finalPosition.xy += normal.xy * side;
@@ -106,21 +106,21 @@ UNIFORM_BUFFER_END(6, Custom)
 #define useGradient cRepeat.w
 
 void main() {
-    vec4 c = vColor;
+    vec4 diffuseColor = vColor;
     //
-    if (alphaFade > 0.5) c.a *= (1.0 - vCounters);
-    else if (alphaFade < -0.5) c.a *= vCounters;
-    else if (vCounters < alphaFade) c.a *= vCounters / alphaFade;
-    else if (vCounters > (1.0 - alphaFade)) c.a *= (1.0 - vCounters) / alphaFade;
+    if (alphaFade > 0.5) diffuseColor.a *= (1.0 - vCounters);
+    else if (alphaFade < -0.5) diffuseColor.a *= vCounters;
+    else if (vCounters < alphaFade) diffuseColor.a *= vCounters / alphaFade;
+    else if (vCounters > (1.0 - alphaFade)) diffuseColor.a *= (1.0 - vCounters) / alphaFade;
     //
-    if (useGradient == 1.) c = vec4(mix(cGradient1, cGradient2, vCounters), 1.0);
-    if (useMap == 1.) c *= texture2D(sBaseMap, vUV * repeat);
-    if (useAlphaMap == 1.) c.a *= texture2D(sAlphaMap, vUV * repeat).a;
-    if (c.a < alphaTest) discard;
+    if (useGradient == 1.) diffuseColor = vec4(mix(cGradient1, cGradient2, vCounters), 1.0);
+    if (useMap == 1.) diffuseColor *= texture2D(sBaseMap, vUV * repeat);
+    if (useAlphaMap == 1.) diffuseColor.a *= texture2D(sAlphaMap, vUV * repeat).a;
+    if (diffuseColor.a < alphaTest) discard;
     if (useDash == 1.) {
-        c.a *= ceil(mod(vCounters + dashOffset, dashArray) - (dashArray * dashRatio));
+        diffuseColor.a *= ceil(mod(vCounters + dashOffset, dashArray) - (dashArray * dashRatio));
     }
-    gl_FragColor = c;
-    gl_FragColor.a *= step(vCounters, visibility);
+    diffuseColor.a *= step(vCounters, visibility);
+    gl_FragColor = diffuseColor;
 }
 #endif

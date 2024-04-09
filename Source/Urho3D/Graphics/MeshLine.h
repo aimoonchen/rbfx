@@ -72,11 +72,11 @@ public:
 private:
     struct MeshLineVertex
     {
-        Vector3 position; // curr point, SEM_POSITION
-        Vector3 prev; // prev point, SEM_NORMAL
-        Vector4 next; // next point, SEM_TANGENT
-        Vector4 param{0, 1, 0, 1.0}; // param, SEM_BINORMAL(side, width, counters, alpha_fade)
-        Vector2 texcoord0; // texcoord, SEM_TEXCOORD
+        Vector3 position;               // curr point, SEM_POSITION
+        Vector3 prev;                   // prev point, SEM_NORMAL
+        Vector4 next;                   // next point, SEM_BINORMAL
+        Vector4 param{0, 1, 0, 1.0};    // param, SEM_TANGENT(side, width, counters, alpha_fade)
+        Vector2 texcoord0;              // texcoord, SEM_TEXCOORD
     };
     struct DrawCall
     {
