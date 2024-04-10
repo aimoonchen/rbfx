@@ -29,7 +29,7 @@ public:
         // vs uniform
         Matrix3x4 model_mat;
         float width{1.0f};
-        bool attenuation{false};
+        bool world_space{false};
         Color color{1.0f, 1.0f, 1.0f, 1.0f};
         Vector3 gradient[2]{{}, {}};
         // fs uniform

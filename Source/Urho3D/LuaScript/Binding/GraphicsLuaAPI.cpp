@@ -353,7 +353,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bineMeshLineDesc["model_mat"]       = &MeshLine::LineDesc::model_mat;
     bineMeshLineDesc["color"]           = &MeshLine::LineDesc::color;
     bineMeshLineDesc["width"]           = &MeshLine::LineDesc::width;
-    bineMeshLineDesc["attenuation"]     = &MeshLine::LineDesc::attenuation;
+    bineMeshLineDesc["world_space"]     = &MeshLine::LineDesc::world_space;
     bineMeshLineDesc["depth"]           = &MeshLine::LineDesc::depth;
     bineMeshLineDesc["depth_bias"]      = &MeshLine::LineDesc::depth_bias;
     bineMeshLineDesc["repeat"]          = &MeshLine::LineDesc::repeat;

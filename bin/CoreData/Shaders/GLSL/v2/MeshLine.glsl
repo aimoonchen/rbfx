@@ -32,52 +32,70 @@ VERTEX_INPUT(vec2 iTexCoord)
 #define projectionMatrix cProjection
 #define resolution cResolution.xy
 #define lineWidth cResolution.z
-#define sizeAttenuation cResolution.w
+#define sizeInWorld cResolution.w
 #define color cColor.xyz
 #define opacity cColor.a
 
+// From the clip space to the screen space
+vec2 ClipToScreen(vec4 P)
+{
+    vec2 p = 0.5 + (P.xyz/P.w).xy * 0.5;
+    return p * cResolution.xy;
+}
+// From the screen space to the clip space
+vec4 ScreenToClip(vec2 p, float z, float w)
+{
+    vec4 P = vec4( w*((p/cResolution.xy)*2.0 - 1.0), z, w);
+    return P;
+}
 vec2 fix(vec4 i, float aspect) {
     vec2 res = i.xy / i.w;
     res.x *= aspect;
     return res;
 }
-
 void main() {
-    float aspect = resolution.x / resolution.y;
     vColor = vec4(color, opacity);
     vUV = uv;
     vCounters = counters;
-
-    // mat4 m = projectionMatrix * modelViewMatrix;
-    mat4 m = cModelMat * cViewProjection;
-    vec4 finalPosition = vec4(position, 1.0) * m * aspect;
-    vec4 prevPos = vec4(previous, 1.0) * m;
-    vec4 nextPos = vec4(next, 1.0) * m;
-
-    vec2 currentP = fix(finalPosition, aspect);
-    vec2 prevP = fix(prevPos, aspect);
-    vec2 nextP = fix(nextPos, aspect);
-
+    vec4 finalPosition;
+    mat4 mvp = cModelMat * cViewProjection;
     float w = lineWidth * width;
+    if (sizeInWorld == 0.) {
+        vec2 prevS = ClipToScreen(vec4(previous,1.0) * mvp);
+        vec2 nextS = ClipToScreen(vec4(next,1.0) * mvp);
+        vec4 currC = vec4(position,1.0) * mvp;
+        vec2 currS = ClipToScreen(currC);
+        vec2 tangent1 = normalize(prevS - currS);
+        vec2 tangent2 = normalize(currS - nextS);
+        vec2 tangent = normalize(tangent1 + tangent2);
+        vec2 ortho = vec2(-tangent.y, tangent.x) * side;
+        w *= 0.5;
+        vec2 pos = currS + ortho * w;
+        finalPosition = ScreenToClip(pos, currC.z, currC.w);
+    } else {
+        float aspect = resolution.x / resolution.y;
+        finalPosition = vec4(position, 1.0) * mvp * aspect;
 
-    vec2 dir1 = normalize(currentP - prevP);
-    vec2 dir2 = normalize(nextP - currentP);
-    vec2 dir = normalize(dir1 + dir2);
+        // vec4 prevPos = vec4(previous, 1.0) * mvp;
+        // vec4 nextPos = vec4(next, 1.0) * mvp;
+        // vec2 currentP = fix(finalPosition, aspect);
+        // vec2 prevP = fix(prevPos, aspect);
+        // vec2 nextP = fix(nextPos, aspect);
+        vec2 currentP = fix(vec4(position, 1.0) * mvp, aspect);
+        vec2 prevP = fix(vec4(previous, 1.0) * mvp, aspect);
+        vec2 nextP = fix(vec4(next, 1.0) * mvp, aspect);
 
-    vec2 perp = vec2(-dir1.y, dir1.x);
-    vec2 miter = vec2(-dir.y, dir.x);
-    //w = clamp(w / dot(miter, perp), 0., 4. * lineWidth * width);
+        vec2 dir1 = normalize(currentP - prevP);
+        vec2 dir2 = normalize(nextP - currentP);
+        vec2 dir = normalize(dir1 + dir2);
+        vec4 normal = vec4(-dir.y, dir.x, 0., 1.);
+        normal.xy *= .5 * w;
+        
+        // ndc space to clip space
+        // normal.xy *= finalPosition.w;
 
-    //vec2 normal = (cross(vec3(dir, 0.), vec3(0., 0., 1.))).xy;
-    vec4 normal = vec4(-dir.y, dir.x, 0., 1.);
-    normal.xy *= .5 * w;
-    //normal *= projectionMatrix;
-    if (sizeAttenuation == 0.) {
-        normal.xy *= finalPosition.w;
-        normal.xy /= (vec4(resolution, 0., 1.) * projectionMatrix).xy * aspect;
+        finalPosition.xy += normal.xy * side;
     }
-
-    finalPosition.xy += normal.xy * side;
     gl_Position = finalPosition;
 }
 #endif
