@@ -1,5 +1,6 @@
 #include "_Config.glsl"
 UNIFORM_BUFFER_BEGIN(1, Camera)
+    UNIFORM_HIGHP(mat4 cViewMat)
     UNIFORM_HIGHP(mat4 cViewProjection)
     UNIFORM_HIGHP(mat4 cProjection)
 UNIFORM_BUFFER_END(1, Camera)
@@ -33,7 +34,7 @@ VERTEX_INPUT(vec2 iTexCoord)
 #define resolution cResolution.xy
 #define lineWidth cResolution.z
 #define sizeInWorld cResolution.w
-#define color cColor.xyz
+#define color cColor.rgb
 #define opacity cColor.a
 
 // From the clip space to the screen space
@@ -48,55 +49,36 @@ vec4 ScreenToClip(vec2 p, float z, float w)
     vec4 P = vec4( w*((p/cResolution.xy)*2.0 - 1.0), z, w);
     return P;
 }
-vec2 fix(vec4 i, float aspect) {
-    vec2 res = i.xy / i.w;
-    res.x *= aspect;
-    return res;
+// Estimate the linewidth
+// WARNING: wrong if pos == screen_pos
+float EstimateWidth(vec3 pos, vec2 screen_pos, float w)
+{
+    vec4 view_pos = vec4(pos, 1.0) * cModelMat * cViewMat;
+    vec4 scale_pos = view_pos - vec4(normalize(view_pos.xy) * w, 0.0, 1.0);
+    vec2 screen_scale_pos = ClipToScreen(scale_pos * cProjection);
+    return distance(screen_pos, screen_scale_pos);
 }
 void main() {
     vColor = vec4(color, opacity);
     vUV = uv;
     vCounters = counters;
-    vec4 finalPosition;
     mat4 mvp = cModelMat * cViewProjection;
+    vec2 prevS = ClipToScreen(vec4(previous, 1.0) * mvp);
+    vec2 nextS = ClipToScreen(vec4(next, 1.0) * mvp);
+    vec4 currC = vec4(position, 1.0) * mvp;
+    vec2 currS = ClipToScreen(currC);
+    vec2 tangent1 = normalize(prevS - currS);
+    vec2 tangent2 = normalize(currS - nextS);
+    vec2 tangent = normalize(tangent1 + tangent2);
+    vec2 ortho = vec2(-tangent.y, tangent.x) * side;
     float w = lineWidth * width;
     if (sizeInWorld == 0.) {
-        vec2 prevS = ClipToScreen(vec4(previous,1.0) * mvp);
-        vec2 nextS = ClipToScreen(vec4(next,1.0) * mvp);
-        vec4 currC = vec4(position,1.0) * mvp;
-        vec2 currS = ClipToScreen(currC);
-        vec2 tangent1 = normalize(prevS - currS);
-        vec2 tangent2 = normalize(currS - nextS);
-        vec2 tangent = normalize(tangent1 + tangent2);
-        vec2 ortho = vec2(-tangent.y, tangent.x) * side;
         w *= 0.5;
-        vec2 pos = currS + ortho * w;
-        finalPosition = ScreenToClip(pos, currC.z, currC.w);
     } else {
-        float aspect = resolution.x / resolution.y;
-        finalPosition = vec4(position, 1.0) * mvp * aspect;
-
-        // vec4 prevPos = vec4(previous, 1.0) * mvp;
-        // vec4 nextPos = vec4(next, 1.0) * mvp;
-        // vec2 currentP = fix(finalPosition, aspect);
-        // vec2 prevP = fix(prevPos, aspect);
-        // vec2 nextP = fix(nextPos, aspect);
-        vec2 currentP = fix(vec4(position, 1.0) * mvp, aspect);
-        vec2 prevP = fix(vec4(previous, 1.0) * mvp, aspect);
-        vec2 nextP = fix(vec4(next, 1.0) * mvp, aspect);
-
-        vec2 dir1 = normalize(currentP - prevP);
-        vec2 dir2 = normalize(nextP - currentP);
-        vec2 dir = normalize(dir1 + dir2);
-        vec4 normal = vec4(-dir.y, dir.x, 0., 1.);
-        normal.xy *= .5 * w;
-        
-        // ndc space to clip space
-        // normal.xy *= finalPosition.w;
-
-        finalPosition.xy += normal.xy * side;
+        w = EstimateWidth(position, currS, w) * 0.5;
     }
-    gl_Position = finalPosition;
+    vec2 spos = currS + ortho * w;
+    gl_Position = ScreenToClip(spos, currC.z, currC.w);
 }
 #endif
 

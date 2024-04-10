@@ -99,6 +99,7 @@ void MeshLine::SetView(Camera* camera)
         return;
 
     view_ = camera->GetView();
+    view4_ = Matrix4::IDENTITY * view_;
     projection_ = camera->GetProjection();
     gpuProjection_ = camera->GetGPUProjection();
     gpuProjectionBias_ = gpuProjection_;
@@ -114,6 +115,7 @@ void MeshLine::SetView(Camera* camera)
 void MeshLine::Render()
 {
     static StringHash uModelMat("ModelMat");
+    static StringHash uViewMat("ViewMat");
     static StringHash uProjection("Projection");
     static StringHash uViewProjection("ViewProjection");
     static StringHash uResolution("Resolution");
@@ -167,7 +169,6 @@ void MeshLine::Render()
 //             AppendLine(positions, lineDesc);
 //         }
 //     }
-    
     // end test
 
     UpdateData();
@@ -235,16 +236,10 @@ void MeshLine::Render()
         drawQueue->CommitShaderResources();
         if (drawQueue->BeginShaderParameterGroup(SP_CAMERA, true))
         {
-            if (!Equals(lineDesc.depth_bias, 0.0f))
-            {
-                drawQueue->AddShaderParameter(uProjection, gpuProjectionBias_);
-                drawQueue->AddShaderParameter(uViewProjection, gpuProjectionBias_ * view_);
-            }
-            else
-            {
-                drawQueue->AddShaderParameter(uProjection, gpuProjection_);
-                drawQueue->AddShaderParameter(uViewProjection, gpuProjection_ * view_);
-            }
+            const auto& projecttion = Equals(lineDesc.depth_bias, 0.0f) ? gpuProjection_ : gpuProjectionBias_;
+            drawQueue->AddShaderParameter(uViewMat, view4_);
+            drawQueue->AddShaderParameter(uProjection, projecttion);
+            drawQueue->AddShaderParameter(uViewProjection, projecttion * view_);
             drawQueue->CommitShaderParameterGroup(SP_CAMERA);
         }
         if (drawQueue->BeginShaderParameterGroup(SP_OBJECT, true))

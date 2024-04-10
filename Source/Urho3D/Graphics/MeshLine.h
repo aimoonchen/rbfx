@@ -91,6 +91,7 @@ private:
     bool pipelineStatesInitialized_{};
     /// View transform.
     Matrix3x4 view_;
+    Matrix4 view4_;
     /// Projection transform.
     Matrix4 projection_;
     /// Projection transform in API-specific format.
