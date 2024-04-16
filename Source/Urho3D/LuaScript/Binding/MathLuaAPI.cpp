@@ -231,11 +231,15 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindRect["min"]     = &Rect::min_;
     bindRect["max"]     = &Rect::max_;
 
-    math3d.new_usertype<Plane>("Plane",
+    auto bindPlane = math3d.new_usertype<Plane>("Plane",
         sol::call_constructor,
         sol::constructors<Plane(),
         Plane(const Vector3&, const Vector3&, const Vector3&),
         Plane(const Vector3&, const Vector3&)>());
+    bindPlane["Distance"] = &Plane::Distance;
+    bindPlane["Project"] = &Plane::Project;
+    bindPlane["Reflect"] = &Plane::Reflect;
+    bindPlane["ToVector4"] = &Plane::ToVector4;
 
     auto bindRay = math3d.new_usertype<Ray>("Ray",
         sol::call_constructor, sol::constructors<Ray(), Ray(const Vector3&, const Vector3&)>());

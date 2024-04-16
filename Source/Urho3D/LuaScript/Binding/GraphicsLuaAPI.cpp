@@ -493,7 +493,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
             [context](const ea::string& animationName) { return AnimationParameters(context, animationName); }));
     bindAnimationParameters["weight"]           = &AnimationParameters::weight_;
     bindAnimationParameters["Looped"]           = &AnimationParameters::Looped;
-    bindAnimationParameters["StartBone"]        = &AnimationParameters::StartBone;
+    bindAnimationParameters["StartBone"]        = [](AnimationParameters* self, std::string_view startBone) { return self->StartBone(startBone.data()); };
     bindAnimationParameters["Layer"]            = &AnimationParameters::Layer;
     bindAnimationParameters["Time"]             = &AnimationParameters::Time;
     bindAnimationParameters["Additive"]         = &AnimationParameters::Additive;
