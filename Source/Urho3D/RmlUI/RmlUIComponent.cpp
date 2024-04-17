@@ -89,7 +89,7 @@ void RmlUIComponent::Update(float timeStep)
     }
     // There should be only a few of RmlUIComponent enabled at a time, so this is not a performance issue.
     UpdateConnectedCanvas();
-    if (luaUpdater_) {
+    if (document_ && luaUpdater_) {
         luaUpdater_(timeStep, document_);
     }
 }
@@ -257,6 +257,7 @@ void RmlUIComponent::CloseInternal()
 
     position_ = GetPosition();
     size_ = GetSize();
+    luaUpdater_ = nullptr;
 
     OnDocumentPreUnload();
     document_->Close();
