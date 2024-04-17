@@ -137,17 +137,17 @@ void MeshLine::Render()
     static StringHash alphaMap("AlphaMap");
 
     // test
-    MeshLine::LineDesc lineDesc;
-    lineDesc.width = 0.1f;
-    lineDesc.world_space = true;
-    std::vector<Vector3> points;
+//     MeshLine::LineDesc lineDesc;
+//     lineDesc.width = 0.1f;
+//     lineDesc.world_space = true;
+//     std::vector<Vector3> points;
 //     points.reserve(100);
 //     for (int j = 0; j <= 360; j += 1)
 //     {
 //         points.emplace_back(Urho3D::Cos((float)j) * 5.0f, Urho3D::Sin((float)j) * 5.0f, 0.0f);
 //     }
 //     AppendLine(points, lineDesc);
-    AppendLine({{-5.0f, -5.0f, 0.0f}, {5.0f, 5.0f, 0.0f}}, lineDesc);
+//     AppendLine({{-5.0f, -5.0f, 0.0f}, {5.0f, 5.0f, 0.0f}}, lineDesc);
 //     AppendLine({{-5.0f, 5.0f, 0.0f}, {5.0f, -5.0f, 0.0f}}, lineDesc);
 //     AppendLine({{-5.0f, 0.0f, 0.0f}, {5.0f, 0.0f, 0.0f}}, lineDesc);
 //     AppendLine({{0.0f, -5.0f, 0.0f}, {0.0f, 5.0f, 0.0f}}, lineDesc);
