@@ -81,7 +81,15 @@ void MeshLine::InitializePipelineStates()
         desc.constantDepthBias_ = bias;
         desc.slopeScaledDepthBias_ = slopeScaledBias;
         desc.debugName_ = "MeshLine PipelineState";
-        desc.output_.multiSample_ = GetSubsystem<Urho3D::RenderDevice>()->GetWindowSettings().multiSample_;
+        //
+        desc.output_.numRenderTargets_ = 1;
+        auto device = GetSubsystem<Urho3D::RenderDevice>();
+        const auto& swapChainDesc = device->GetSwapChain()->GetDesc();
+        desc.output_.renderTargetFormats_[0] = swapChainDesc.ColorBufferFormat;
+        desc.output_.depthStencilFormat_ = swapChainDesc.DepthBufferFormat;
+        const unsigned multiSample = device->GetSwapChain()->GetCurrentBackBufferRTV()->GetTexture()->GetDesc().SampleCount;
+        //const unsigned multiSample = device->GetWindowSettings().multiSample_;
+        desc.output_.multiSample_ = multiSample;
         return GetSubsystem<PipelineStateCache>()->GetGraphicsPipelineState(desc);
     };
     for (bool blend : {false, true})
@@ -129,17 +137,17 @@ void MeshLine::Render()
     static StringHash alphaMap("AlphaMap");
 
     // test
-//     MeshLine::LineDesc lineDesc;
-//     lineDesc.width = 0.1f;
-//     lineDesc.world_space = true;
-//     std::vector<Vector3> points;
+    MeshLine::LineDesc lineDesc;
+    lineDesc.width = 0.1f;
+    lineDesc.world_space = true;
+    std::vector<Vector3> points;
 //     points.reserve(100);
 //     for (int j = 0; j <= 360; j += 1)
 //     {
 //         points.emplace_back(Urho3D::Cos((float)j) * 5.0f, Urho3D::Sin((float)j) * 5.0f, 0.0f);
 //     }
 //     AppendLine(points, lineDesc);
-//     AppendLine({{-5.0f, -5.0f, 0.0f}, {5.0f, 5.0f, 0.0f}}, lineDesc);
+    AppendLine({{-5.0f, -5.0f, 0.0f}, {5.0f, 5.0f, 0.0f}}, lineDesc);
 //     AppendLine({{-5.0f, 5.0f, 0.0f}, {5.0f, -5.0f, 0.0f}}, lineDesc);
 //     AppendLine({{-5.0f, 0.0f, 0.0f}, {5.0f, 0.0f, 0.0f}}, lineDesc);
 //     AppendLine({{0.0f, -5.0f, 0.0f}, {0.0f, 5.0f, 0.0f}}, lineDesc);
