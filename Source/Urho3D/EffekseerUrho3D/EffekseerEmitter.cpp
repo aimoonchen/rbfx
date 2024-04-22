@@ -78,15 +78,16 @@ void EffekseerEmitter::OnWorldBoundingBoxUpdate()
 
 void EffekseerEmitter::HandleScenePostUpdate(StringHash eventType, VariantMap& eventData)
 {
-    const auto& frustum = node_->GetScene()->GetComponent<Camera>()->GetFrustum();
+    auto system = EffekseerSystem::get_instance();
     bool active = true;
-    if (m_docull) {
+    if (auto camera = system->GetCamera(); camera && m_docull) {
+        const auto& frustum = camera->GetFrustum();
         active = (frustum.IsInside(GetWorldBoundingBox()) != OUTSIDE);
-        set_paused(active);
+        set_paused(!active);
         set_visible(active);
     }
+
     if (active) {
-        auto system = EffekseerSystem::get_instance();
         const auto& manager = system->get_manager();
         for (auto it = m_handles.begin(); it != m_handles.end();) {
             auto handle = *it;

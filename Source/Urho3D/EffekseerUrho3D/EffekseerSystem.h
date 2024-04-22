@@ -57,6 +57,7 @@ public:
     void HandleRenderUpdate(StringHash eventType, VariantMap& eventData);
     void Render();
     void SetCamera(Camera* camera);
+    Camera* GetCamera() const { return main_camera_; };
 	void SetIsDistortionEnabled(bool value);
 private:
 	static EffekseerSystem* s_instance;
