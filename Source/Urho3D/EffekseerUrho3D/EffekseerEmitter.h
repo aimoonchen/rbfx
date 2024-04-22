@@ -64,7 +64,7 @@ public:
     void set_looping(bool value) { m_looping = value; }
     void set_visible(bool visible);
     bool get_visible();
-    void SetBoundingBox(const BoundingBox& box);
+    void SetCullBoundingBox(const BoundingBox& box);
 
 protected:
     //void OnNodeSet(Urho3D::Node* node) override;
@@ -81,6 +81,7 @@ private:
 	bool m_paused = false;
 	float m_speed = 1.0f;
     bool m_looping = false;
+    bool m_docull = false;
 	Effekseer::Color m_color = {255, 255, 255, 255};
 };
 

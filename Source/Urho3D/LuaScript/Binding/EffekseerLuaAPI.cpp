@@ -31,7 +31,7 @@ int sol2_EffekseerLuaAPI_open(sol::state& lua)
     bindEffekseerEmitter["SetLooping"]  = &EffekseerEmitter::set_looping;
     bindEffekseerEmitter["IsPlaying"]   = &EffekseerEmitter::is_playing;
     bindEffekseerEmitter["SetVisible"] = &EffekseerEmitter::set_visible;
-    bindEffekseerEmitter["SetBoundingBox"] = &EffekseerEmitter::SetBoundingBox;
+    bindEffekseerEmitter["SetCullBoundingBox"] = &EffekseerEmitter::SetCullBoundingBox;
 
 	effekseer["SetCamera"] = [](Camera* camera) { EffekseerSystem::get_instance()->SetCamera(camera); };
 	return 0;
