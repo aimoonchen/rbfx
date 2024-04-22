@@ -59,9 +59,12 @@ public:
 
 	bool is_autoplay() const { return m_autoplay; }
 
-	bool is_looping() { return m_looping; }
+	bool is_looping() const { return m_looping; }
 
     void set_looping(bool value) { m_looping = value; }
+    void set_visible(bool visible);
+    bool get_visible();
+    void SetBoundingBox(const BoundingBox& box);
 
 protected:
     //void OnNodeSet(Urho3D::Node* node) override;

@@ -5,6 +5,8 @@
 #include "../Scene/Node.h"
 #include "../Scene/Scene.h"
 #include "../Scene/SceneEvents.h"
+#include "../Graphics/Camera.h"
+#include "../Math/Frustum.h"
 #include "EffekseerSystem.h"
 #include "EffekseerEmitter.h"
 #include "Utils/EffekseerUrho3D.Utils.h"
@@ -76,21 +78,27 @@ void EffekseerEmitter::OnWorldBoundingBoxUpdate()
 
 void EffekseerEmitter::HandleScenePostUpdate(StringHash eventType, VariantMap& eventData)
 {
-    auto system = EffekseerSystem::get_instance();
-    auto manager = system->get_manager();
-    for (auto it = m_handles.begin(); it != m_handles.end();) {
-        auto handle = *it;
-        if (!manager->Exists(handle)) {
-			if (m_looping) {
-                *it = play(0, false);
-                handle = *it;
-            } else {
-                it = m_handles.erase(it);
-                continue;
+    const auto& frustum = node_->GetScene()->GetComponent<Camera>()->GetFrustum();
+    auto active = (frustum.IsInside(GetWorldBoundingBox()) != OUTSIDE);
+    set_paused(active);
+    set_visible(active);
+    if (active) {
+        auto system = EffekseerSystem::get_instance();
+        const auto& manager = system->get_manager();
+        for (auto it = m_handles.begin(); it != m_handles.end();) {
+            auto handle = *it;
+            if (!manager->Exists(handle)) {
+			    if (m_looping) {
+                    *it = play(0, false);
+                    handle = *it;
+                } else {
+                    it = m_handles.erase(it);
+                    continue;
+                }
             }
+            manager->SetMatrix(handle, EffekseerUrho3D::ToEfkMatrix43(node_->GetWorldTransform() /*get_global_transform()*/));
+            ++it;
         }
-        manager->SetMatrix(handle, EffekseerUrho3D::ToEfkMatrix43(node_->GetWorldTransform() /*get_global_transform()*/));
-        ++it;
     }
 }
 
@@ -153,7 +161,7 @@ void EffekseerEmitter::_update_draw()
 Effekseer::Handle EffekseerEmitter::play(int32_t startFrame, bool mgr)
 {
 	auto system = EffekseerSystem::get_instance();
-	auto manager = system->get_manager();
+    const auto& manager = system->get_manager();
 
 	if (m_effect/*.is_valid()*/) {
 		Effekseer::Handle handle = manager->Play(m_effect->get_native(), Effekseer::Vector3D(0, 0, 0), startFrame);
@@ -188,7 +196,7 @@ void EffekseerEmitter::stop()
 	}
 	
 	auto system = EffekseerSystem::get_instance();
-	auto manager = system->get_manager();
+    const auto& manager = system->get_manager();
 
 	for (int i = 0; i < m_handles.size(); i++) {
 		manager->StopEffect(m_handles[i]);
@@ -200,7 +208,7 @@ void EffekseerEmitter::stop()
 void EffekseerEmitter::stop_root()
 {
 	auto system = EffekseerSystem::get_instance();
-	auto manager = system->get_manager();
+    const auto& manager = system->get_manager();
 
 	for (int i = 0; i < m_handles.size(); i++) {
 		manager->StopRoot(m_handles[i]);
@@ -217,7 +225,7 @@ void EffekseerEmitter::set_paused(bool paused)
 	m_paused = paused;
 
 	auto system = EffekseerSystem::get_instance();
-	auto manager = system->get_manager();
+    const auto& manager = system->get_manager();
 
 	for (int i = 0; i < m_handles.size(); i++) {
 		manager->SetPaused(m_handles[i], paused);
@@ -234,7 +242,7 @@ void EffekseerEmitter::set_speed(float speed)
 	m_speed = speed;
 
 	auto system = EffekseerSystem::get_instance();
-	auto manager = system->get_manager();
+    const auto& manager = system->get_manager();
 
 	for (int i = 0; i < m_handles.size(); i++) {
 		manager->SetSpeed(m_handles[i], speed);
@@ -251,7 +259,7 @@ void EffekseerEmitter::set_color(Color color)
 	m_color = EffekseerUrho3D::ToEfkColor(color);
 
 	auto system = EffekseerSystem::get_instance();
-	auto manager = system->get_manager();
+    const auto& manager = system->get_manager();
 
 	for (int i = 0; i < m_handles.size(); i++) {
 		manager->SetAllColor(m_handles[i], m_color);
@@ -271,6 +279,34 @@ void EffekseerEmitter::SetEffect(EffekseerEffect* effect)
     if (scene) {
         SubscribeToEvent(scene, E_SCENEPOSTUPDATE, URHO3D_HANDLER(EffekseerEmitter, HandleScenePostUpdate));
     }
+}
+
+void EffekseerEmitter::set_visible(bool visible)
+{
+    auto system = EffekseerSystem::get_instance();
+    const auto& manager = system->get_manager();
+
+    for (int i = 0; i < m_handles.size(); i++)
+    {
+        manager->SetShown(m_handles[i], visible);
+    }
+}
+
+bool EffekseerEmitter::get_visible()
+{
+    auto system = EffekseerSystem::get_instance();
+    const auto& manager = system->get_manager();
+
+    for (int i = 0; i < m_handles.size(); i++)
+    {
+        return manager->GetShown(m_handles[i]);
+    }
+    return false;
+}
+
+void EffekseerEmitter::SetBoundingBox(const BoundingBox& box)
+{
+    boundingBox_ = box;
 }
 
 }

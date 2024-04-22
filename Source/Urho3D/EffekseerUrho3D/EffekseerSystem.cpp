@@ -118,6 +118,7 @@ void EffekseerSystem::HandleRenderUpdate(StringHash eventType, VariantMap& event
 
 void EffekseerSystem::Render()
 {
+    URHO3D_PROFILE("EffekseerSystem::Render");
 	if (!main_camera_) {
 		return;
 	}
@@ -178,6 +179,7 @@ void EffekseerSystem::_exit_tree()
 
 void EffekseerSystem::_process(float delta)
 {
+    URHO3D_PROFILE("EffekseerSystem::Update");
 	// Stabilize in a variable frame environment
 //  float deltaFrames = delta * 60.0f;//30.0f;// 
 // 	int iterations = std::max(1, (int)roundf(deltaFrames));

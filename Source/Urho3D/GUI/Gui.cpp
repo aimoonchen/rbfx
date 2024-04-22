@@ -483,7 +483,7 @@ namespace Urho3D
 	{
 		//assert(rootElement_ && rootModalElement_ && graphics_);
 
-		URHO3D_PROFILE("GetUIBatches");
+		URHO3D_PROFILE("GUI::RenderUpdate");
 
 		uiRendered_ = false;
 
@@ -555,7 +555,7 @@ namespace Urho3D
 
 	void GUI::Render(bool renderUICommand)
 	{
-        URHO3D_PROFILE("RenderUI");
+        URHO3D_PROFILE("GUI::RenderUI");
 		gui_impl_->Render();
 		// If the OS cursor is visible, apply its shape now if changed
 // 		if (!renderUICommand)
