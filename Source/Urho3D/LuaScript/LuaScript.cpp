@@ -591,11 +591,13 @@ void LuaScript::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
         using namespace PostUpdate;
         (*coroutineUpdate_)(eventData[P_TIMESTEP].GetFloat());
     }
+//#if !defined(__EMSCRIPTEN__)
     // Collect garbage
     {
         URHO3D_PROFILE("LuaCollectGarbage");
         lua_gc(luaState_->lua_state(), LUA_GCSTEP, 0);
     }
+//#endif
 }
 
 void LuaScript::HandleConsoleCommand(StringHash eventType, VariantMap& eventData)
