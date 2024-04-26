@@ -363,8 +363,9 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
     RegisterRmlUILibrary(context_);
     context_->RegisterSubsystem(new RmlUI(context_));
 #endif
-
+#ifndef __EDITOR__
     context_->RegisterSubsystem(new Audio(context_));
+#endif
     if (!headless_)
     {
         context_->RegisterSubsystem(new Graphics(context_));

@@ -397,9 +397,9 @@ Input::Input(Context* context) :
     mouseMove_(0,0)
 {
     OnRawInput.Subscribe(this, RawInputPriority::SDLRawInput, &Input::OnSDLRawInput);
-
+#ifndef __EDITOR__
     context_->RequireSDL(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-
+#endif
     for (int i = 0; i < TOUCHID_MAX; i++)
         availableTouchIDs_.push_back(i);
 
