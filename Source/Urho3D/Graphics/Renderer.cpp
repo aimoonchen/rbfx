@@ -501,7 +501,9 @@ void Renderer::Render()
         renderPipelineView->Render();
 
     // TODO: Draw joystick before RMLUI
-    GetSubsystem<GUI>()->Render();
+    if (auto gui = GetSubsystem<GUI>(); gui) {
+        gui->Render();
+    }
     // All views done, custom rendering can now be done before UI
     SendEvent(E_ENDALLVIEWSRENDER);
 }

@@ -363,9 +363,8 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
     RegisterRmlUILibrary(context_);
     context_->RegisterSubsystem(new RmlUI(context_));
 #endif
-#ifndef __EDITOR__
+
     context_->RegisterSubsystem(new Audio(context_));
-#endif
     if (!headless_)
     {
         context_->RegisterSubsystem(new Graphics(context_));
@@ -529,15 +528,15 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
         // }
         context_->RegisterSubsystem(new EffekseerSystem(context_));
 #ifdef URHO3D_RMLUI
-        const auto rmlUi = GetSubsystem<RmlUI>();
+        if (const auto rmlUi = GetSubsystem<RmlUI>(); rmlUi) {
+            const bool loadFonts = GetParameter(EP_LOAD_FONTS).GetBool();
+            if (loadFonts)
+                rmlUi->ReloadFonts();
 
-        const bool loadFonts = GetParameter(EP_LOAD_FONTS).GetBool();
-        if (loadFonts)
-            rmlUi->ReloadFonts();
-
-        const auto renderDevice = GetSubsystem<RenderDevice>();
-        const float dpiScale = renderDevice->GetDpiScale();
-        rmlUi->SetScale(dpiScale);
+            const auto renderDevice = GetSubsystem<RenderDevice>();
+            const float dpiScale = renderDevice->GetDpiScale();
+            rmlUi->SetScale(dpiScale);
+        }
 #endif
     }
 

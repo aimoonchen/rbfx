@@ -122,6 +122,9 @@ Graphics::Graphics(Context* context)
     // TODO: This can be used to have DPI scaling work on Windows, but it leads to blurry fonts
     // SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "system");
+    // for EDITOR
+    // SDL_SetHint(SDL_HINT_WINDOWS_ENABLE_MESSAGELOOP, "0");
+    // SDL_SetHint(SDL_HINT_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN, "0");
     context_->RequireSDL(SDL_INIT_VIDEO);
 }
 
