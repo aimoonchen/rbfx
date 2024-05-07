@@ -49,7 +49,7 @@ struct DrawCommandDescription
 };
 
 /// Queue of draw commands.
-class DrawCommandQueue : public RefCounted
+class URHO3D_API DrawCommandQueue : public RefCounted
 {
 public:
     /// Construct.
