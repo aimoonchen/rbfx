@@ -51,6 +51,8 @@ public:
     }
 };
 
+const char* GetCurlError(int c);
+
 class HttpProxy : public Singleton<HttpProxy>
 {
 public:
@@ -62,7 +64,6 @@ public:
     int Fetch(const char* url, std::vector<char>& body);
     uint32_t FetchAsync(const char* url);
     int Post(const char* url, const char* params, char** body);
-    const char* GetError(int c);
 
     int DownloadSync(const char* url, const char* file_path);
     uint32_t DownloadAsync(const char* url, const char* file_path);

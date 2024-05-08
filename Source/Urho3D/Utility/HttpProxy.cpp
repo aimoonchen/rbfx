@@ -17,6 +17,15 @@ namespace Urho3D
     int HttpProxy::enable_ssl{ 1 };
     int HttpProxy::update_pen{ 0 };
 
+    const char* GetCurlError(int c)
+    {
+#ifndef __EMSCRIPTEN__
+        return curl_easy_strerror((CURLcode)c);
+#else
+        return "";
+#endif
+    }
+
     void* HttpProxy::save_file_func(void* arg)
     {
 #ifndef __EMSCRIPTEN__
@@ -89,7 +98,7 @@ namespace Urho3D
 #ifndef __EMSCRIPTEN__
         auto code = curl_global_init(CURL_GLOBAL_ALL);
         if (code != CURLE_OK) {
-            URHO3D_LOGERRORF("curl_global_init failed : %s\n", GetError(code));
+            URHO3D_LOGERRORF("curl_global_init failed : %s\n", GetCurlError(code));
         }
 #endif
     }
@@ -349,7 +358,7 @@ namespace Urho3D
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &contain);
             auto curl_code = curl_easy_perform(curl);
             if (curl_code != CURLE_OK) {
-                URHO3D_LOGERRORF("curl_easy_perform failed : %s", GetError(curl_code));
+                URHO3D_LOGERRORF("curl_easy_perform failed : %s", GetCurlError(curl_code));
             }
             long response_code;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -395,7 +404,7 @@ namespace Urho3D
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &file);
             auto curl_code = curl_easy_perform(curl);
             if (curl_code != CURLE_OK) {
-                URHO3D_LOGERRORF("curl_easy_perform failed : %s", GetError(curl_code));
+                URHO3D_LOGERRORF("curl_easy_perform failed : %s", GetCurlError(curl_code));
             }
             long response_code;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -410,15 +419,6 @@ namespace Urho3D
         file.close();
 #endif
         return error_code;
-    }
-
-    const char* HttpProxy::GetError(int c)
-    {
-#ifndef __EMSCRIPTEN__
-        return curl_easy_strerror((CURLcode)c);
-#else
-        return "";
-#endif
     }
 
     int HttpProxy::Download(const char* url, const char* path)
@@ -692,7 +692,7 @@ namespace Urho3D
 
         /* Check for errors */
         if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+            URHO3D_LOGERRORF("curl_easy_perform: %s, download %s failed.\n", GetCurlError(res), url.c_str());
         }
         curl_easy_cleanup(handle);
     }
@@ -793,7 +793,7 @@ namespace Urho3D
             auto res = curl_easy_perform(curl);
             /* Check for errors */
             if (res != CURLE_OK)
-                fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+                URHO3D_LOGERRORF("curl_easy_perform: %s, upload %s->%s failed.\n", GetCurlError(res), filename.c_str(), to_url.c_str());
 
             /* clean up the FTP commands list */
             curl_slist_free_all(headerlist);
@@ -892,7 +892,7 @@ namespace Urho3D
             auto res = curl_easy_perform(curl);
             /* Check for errors */
             if (res != CURLE_OK)
-                fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+                URHO3D_LOGERRORF("curl_easy_perform: %s, Post %s failed.\n", GetCurlError(res), url.c_str());
 
             /* always cleanup */
             curl_easy_cleanup(curl);
