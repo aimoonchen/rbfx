@@ -48,7 +48,6 @@
     #include "../SystemUI/SystemUI.h"
 #endif
 
-#include "AmbientOcclusionPass.h"
 #include "../EffekseerUrho3D/EffekseerSystem.h"
 
 #include "../DebugNew.h"
