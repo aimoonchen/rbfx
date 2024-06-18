@@ -583,6 +583,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
 
     lua.new_usertype<RenderPipeline>("RenderPipeline",
         "id", sol::var(StringHash("RenderPipeline")),
+        "SetRenderPassEnabled", &RenderPipeline::SetRenderPassEnabled,
         sol::base_classes, sol::bases<Component>());
 
     auto bindProceduralSky = lua.new_usertype<ProceduralSky>("ProceduralSky", sol::base_classes, sol::bases<StaticModel, Drawable, Component>());
