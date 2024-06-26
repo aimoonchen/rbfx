@@ -183,7 +183,18 @@ static void RegisterConst(sol::state& lua)
         "BindUnorderedAccess",          TextureFlag::BindUnorderedAccess,
         "NoMultiSampledAutoResolve",    TextureFlag::NoMultiSampledAutoResolve
     );
-
+    graphic.new_enum("BlendMode",
+        "REPLACE",                      BLEND_REPLACE,
+        "ADD",                          BLEND_ADD,
+        "MULTIPLY",                     BLEND_MULTIPLY,
+        "ALPHA",                        BLEND_ALPHA,
+        "ADDALPHA",                     BLEND_ADDALPHA,
+        "PREMULALPHA",                  BLEND_PREMULALPHA,
+        "INVDESTALPHA",                 BLEND_INVDESTALPHA,
+        "SUBTRACT",                     BLEND_SUBTRACT,
+        "SUBTRACTALPHA",                BLEND_SUBTRACTALPHA,
+        "DEFERRED_DECAL",               BLEND_DEFERRED_DECAL
+    );
     auto shaderResources = graphic["ShaderResources"].get_or_create<sol::table>();
     shaderResources["Albedo"]       = ShaderResources::Albedo;
     shaderResources["Normal"]       = ShaderResources::Normal;
