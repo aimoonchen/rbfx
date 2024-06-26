@@ -151,9 +151,9 @@ LuaScript::LuaScript(Context* context) :
         sol2_RmlUI_open(solState);
     }
 #endif
-// #ifdef URHO3D_URHO2D
-//     sol2_Urho2DLuaAPI_open(lua);
-// #endif
+#ifdef URHO3D_URHO2D
+    sol2_Urho2DLuaAPI_open(solState);
+#endif
     sol2_LuaScriptLuaAPI_open(solState);
     sol2_ActionLuaAPI_open(solState);
 

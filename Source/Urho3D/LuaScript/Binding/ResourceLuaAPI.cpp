@@ -2,6 +2,8 @@
 #include "../../Resource/Resource.h"
 #include "../../Resource/ResourceCache.h"
 #include "../../Resource/Image.h"
+#include "../../Urho2D/Sprite2D.h"
+#include "../../Urho2D/SpriteSheet2D.h"
 #include "../../Resource/XMLFile.h"
 #include "../../Resource/JSONValue.h"
 #include "../../Resource/JSONFile.h"
@@ -43,6 +45,10 @@ namespace sol {
                 return sol::make_object(L, static_cast<const Animation*>(obj)).push(L);
             } else if (objType == PrefabResource::GetTypeStatic()) {
                 return sol::make_object(L, static_cast<const PrefabResource*>(obj)).push(L);
+            } else if (objType == Sprite2D::GetTypeStatic()) {
+                return sol::make_object(L, static_cast<const Sprite2D*>(obj)).push(L);
+            } else if (objType == SpriteSheet2D::GetTypeStatic()) {
+                return sol::make_object(L, static_cast<const SpriteSheet2D*>(obj)).push(L);
             }
         }
         return sol::make_object(L, obj).push(L);

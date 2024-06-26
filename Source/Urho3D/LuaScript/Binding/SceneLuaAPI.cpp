@@ -44,6 +44,7 @@
 #include "../../Physics/CollisionShape.h"
 #include "../../Physics/Constraint.h"
 #include "../../Physics/RigidBody.h"
+#include "../../Urho2D/StaticSprite2D.h"
 
 #include "GetPush.h"
 #include "../LuaScriptInstance.h"
@@ -120,6 +121,8 @@ namespace sol {
                 return sol::make_object(L, static_cast<const PrefabReference*>(obj)).push(L);
             } else if (objType == MeshLine::GetTypeStatic()) {
                 return sol::make_object(L, static_cast<const MeshLine*>(obj)).push(L);
+            } else if (objType == StaticSprite2D::GetTypeStatic()) {
+                return sol::make_object(L, static_cast<const StaticSprite2D*>(obj)).push(L);
             }
         }
         return sol::make_object(L, obj).push(L);
@@ -308,7 +311,11 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         //         "SetAttributeAnimationTime", &Animatable::SetAttributeAnimationTime,
         //         "RemoveObjectAnimation", &Animatable::RemoveObjectAnimation,
         //         "RemoveAttributeAnimation", &Animatable::RemoveAttributeAnimation
-    
+    bindNode["SetVar"]                  = &Node::SetVar;
+    bindNode["SetVarByHash"]            = &Node::SetVarByHash;
+    bindNode["GetVar"]                  = &Node::GetVar;
+    bindNode["GetVarByHash"]            = &Node::GetVarByHash;
+
     auto bindScene = lua.new_usertype<Scene>("Scene",
         sol::call_constructor, sol::factories([context]() { return std::make_unique<Scene>(context); }),
         sol::base_classes, sol::bases<Node>());
