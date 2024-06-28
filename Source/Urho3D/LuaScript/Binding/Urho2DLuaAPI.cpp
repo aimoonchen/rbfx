@@ -4,6 +4,7 @@
 #include "../../Urho2D/Sprite2D.h"
 #include "../../Graphics/Material.h"
 #include "../../Urho2D/StaticSprite2D.h"
+#include "../../Urho2D/AnimatedSprite2D.h"
 #include "GetPush.h"
 
 using namespace Urho3D;
@@ -52,5 +53,9 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindStaticSprite2D["GetUseTextureRect"] = &StaticSprite2D::GetUseTextureRect;
     bindStaticSprite2D["GetHotSpot"]        = &StaticSprite2D::GetHotSpot;
     bindStaticSprite2D["GetCustomMaterial"] = &StaticSprite2D::GetCustomMaterial;
+
+    auto bindAnimatedSprite2D = lua.new_usertype<AnimatedSprite2D>("AnimatedSprite2D",
+        sol::base_classes, sol::bases<AnimatedSprite2D, StaticSprite2D, Drawable2D, Drawable, Component>());
+    
     return 0;
 }

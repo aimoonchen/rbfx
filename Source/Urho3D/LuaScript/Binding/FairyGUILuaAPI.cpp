@@ -74,52 +74,38 @@ void EmojiParser::onTag_Emoji(const std::string& tagName, bool end, const std::s
     replacement = "<img src='ui://Emoji/" + str + "'/>";
 }
 
+namespace{
+ea::unordered_map<TypeID, ea::function<int(lua_State* L, const GObject* obj)>> fairygui_convert_map = {
+    {TypeID::kComponent,        [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GComponent*>(obj)).push(L); }},
+    {TypeID::kGraph,            [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GGraph*>(obj)).push(L); }},
+    {TypeID::kGroup,            [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GGroup*>(obj)).push(L); }},
+    {TypeID::kImage,            [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GImage*>(obj)).push(L); }},
+    {TypeID::kLoader,           [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GLoader*>(obj)).push(L); }},
+    {TypeID::kLoader3D,         [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GLoader3D*>(obj)).push(L); }},
+    {TypeID::kMovieClip,        [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GMovieClip*>(obj)).push(L); }},
+    {TypeID::kTextField,        [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GTextField*>(obj)).push(L); }},
+    {TypeID::kBasicTextField,   [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GBasicTextField*>(obj)).push(L); }},
+    {TypeID::kButton,           [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GButton*>(obj)).push(L); }},
+    {TypeID::kComboBox,         [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GComboBox*>(obj)).push(L); }},
+    {TypeID::kLabel,            [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GLabel*>(obj)).push(L); }},
+    {TypeID::kList,             [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GList*>(obj)).push(L); }},
+    {TypeID::kProgressBar,      [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GProgressBar*>(obj)).push(L); }},
+    {TypeID::kRoot,             [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GRoot*>(obj)).push(L); }},
+    {TypeID::kScrollBar,        [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GScrollBar*>(obj)).push(L); }},
+    {TypeID::kSlider,           [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GSlider*>(obj)).push(L); }},
+    {TypeID::kWindow,           [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const Window*>(obj)).push(L); }},
+    {TypeID::kTree,             [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GTree*>(obj)).push(L); }},
+    {TypeID::kRichTextField,    [](lua_State* L, const GObject* obj) { return sol::make_object(L, static_cast<const GRichTextField*>(obj)).push(L); }}
+};
+}
 namespace sol {
 	int sol_lua_push(sol::types<GObject*>, lua_State* L, const GObject* obj) {
 		if (obj) {
-            switch (obj->typeID) {
-            case TypeID::kComponent:
-                return sol::make_object(L, static_cast<const GComponent*>(obj)).push(L);
-            case TypeID::kGraph:
-                return sol::make_object(L, static_cast<const GGraph*>(obj)).push(L);
-            case TypeID::kGroup:
-                return sol::make_object(L, static_cast<const GGroup*>(obj)).push(L);
-            case TypeID::kImage:
-                return sol::make_object(L, static_cast<const GImage*>(obj)).push(L);
-            case TypeID::kLoader:
-                return sol::make_object(L, static_cast<const GLoader*>(obj)).push(L);
-            case TypeID::kLoader3D:
-                return sol::make_object(L, static_cast<const GLoader3D*>(obj)).push(L);
-            case TypeID::kMovieClip:
-                return sol::make_object(L, static_cast<const GMovieClip*>(obj)).push(L);
-            case TypeID::kTextField:
-                return sol::make_object(L, static_cast<const GTextField*>(obj)).push(L);
-            case TypeID::kBasicTextField:
-                return sol::make_object(L, static_cast<const GBasicTextField*>(obj)).push(L);
-            case TypeID::kButton:
-                return sol::make_object(L, static_cast<const GButton*>(obj)).push(L);
-            case TypeID::kComboBox:
-                return sol::make_object(L, static_cast<const GComboBox*>(obj)).push(L);
-            case TypeID::kLabel:
-                return sol::make_object(L, static_cast<const GLabel*>(obj)).push(L);
-            case TypeID::kList:
-                return sol::make_object(L, static_cast<const GList*>(obj)).push(L);
-            case TypeID::kProgressBar:
-                return sol::make_object(L, static_cast<const GProgressBar*>(obj)).push(L);
-            case TypeID::kRoot:
-                return sol::make_object(L, static_cast<const GRoot*>(obj)).push(L);
-            case TypeID::kScrollBar:
-                return sol::make_object(L, static_cast<const GScrollBar*>(obj)).push(L);
-            case TypeID::kSlider:
-                return sol::make_object(L, static_cast<const GSlider*>(obj)).push(L);
-            case TypeID::kWindow:
-                return sol::make_object(L, static_cast<const Window*>(obj)).push(L);
-            case TypeID::kTree:
-                return sol::make_object(L, static_cast<const GTree*>(obj)).push(L);
-            case TypeID::kRichTextField:
-                return sol::make_object(L, static_cast<const GRichTextField*>(obj)).push(L);
-            default:
-                break;
+            if (auto it = fairygui_convert_map.find(obj->typeID); it != fairygui_convert_map.end()) {
+                auto& [typeKey, converter] = *it;
+                return converter(L, obj);
+            } else {
+                URHO3D_LOGERRORF("sol_lua_push error, can't find convert function for fairygui component %d.", obj->typeID);
             }
 		}
 		return sol::make_object(L, obj).push(L);

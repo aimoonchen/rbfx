@@ -51,78 +51,56 @@
 
 using namespace Urho3D;
 
+namespace {
+ea::unordered_map<Urho3D::StringHash, ea::function<int(lua_State* L, const Component* obj)>> component_convert_map = {
+    {EffekseerEmitter::GetTypeStatic(),         [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const EffekseerEmitter*>(obj)).push(L); }},
+    {Octree::GetTypeStatic(),                   [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Octree*>(obj)).push(L); }},
+    {DebugRenderer::GetTypeStatic(),            [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const DebugRenderer*>(obj)).push(L); }},
+    {MeshLine::GetTypeStatic(),                 [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const MeshLine*>(obj)).push(L); }},
+    {Camera::GetTypeStatic(),                   [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Camera*>(obj)).push(L); }},
+    {Zone::GetTypeStatic(),                     [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Zone*>(obj)).push(L); }},
+    {Light::GetTypeStatic(),                    [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Light*>(obj)).push(L); }},
+    {StaticModel::GetTypeStatic(),              [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const StaticModel*>(obj)).push(L); }},
+    {AnimatedModel::GetTypeStatic(),            [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const AnimatedModel*>(obj)).push(L); }},
+    {Skybox::GetTypeStatic(),                   [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Skybox*>(obj)).push(L); }},
+    {DecalSet::GetTypeStatic(),                 [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const DecalSet*>(obj)).push(L); }},
+    {BillboardSet::GetTypeStatic(),             [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const BillboardSet*>(obj)).push(L); }},
+    {Terrain::GetTypeStatic(),                  [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Terrain*>(obj)).push(L); }},
+    {RenderPipeline::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const RenderPipeline*>(obj)).push(L); }},
+    {ProceduralSky::GetTypeStatic(),            [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const ProceduralSky*>(obj)).push(L); }},
+    {OutlineGroup::GetTypeStatic(),             [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const OutlineGroup*>(obj)).push(L); }},
+    {Text3D::GetTypeStatic(),                   [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Text3D*>(obj)).push(L); }},
+    {NavigationMesh::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const NavigationMesh*>(obj)).push(L); }},
+    {DynamicNavigationMesh::GetTypeStatic(),    [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const DynamicNavigationMesh*>(obj)).push(L); }},
+    {CrowdAgent::GetTypeStatic(),               [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CrowdAgent*>(obj)).push(L); }},
+    {CrowdManager::GetTypeStatic(),             [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CrowdManager*>(obj)).push(L); }},
+    {Navigable::GetTypeStatic(),                [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Navigable*>(obj)).push(L); }},
+    {Obstacle::GetTypeStatic(),                 [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Obstacle*>(obj)).push(L); }},
+    {OffMeshConnection::GetTypeStatic(),        [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const OffMeshConnection*>(obj)).push(L); }},
+    {RigidBody::GetTypeStatic(),                [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const RigidBody*>(obj)).push(L); }},
+    {CollisionShape::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CollisionShape*>(obj)).push(L); }},
+    {Constraint::GetTypeStatic(),               [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Constraint*>(obj)).push(L); }},
+    {PhysicsWorld::GetTypeStatic(),             [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const PhysicsWorld*>(obj)).push(L); }},
+    {StaticSprite2D::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const StaticSprite2D*>(obj)).push(L); }},
+    {PrefabReference::GetTypeStatic(),          [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const PrefabReference*>(obj)).push(L); }},
+    {RmlUIComponent::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const RmlUIComponent*>(obj)).push(L); }}
+};
+} // namespace
+
+template <typename T> void RegisterComponentConverter()
+{
+    component_convert_map.insert({T::GetTypeStatic(), [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const T*>(obj)).push(L); }});
+}
+
 namespace sol {
     int sol_lua_push(sol::types<Component*>, lua_State* L, const Component* obj)
     {
         if (obj) {
-            const auto& objType = obj->GetType();
-            if (objType == StaticModel::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const StaticModel*>(obj)).push(L);
-            } else if (objType == AnimatedModel::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const AnimatedModel*>(obj)).push(L);
-            } else if (objType == AnimationController::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const AnimationController*>(obj)).push(L);
-            } else if (objType == Light::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Light*>(obj)).push(L);
-            } else if (objType == Octree::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Octree*>(obj)).push(L);
-            } else if (objType == Camera::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Camera*>(obj)).push(L);
-            } else if (objType == DebugRenderer::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const DebugRenderer*>(obj)).push(L);
-            } else if (objType == Zone::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Zone*>(obj)).push(L);
-            } else if (objType == Skybox::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Skybox*>(obj)).push(L);
-#if defined(__linux__) && !defined(__ANDROID__)
-#else
-            } else if (objType == EffekseerEmitter::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const EffekseerEmitter*>(obj)).push(L);
-#endif
-            } else if (objType == RmlUIComponent::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const RmlUIComponent*>(obj)).push(L);
-            } else if (objType == NavigationMesh::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const NavigationMesh*>(obj)).push(L);
-            } else if (objType == DynamicNavigationMesh::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const DynamicNavigationMesh*>(obj)).push(L);
-            } else if (objType == CrowdAgent::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const CrowdAgent*>(obj)).push(L);
-            } else if (objType == CrowdManager::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const CrowdManager*>(obj)).push(L);
-            } else if (objType == RigidBody::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const RigidBody*>(obj)).push(L);
-            } else if (objType == CollisionShape::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const CollisionShape*>(obj)).push(L);
-            } else if (objType == Constraint::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Constraint*>(obj)).push(L);
-            } else if (objType == PhysicsWorld::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const PhysicsWorld*>(obj)).push(L);
-            } else if (objType == Terrain::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Terrain*>(obj)).push(L);
-            } else if (objType == DecalSet::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const DecalSet*>(obj)).push(L);
-            } else if (objType == BillboardSet::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const BillboardSet*>(obj)).push(L);
-            } else if (objType == ProceduralSky::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const ProceduralSky*>(obj)).push(L);
-            } else if (objType == RenderPipeline::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const RenderPipeline*>(obj)).push(L);
-            } else if (objType == Navigable::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Navigable*>(obj)).push(L);
-            } else if (objType == Obstacle::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Obstacle*>(obj)).push(L);
-            } else if (objType == OffMeshConnection::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const OffMeshConnection*>(obj)).push(L);
-            } else if (objType == OutlineGroup::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const OutlineGroup*>(obj)).push(L);
-            } else if (objType == Text3D::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Text3D*>(obj)).push(L);
-            } else if (objType == PrefabReference::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const PrefabReference*>(obj)).push(L);
-            } else if (objType == MeshLine::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const MeshLine*>(obj)).push(L);
-            } else if (objType == StaticSprite2D::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const StaticSprite2D*>(obj)).push(L);
+            if (auto it = component_convert_map.find(obj->GetType()); it != component_convert_map.end()) {
+                auto& [typeKey, converter] = *it;
+                return converter(L, obj);
+            } else {
+                URHO3D_LOGERRORF("sol_lua_push error, can't find convert function for %s.", obj->GetTypeName());
             }
         }
         return sol::make_object(L, obj).push(L);
@@ -401,7 +379,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindRmlUIComponent["AddUpdateListener"]     = [](RmlUIComponent* self, sol::function func) { self->AddUpdateListener([func](float timeStep, Rml::ElementDocument* doc) { CALL_LUA(func, timeStep, doc) }); };
     bindRmlUIComponent["RemoveUpdateListener"]  = [](RmlUIComponent* self) { self->AddUpdateListener(nullptr); };
     bindRmlUIComponent["GetRenderTexture"]      = &RmlUIComponent::GetRenderTexture;
-        
+
     lua.new_enum<PrefabInstanceFlag, true>("PrefabInstanceFlag", {
         { "None", PrefabInstanceFlag::None },
         { "UpdateName", PrefabInstanceFlag::UpdateName },

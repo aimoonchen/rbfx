@@ -20,35 +20,37 @@
 
 using namespace Urho3D;
 
+namespace {
+ea::unordered_map<Urho3D::StringHash, ea::function<int(lua_State* L, const Resource* obj)>> resource_convert_map = {
+    {Texture2D::GetTypeStatic(),        [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Texture2D*>(obj)).push(L); }},
+    {TextureCube::GetTypeStatic(),      [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const TextureCube*>(obj)).push(L); }},
+    {Image::GetTypeStatic(),            [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Image*>(obj)).push(L); }},
+    {XMLFile::GetTypeStatic(),          [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const XMLFile*>(obj)).push(L); }},
+    {JSONFile::GetTypeStatic(),         [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const JSONFile*>(obj)).push(L); }},
+    {Model::GetTypeStatic(),            [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Model*>(obj)).push(L); }},
+    {Material::GetTypeStatic(),         [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Material*>(obj)).push(L); }},
+    {Font::GetTypeStatic(),             [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Font*>(obj)).push(L); }},
+    {Animation::GetTypeStatic(),        [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Animation*>(obj)).push(L); }},
+    {PrefabResource::GetTypeStatic(),   [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const PrefabResource*>(obj)).push(L); }},
+    {Sprite2D::GetTypeStatic(),         [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Sprite2D*>(obj)).push(L); }},
+    {SpriteSheet2D::GetTypeStatic(),    [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const SpriteSheet2D*>(obj)).push(L); }}
+};
+}
+
+template <typename T> void RegisterResourceConverter()
+{
+    resource_convert_map.insert({T::GetTypeStatic(), [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const T*>(obj)).push(L); }});
+}
+
 namespace sol {
     int sol_lua_push(sol::types<Resource*>, lua_State* L, const Resource* obj)
     {
         if (obj) {
-            const auto& objType = obj->GetType();
-            if (objType == Texture2D::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Texture2D*>(obj)).push(L);
-            } else if (objType == TextureCube::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const TextureCube*>(obj)).push(L);
-            } else if (objType == Image::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Image*>(obj)).push(L);
-            } else if (objType == XMLFile::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const XMLFile*>(obj)).push(L);
-            } else if (objType == JSONFile::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const JSONFile*>(obj)).push(L);
-            } else if (objType == Model::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Model*>(obj)).push(L);
-            } else if (objType == Material::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Material*>(obj)).push(L);
-            } else if (objType == Font::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Font*>(obj)).push(L);
-            } else if (objType == Animation::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Animation*>(obj)).push(L);
-            } else if (objType == PrefabResource::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const PrefabResource*>(obj)).push(L);
-            } else if (objType == Sprite2D::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const Sprite2D*>(obj)).push(L);
-            } else if (objType == SpriteSheet2D::GetTypeStatic()) {
-                return sol::make_object(L, static_cast<const SpriteSheet2D*>(obj)).push(L);
+            if (auto it = resource_convert_map.find(obj->GetType()); it != resource_convert_map.end()) {
+                auto& [typeKey, converter] = *it;
+                return converter(L, obj);
+            } else {
+                URHO3D_LOGERRORF("sol_lua_push error, can't find convert function for %s.", obj->GetTypeName());
             }
         }
         return sol::make_object(L, obj).push(L);
