@@ -55,7 +55,8 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindStaticSprite2D["GetCustomMaterial"] = &StaticSprite2D::GetCustomMaterial;
 
     auto bindAnimatedSprite2D = lua.new_usertype<AnimatedSprite2D>("AnimatedSprite2D",
-        sol::base_classes, sol::bases<AnimatedSprite2D, StaticSprite2D, Drawable2D, Drawable, Component>());
-    
+        sol::base_classes, sol::bases<StaticSprite2D, Drawable2D, Drawable, Component>());
+    bindAnimatedSprite2D["GetCustomMaterial"] = ;
+
     return 0;
 }
