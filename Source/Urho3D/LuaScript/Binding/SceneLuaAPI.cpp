@@ -45,6 +45,9 @@
 #include "../../Physics/Constraint.h"
 #include "../../Physics/RigidBody.h"
 #include "../../Urho2D/StaticSprite2D.h"
+#include "../../Urho2D/AnimatedSprite2D.h"
+#include "../../Urho2D/TileMapLayer2D.h"
+#include "../../Urho2D/TileMap2D.h"
 
 #include "GetPush.h"
 #include "../LuaScriptInstance.h"
@@ -82,8 +85,11 @@ ea::unordered_map<Urho3D::StringHash, ea::function<int(lua_State* L, const Compo
     {Constraint::GetTypeStatic(),               [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Constraint*>(obj)).push(L); }},
     {PhysicsWorld::GetTypeStatic(),             [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const PhysicsWorld*>(obj)).push(L); }},
     {StaticSprite2D::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const StaticSprite2D*>(obj)).push(L); }},
+    {AnimatedSprite2D::GetTypeStatic(),         [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const AnimatedSprite2D*>(obj)).push(L); }},
     {PrefabReference::GetTypeStatic(),          [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const PrefabReference*>(obj)).push(L); }},
-    {RmlUIComponent::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const RmlUIComponent*>(obj)).push(L); }}
+    {RmlUIComponent::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const RmlUIComponent*>(obj)).push(L); }},
+    {TileMapLayer2D::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const TileMapLayer2D*>(obj)).push(L); }},
+    {TileMap2D::GetTypeStatic(),                [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const TileMap2D*>(obj)).push(L); }}
 };
 } // namespace
 

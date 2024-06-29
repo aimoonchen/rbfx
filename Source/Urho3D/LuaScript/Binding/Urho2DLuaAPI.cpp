@@ -5,6 +5,9 @@
 #include "../../Graphics/Material.h"
 #include "../../Urho2D/StaticSprite2D.h"
 #include "../../Urho2D/AnimatedSprite2D.h"
+#include "../../Urho2D/TileMap2D.h"
+#include "../../Urho2D/TileMapLayer2D.h"
+
 #include "GetPush.h"
 
 using namespace Urho3D;
@@ -54,9 +57,49 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindStaticSprite2D["GetHotSpot"]        = &StaticSprite2D::GetHotSpot;
     bindStaticSprite2D["GetCustomMaterial"] = &StaticSprite2D::GetCustomMaterial;
 
+    lua.new_enum("LoopMode2D",
+        "DEFAULT",       LM_DEFAULT,
+        "FORCE_LOOPED",  LM_FORCE_LOOPED,
+        "FORCE_CLAMPED", LM_FORCE_CLAMPED
+    );
     auto bindAnimatedSprite2D = lua.new_usertype<AnimatedSprite2D>("AnimatedSprite2D",
         sol::base_classes, sol::bases<StaticSprite2D, Drawable2D, Drawable, Component>());
-    bindAnimatedSprite2D["GetCustomMaterial"] = ;
+    bindAnimatedSprite2D["id"]              = sol::var(StringHash("AnimatedSprite2D"));
+    bindAnimatedSprite2D["SetAnimationSet"] = &AnimatedSprite2D::SetAnimationSet;
+    bindAnimatedSprite2D["SetEntity"]       = &AnimatedSprite2D::SetEntity;
+    bindAnimatedSprite2D["SetAnimation"]    = sol::overload(
+        [](AnimatedSprite2D* self, const ea::string& name) { self->SetAnimation(name); },
+        [](AnimatedSprite2D* self, const ea::string& name, LoopMode2D loopMode) { self->SetAnimation(name, loopMode); }
+    );
+    bindAnimatedSprite2D["SetLoopMode"]     = &AnimatedSprite2D::SetLoopMode;
+    bindAnimatedSprite2D["SetSpeed"]        = &AnimatedSprite2D::SetSpeed;
+    bindAnimatedSprite2D["GetLoopMode"]     = &AnimatedSprite2D::GetLoopMode;
+    bindAnimatedSprite2D["GetSpeed"]        = &AnimatedSprite2D::GetSpeed;
+
+    lua.new_enum("Orientation2D",
+        "ORTHOGONAL",   O_ORTHOGONAL,
+        "ISOMETRIC",    O_ISOMETRIC,
+        "STAGGERED",    O_STAGGERED,
+        "HEXAGONAL",    O_HEXAGONAL
+    );
+
+    auto bindTileMapInfo2D = lua.new_usertype<TileMapInfo2D>("TileMapInfo2D");
+    bindTileMapInfo2D["orientation"]    = &TileMapInfo2D::orientation_;
+    bindTileMapInfo2D["width"]          = &TileMapInfo2D::width_;
+    bindTileMapInfo2D["height"]         = &TileMapInfo2D::height_;
+    bindTileMapInfo2D["tile_width"]     = &TileMapInfo2D::tileWidth_;
+    bindTileMapInfo2D["tile_height"]    = &TileMapInfo2D::tileHeight_;
+
+    auto bindTileMap2D = lua.new_usertype<TileMap2D>("TileMap2D", sol::base_classes, sol::bases<Component>());
+    bindTileMap2D["id"]                 = sol::var(StringHash("TileMap2D"));
+    bindTileMap2D["SetTmxFile"]         = &TileMap2D::SetTmxFile;
+    bindTileMap2D["GetInfo"]            = &TileMap2D::GetInfo;
+    bindTileMap2D["GetLayer"]           = &TileMap2D::GetLayer;
+    bindTileMap2D["GetNumLayers"]       = &TileMap2D::GetNumLayers;
+
+    auto bindTileMapLayer2D = lua.new_usertype<TileMapLayer2D>("TileMapLayer2D", sol::base_classes, sol::bases<Component>());
+    bindTileMapLayer2D["id"]            = sol::var(StringHash("TileMapLayer2D"));
+    bindTileMapLayer2D["GetNumObjects"] = &TileMapLayer2D::GetNumObjects;
 
     return 0;
 }

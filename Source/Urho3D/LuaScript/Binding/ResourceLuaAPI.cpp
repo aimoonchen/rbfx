@@ -5,6 +5,7 @@
 #include "../../Urho2D/Sprite2D.h"
 #include "../../Urho2D/SpriteSheet2D.h"
 #include "../../Urho2D/AnimationSet2D.h"
+#include "../../Urho2D/TmxFile2D.h"
 #include "../../Resource/XMLFile.h"
 #include "../../Resource/JSONValue.h"
 #include "../../Resource/JSONFile.h"
@@ -35,7 +36,8 @@ ea::unordered_map<Urho3D::StringHash, ea::function<int(lua_State* L, const Resou
     {PrefabResource::GetTypeStatic(),   [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const PrefabResource*>(obj)).push(L); }},
     {Sprite2D::GetTypeStatic(),         [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const Sprite2D*>(obj)).push(L); }},
     {SpriteSheet2D::GetTypeStatic(),    [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const SpriteSheet2D*>(obj)).push(L); }},
-    {AnimationSet2D::GetTypeStatic(),    [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const AnimationSet2D*>(obj)).push(L); }}
+    {AnimationSet2D::GetTypeStatic(),   [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const AnimationSet2D*>(obj)).push(L); }},
+    {TmxFile2D::GetTypeStatic(),        [](lua_State* L, const Resource* obj) { return sol::make_object(L, static_cast<const TmxFile2D*>(obj)).push(L); }}
 };
 }
 
