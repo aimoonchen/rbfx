@@ -7,6 +7,7 @@
 #include "../../Urho2D/AnimatedSprite2D.h"
 #include "../../Urho2D/TileMap2D.h"
 #include "../../Urho2D/TileMapLayer2D.h"
+#include "../../Urho2D/StretchableSprite2D.h"
 
 #include "GetPush.h"
 
@@ -82,6 +83,11 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
         "STAGGERED",    O_STAGGERED,
         "HEXAGONAL",    O_HEXAGONAL
     );
+    auto bindStretchableSprite2D = lua.new_usertype<StretchableSprite2D>("StretchableSprite2D",
+        sol::base_classes, sol::bases<StaticSprite2D, Drawable2D, Drawable, Component>());
+    bindStretchableSprite2D["id"]        = sol::var(StringHash("StretchableSprite2D"));
+    bindStretchableSprite2D["SetBorder"] = &StretchableSprite2D::SetBorder;
+    bindStretchableSprite2D["GetBorder"] = &StretchableSprite2D::GetBorder;
 
     auto bindTileMapInfo2D = lua.new_usertype<TileMapInfo2D>("TileMapInfo2D");
     bindTileMapInfo2D["orientation"]    = &TileMapInfo2D::orientation_;
@@ -100,6 +106,5 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     auto bindTileMapLayer2D = lua.new_usertype<TileMapLayer2D>("TileMapLayer2D", sol::base_classes, sol::bases<Component>());
     bindTileMapLayer2D["id"]            = sol::var(StringHash("TileMapLayer2D"));
     bindTileMapLayer2D["GetNumObjects"] = &TileMapLayer2D::GetNumObjects;
-
     return 0;
 }
