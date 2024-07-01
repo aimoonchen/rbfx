@@ -18,8 +18,6 @@ Urho3D::Context* GetContext(lua_State* L);
 int sol2_Urho2DLuaAPI_open(sol::state& lua)
 {
     auto context = GetContext(lua.lua_state());
-//     auto bindSprite2D = lua.new_usertype<Sprite2D>("Sprite2D",
-//         sol::base_classes, sol::bases<Resource>());
     auto bindStaticSprite2D = lua.new_usertype<StaticSprite2D>("StaticSprite2D",
         sol::base_classes, sol::bases<Drawable2D, Drawable, Component>());
     bindStaticSprite2D["id"] = sol::var(StringHash("StaticSprite2D"));
@@ -42,7 +40,6 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindStaticSprite2D["SetCustomMaterial"] = &StaticSprite2D::SetCustomMaterial;
     bindStaticSprite2D["SetSpriteAttr"]     = &StaticSprite2D::SetSpriteAttr;
     bindStaticSprite2D["SetCustomMaterialAttr"] = &StaticSprite2D::SetCustomMaterialAttr;
-
     bindStaticSprite2D["GetSprite"]         = &StaticSprite2D::GetSprite;
     bindStaticSprite2D["GetDrawRect"]       = &StaticSprite2D::GetDrawRect;
     bindStaticSprite2D["GetTextureRect"]    = &StaticSprite2D::GetTextureRect;
@@ -85,26 +82,32 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     );
     auto bindStretchableSprite2D = lua.new_usertype<StretchableSprite2D>("StretchableSprite2D",
         sol::base_classes, sol::bases<StaticSprite2D, Drawable2D, Drawable, Component>());
-    bindStretchableSprite2D["id"]        = sol::var(StringHash("StretchableSprite2D"));
-    bindStretchableSprite2D["SetBorder"] = &StretchableSprite2D::SetBorder;
-    bindStretchableSprite2D["GetBorder"] = &StretchableSprite2D::GetBorder;
+    bindStretchableSprite2D["id"]           = sol::var(StringHash("StretchableSprite2D"));
+    bindStretchableSprite2D["SetBorder"]    = &StretchableSprite2D::SetBorder;
+    bindStretchableSprite2D["GetBorder"]    = &StretchableSprite2D::GetBorder;
 
     auto bindTileMapInfo2D = lua.new_usertype<TileMapInfo2D>("TileMapInfo2D");
-    bindTileMapInfo2D["orientation"]    = &TileMapInfo2D::orientation_;
-    bindTileMapInfo2D["width"]          = &TileMapInfo2D::width_;
-    bindTileMapInfo2D["height"]         = &TileMapInfo2D::height_;
-    bindTileMapInfo2D["tile_width"]     = &TileMapInfo2D::tileWidth_;
-    bindTileMapInfo2D["tile_height"]    = &TileMapInfo2D::tileHeight_;
+    bindTileMapInfo2D["GetMapWidth"]        = &TileMapInfo2D::GetMapWidth;
+    bindTileMapInfo2D["GetMapHeight"]       = &TileMapInfo2D::GetMapHeight;
+    bindTileMapInfo2D["ConvertPosition"]    = &TileMapInfo2D::ConvertPosition;
+    bindTileMapInfo2D["TileIndexToPosition"] = &TileMapInfo2D::TileIndexToPosition;
+    bindTileMapInfo2D["PositionToTileIndex"] = [](TileMapInfo2D* self, const Vector2& position) {
+        int x = 0;
+        int y = 0;
+        auto ret = self->PositionToTileIndex(x, y, position);
+        return std::tuple<bool, int, int>(ret, x, y);
+    };
 
     auto bindTileMap2D = lua.new_usertype<TileMap2D>("TileMap2D", sol::base_classes, sol::bases<Component>());
-    bindTileMap2D["id"]                 = sol::var(StringHash("TileMap2D"));
-    bindTileMap2D["SetTmxFile"]         = &TileMap2D::SetTmxFile;
-    bindTileMap2D["GetInfo"]            = &TileMap2D::GetInfo;
-    bindTileMap2D["GetLayer"]           = &TileMap2D::GetLayer;
-    bindTileMap2D["GetNumLayers"]       = &TileMap2D::GetNumLayers;
+    bindTileMap2D["id"]                     = sol::var(StringHash("TileMap2D"));
+    bindTileMap2D["SetTmxFile"]             = &TileMap2D::SetTmxFile;
+    bindTileMap2D["GetInfo"]                = &TileMap2D::GetInfo;
+    bindTileMap2D["GetLayer"]               = &TileMap2D::GetLayer;
+    bindTileMap2D["GetNumLayers"]           = &TileMap2D::GetNumLayers;
 
     auto bindTileMapLayer2D = lua.new_usertype<TileMapLayer2D>("TileMapLayer2D", sol::base_classes, sol::bases<Component>());
-    bindTileMapLayer2D["id"]            = sol::var(StringHash("TileMapLayer2D"));
-    bindTileMapLayer2D["GetNumObjects"] = &TileMapLayer2D::GetNumObjects;
+    bindTileMapLayer2D["id"]                = sol::var(StringHash("TileMapLayer2D"));
+    bindTileMapLayer2D["GetNumObjects"]     = &TileMapLayer2D::GetNumObjects;
+
     return 0;
 }
