@@ -222,14 +222,45 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         sol::constructors<Rect(),
         Rect(float, float, float, float),
         Rect(const Vector2&, const Vector2&)>());
+    bindRect["min"]     = &Rect::min_;
+    bindRect["max"]     = &Rect::max_;
     bindRect["Size"]    = &Rect::Size;
     bindRect["Center"]  = &Rect::Center;
     bindRect["Left"]    = &Rect::Left;
     bindRect["Top"]     = &Rect::Top;
     bindRect["Right"]   = &Rect::Right;
     bindRect["Bottom"]  = &Rect::Bottom;
-    bindRect["min"]     = &Rect::min_;
-    bindRect["max"]     = &Rect::max_;
+    bindRect["Equals"]  = &Rect::Equals;
+    bindRect["Clip"]    = &Rect::Clip;
+    bindRect["Merge"]   = sol::overload(
+        [](Rect* self, const Vector2& point) { self->Merge(point); },
+        [](Rect* self, const Rect& rect) { self->Merge(rect); });
+    bindRect["IsInside"] = sol::overload(
+        [](Rect* self, const Vector2& point) { return self->IsInside(point); },
+        [](Rect* self, const Rect& rect) { return self->IsInside(rect); });
+    bindRect["FULL"]    = sol::var(std::ref(Rect::FULL));
+    bindRect["ZERO"]    = sol::var(std::ref(Rect::ZERO));
+    bindRect["POSITIVE"] = sol::var(std::ref(Rect::POSITIVE));
+
+    auto bindIntRect = math3d.new_usertype<IntRect>("IntRect",
+        sol::call_constructor,
+        sol::constructors<IntRect(),
+        IntRect(int, int, int, int),
+        IntRect(const IntVector2&, const IntVector2&)>());
+    bindIntRect["Size"]     = &IntRect::Size;
+    bindIntRect["Left"]     = &IntRect::Left;
+    bindIntRect["Top"]      = &IntRect::Top;
+    bindIntRect["Right"]    = &IntRect::Right;
+    bindIntRect["Bottom"]   = &IntRect::Bottom;
+    bindIntRect["Contains"] = &IntRect::Contains;
+    bindIntRect["Min"]      = &IntRect::Min;
+    bindIntRect["Max"]      = &IntRect::Max;
+    bindIntRect["Clip"]     = &IntRect::Clip;
+    bindIntRect["Merge"]    = &IntRect::Merge;
+    bindIntRect["IsInside"] = sol::overload(
+        [](IntRect* self, const IntVector2& point) { return self->IsInside(point); },
+        [](IntRect* self, const IntRect& rect) { return self->IsInside(rect); });
+    bindIntRect["ZERO"] = sol::var(std::ref(IntRect::ZERO));
 
     auto bindPlane = math3d.new_usertype<Plane>("Plane",
         sol::call_constructor,

@@ -173,13 +173,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindNode["world_up"]            = sol::readonly_property(&Node::GetWorldUp);
     bindNode["world_right"]         = sol::readonly_property(&Node::GetWorldRight);
     bindNode["world_matrix"]        = sol::property(&Node::GetWorldTransform, sol::resolve<void(const Matrix3x4&)>(&Node::SetWorldTransform));
-    bindNode["SetScale2D"]          = sol::overload(
-        [](Node* self, const Vector2& scale) { self->SetScale2D(scale); },
-        [](Node* self, float x, float y) { self->SetScale2D(x, y); });
-    bindNode["SetRotation2D"]       = &Node::SetRotation2D;
-    bindNode["SetPosition2D"]       = sol::overload(
-        [](Node* self, const Vector2& position) { self->SetPosition2D(position); },
-        [](Node* self, float x, float y) { self->SetPosition2D(x, y); });
+    
     bindNode["SetTransform"]        = sol::overload(
         [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetTransform(position, rotation); },
         [](Node* self, const Vector3& position, const Quaternion& rotation, float scale) { self->SetTransform(position, rotation, scale); },
@@ -188,14 +182,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetWorldTransform(position, rotation); },
         [](Node* self, const Vector3& position, const Quaternion& rotation, float scale) { self->SetWorldTransform(position, rotation, scale); },
         [](Node* self, const Vector3& position, const Quaternion& rotation, const Vector3& scale) { self->SetWorldTransform(position, rotation, scale); });
-    bindNode["SetTransform2D"]        = sol::overload(
-        [](Node* self, const Vector2& position, float rotation) { self->SetTransform2D(position, rotation); },
-        [](Node* self, const Vector2& position, float rotation, float scale) { self->SetTransform2D(position, rotation, scale); },
-        [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetTransform2D(position, rotation, scale); });
-    bindNode["SetWorldTransform2D"]        = sol::overload(
-        [](Node* self, const Vector2& position, float rotation) { self->SetWorldTransform2D(position, rotation); },
-        [](Node* self, const Vector2& position, float rotation, float scale) { self->SetWorldTransform2D(position, rotation, scale); },
-        [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetWorldTransform2D(position, rotation, scale); });
+    
     bindNode["AddTag"]              = &Node::AddTag;
     bindNode["SetTags"]             = [](Node* self, const ea::string& tags) {
         self->RemoveAllTags();
@@ -225,25 +212,16 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         [](Node* self, float rx, float ry, float rz, TransformSpace ts) { self->Rotate({ rx, ry, rz }, ts); },
         [](Node* self, const Quaternion& rotation) { self->Rotate(rotation); },
         [](Node* self, const Quaternion& rotation, TransformSpace ts) { self->Rotate(rotation, ts); });
-    bindNode["Rotate2D"]            = sol::overload(
-        [](Node* self, float delta) { self->Rotate2D(delta); },
-        [](Node* self, float delta, TransformSpace space) { self->Rotate2D(delta, space); });
     bindNode["RotateAround"]        = sol::overload(
         [](Node* self, const Vector3& point, float rx, float ry, float rz) { self->RotateAround(point, { rx, ry, rz }); },
         [](Node* self, const Vector3& point, float rx, float ry, float rz, TransformSpace ts) { self->RotateAround(point, { rx, ry, rz }, ts); },
         [](Node* self, const Vector3& point, const Quaternion& rotation) { self->RotateAround(point, rotation); },
         [](Node* self, const Vector3& point, const Quaternion& rotation, TransformSpace ts) { self->RotateAround(point, rotation, ts); });
-    bindNode["RotateAround2D"] = sol::overload(
-        [](Node* self, const Vector2& point, float delta) { self->RotateAround2D(point, delta); },
-        [](Node* self, const Vector2& point, float delta, TransformSpace space) { self->RotateAround2D(point, delta, space); });
     bindNode["Translate"]           = sol::overload(
         [](Node* self, float x, float y, float z) { self->Translate({ x, y, z }); },
         [](Node* self, float x, float y, float z, TransformSpace ts) { self->Translate({ x, y, z }, ts); },
         [](Node* self, const Vector3& translate) { self->Translate(translate); },
         [](Node* self, const Vector3& translate, TransformSpace ts) { self->Translate(translate, ts); });
-    bindNode["Translate2D"]         = sol::overload(
-        [](Node* self, const Vector2& delta) { self->Translate2D(delta); },
-        [](Node* self, const Vector2& delta, TransformSpace space) { self->Translate2D(delta, space); });
     bindNode["Pitch"]               = sol::overload(
         [](Node* self, float angle) { self->Pitch(angle); },
         [](Node* self, float angle, TransformSpace ts) { self->Pitch(angle, ts); });
@@ -263,7 +241,6 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindNode["ScaleAround"]                = sol::overload(
         [](Node* self, const Vector3& point, const Vector3& scale) { self->ScaleAround(point, scale); },
         [](Node* self, const Vector3& point, const Vector3& scale, TransformSpace space) { self->ScaleAround(point, scale, space); });
-    bindNode["Scale2D"]             = &Node::Scale2D;
     bindNode["GetParent"]           = &Node::GetParent;
     bindNode["SetParent"]           = &Node::SetParent;
     bindNode["GetScene"]            = &Node::GetScene;
@@ -341,6 +318,35 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
     bindNode["SetVarByHash"]            = &Node::SetVarByHash;
     bindNode["GetVar"]                  = &Node::GetVar;
     bindNode["GetVarByHash"]            = &Node::GetVarByHash;
+    // 2D
+    bindNode["Scale2D"]                 = &Node::Scale2D;
+    bindNode["Rotate2D"]                = sol::overload(
+        [](Node* self, float delta) { self->Rotate2D(delta); },
+        [](Node* self, float delta, TransformSpace space) { self->Rotate2D(delta, space); });
+    bindNode["RotateAround2D"]          = sol::overload(
+        [](Node* self, const Vector2& point, float delta) { self->RotateAround2D(point, delta); },
+        [](Node* self, const Vector2& point, float delta, TransformSpace space) { self->RotateAround2D(point, delta, space); });
+    bindNode["Translate2D"]             = sol::overload(
+        [](Node* self, const Vector2& delta) { self->Translate2D(delta); },
+        [](Node* self, const Vector2& delta, TransformSpace space) { self->Translate2D(delta, space); });
+    bindNode["SetScale2D"]              = sol::overload(
+        [](Node* self, const Vector2& scale) { self->SetScale2D(scale); },
+        [](Node* self, float x, float y) { self->SetScale2D(x, y); });
+    bindNode["SetRotation2D"]           = &Node::SetRotation2D;
+    bindNode["SetPosition2D"]           = sol::overload(
+        [](Node* self, const Vector2& position) { self->SetPosition2D(position); },
+        [](Node* self, float x, float y) { self->SetPosition2D(x, y); });
+    bindNode["GetScale2D"]              = &Node::GetScale2D;
+    bindNode["GetRotation2D"]           = &Node::GetRotation2D;
+    bindNode["GetPosition2D"]           = &Node::GetPosition2D;
+    bindNode["SetTransform2D"]          = sol::overload(
+        [](Node* self, const Vector2& position, float rotation) { self->SetTransform2D(position, rotation); },
+        [](Node* self, const Vector2& position, float rotation, float scale) { self->SetTransform2D(position, rotation, scale); },
+        [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetTransform2D(position, rotation, scale); });
+    bindNode["SetWorldTransform2D"]     = sol::overload(
+        [](Node* self, const Vector2& position, float rotation) { self->SetWorldTransform2D(position, rotation); },
+        [](Node* self, const Vector2& position, float rotation, float scale) { self->SetWorldTransform2D(position, rotation, scale); },
+        [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetWorldTransform2D(position, rotation, scale); });
 
     auto bindScene = lua.new_usertype<Scene>("Scene",
         sol::call_constructor, sol::factories([context]() { return std::make_unique<Scene>(context); }),

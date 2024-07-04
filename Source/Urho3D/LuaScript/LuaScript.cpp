@@ -80,6 +80,7 @@ extern int sol2_FairyGUILuaAPI_open(sol::state&);
 extern int sol2_RmlUI_open(sol::state&);
 extern int sol2_EffekseerLuaAPI_open(sol::state&);
 #ifdef URHO3D_URHO2D
+extern int sol2_Physics2DLuaAPI_open(sol::state&);
 extern int sol2_Urho2DLuaAPI_open(sol::state&);
 #endif
 extern int sol2_LuaScriptLuaAPI_open(sol::state&);
@@ -152,6 +153,7 @@ LuaScript::LuaScript(Context* context) :
     }
 #endif
 #ifdef URHO3D_URHO2D
+    sol2_Physics2DLuaAPI_open(solState);
     sol2_Urho2DLuaAPI_open(solState);
 #endif
     sol2_LuaScriptLuaAPI_open(solState);

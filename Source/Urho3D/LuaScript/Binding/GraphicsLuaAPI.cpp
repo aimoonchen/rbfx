@@ -429,6 +429,7 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bindDrawable["view_mask"]                   = sol::property(&Drawable::GetViewMask, &Drawable::SetViewMask);
     bindDrawable["light_mask"]                  = sol::property(&Drawable::GetLightMask, &Drawable::SetLightMask);
     bindDrawable["shadow_mask"]                 = sol::property(&Drawable::GetShadowMask, &Drawable::SetShadowMask);
+    //bindDrawable["OnSetEnabled"]                = &Drawable::OnSetEnabled;
     bindDrawable["IsInOctree"]                  = &Drawable::IsInOctree;
     bindDrawable["SetOccluder"]                 = &Drawable::SetOccluder;
     bindDrawable["GetBoundingBox"]              = &Drawable::GetBoundingBox;

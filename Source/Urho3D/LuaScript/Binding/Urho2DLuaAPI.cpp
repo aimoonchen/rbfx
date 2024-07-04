@@ -18,9 +18,16 @@ Urho3D::Context* GetContext(lua_State* L);
 int sol2_Urho2DLuaAPI_open(sol::state& lua)
 {
     auto context = GetContext(lua.lua_state());
+    auto bindDrawable2D = lua.new_usertype<Drawable2D>("Drawable2D", sol::base_classes, sol::bases<Drawable>());
+    //bindDrawable2D["OnSetEnabled"]      = &Drawable2D::OnSetEnabled;
+    bindDrawable2D["SetLayer"]          = &Drawable2D::SetLayer;
+    bindDrawable2D["SetOrderInLayer"]   = &Drawable2D::SetOrderInLayer;
+    bindDrawable2D["GetLayer"]          = &Drawable2D::GetLayer;
+    bindDrawable2D["GetOrderInLayer"]   = &Drawable2D::GetOrderInLayer;
+
     auto bindStaticSprite2D = lua.new_usertype<StaticSprite2D>("StaticSprite2D",
         sol::base_classes, sol::bases<Drawable2D, Drawable, Component>());
-    bindStaticSprite2D["id"] = sol::var(StringHash("StaticSprite2D"));
+    bindStaticSprite2D["id"]                = sol::var(StringHash("StaticSprite2D"));
     bindStaticSprite2D["SetSprite"]         = &StaticSprite2D::SetSprite;
     bindStaticSprite2D["SetDrawRect"]       = &StaticSprite2D::SetDrawRect;
     bindStaticSprite2D["SetTextureRect"]    = &StaticSprite2D::SetTextureRect;
