@@ -157,26 +157,12 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
         [](PhysicsWorld* self, const Ray& ray, float maxDistance) {
             ea::vector<PhysicsRaycastResult> result;
             self->Raycast(result, ray, maxDistance);
-            std::vector<PhysicsRaycastResult> ret;
-            if (!result.empty()) {
-                ret.reserve(result.size());
-                for (const auto& prr : result) {
-                    ret.emplace_back(prr);
-                }
-            }
-            return ret;
+            return std::vector<PhysicsRaycastResult>(result.begin(), result.end());
         },
         [](PhysicsWorld* self, const Ray& ray, float maxDistance, unsigned collisionMask) {
             ea::vector<PhysicsRaycastResult> result;
             self->Raycast(result, ray, maxDistance, collisionMask);
-            std::vector<PhysicsRaycastResult> ret;
-            if (!result.empty()) {
-                ret.reserve(result.size());
-                for (const auto& prr : result) {
-                    ret.emplace_back(prr);
-                }
-            }
-            return ret;
+            return std::vector<PhysicsRaycastResult>(result.begin(), result.end());
         });
     bindPhysicsWorld["RaycastSingle"]           = sol::overload(
         [](PhysicsWorld* self, const Ray& ray, float maxDistance) {

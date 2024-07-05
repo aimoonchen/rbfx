@@ -72,21 +72,11 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindCollisionPolygon2D["GetVertexCount"]    = &CollisionPolygon2D::GetVertexCount;
     bindCollisionPolygon2D["GetVertex"]         = &CollisionPolygon2D::GetVertex;
     bindCollisionPolygon2D["SetVertices"]       = [](CollisionPolygon2D* self, const std::vector<Vector2>& vertices) {
-        ea::vector<Vector2> vs;
-        vs.reserve(vertices.size());
-        for (auto& v : vertices) {
-            vs.emplace_back(v);
-        }
-        self->SetVertices(vs);
+        self->SetVertices(ea::vector<Vector2>(vertices.begin(), vertices.end()));
     };
     bindCollisionPolygon2D["GetVertices"]       = [](CollisionPolygon2D* self) {
         auto& eav = self->GetVertices();
-        std::vector<Vector2> stdv;
-        stdv.reserve(eav.size());
-        for (auto& v : eav) {
-            stdv.emplace_back(v);
-        }
-        return stdv;
+        return std::vector<Vector2>(eav.begin(), eav.end());
     };
 
     auto bindRigidBody2D = lua.new_usertype<RigidBody2D>("RigidBody2D",
@@ -154,6 +144,34 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
         [](PhysicsWorld2D* self, int screenX, int screenY) { return self->GetRigidBody(screenX, screenY); },
         [](PhysicsWorld2D* self, int screenX, int screenY, unsigned collisionMask) { return self->GetRigidBody(screenX, screenY, collisionMask); });
     bindPhysicsWorld2D["DrawDebugGeometry"] = sol::resolve<void()>(&PhysicsWorld2D::DrawDebugGeometry);
+    bindPhysicsWorld2D["Raycast"] = sol::overload(
+        [](PhysicsWorld2D* self, const Vector2& startPoint, const Vector2& endPoint) {
+            ea::vector<PhysicsRaycastResult2D> results;
+            self->Raycast(results, startPoint, endPoint);
+            return std::vector<PhysicsRaycastResult2D>(results.begin(), results.end());
+        },
+        [](PhysicsWorld2D* self, const Vector2& startPoint, const Vector2& endPoint, unsigned collisionMask) {
+            ea::vector<PhysicsRaycastResult2D> results;
+            self->Raycast(results, startPoint, endPoint, collisionMask);
+            return std::vector<PhysicsRaycastResult2D>(results.begin(), results.end());
+        });
+    bindPhysicsWorld2D["RaycastSingle"] = sol::overload(
+        [](PhysicsWorld2D* self, const Vector2& startPoint, const Vector2& endPoint) {
+            PhysicsRaycastResult2D result;
+            self->RaycastSingle(result, startPoint, endPoint);
+            return result;
+        },
+        [](PhysicsWorld2D* self, const Vector2& startPoint, const Vector2& endPoint, unsigned collisionMask) {
+            PhysicsRaycastResult2D result;
+            self->RaycastSingle(result, startPoint, endPoint, collisionMask);
+            return result;
+        });
+
+    auto bindPhysicsRaycastResult2D = lua.new_usertype<PhysicsRaycastResult2D>("PhysicsRaycastResult2D");
+    bindPhysicsRaycastResult2D["position"] = &PhysicsRaycastResult2D::position_;
+    bindPhysicsRaycastResult2D["normal"] = &PhysicsRaycastResult2D::normal_;
+    bindPhysicsRaycastResult2D["distance"] = &PhysicsRaycastResult2D::distance_;
+    bindPhysicsRaycastResult2D["rigid_body"] = &PhysicsRaycastResult2D::body_;
 
     return 0;
 }

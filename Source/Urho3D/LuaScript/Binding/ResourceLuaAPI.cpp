@@ -104,10 +104,12 @@ int sol2_ResourceLuaAPI_open(sol::state& lua)
         self->Scan(result, pathName, filter, ScanFlags(flags));
         std::vector<std::string> stdresult;
         stdresult.reserve(result.size());
-        for (auto& it : result) {
+        for (auto& it : result)
+        {
             stdresult.emplace_back(it.c_str());
         }
         return stdresult;
+        //return std::vector<std::string>(result.begin(), result.end());
         };
     
     lua.new_usertype<Image>("Image", sol::constructors<Image(Context*)>());
@@ -150,12 +152,8 @@ int sol2_ResourceLuaAPI_open(sol::state& lua)
     bindJSONValue["GetString"]  = [](JSONValue* self, const ea::string& defaultValue) { return self->GetString(defaultValue); };
     bindJSONValue["GetArray"]   = [](JSONValue* self) {
         const auto& arrs = self->GetArray();
-        std::vector<JSONValue> ret;
-        ret.reserve(arrs.size());
-        for (auto& obj : arrs) {
-            ret.emplace_back(obj);
-        }
-        return ret; };
+        return std::vector<JSONValue>(arrs.begin(), arrs.end());
+        };
     bindJSONValue["GetObject"]  = [](JSONValue* self) {
         const auto& objects = self->GetObject();
         std::map<std::string, JSONValue> ret;

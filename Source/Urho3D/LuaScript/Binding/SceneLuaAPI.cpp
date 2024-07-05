@@ -194,6 +194,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         const auto& rawtags = self->GetTags();
         // TODO:
         std::vector<std::string> tags;
+        tags.reserve(rawtags.size());
         for (const auto& tag : rawtags) {
             tags.emplace_back(tag.c_str());
         }
@@ -258,22 +259,13 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         [](Node* self, StringHash type) {
             ea::vector<Component*> dest;
             self->GetComponents(dest, type);
-            std::vector<Component*> stddest;
-            stddest.reserve(dest.size());
-            for (auto it : dest) {
-                stddest.emplace_back(it);
-            }
-            return stddest;
+            return std::vector<Component*>(dest.begin(), dest.end());
         },
         [](Node* self, StringHash type, bool recursive) {
             ea::vector<Component*> dest;
             self->GetComponents(dest, type, recursive);
-            std::vector<Component*> stddest;
-            stddest.reserve(dest.size());
-            for (auto it : dest) {
-                stddest.emplace_back(it);
-            }
-            return stddest; });
+            return std::vector<Component*>(dest.begin(), dest.end());
+        });
     bindNode["RemoveComponent"]     = sol::overload([](Node* self, StringHash type) { self->RemoveComponent(type); }, [](Node* self, Component* component) { self->RemoveComponent(component); });
     bindNode["RemoveComponents"]    = [](Node* self, StringHash type) { self->RemoveComponents(type); };
     bindNode["RemoveAllComponents"] = &Node::RemoveAllComponents;

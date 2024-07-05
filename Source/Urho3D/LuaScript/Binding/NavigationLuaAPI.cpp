@@ -34,12 +34,7 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
         [](NavigationMesh* self, const Vector3& start, const Vector3& end, const Vector3& extents) { return self->Raycast(start, end, extents); });
     bindNavigationMesh["GetAllTileIndices"] = [](NavigationMesh* self) {
         auto tileIndices = self->GetAllTileIndices();
-        std::vector<IntVector2> ret;
-        ret.reserve(tileIndices.size());
-        for (const auto& it : tileIndices) {
-            ret.emplace_back(it);
-        }
-        return ret;
+        return std::vector<IntVector2>(tileIndices.begin(), tileIndices.end());
     };
 
     auto bindDynamicNavigationMesh = lua.new_usertype<DynamicNavigationMesh>("DynamicNavigationMesh", sol::base_classes, sol::bases<NavigationMesh, Component>());
