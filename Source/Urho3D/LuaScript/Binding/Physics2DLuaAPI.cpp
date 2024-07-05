@@ -4,6 +4,9 @@
 #include "../../Physics2D/CollisionShape2D.h"
 #include "../../Physics2D/RigidBody2D.h"
 #include "../../Physics2D/PhysicsWorld2D.h"
+#include "../../Physics2D/CollisionBox2D.h"
+#include "../../Physics2D/CollisionCircle2D.h"
+#include "../../Physics2D/CollisionPolygon2D.h"
 
 using namespace Urho3D;
 
@@ -39,6 +42,52 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindCollisionShape2D["GetMass"]         = &CollisionShape2D::GetMass;
     bindCollisionShape2D["GetInertia"]      = &CollisionShape2D::GetInertia;
     bindCollisionShape2D["GetMassCenter"]   = &CollisionShape2D::GetMassCenter;
+
+    auto bindCollisionBox2D = lua.new_usertype<CollisionBox2D>(
+        "CollisionBox2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionBox2D["SetSize"]   = sol::overload(
+        [](CollisionBox2D* self, const Vector2& size) { self->SetSize(size); },
+        [](CollisionBox2D* self, float width, float height) { self->SetSize(width, height); });
+    bindCollisionBox2D["SetCenter"] = sol::overload(
+        [](CollisionBox2D* self, const Vector2& size) { self->SetCenter(size); },
+        [](CollisionBox2D* self, float width, float height) { self->SetCenter(width, height); });
+    bindCollisionBox2D["SetAngle"]  = &CollisionBox2D::SetAngle;
+    bindCollisionBox2D["GetSize"]   = &CollisionBox2D::GetSize;
+    bindCollisionBox2D["GetCenter"] = &CollisionBox2D::GetCenter;
+    bindCollisionBox2D["GetAngle"]  = &CollisionBox2D::GetAngle;
+
+    auto bindCollisionCircle2D = lua.new_usertype<CollisionCircle2D>(
+        "CollisionCircle2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionCircle2D["SetRadius"] = &CollisionCircle2D::SetRadius;
+    bindCollisionCircle2D["SetCenter"] = sol::overload(
+        [](CollisionCircle2D* self, const Vector2& size) { self->SetCenter(size); },
+        [](CollisionCircle2D* self, float width, float height) { self->SetCenter(width, height); });
+    bindCollisionCircle2D["GetRadius"] = &CollisionCircle2D::GetRadius;
+    bindCollisionCircle2D["GetCenter"] = &CollisionCircle2D::GetCenter;
+
+    auto bindCollisionPolygon2D = lua.new_usertype<CollisionPolygon2D>(
+        "CollisionPolygon2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionPolygon2D["SetVertexCount"]    = &CollisionPolygon2D::SetVertexCount;
+    bindCollisionPolygon2D["SetVertex"]         = &CollisionPolygon2D::SetVertex;
+    bindCollisionPolygon2D["GetVertexCount"]    = &CollisionPolygon2D::GetVertexCount;
+    bindCollisionPolygon2D["GetVertex"]         = &CollisionPolygon2D::GetVertex;
+    bindCollisionPolygon2D["SetVertices"]       = [](CollisionPolygon2D* self, const std::vector<Vector2>& vertices) {
+        ea::vector<Vector2> vs;
+        vs.reserve(vertices.size());
+        for (auto& v : vertices) {
+            vs.emplace_back(v);
+        }
+        self->SetVertices(vs);
+    };
+    bindCollisionPolygon2D["GetVertices"]       = [](CollisionPolygon2D* self) {
+        auto& eav = self->GetVertices();
+        std::vector<Vector2> stdv;
+        stdv.reserve(eav.size());
+        for (auto& v : eav) {
+            stdv.emplace_back(v);
+        }
+        return stdv;
+    };
 
     auto bindRigidBody2D = lua.new_usertype<RigidBody2D>("RigidBody2D",
         sol::base_classes, sol::bases<Component>());
