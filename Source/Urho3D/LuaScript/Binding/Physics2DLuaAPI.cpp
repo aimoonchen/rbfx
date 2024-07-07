@@ -7,6 +7,7 @@
 #include "../../Physics2D/CollisionBox2D.h"
 #include "../../Physics2D/CollisionCircle2D.h"
 #include "../../Physics2D/CollisionPolygon2D.h"
+#include "../../Physics2D/CollisionChain2D.h"
 
 using namespace Urho3D;
 
@@ -20,8 +21,8 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
         "KINEMATIC",    BT_KINEMATIC,
         "DYNAMIC",      BT_DYNAMIC
     );
-    auto bindCollisionShape2D = lua.new_usertype<CollisionShape2D>("CollisionShape2D",
-        sol::base_classes, sol::bases<Component>());
+
+    auto bindCollisionShape2D = lua.new_usertype<CollisionShape2D>("CollisionShape2D", sol::base_classes, sol::bases<Component>());
     bindCollisionShape2D["id"]              = sol::var(StringHash("CollisionShape2D"));
     bindCollisionShape2D["SetTrigger"]      = &CollisionShape2D::SetTrigger;
     bindCollisionShape2D["SetCategoryBits"] = &CollisionShape2D::SetCategoryBits;
@@ -43,8 +44,7 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindCollisionShape2D["GetInertia"]      = &CollisionShape2D::GetInertia;
     bindCollisionShape2D["GetMassCenter"]   = &CollisionShape2D::GetMassCenter;
 
-    auto bindCollisionBox2D = lua.new_usertype<CollisionBox2D>(
-        "CollisionBox2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    auto bindCollisionBox2D = lua.new_usertype<CollisionBox2D>("CollisionBox2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
     bindCollisionBox2D["SetSize"]   = sol::overload(
         [](CollisionBox2D* self, const Vector2& size) { self->SetSize(size); },
         [](CollisionBox2D* self, float width, float height) { self->SetSize(width, height); });
@@ -56,14 +56,28 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindCollisionBox2D["GetCenter"] = &CollisionBox2D::GetCenter;
     bindCollisionBox2D["GetAngle"]  = &CollisionBox2D::GetAngle;
 
-    auto bindCollisionCircle2D = lua.new_usertype<CollisionCircle2D>(
-        "CollisionCircle2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    auto bindCollisionCircle2D = lua.new_usertype<CollisionCircle2D>("CollisionCircle2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
     bindCollisionCircle2D["SetRadius"] = &CollisionCircle2D::SetRadius;
     bindCollisionCircle2D["SetCenter"] = sol::overload(
         [](CollisionCircle2D* self, const Vector2& size) { self->SetCenter(size); },
         [](CollisionCircle2D* self, float width, float height) { self->SetCenter(width, height); });
     bindCollisionCircle2D["GetRadius"] = &CollisionCircle2D::GetRadius;
     bindCollisionCircle2D["GetCenter"] = &CollisionCircle2D::GetCenter;
+
+    auto bindCollisionChain2D = lua.new_usertype<CollisionChain2D>("CollisionChain2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionChain2D["SetLoop"]         = &CollisionChain2D::SetLoop;
+    bindCollisionChain2D["SetVertexCount"]  = &CollisionChain2D::SetVertexCount;
+    bindCollisionChain2D["SetVertex"]       = &CollisionChain2D::SetVertex;
+    bindCollisionChain2D["SetVertices"]     = [](CollisionChain2D* self, const std::vector<Vector2>& vertices) {
+        self->SetVertices(ea::vector<Vector2>(vertices.begin(), vertices.end()));
+    };
+    bindCollisionChain2D["GetLoop"]         = &CollisionChain2D::GetLoop;
+    bindCollisionChain2D["GetVertexCount"]  = &CollisionChain2D::GetVertexCount;
+    bindCollisionChain2D["GetVertex"]       = &CollisionChain2D::GetVertex;
+    bindCollisionChain2D["GetVertices"]     = [](CollisionChain2D* self) {
+        auto& eav = self->GetVertices();
+        return std::vector<Vector2>(eav.begin(), eav.end());
+    };
 
     auto bindCollisionPolygon2D = lua.new_usertype<CollisionPolygon2D>(
         "CollisionPolygon2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
@@ -79,8 +93,7 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
         return std::vector<Vector2>(eav.begin(), eav.end());
     };
 
-    auto bindRigidBody2D = lua.new_usertype<RigidBody2D>("RigidBody2D",
-        sol::base_classes, sol::bases<Component>());
+    auto bindRigidBody2D = lua.new_usertype<RigidBody2D>("RigidBody2D", sol::base_classes, sol::bases<Component>());
     bindRigidBody2D["id"]                   = sol::var(StringHash("RigidBody2D"));
     bindRigidBody2D["SetBodyType"]          = &RigidBody2D::SetBodyType;
     bindRigidBody2D["SetMass"]              = &RigidBody2D::SetMass;
@@ -126,25 +139,24 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindRigidBody2D["GetLinearVelocity"]    = &RigidBody2D::GetLinearVelocity;
     bindRigidBody2D["GetAngularVelocity"]   = &RigidBody2D:: GetAngularVelocity;
 
-    auto bindPhysicsWorld2D = lua.new_usertype<PhysicsWorld2D>("PhysicsWorld2D",
-        sol::base_classes, sol::bases<Component>());
-    bindPhysicsWorld2D["id"]                = sol::var(StringHash("PhysicsWorld2D"));
-    bindPhysicsWorld2D["SetGravity"]        = &PhysicsWorld2D::SetGravity;
-    bindPhysicsWorld2D["SetAutoClearForces"] = &PhysicsWorld2D::SetAutoClearForces;
-    bindPhysicsWorld2D["SetVelocityIterations"] = &PhysicsWorld2D::SetVelocityIterations;
-    bindPhysicsWorld2D["SetPositionIterations"] = &PhysicsWorld2D::SetPositionIterations;
-    bindPhysicsWorld2D["AddRigidBody"] = &PhysicsWorld2D::AddRigidBody;
-    bindPhysicsWorld2D["RemoveRigidBody"] = &PhysicsWorld2D::RemoveRigidBody;
-    bindPhysicsWorld2D["AddDelayedWorldTransform"] = &PhysicsWorld2D::AddDelayedWorldTransform;
-    bindPhysicsWorld2D["AddDelayedWorldTransform"] = &PhysicsWorld2D::AddDelayedWorldTransform;
-    bindPhysicsWorld2D["AddDelayedWorldTransform"] = &PhysicsWorld2D::AddDelayedWorldTransform;
-    bindPhysicsWorld2D["GetRigidBody"] = sol::overload(
+    auto bindPhysicsWorld2D = lua.new_usertype<PhysicsWorld2D>("PhysicsWorld2D", sol::base_classes, sol::bases<Component>());
+    bindPhysicsWorld2D["id"]                        = sol::var(StringHash("PhysicsWorld2D"));
+    bindPhysicsWorld2D["SetGravity"]                = &PhysicsWorld2D::SetGravity;
+    bindPhysicsWorld2D["SetAutoClearForces"]        = &PhysicsWorld2D::SetAutoClearForces;
+    bindPhysicsWorld2D["SetVelocityIterations"]     = &PhysicsWorld2D::SetVelocityIterations;
+    bindPhysicsWorld2D["SetPositionIterations"]     = &PhysicsWorld2D::SetPositionIterations;
+    bindPhysicsWorld2D["AddRigidBody"]              = &PhysicsWorld2D::AddRigidBody;
+    bindPhysicsWorld2D["RemoveRigidBody"]           = &PhysicsWorld2D::RemoveRigidBody;
+    bindPhysicsWorld2D["AddDelayedWorldTransform"]  = &PhysicsWorld2D::AddDelayedWorldTransform;
+    bindPhysicsWorld2D["AddDelayedWorldTransform"]  = &PhysicsWorld2D::AddDelayedWorldTransform;
+    bindPhysicsWorld2D["AddDelayedWorldTransform"]  = &PhysicsWorld2D::AddDelayedWorldTransform;
+    bindPhysicsWorld2D["GetRigidBody"]              = sol::overload(
         [](PhysicsWorld2D* self, const Vector2& point) { return self->GetRigidBody(point); },
         [](PhysicsWorld2D* self, const Vector2& point, unsigned collisionMask) { return self->GetRigidBody(point, collisionMask); },
         [](PhysicsWorld2D* self, int screenX, int screenY) { return self->GetRigidBody(screenX, screenY); },
         [](PhysicsWorld2D* self, int screenX, int screenY, unsigned collisionMask) { return self->GetRigidBody(screenX, screenY, collisionMask); });
-    bindPhysicsWorld2D["DrawDebugGeometry"] = sol::resolve<void()>(&PhysicsWorld2D::DrawDebugGeometry);
-    bindPhysicsWorld2D["Raycast"] = sol::overload(
+    bindPhysicsWorld2D["DrawDebugGeometry"]         = sol::resolve<void()>(&PhysicsWorld2D::DrawDebugGeometry);
+    bindPhysicsWorld2D["Raycast"]                   = sol::overload(
         [](PhysicsWorld2D* self, const Vector2& startPoint, const Vector2& endPoint) {
             ea::vector<PhysicsRaycastResult2D> results;
             self->Raycast(results, startPoint, endPoint);
@@ -155,7 +167,7 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
             self->Raycast(results, startPoint, endPoint, collisionMask);
             return std::vector<PhysicsRaycastResult2D>(results.begin(), results.end());
         });
-    bindPhysicsWorld2D["RaycastSingle"] = sol::overload(
+    bindPhysicsWorld2D["RaycastSingle"]             = sol::overload(
         [](PhysicsWorld2D* self, const Vector2& startPoint, const Vector2& endPoint) {
             PhysicsRaycastResult2D result;
             self->RaycastSingle(result, startPoint, endPoint);
@@ -168,10 +180,10 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
         });
 
     auto bindPhysicsRaycastResult2D = lua.new_usertype<PhysicsRaycastResult2D>("PhysicsRaycastResult2D");
-    bindPhysicsRaycastResult2D["position"] = &PhysicsRaycastResult2D::position_;
-    bindPhysicsRaycastResult2D["normal"] = &PhysicsRaycastResult2D::normal_;
-    bindPhysicsRaycastResult2D["distance"] = &PhysicsRaycastResult2D::distance_;
-    bindPhysicsRaycastResult2D["rigid_body"] = &PhysicsRaycastResult2D::body_;
+    bindPhysicsRaycastResult2D["position"]      = &PhysicsRaycastResult2D::position_;
+    bindPhysicsRaycastResult2D["normal"]        = &PhysicsRaycastResult2D::normal_;
+    bindPhysicsRaycastResult2D["distance"]      = &PhysicsRaycastResult2D::distance_;
+    bindPhysicsRaycastResult2D["rigid_body"]    = &PhysicsRaycastResult2D::body_;
 
     return 0;
 }

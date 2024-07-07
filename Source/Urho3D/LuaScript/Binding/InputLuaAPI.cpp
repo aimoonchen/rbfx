@@ -21,6 +21,12 @@ static void RegisterKeyboard(sol::table& lua)
     lua["KEY_F10"] = KEY_F10;
     lua["KEY_F11"] = KEY_F11;
     lua["KEY_F12"] = KEY_F12;
+    lua["KEY_PAGEDOWN"] = KEY_PAGEDOWN;
+    lua["KEY_PAGEUP"] = KEY_PAGEUP;
+    lua["KEY_LEFT"] = KEY_LEFT;
+    lua["KEY_UP"] = KEY_UP;
+    lua["KEY_DOWN"] = KEY_DOWN;
+    lua["KEY_RIGHT"] = KEY_RIGHT;
     lua["KEY_SELECT"] = KEY_SELECT;
     lua["KEY_ESCAPE"] = KEY_ESCAPE;
     lua["KEY_SPACE"] = KEY_SPACE;

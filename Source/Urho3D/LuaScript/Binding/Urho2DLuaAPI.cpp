@@ -7,6 +7,7 @@
 #include "../../Urho2D/AnimatedSprite2D.h"
 #include "../../Urho2D/TileMap2D.h"
 #include "../../Urho2D/TileMapLayer2D.h"
+#include "../../Urho2D/TileMapDefs2D.h"
 #include "../../Urho2D/StretchableSprite2D.h"
 
 #include "GetPush.h"
@@ -18,6 +19,15 @@ Urho3D::Context* GetContext(lua_State* L);
 int sol2_Urho2DLuaAPI_open(sol::state& lua)
 {
     auto context = GetContext(lua.lua_state());
+    lua.new_enum("TileMapObjectType2D",
+        "RECTANGLE",    OT_RECTANGLE,
+        "ELLIPSE",      OT_ELLIPSE,
+        "POLYGON",      OT_POLYGON,
+        "POLYLINE",     OT_POLYLINE,
+        "TILE",         OT_TILE,
+        "INVALID",      OT_INVALID
+    );
+
     auto bindDrawable2D = lua.new_usertype<Drawable2D>("Drawable2D", sol::base_classes, sol::bases<Drawable>());
     //bindDrawable2D["OnSetEnabled"]      = &Drawable2D::OnSetEnabled;
     bindDrawable2D["SetLayer"]          = &Drawable2D::SetLayer;
@@ -94,6 +104,10 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindStretchableSprite2D["GetBorder"]    = &StretchableSprite2D::GetBorder;
 
     auto bindTileMapInfo2D = lua.new_usertype<TileMapInfo2D>("TileMapInfo2D");
+    bindTileMapInfo2D["width"]              = &TileMapInfo2D::width_;
+    bindTileMapInfo2D["height"]             = &TileMapInfo2D::height_;
+    bindTileMapInfo2D["tile_width"]         = &TileMapInfo2D::tileWidth_;
+    bindTileMapInfo2D["tile_height"]        = &TileMapInfo2D::tileHeight_;
     bindTileMapInfo2D["GetMapWidth"]        = &TileMapInfo2D::GetMapWidth;
     bindTileMapInfo2D["GetMapHeight"]       = &TileMapInfo2D::GetMapHeight;
     bindTileMapInfo2D["ConvertPosition"]    = &TileMapInfo2D::ConvertPosition;
@@ -112,9 +126,19 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindTileMap2D["GetLayer"]               = &TileMap2D::GetLayer;
     bindTileMap2D["GetNumLayers"]           = &TileMap2D::GetNumLayers;
 
+    auto bindTileMapObject2D = lua.new_usertype<TileMapObject2D>("TileMapObject2D");
+    bindTileMapObject2D["GetObjectType"]    = &TileMapObject2D::GetObjectType;
+    bindTileMapObject2D["GetName"]          = &TileMapObject2D::GetName;
+    bindTileMapObject2D["GetSize"]          = &TileMapObject2D::GetSize;
+    bindTileMapObject2D["GetPosition"]      = &TileMapObject2D::GetPosition;
+    bindTileMapObject2D["GetTileSprite"]    = &TileMapObject2D::GetTileSprite;
+    bindTileMapObject2D["HasProperty"]      = &TileMapObject2D::HasProperty;
+    bindTileMapObject2D["GetProperty"]      = &TileMapObject2D::GetProperty;
+
     auto bindTileMapLayer2D = lua.new_usertype<TileMapLayer2D>("TileMapLayer2D", sol::base_classes, sol::bases<Component>());
     bindTileMapLayer2D["id"]                = sol::var(StringHash("TileMapLayer2D"));
     bindTileMapLayer2D["GetNumObjects"]     = &TileMapLayer2D::GetNumObjects;
+    bindTileMapLayer2D["GetObject"]         = &TileMapLayer2D::GetObject;
 
     return 0;
 }
