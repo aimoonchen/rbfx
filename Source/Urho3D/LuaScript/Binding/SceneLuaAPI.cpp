@@ -274,6 +274,10 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         instance->CreateObject(name);
         return instance->GetScriptObject();
     };
+    bindNode["GetScriptObject"]     = [](Node* self) {
+        auto comp = self->GetComponent<LuaScriptInstance>();
+        return comp->GetScriptObject();
+    };
     bindNode["SetEnabled"]          = sol::resolve<void(bool)>(&Node::SetEnabled);
     bindNode["SetEnabledRecursive"] = &Node::SetEnabledRecursive;
     bindNode["AddChild"]            = [](Node* self, Node* obj) { self->AddChild(obj); };

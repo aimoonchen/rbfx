@@ -474,6 +474,7 @@ void LuaScriptInstance::SetScriptObjectType(const ea::string& scriptObjectType)
     }
     //GetScriptAttributes();
     scriptObjectType_ = scriptObjectType;
+    scriptObjectRef_ = scriptObject;
     //scriptObjectRef_ = luaL_ref(luaState_, LUA_REGISTRYINDEX);
 
     // Find script object method refs
