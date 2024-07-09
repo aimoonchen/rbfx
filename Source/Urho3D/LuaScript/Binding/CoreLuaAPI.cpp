@@ -11,6 +11,8 @@
 #include "../../Scene/Node.h"
 #include "../../Navigation/CrowdAgent.h"
 #include "../../Engine/EngineDefs.h"
+#include "../../Physics2D/CollisionShape2D.h"
+#include "../../Physics2D/RigidBody2D.h"
 
 using namespace Urho3D;
 Urho3D::Context* GetContext(lua_State* L);
@@ -106,6 +108,14 @@ int sol2_CoreLuaAPI_open(sol::state& lua)
         }
         else if (type == "CrowdAgent") {
             return sol::make_object(lua.lua_state(), static_cast<const CrowdAgent*>(obj));
+        }
+        else if (type == "RigidBody2D")
+        {
+            return sol::make_object(lua.lua_state(), static_cast<const RigidBody2D*>(obj));
+        }
+        else if (type == "CollisionShape2D")
+        {
+            return sol::make_object(lua.lua_state(), static_cast<const CollisionShape2D*>(obj));
         }
         return sol::make_object(lua.lua_state(), static_cast<const void*>(obj));
         };

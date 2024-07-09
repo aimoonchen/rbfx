@@ -4,6 +4,7 @@
 #include "../../Physics2D/CollisionShape2D.h"
 #include "../../Physics2D/RigidBody2D.h"
 #include "../../Physics2D/PhysicsWorld2D.h"
+#include "../../Physics2D/PhysicsEvents2D.h"
 #include "../../Physics2D/CollisionBox2D.h"
 #include "../../Physics2D/CollisionCircle2D.h"
 #include "../../Physics2D/CollisionPolygon2D.h"
@@ -16,6 +17,20 @@ Urho3D::Context* GetContext(lua_State* L);
 int sol2_Physics2DLuaAPI_open(sol::state& lua)
 {
     auto context = GetContext(lua.lua_state());
+
+    auto eventType = lua["EventType"].get_or_create<sol::table>();
+    eventType["E_PHYSICSBEGINCONTACT2D"] = E_PHYSICSBEGINCONTACT2D;
+
+    auto paramType = lua["ParamType"].get_or_create<sol::table>();
+    paramType["P_WORLD"]    = PhysicsBeginContact2D::P_WORLD;
+    paramType["P_BODYA"]    = PhysicsBeginContact2D::P_BODYA;
+    paramType["P_BODYB"]    = PhysicsBeginContact2D::P_BODYB;
+    paramType["P_NODEA"]    = PhysicsBeginContact2D::P_NODEA;
+    paramType["P_NODEB"]    = PhysicsBeginContact2D::P_NODEB;
+    paramType["P_CONTACTS"] = PhysicsBeginContact2D::P_CONTACTS;
+    paramType["P_SHAPEA"]   = PhysicsBeginContact2D::P_SHAPEA;
+    paramType["P_SHAPEB"]   = PhysicsBeginContact2D::P_SHAPEB;
+
     lua.new_enum("BodyType2D",
         "STATIC",       BT_STATIC,
         "KINEMATIC",    BT_KINEMATIC,
