@@ -79,7 +79,9 @@ int sol2_MathLuaAPI_open(sol::state& lua)
 	bindVector3["CrossProduct"]         = &Vector3::CrossProduct;
 	bindVector3["Abs"]                  = &Vector3::Abs;
 	bindVector3["Lerp"]                 = &Vector3::Lerp;
-	bindVector3["Equals"]               = &Vector3::Equals;
+    bindVector3["Equals"]               = sol::overload(
+        [](Vector3* self, const Vector3& rhs) { return self->Equals(rhs); },
+        [](Vector3* self, const Vector3& rhs, float eps) { return self->Equals(rhs); });
 	bindVector3["Angle"]                = &Vector3::Angle;
 	bindVector3["IsNaN"]                = &Vector3::IsNaN;
 	bindVector3["IsInf"]                = &Vector3::IsInf;

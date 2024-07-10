@@ -392,7 +392,9 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
         [](MeshLine* self, const Vector3& start, const Vector3& end, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(start, end, lineDesc); },
         [](MeshLine* self, std::vector<Vector3> points, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(points, lineDesc); });
         
-	auto bindCamera = lua.new_usertype<Camera>("Camera", sol::base_classes, sol::bases<Component>());
+	auto bindCamera = lua.new_usertype<Camera>("Camera",
+        "zoom", sol::property(&Camera::GetZoom, &Camera::SetZoom),
+        sol::base_classes, sol::bases<Component>());
     bindCamera["id"]                    = sol::var(StringHash("Camera"));
     bindCamera["far_clip"]              = sol::property(&Camera::GetFarClip, &Camera::SetFarClip);
     bindCamera["near_clip"]             = sol::property(&Camera::GetNearClip, &Camera::SetNearClip);
@@ -404,9 +406,14 @@ int sol2_GraphicsLuaAPI_open(sol::state& lua)
     bindCamera["use_clipping"]          = sol::property(&Camera::GetUseClipping, &Camera::SetUseClipping);
     bindCamera["clip_plane"]            = sol::property(&Camera::GetClipPlane, &Camera::SetClipPlane);
     bindCamera["aspect_ratio"]          = sol::property(&Camera::GetAspectRatio, &Camera::SetAspectRatio);
+    //bindCamera["zoom"]                  = sol::property(&Camera::GetZoom, &Camera::SetZoom);
     bindCamera["WorldToScreenPoint"]    = &Camera::WorldToScreenPoint;
     bindCamera["ScreenToWorldPoint"]    = &Camera::ScreenToWorldPoint;
     bindCamera["GetScreenRay"]          = &Camera::GetScreenRay;
+    bindCamera["SetOrthographic"]       = &Camera::SetOrthographic;
+    bindCamera["SetOrthoSize"]          = sol::overload(
+        [](Camera* self, float orthoSize) { self->SetOrthoSize(orthoSize); },
+        [](Camera* self, const Vector2& orthoSize) { self->SetOrthoSize(orthoSize); });
 		
     auto bindGraphics = lua.new_usertype<Graphics>("Graphics");
     bindGraphics["SetWindowIcon"]       = &Graphics::SetWindowIcon;

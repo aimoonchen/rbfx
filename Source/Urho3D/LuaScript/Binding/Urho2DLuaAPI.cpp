@@ -90,6 +90,8 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindAnimatedSprite2D["SetSpeed"]        = &AnimatedSprite2D::SetSpeed;
     bindAnimatedSprite2D["GetLoopMode"]     = &AnimatedSprite2D::GetLoopMode;
     bindAnimatedSprite2D["GetSpeed"]        = &AnimatedSprite2D::GetSpeed;
+    bindAnimatedSprite2D["GetAnimation"]    = &AnimatedSprite2D::GetAnimation;
+    //bindAnimatedSprite2D["AnimationSet2D"]  = &AnimatedSprite2D::GetAnimationSet;
 
     lua.new_enum("Orientation2D",
         "ORTHOGONAL",   O_ORTHOGONAL,
@@ -134,6 +136,8 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
     bindTileMapObject2D["GetTileSprite"]    = &TileMapObject2D::GetTileSprite;
     bindTileMapObject2D["HasProperty"]      = &TileMapObject2D::HasProperty;
     bindTileMapObject2D["GetProperty"]      = &TileMapObject2D::GetProperty;
+    bindTileMapObject2D["GetNumPoints"]     = &TileMapObject2D::GetNumPoints;
+    bindTileMapObject2D["GetPoint"]         = &TileMapObject2D::GetPoint;
 
     auto bindTileMapLayer2D = lua.new_usertype<TileMapLayer2D>("TileMapLayer2D", sol::base_classes, sol::bases<Component>());
     bindTileMapLayer2D["id"]                = sol::var(StringHash("TileMapLayer2D"));

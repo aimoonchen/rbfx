@@ -44,6 +44,12 @@
 #include "../../Physics/CollisionShape.h"
 #include "../../Physics/Constraint.h"
 #include "../../Physics/RigidBody.h"
+#include "../../Physics2D/PhysicsWorld2D.h"
+#include "../../Physics2D/RigidBody2D.h"
+#include "../../Physics2D/CollisionBox2D.h"
+#include "../../Physics2D/CollisionCircle2D.h"
+#include "../../Physics2D/CollisionPolygon2D.h"
+#include "../../Physics2D/CollisionChain2D.h"
 #include "../../Urho2D/StaticSprite2D.h"
 #include "../../Urho2D/AnimatedSprite2D.h"
 #include "../../Urho2D/TileMapLayer2D.h"
@@ -85,6 +91,12 @@ ea::unordered_map<Urho3D::StringHash, ea::function<int(lua_State* L, const Compo
     {CollisionShape::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CollisionShape*>(obj)).push(L); }},
     {Constraint::GetTypeStatic(),               [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const Constraint*>(obj)).push(L); }},
     {PhysicsWorld::GetTypeStatic(),             [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const PhysicsWorld*>(obj)).push(L); }},
+    {PhysicsWorld2D::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const PhysicsWorld2D*>(obj)).push(L); }},
+    {RigidBody2D::GetTypeStatic(),              [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const RigidBody2D*>(obj)).push(L); }},
+    {CollisionBox2D::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CollisionBox2D*>(obj)).push(L); }},
+    {CollisionCircle2D::GetTypeStatic(),        [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CollisionCircle2D*>(obj)).push(L); }},
+    {CollisionPolygon2D::GetTypeStatic(),       [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CollisionPolygon2D*>(obj)).push(L); }},
+    {CollisionChain2D::GetTypeStatic(),         [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const CollisionChain2D*>(obj)).push(L); }},
     {StaticSprite2D::GetTypeStatic(),           [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const StaticSprite2D*>(obj)).push(L); }},
     {AnimatedSprite2D::GetTypeStatic(),         [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const AnimatedSprite2D*>(obj)).push(L); }},
     {StretchableSprite2D::GetTypeStatic(),      [](lua_State* L, const Component* obj) { return sol::make_object(L, static_cast<const StretchableSprite2D*>(obj)).push(L); }},

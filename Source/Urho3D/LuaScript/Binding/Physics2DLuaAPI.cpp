@@ -60,6 +60,7 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindCollisionShape2D["GetMassCenter"]   = &CollisionShape2D::GetMassCenter;
 
     auto bindCollisionBox2D = lua.new_usertype<CollisionBox2D>("CollisionBox2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionBox2D["id"]        = sol::var(StringHash("CollisionBox2D"));
     bindCollisionBox2D["SetSize"]   = sol::overload(
         [](CollisionBox2D* self, const Vector2& size) { self->SetSize(size); },
         [](CollisionBox2D* self, float width, float height) { self->SetSize(width, height); });
@@ -72,14 +73,16 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     bindCollisionBox2D["GetAngle"]  = &CollisionBox2D::GetAngle;
 
     auto bindCollisionCircle2D = lua.new_usertype<CollisionCircle2D>("CollisionCircle2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
-    bindCollisionCircle2D["SetRadius"] = &CollisionCircle2D::SetRadius;
-    bindCollisionCircle2D["SetCenter"] = sol::overload(
+    bindCollisionCircle2D["id"]         = sol::var(StringHash("CollisionCircle2D"));
+    bindCollisionCircle2D["SetRadius"]  = &CollisionCircle2D::SetRadius;
+    bindCollisionCircle2D["SetCenter"]  = sol::overload(
         [](CollisionCircle2D* self, const Vector2& size) { self->SetCenter(size); },
         [](CollisionCircle2D* self, float width, float height) { self->SetCenter(width, height); });
-    bindCollisionCircle2D["GetRadius"] = &CollisionCircle2D::GetRadius;
-    bindCollisionCircle2D["GetCenter"] = &CollisionCircle2D::GetCenter;
+    bindCollisionCircle2D["GetRadius"]  = &CollisionCircle2D::GetRadius;
+    bindCollisionCircle2D["GetCenter"]  = &CollisionCircle2D::GetCenter;
 
     auto bindCollisionChain2D = lua.new_usertype<CollisionChain2D>("CollisionChain2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionChain2D["id"]              = sol::var(StringHash("CollisionChain2D"));
     bindCollisionChain2D["SetLoop"]         = &CollisionChain2D::SetLoop;
     bindCollisionChain2D["SetVertexCount"]  = &CollisionChain2D::SetVertexCount;
     bindCollisionChain2D["SetVertex"]       = &CollisionChain2D::SetVertex;
@@ -94,8 +97,8 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
         return std::vector<Vector2>(eav.begin(), eav.end());
     };
 
-    auto bindCollisionPolygon2D = lua.new_usertype<CollisionPolygon2D>(
-        "CollisionPolygon2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    auto bindCollisionPolygon2D = lua.new_usertype<CollisionPolygon2D>("CollisionPolygon2D", sol::base_classes, sol::bases<CollisionShape2D, Component>());
+    bindCollisionPolygon2D["id"]                = sol::var(StringHash("CollisionPolygon2D"));
     bindCollisionPolygon2D["SetVertexCount"]    = &CollisionPolygon2D::SetVertexCount;
     bindCollisionPolygon2D["SetVertex"]         = &CollisionPolygon2D::SetVertex;
     bindCollisionPolygon2D["GetVertexCount"]    = &CollisionPolygon2D::GetVertexCount;
