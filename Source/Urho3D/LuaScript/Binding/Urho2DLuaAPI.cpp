@@ -130,6 +130,7 @@ int sol2_Urho2DLuaAPI_open(sol::state& lua)
 
     auto bindTileMapObject2D = lua.new_usertype<TileMapObject2D>("TileMapObject2D");
     bindTileMapObject2D["GetObjectType"]    = &TileMapObject2D::GetObjectType;
+    bindTileMapObject2D["GetType"]          = &TileMapObject2D::GetType;
     bindTileMapObject2D["GetName"]          = &TileMapObject2D::GetName;
     bindTileMapObject2D["GetSize"]          = &TileMapObject2D::GetSize;
     bindTileMapObject2D["GetPosition"]      = &TileMapObject2D::GetPosition;
