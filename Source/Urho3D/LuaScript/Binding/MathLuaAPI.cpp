@@ -33,6 +33,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindIntVector2["UP"]    = sol::var(std::ref(IntVector2::UP));
     bindIntVector2["DOWN"]  = sol::var(std::ref(IntVector2::DOWN));
     bindIntVector2["ONE"]   = sol::var(std::ref(IntVector2::ONE));
+    bindIntVector2[sol::meta_function::to_string] = [](IntVector2* self) { return self->ToString().c_str(); };
     bindIntVector2[sol::meta_function::addition]        = &IntVector2::operator+;
     bindIntVector2[sol::meta_function::subtraction]     = sol::resolve<IntVector2(const IntVector2&) const>(&IntVector2::operator-);
     bindIntVector2[sol::meta_function::multiplication]  = sol::overload(
@@ -45,14 +46,34 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     auto bindVector2 = math3d.new_usertype<Vector2>("Vector2",
         sol::call_constructor,
         sol::constructors<Vector2(), Vector2(float, float)>());
-    bindVector2["x"]        = &Vector2::x_;
-    bindVector2["y"]        = &Vector2::y_;
-    bindVector2["ZERO"]     = sol::var(std::ref(Vector2::ZERO));
-    bindVector2["LEFT"]     = sol::var(std::ref(Vector2::LEFT));
-    bindVector2["RIGHT"]    = sol::var(std::ref(Vector2::RIGHT));
-    bindVector2["UP"]       = sol::var(std::ref(Vector2::UP));
-    bindVector2["DOWN"]     = sol::var(std::ref(Vector2::DOWN));
-    bindVector2["ONE"]      = sol::var(std::ref(Vector2::ONE));
+    bindVector2["Normalize"]            = &Vector2::Normalize;
+	bindVector2["Length"]               = &Vector2::Length;
+	bindVector2["LengthSquared"]        = &Vector2::LengthSquared;
+	bindVector2["DotProduct"]           = &Vector2::DotProduct;
+	bindVector2["AbsDotProduct"]        = &Vector2::AbsDotProduct;
+	bindVector2["ProjectOntoAxis"]      = &Vector2::ProjectOntoAxis;
+	bindVector2["CrossProduct"]         = &Vector2::CrossProduct;
+	bindVector2["Abs"]                  = &Vector2::Abs;
+	bindVector2["Lerp"]                 = &Vector2::Lerp;
+    bindVector2["Equals"]               = sol::overload(
+        [](Vector3* self, const Vector3& rhs) { return self->Equals(rhs); },
+        [](Vector3* self, const Vector3& rhs, float eps) { return self->Equals(rhs); });
+	bindVector2["Angle"]                = &Vector2::Angle;
+	bindVector2["IsNaN"]                = &Vector2::IsNaN;
+	bindVector2["IsInf"]                = &Vector2::IsInf;
+	bindVector2["Normalized"]           = &Vector2::Normalized,
+	bindVector2["NormalizedOrDefault"]  = &Vector2::NormalizedOrDefault;
+	bindVector2["ReNormalized"]         = &Vector2::ReNormalized;
+    bindVector2["ToHash"]               = &Vector2::ToHash;
+    bindVector2["x"]                    = &Vector2::x_;
+    bindVector2["y"]                    = &Vector2::y_;
+    bindVector2["ZERO"]                 = sol::var(std::ref(Vector2::ZERO));
+    bindVector2["LEFT"]                 = sol::var(std::ref(Vector2::LEFT));
+    bindVector2["RIGHT"]                = sol::var(std::ref(Vector2::RIGHT));
+    bindVector2["UP"]                   = sol::var(std::ref(Vector2::UP));
+    bindVector2["DOWN"]                 = sol::var(std::ref(Vector2::DOWN));
+    bindVector2["ONE"]                  = sol::var(std::ref(Vector2::ONE));
+    bindVector2[sol::meta_function::to_string]      = [](Vector2* self) { return self->ToString().c_str(); };
     bindVector2[sol::meta_function::addition]       = &Vector2::operator+;
     bindVector2[sol::meta_function::subtraction]    = sol::resolve<Vector2(const Vector2&) const>(&Vector2::operator-);
     bindVector2[sol::meta_function::multiplication] = sol::overload(
@@ -88,9 +109,8 @@ int sol2_MathLuaAPI_open(sol::state& lua)
 	bindVector3["Normalized"]           = &Vector3::Normalized,
 	bindVector3["NormalizedOrDefault"]  = &Vector3::NormalizedOrDefault;
 	bindVector3["ReNormalized"]         = &Vector3::ReNormalized;
-	//"ToString",				&Vector3::ToString,
     bindVector3["ToHash"]               = &Vector3::ToHash;
-	//sol::meta_function::to_string, &Vector3::ToString,
+	bindVector3[sol::meta_function::to_string]      = [](Vector3* self) { return self->ToString().c_str(); };
 	bindVector3[sol::meta_function::addition]       = &Vector3::operator+;
 	bindVector3[sol::meta_function::subtraction]    = sol::resolve<Vector3(const Vector3&) const>(&Vector3::operator-);
 	bindVector3[sol::meta_function::multiplication] = sol::overload(
@@ -118,6 +138,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindVector4["y"] = &Vector4::y_;
     bindVector4["z"] = &Vector4::z_;
     bindVector4["w"] = &Vector4::w_;
+    bindVector4[sol::meta_function::to_string] = [](Vector4* self) { return self->ToString().c_str(); };
 
     auto bindQuaternion = math3d.new_usertype<Quaternion>("Quaternion",
         sol::call_constructor,
@@ -151,6 +172,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         sol::resolve<Quaternion(float) const>(&Quaternion::operator*),
         sol::resolve<Quaternion(const Quaternion&) const>(&Quaternion::operator*),
         sol::resolve<Vector3(const Vector3&) const>(&Quaternion::operator*));
+    bindQuaternion[sol::meta_function::to_string] = [](Quaternion* self) { return self->ToString().c_str(); };
 
     auto bindColor = math3d.new_usertype<Color>("Color",
         sol::call_constructor,
@@ -159,7 +181,6 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         Color(float, float, float, float),
         Color(uint8_t, uint8_t, uint8_t),
         Color(uint8_t, uint8_t, uint8_t, uint8_t)>());
-
 	bindColor["r"]                  = &Color::r_;
     bindColor["g"]                  = &Color::g_;
     bindColor["b"]                  = &Color::b_;
@@ -176,6 +197,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindColor["TRANSPARENT_BLACK"]  = sol::var(std::ref(Color::TRANSPARENT_BLACK));
     bindColor["LUMINOSITY_GAMMA"]   = sol::var(std::ref(Color::LUMINOSITY_GAMMA));
     bindColor["LUMINOSITY_LINEAR"]  = sol::var(std::ref(Color::LUMINOSITY_LINEAR));
+    bindColor[sol::meta_function::to_string] = [](Color* self) { return self->ToString().c_str(); };
 
     auto bindMatrix3x4 = math3d.new_usertype<Matrix3x4>("Matrix3x4",
         sol::call_constructor,
@@ -184,7 +206,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         Matrix3x4(const Vector3&, const Quaternion&, const Vector3 & scale)>());
 
     bindMatrix3x4["Inverse"]    = &Matrix3x4::Inverse;
-    //"ToString", &Matrix3x4::ToString,
+    bindMatrix3x4[sol::meta_function::to_string] = [](Matrix3x4* self) { return self->ToString().c_str(); };
     bindMatrix3x4[sol::meta_function::multiplication] = sol::overload(
             sol::resolve<Vector3(const Vector3&) const>(&Matrix3x4::operator*),
             sol::resolve<Vector3(const Vector4&) const>(&Matrix3x4::operator*),
@@ -218,6 +240,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindBoundingBox["IsInside"] = sol::overload(
         [](BoundingBox* self, const BoundingBox& box) { return self->IsInside(box); },
         [](BoundingBox* self, const Vector3& point) { return self->IsInside(point); });
+    bindBoundingBox[sol::meta_function::to_string] = [](BoundingBox* self) { return self->ToString().c_str(); };
 
     auto bindRect = math3d.new_usertype<Rect>("Rect",
         sol::call_constructor,
@@ -243,6 +266,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
     bindRect["FULL"]    = sol::var(std::ref(Rect::FULL));
     bindRect["ZERO"]    = sol::var(std::ref(Rect::ZERO));
     bindRect["POSITIVE"] = sol::var(std::ref(Rect::POSITIVE));
+    bindRect[sol::meta_function::to_string] = [](Rect* self) { return self->ToString().c_str(); };
 
     auto bindIntRect = math3d.new_usertype<IntRect>("IntRect",
         sol::call_constructor,
@@ -263,6 +287,7 @@ int sol2_MathLuaAPI_open(sol::state& lua)
         [](IntRect* self, const IntVector2& point) { return self->IsInside(point); },
         [](IntRect* self, const IntRect& rect) { return self->IsInside(rect); });
     bindIntRect["ZERO"] = sol::var(std::ref(IntRect::ZERO));
+    bindIntRect[sol::meta_function::to_string] = [](IntRect* self) { return self->ToString().c_str(); };
 
     auto bindPlane = math3d.new_usertype<Plane>("Plane",
         sol::call_constructor,
