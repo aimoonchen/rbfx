@@ -19,17 +19,64 @@ int sol2_Physics2DLuaAPI_open(sol::state& lua)
     auto context = GetContext(lua.lua_state());
 
     auto eventType = lua["EventType"].get_or_create<sol::table>();
-    eventType["E_PHYSICSBEGINCONTACT2D"] = E_PHYSICSBEGINCONTACT2D;
+    eventType["PhysicsBeginContact2D"] = E_PHYSICSBEGINCONTACT2D;
 
     auto paramType = lua["ParamType"].get_or_create<sol::table>();
-    paramType["P_WORLD"]    = PhysicsBeginContact2D::P_WORLD;
-    paramType["P_BODYA"]    = PhysicsBeginContact2D::P_BODYA;
-    paramType["P_BODYB"]    = PhysicsBeginContact2D::P_BODYB;
-    paramType["P_NODEA"]    = PhysicsBeginContact2D::P_NODEA;
-    paramType["P_NODEB"]    = PhysicsBeginContact2D::P_NODEB;
-    paramType["P_CONTACTS"] = PhysicsBeginContact2D::P_CONTACTS;
-    paramType["P_SHAPEA"]   = PhysicsBeginContact2D::P_SHAPEA;
-    paramType["P_SHAPEB"]   = PhysicsBeginContact2D::P_SHAPEB;
+    auto physicsBeginContact2D = paramType["PhysicsBeginContact2D"].get_or_create<sol::table>();
+    physicsBeginContact2D["World"]    = PhysicsBeginContact2D::P_WORLD;
+    physicsBeginContact2D["BodyA"]    = PhysicsBeginContact2D::P_BODYA;
+    physicsBeginContact2D["BodyB"]    = PhysicsBeginContact2D::P_BODYB;
+    physicsBeginContact2D["NodeA"]    = PhysicsBeginContact2D::P_NODEA;
+    physicsBeginContact2D["NodeB"]    = PhysicsBeginContact2D::P_NODEB;
+    physicsBeginContact2D["Contacts"] = PhysicsBeginContact2D::P_CONTACTS;
+    physicsBeginContact2D["ShapeA"]   = PhysicsBeginContact2D::P_SHAPEA;
+    physicsBeginContact2D["ShapeB"]   = PhysicsBeginContact2D::P_SHAPEB;
+
+    auto physicsUpdateContact2D = paramType["PhysicsUpdateContact2D"].get_or_create<sol::table>();
+    physicsUpdateContact2D["World"] = PhysicsUpdateContact2D::P_WORLD;
+    physicsUpdateContact2D["BodyA"] = PhysicsUpdateContact2D::P_BODYA;
+    physicsUpdateContact2D["BodyB"] = PhysicsUpdateContact2D::P_BODYB;
+    physicsUpdateContact2D["NodeA"] = PhysicsUpdateContact2D::P_NODEA;
+    physicsUpdateContact2D["NodeB"] = PhysicsUpdateContact2D::P_NODEB;
+    physicsUpdateContact2D["Contacts"] = PhysicsUpdateContact2D::P_CONTACTS;
+    physicsUpdateContact2D["ShapeA"] = PhysicsUpdateContact2D::P_SHAPEA;
+    physicsUpdateContact2D["ShapeB"] = PhysicsUpdateContact2D::P_SHAPEB;
+    physicsUpdateContact2D["Enabled"] = PhysicsUpdateContact2D::P_ENABLED;
+
+    auto physicsEndContact2D = paramType["PhysicsEndContact2D"].get_or_create<sol::table>();
+    physicsEndContact2D["World"] = PhysicsEndContact2D::P_WORLD;
+    physicsEndContact2D["BodyA"] = PhysicsEndContact2D::P_BODYA;
+    physicsEndContact2D["BodyB"] = PhysicsEndContact2D::P_BODYB;
+    physicsEndContact2D["NodeA"] = PhysicsEndContact2D::P_NODEA;
+    physicsEndContact2D["NodeB"] = PhysicsEndContact2D::P_NODEB;
+    physicsEndContact2D["Contacts"] = PhysicsEndContact2D::P_CONTACTS;
+    physicsEndContact2D["ShapeA"] = PhysicsEndContact2D::P_SHAPEA;
+    physicsEndContact2D["ShapeB"] = PhysicsEndContact2D::P_SHAPEB;
+
+    auto nodeUpdateContact2D = paramType["NodeUpdateContact2D"].get_or_create<sol::table>();
+    nodeUpdateContact2D["Body"]        = NodeUpdateContact2D::P_BODY;
+    nodeUpdateContact2D["OtherNode"]   = NodeUpdateContact2D::P_OTHERNODE;
+    nodeUpdateContact2D["OtherBody"]   = NodeUpdateContact2D::P_OTHERBODY;
+    nodeUpdateContact2D["Contacts"]    = NodeUpdateContact2D::P_CONTACTS;
+    nodeUpdateContact2D["Shape"]       = NodeUpdateContact2D::P_SHAPE;
+    nodeUpdateContact2D["OtherShape"]  = NodeUpdateContact2D::P_OTHERSHAPE;
+    nodeUpdateContact2D["Enabled"]     = NodeUpdateContact2D::P_ENABLED;
+
+    auto nodeBeginContact2D = paramType["NodeBeginContact2D"].get_or_create<sol::table>();
+    nodeBeginContact2D["Body"]        = NodeBeginContact2D::P_BODY;
+    nodeBeginContact2D["OtherNode"]   = NodeBeginContact2D::P_OTHERNODE;
+    nodeBeginContact2D["OtherBody"]   = NodeBeginContact2D::P_OTHERBODY;
+    nodeBeginContact2D["Contacts"]    = NodeBeginContact2D::P_CONTACTS;
+    nodeBeginContact2D["Shape"]       = NodeBeginContact2D::P_SHAPE;
+    nodeBeginContact2D["OtherShape"]  = NodeBeginContact2D::P_OTHERSHAPE;
+
+    auto nodeEndContact2D = paramType["NodeEndContact2D"].get_or_create<sol::table>();
+    nodeEndContact2D["Body"]        = NodeEndContact2D::P_BODY;
+    nodeEndContact2D["OtherNode"]   = NodeEndContact2D::P_OTHERNODE;
+    nodeEndContact2D["OtherBody"]   = NodeEndContact2D::P_OTHERBODY;
+    nodeEndContact2D["Contacts"]    = NodeEndContact2D::P_CONTACTS;
+    nodeEndContact2D["Shape"]       = NodeEndContact2D::P_SHAPE;
+    nodeEndContact2D["OtherShape"]  = NodeEndContact2D::P_OTHERSHAPE;
 
     lua.new_enum("BodyType2D",
         "STATIC",       BT_STATIC,

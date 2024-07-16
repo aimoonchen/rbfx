@@ -5,6 +5,7 @@
 #include "../../Physics/RigidBody.h"
 #include "../../Physics/CollisionShape.h"
 #include "../../Physics/Constraint.h"
+#include "../../Physics/PhysicsEvents.h"
 #include "../../Physics/KinematicCharacterController.h"
 using namespace Urho3D;
 
@@ -12,6 +13,84 @@ Urho3D::Context* GetContext(lua_State* L);
 
 int sol2_PhysicsLuaAPI_open(sol::state& lua)
 {
+    auto eventType = lua["EventType"].get_or_create<sol::table>();
+    eventType["PhysicsPreUpdate"] = E_PHYSICSPREUPDATE;
+    eventType["PhysicsPostUpdate"] = E_PHYSICSPOSTUPDATE;
+    eventType["PhysicsPreStep"] = E_PHYSICSPRESTEP;
+    eventType["PhysicsPostStep"] = E_PHYSICSPOSTSTEP;
+    eventType["PhysicsCollisionStart"] = E_PHYSICSCOLLISIONSTART;
+    eventType["PhysicsCollision"] = E_PHYSICSCOLLISION;
+    eventType["PhysicsCollisionEnd"] = E_PHYSICSCOLLISIONEND;
+    eventType["NodeCollisionStart"] = E_NODECOLLISIONSTART;
+    eventType["NodeCollision"] = E_NODECOLLISION;
+    eventType["NodeCollisionEnd"] = E_NODECOLLISIONEND;
+
+    auto paramType = lua["ParamType"].get_or_create<sol::table>();
+
+    auto physicsPreUpdate = paramType["PhysicsPreUpdate"].get_or_create<sol::table>();
+    physicsPreUpdate["World"]       = PhysicsPreUpdate::P_WORLD;
+    physicsPreUpdate["TimeStep"]    = PhysicsPreUpdate::P_TIMESTEP;
+
+    auto physicsPostUpdate = paramType["PhysicsPostUpdate"].get_or_create<sol::table>();
+    physicsPostUpdate["World"]      = PhysicsPostUpdate::P_WORLD;
+    physicsPostUpdate["TimeStep"]   = PhysicsPostUpdate::P_TIMESTEP;
+    physicsPostUpdate["Overtime"]   = PhysicsPostUpdate::P_OVERTIME;
+
+    auto physicsPreStep = paramType["PhysicsPreStep"].get_or_create<sol::table>();
+    physicsPreStep["World"]         = PhysicsPreStep::P_WORLD;
+    physicsPreStep["TimeStep"]      = PhysicsPreStep::P_TIMESTEP;
+    physicsPreStep["NetworkFrame"]  = PhysicsPreStep::P_NETWORKFRAME;
+
+    auto physicsPostStep = paramType["PhysicsPostStep"].get_or_create<sol::table>();
+    physicsPostStep["World"]        = PhysicsPostStep::P_WORLD;
+    physicsPostStep["TimeStep"]     = PhysicsPostStep::P_TIMESTEP;
+
+    auto physicsCollisionStart = paramType["PhysicsCollisionStart"].get_or_create<sol::table>();
+    physicsCollisionStart["World"]      = PhysicsCollisionStart::P_WORLD;
+    physicsCollisionStart["NodeA"]      = PhysicsCollisionStart::P_NODEA;
+    physicsCollisionStart["NodeB"]      = PhysicsCollisionStart::P_NODEB;
+    physicsCollisionStart["BodyA"]      = PhysicsCollisionStart::P_BODYA;
+    physicsCollisionStart["BodyB"]      = PhysicsCollisionStart::P_BODYB;
+    physicsCollisionStart["Trigger"]    = PhysicsCollisionStart::P_TRIGGER;
+    physicsCollisionStart["Contacts"]   = PhysicsCollisionStart::P_CONTACTS;
+
+    auto physicsCollision = paramType["PhysicsCollision"].get_or_create<sol::table>();
+    physicsCollision["World"]       = PhysicsCollision::P_WORLD;
+    physicsCollision["NodeA"]       = PhysicsCollision::P_NODEA;
+    physicsCollision["NodeB"]       = PhysicsCollision::P_NODEB;
+    physicsCollision["BodyA"]       = PhysicsCollision::P_BODYA;
+    physicsCollision["BodyB"]       = PhysicsCollision::P_BODYB;
+    physicsCollision["Trigger"]     = PhysicsCollision::P_TRIGGER;
+    physicsCollision["Contacts"]    = PhysicsCollision::P_CONTACTS;
+
+    auto physicsCollisionEnd = paramType["PhysicsCollisionEnd"].get_or_create<sol::table>();
+    physicsCollisionEnd["World"]      = PhysicsCollisionEnd::P_WORLD;
+    physicsCollisionEnd["NodeA"]      = PhysicsCollisionEnd::P_NODEA;
+    physicsCollisionEnd["NodeB"]      = PhysicsCollisionEnd::P_NODEB;
+    physicsCollisionEnd["BodyA"]      = PhysicsCollisionEnd::P_BODYA;
+    physicsCollisionEnd["BodyB"]      = PhysicsCollisionEnd::P_BODYB;
+    physicsCollisionEnd["Trigger"]    = PhysicsCollisionEnd::P_TRIGGER;
+
+    auto nodeCollisionStart = paramType["NodeCollisionStart"].get_or_create<sol::table>();
+    nodeCollisionStart["Body"]      = NodeCollisionStart::P_BODY;
+    nodeCollisionStart["OtherNode"] = NodeCollisionStart::P_OTHERNODE;
+    nodeCollisionStart["OtherBody"] = NodeCollisionStart::P_OTHERBODY;
+    nodeCollisionStart["Trigger"]   = NodeCollisionStart::P_TRIGGER;
+    nodeCollisionStart["Contacts"]  = NodeCollisionStart::P_CONTACTS;
+
+    auto nodeCollision = paramType["NodeCollision"].get_or_create<sol::table>();
+    nodeCollision["Body"]      = NodeCollision::P_BODY;
+    nodeCollision["OtherNode"] = NodeCollision::P_OTHERNODE;
+    nodeCollision["OtherBody"] = NodeCollision::P_OTHERBODY;
+    nodeCollision["Trigger"]   = NodeCollision::P_TRIGGER;
+    nodeCollision["Contacts"]  = NodeCollision::P_CONTACTS;
+
+    auto nodeCollisionEnd = paramType["NodeCollisionEnd"].get_or_create<sol::table>();
+    nodeCollisionEnd["Body"]      = NodeCollisionEnd::P_BODY;
+    nodeCollisionEnd["OtherNode"] = NodeCollisionEnd::P_OTHERNODE;
+    nodeCollisionEnd["OtherBody"] = NodeCollisionEnd::P_OTHERBODY;
+    nodeCollisionEnd["Trigger"]   = NodeCollisionEnd::P_TRIGGER;
+
     lua["COLLISION_NEVER"]      = COLLISION_NEVER;
     lua["COLLISION_ACTIVE"]     = COLLISION_ACTIVE;
     lua["COLLISION_ALWAYS"]     = COLLISION_ALWAYS;
