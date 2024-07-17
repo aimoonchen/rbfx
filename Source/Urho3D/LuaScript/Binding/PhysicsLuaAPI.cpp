@@ -243,7 +243,7 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
             self->Raycast(result, ray, maxDistance, collisionMask);
             return std::vector<PhysicsRaycastResult>(result.begin(), result.end());
         });
-    bindPhysicsWorld["RaycastSingle"]           = sol::overload(
+    bindPhysicsWorld["RaycastSingle"]   = sol::overload(
         [](PhysicsWorld* self, const Ray& ray, float maxDistance) {
             PhysicsRaycastResult result;
             self->RaycastSingle(result, ray, maxDistance);
@@ -265,7 +265,61 @@ int sol2_PhysicsLuaAPI_open(sol::state& lua)
             self->RaycastSingleSegmented(result, ray, maxDistance, segmentDistance, collisionMask);
             return result;
         });
+    bindPhysicsWorld["SphereCast"] = sol::overload(
+        [](PhysicsWorld* self, const Ray& ray, float radius, float maxDistance) {
+            PhysicsRaycastResult result;
+            self->SphereCast(result, ray, radius, maxDistance);
+            return result;
+        },
+        [](PhysicsWorld* self, const Ray& ray, float radius, float maxDistance, unsigned collisionMask) {
+            PhysicsRaycastResult result;
+            self->SphereCast(result, ray, radius, maxDistance, collisionMask);
+            return result;
+        });
+    bindPhysicsWorld["ConvexCast"] = sol::overload(
+        [](PhysicsWorld* self, CollisionShape* shape, const Vector3& startPos, const Quaternion& startRot, const Vector3& endPos, const Quaternion& endRot) {
+            PhysicsRaycastResult result;
+            self->ConvexCast(result, shape, startPos, startRot, endPos, endRot);
+            return result;
+        },
+        [](PhysicsWorld* self, CollisionShape* shape, const Vector3& startPos, const Quaternion& startRot, const Vector3& endPos, const Quaternion& endRot, unsigned collisionMask) {
+            PhysicsRaycastResult result;
+            self->ConvexCast(result, shape, startPos, startRot, endPos, endRot, collisionMask);
+            return result;
+        });
+    bindPhysicsWorld["RemoveCachedGeometry"]    = &PhysicsWorld::RemoveCachedGeometry;
     bindPhysicsWorld["DrawDebugGeometry"]       = sol::resolve<void(bool)>(&PhysicsWorld::DrawDebugGeometry);
+    bindPhysicsWorld["GetRigidBodies"]          = sol::overload(
+        [](PhysicsWorld* self, const Sphere& sphere) {
+            ea::vector<RigidBody*> out;
+            self->GetRigidBodies(out, sphere);
+            return std::vector<RigidBody*>(out.begin(), out.end());
+        },
+        [](PhysicsWorld* self, const BoundingBox& box) {
+            ea::vector<RigidBody*> out;
+            self->GetRigidBodies(out, box);
+            return std::vector<RigidBody*>(out.begin(), out.end());
+        },
+        [](PhysicsWorld* self, const Sphere& sphere, unsigned collisionMask) {
+            ea::vector<RigidBody*> out;
+            self->GetRigidBodies(out, sphere, collisionMask);
+            return std::vector<RigidBody*>(out.begin(), out.end());
+        },
+        [](PhysicsWorld* self, const BoundingBox& box, unsigned collisionMask) {
+            ea::vector<RigidBody*> out;
+            self->GetRigidBodies(out, box, collisionMask);
+            return std::vector<RigidBody*>(out.begin(), out.end());
+        },
+        [](PhysicsWorld* self, const RigidBody* body) {
+            ea::vector<RigidBody*> out;
+            self->GetRigidBodies(out, body);
+            return std::vector<RigidBody*>(out.begin(), out.end());
+        });
+    bindPhysicsWorld["GetCollidingBodies"] = [](PhysicsWorld* self, const RigidBody* body) {
+            ea::vector<RigidBody*> out;
+            self->GetCollidingBodies(out, body);
+            return std::vector<RigidBody*>(out.begin(), out.end());
+        };
 
     auto bindKinematicCharacterController = lua.new_usertype<KinematicCharacterController>("KinematicCharacterController", sol::base_classes, sol::bases<Component>());
     bindKinematicCharacterController["id"]                       = sol::var(StringHash("KinematicCharacterController"));
