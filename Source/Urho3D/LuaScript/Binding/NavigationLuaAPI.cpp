@@ -115,25 +115,39 @@ int sol2_NavigationLuaAPI_open(sol::state& lua)
     bindOffMeshConnection["id"]             = sol::var(StringHash("OffMeshConnection"));
     bindOffMeshConnection["SetEndPoint"]    = &OffMeshConnection::SetEndPoint;
 
+    auto eventType = lua["EventType"].get_or_create<sol::table>();
+    eventType["CrowdAgentReposition"]       = E_CROWD_AGENT_REPOSITION;
+    eventType["CrowdAgentFailure"]          = E_CROWD_AGENT_FAILURE;
+    eventType["CrowdAgentFormation"]        = E_CROWD_AGENT_FORMATION;
+
     auto paramType = lua["ParamType"].get_or_create<sol::table>();
-    paramType["P_NODE"]                 = CrowdAgentReposition::P_NODE;
-    paramType["P_CROWD_AGENT"]          = CrowdAgentReposition::P_CROWD_AGENT;
-    paramType["P_VELOCITY"]             = CrowdAgentReposition::P_VELOCITY;
+    auto crowdAgentReposition = paramType["CrowdAgentReposition"].get_or_create<sol::table>();
+    crowdAgentReposition["Node"]            = CrowdAgentReposition::P_NODE;
+    crowdAgentReposition["CrowdAgent"]      = CrowdAgentReposition::P_CROWD_AGENT;
+    crowdAgentReposition["Position"]        = CrowdAgentReposition::P_POSITION;
+    crowdAgentReposition["Velocity"]        = CrowdAgentReposition::P_VELOCITY;
 
-    paramType["P_CROWD_AGENT_STATE"]    = CrowdAgentFailure::P_CROWD_AGENT_STATE;
-    paramType["P_CROWD_TARGET_STATE"]   = CrowdAgentFailure::P_CROWD_AGENT_STATE;
+    auto crowdAgentFailure = paramType["CrowdAgentFailure"].get_or_create<sol::table>();
+    crowdAgentFailure["CrowdAgent"]         = CrowdAgentFailure::P_CROWD_AGENT;
+    crowdAgentFailure["Position"]           = CrowdAgentFailure::P_POSITION;
+    crowdAgentFailure["Velocity"]           = CrowdAgentFailure::P_VELOCITY;
+    crowdAgentFailure["CrowdAgentState"]    = CrowdAgentFailure::P_CROWD_AGENT_STATE;
+    crowdAgentFailure["CrowdTargetState"]   = CrowdAgentFailure::P_CROWD_TARGET_STATE;
 
-    paramType["P_INDEX"]                = CrowdAgentFormation::P_INDEX;
-    paramType["P_SIZE"]                 = CrowdAgentFormation::P_SIZE;
-    paramType["P_POSITION"]             = CrowdAgentFormation::P_POSITION;
-    //
-    lua["NAVIGATIONQUALITY_LOW"]        = NAVIGATIONQUALITY_LOW;
-    lua["NAVIGATIONQUALITY_MEDIUM"]     = NAVIGATIONQUALITY_MEDIUM;
-    lua["NAVIGATIONQUALITY_HIGH"]       = NAVIGATIONQUALITY_HIGH;
-    //
-    lua["CA_STATE_INVALID"]             = CA_STATE_INVALID;
-    lua["CA_STATE_WALKING"]             = CA_STATE_WALKING;
-    lua["CA_STATE_OFFMESH"]             = CA_STATE_OFFMESH;
+    auto crowdAgentFormation = paramType["CrowdAgentFormation"].get_or_create<sol::table>();
+    crowdAgentFormation["Index"]        = CrowdAgentFormation::P_INDEX;
+    crowdAgentFormation["Size"]         = CrowdAgentFormation::P_SIZE;
+    crowdAgentFormation["Position"]     = CrowdAgentFormation::P_POSITION;
+
+    lua.new_enum("NavigationQuality",
+        "LOW",      NAVIGATIONQUALITY_LOW,
+        "MEDIUM",   NAVIGATIONQUALITY_MEDIUM,
+        "HIGH",     NAVIGATIONQUALITY_HIGH);
+
+    lua.new_enum("CrowdAgentState",
+        "INVALID",  CA_STATE_INVALID,
+        "WALKING",  CA_STATE_WALKING,
+        "OFFMESH",  CA_STATE_OFFMESH);
 
     // a star
     auto astar = lua.new_usertype<AStar::Generator>("AStar",

@@ -30,16 +30,28 @@ template <> struct is_automagical<VariantMap> : std::integral_constant<bool, fal
 static void RegisterCoreConst(sol::state& lua)
 {
     auto eventType = lua["EventType"].get_or_create<sol::table>();
-    eventType["E_BEGINFRAME"]       = E_BEGINFRAME;
-    eventType["E_UPDATE"]           = E_UPDATE;
-    eventType["E_POSTUPDATE"]       = E_POSTUPDATE;
-    eventType["E_RENDERUPDATE"]     = E_RENDERUPDATE;
-    eventType["E_POSTRENDERUPDATE"] = E_POSTRENDERUPDATE;
-    eventType["E_ENDFRAME"]         = E_ENDFRAME;
+    eventType["BeginFrame"]       = E_BEGINFRAME;
+    eventType["InputReady"]       = E_INPUTREADY;
+    eventType["Update"]           = E_UPDATE;
+    eventType["PostUpdate"]       = E_POSTUPDATE;
+    eventType["RenderUpdate"]     = E_RENDERUPDATE;
+    eventType["PostRenderUpdate"] = E_POSTRENDERUPDATE;
+    eventType["EndFrame"]         = E_ENDFRAME;
 
     auto paramType = lua["ParamType"].get_or_create<sol::table>();
-    paramType["P_FRAMENUMBER"]  = BeginFrame::P_FRAMENUMBER;
-    paramType["P_TIMESTEP"]     = BeginFrame::P_TIMESTEP;
+    auto beginFrame = paramType["BeginFrame"].get_or_create<sol::table>();
+    beginFrame["FrameNumber"]       = BeginFrame::P_FRAMENUMBER;
+    beginFrame["TimeStep"]          = BeginFrame::P_TIMESTEP;
+    auto inputReady                 = paramType["InputReady"].get_or_create<sol::table>();
+    inputReady["TimeStep"]          = InputReady::P_TIMESTEP;
+    auto update                     = paramType["Update"].get_or_create<sol::table>();
+    update["TimeStep"]              = Update::P_TIMESTEP;
+    auto postUpdate                 = paramType["PostUpdate"].get_or_create<sol::table>();
+    postUpdate["TimeStep"]          = PostUpdate::P_TIMESTEP;
+    auto upRenderUpdatedate         = paramType["UpRenderUpdatedate"].get_or_create<sol::table>();
+    upRenderUpdatedate["TimeStep"]  = RenderUpdate::P_TIMESTEP;
+    auto postRenderUpdate           = paramType["PostRenderUpdate"].get_or_create<sol::table>();
+    postRenderUpdate["TimeStep"]    = PostRenderUpdate::P_TIMESTEP;
 }
 
 int sol2_CoreLuaAPI_open(sol::state& lua)

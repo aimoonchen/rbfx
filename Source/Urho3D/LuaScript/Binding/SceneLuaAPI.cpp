@@ -9,6 +9,7 @@
 #include "../../Scene/ObjectAnimation.h"
 #include "../../Scene/PrefabReference.h"
 #include "../../Scene/SplinePath.h"
+#include "../../Scene/SceneEvents.h"
 #include "../../IO/File.h"
 #include "../../Graphics/Light.h"
 #include "../../Graphics/StaticModel.h"
@@ -133,6 +134,17 @@ static void RegisterSceneConst(sol::state& lua)
 {
 //     auto& lua = *solLua;
 //     auto eventType = lua["ComponentType"].get_or_create<sol::table>();
+    auto eventType          = lua["EventType"].get_or_create<sol::table>();
+    eventType["SceneUpdate"] = E_SCENEUPDATE;
+    eventType["ScenePostUpdate"] = E_SCENEPOSTUPDATE;
+
+    auto paramType              = lua["ParamType"].get_or_create<sol::table>();
+    auto sceneUpdate            = paramType["SceneUpdate"].get_or_create<sol::table>();
+    sceneUpdate["Scene"]        = SceneUpdate::P_SCENE;
+    sceneUpdate["TimeStep"]     = SceneUpdate::P_TIMESTEP;
+    auto scenePostUpdate        = paramType["ScenePostUpdate"].get_or_create<sol::table>();
+    scenePostUpdate["Scene"]    = ScenePostUpdate::P_SCENE;
+    scenePostUpdate["TimeStep"] = ScenePostUpdate::P_TIMESTEP;
 }
 
 int sol2_SceneLuaAPI_open(sol::state& lua)
