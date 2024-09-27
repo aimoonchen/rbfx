@@ -901,7 +901,10 @@ bool EditVariantString(Variant& var, const EditVariantOptions& options)
 {
     ea::string value = var.GetString();
     ui::SetNextItemWidth(ui::GetContentRegionAvail().x);
-    if (ui::InputText("", &value, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_NoUndoRedo))
+    const bool isCommitted = ui::InputText("", &value,
+        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_NoUndoRedo | ImGuiInputTextFlags_CallbackAlways);
+    const bool isDeactivated = ui::IsItemDeactivatedAfterEdit();
+    if (isCommitted || isDeactivated)
     {
         var = value;
         return true;
@@ -1180,9 +1183,7 @@ bool ImageButton(Texture2D* texture, const ImVec2& size, const ImVec2& uv0, cons
     const ImGuiID id = window->GetID("#image");
     ui::PopID();
 
-    const auto framePaddingFloat = static_cast<float>(framePadding);
-    const ImVec2 padding = (framePadding >= 0) ? ImVec2(framePaddingFloat, framePaddingFloat) : style.FramePadding;
-    return ui::ImageButtonEx(id, ToImTextureID(texture), size, uv0, uv1, padding, bgCol, tintCol);
+    return ui::ImageButtonEx(id, ToImTextureID(texture), size, uv0, uv1, bgCol, tintCol);
 }
 
 }
