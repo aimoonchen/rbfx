@@ -411,7 +411,7 @@ void Zone::UpdateCachedData()
             // TODO: does't work?
             //auto zoneImage = !zoneTextureName.empty() ? cache->GetTempResource<ImageCube>(zoneTextureName) : procedurelImageCube_;
             if (zoneImage)
-                sh = SphericalHarmonicsDot9(zoneImage->CalculateSphericalHarmonics());
+                sh = zoneImage->GetOrCreateSphericalHarmonics();
             else
                 URHO3D_LOGWARNING(
                     "Cannot extract spherical harmonics from Zone texture without corresponding resource in cache");

@@ -36,26 +36,6 @@ namespace Urho3D
 
 static const int COLOR_LUT_SIZE = 16;
 
-/// Supported compressed image formats.
-enum CompressedFormat
-{
-    CF_NONE = 0,
-    CF_RGBA,
-    CF_DXT1,
-    CF_DXT3,
-    CF_DXT5,
-    CF_ETC1,
-    CF_ETC2_RGB,
-    CF_ETC2_RGBA,
-    CF_PVRTC_RGB_2BPP,
-    CF_PVRTC_RGBA_2BPP,
-    CF_PVRTC_RGB_4BPP,
-    CF_PVRTC_RGBA_4BPP,
-    CF_ASTC4x4,
-    CF_ASTC5x5,
-    CF_ASTC6x6
-};
-
 /// Compressed image mip level.
 struct URHO3D_API CompressedLevel
 {
@@ -65,21 +45,15 @@ struct URHO3D_API CompressedLevel
     /// Compressed image data.
     unsigned char* data_{};
     /// Compression format.
-    CompressedFormat format_{CF_NONE};
+    TextureFormat format_{};
     /// Width.
     int width_{};
     /// Height.
     int height_{};
     /// Depth.
     int depth_{};
-    /// Block size in bytes.
-    unsigned blockSize_{};
     /// Total data size in bytes.
     unsigned dataSize_{};
-    /// Row size in bytes.
-    unsigned rowSize_{};
-    /// Number of rows.
-    unsigned rows_{};
 };
 
 /// %Image resource.
@@ -191,11 +165,11 @@ public:
 
     /// Return whether is compressed.
     /// @property
-    bool IsCompressed() const { return compressedFormat_ != CF_NONE; }
+    bool IsCompressed() const { return compressedFormat_ != TextureFormat::TEX_FORMAT_UNKNOWN; }
 
     /// Return compressed format.
     /// @property
-    CompressedFormat GetCompressedFormat() const { return compressedFormat_; }
+    TextureFormat GetCompressedFormat() const { return compressedFormat_; }
 
     /// Return number of compressed mip levels. Returns 0 if the image is has not been loaded from a source file containing multiple mip levels.
     /// @property
@@ -254,7 +228,7 @@ private:
     /// Data is sRGB.
     bool sRGB_{};
     /// Compressed format.
-    CompressedFormat compressedFormat_{CF_NONE};
+    TextureFormat compressedFormat_{};
     /// Pixel data.
     ea::shared_array<unsigned char> data_;
     /// Precalculated mip level image.
