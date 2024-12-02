@@ -7,8 +7,11 @@
 #include "../Graphics/Renderer.h"
 #include "../Graphics/VertexBuffer.h"
 #include "../RenderAPI/RenderDevice.h"
+#include "../RenderAPI/RenderContext.h"
 #include "../RenderAPI/RenderScope.h"
 #include "../Core/Spline.h"
+#include <Diligent/Graphics/GraphicsEngine/interface/SwapChain.h>
+
 #include "MeshLine.h"
 
 #include "../DebugNew.h"

@@ -278,7 +278,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         [](Node* self) { return self->Clone(); },
         [](Node* self, Node* parent) { return self->Clone(parent); });
     bindNode["CreateComponent"]     = [](Node* self, StringHash type) { return self->CreateComponent(type); };
-    bindNode["GetComponent"]        = sol::overload([](Node* self, StringHash type) { return self->GetComponent(type); }, [](Node* self, StringHash type, bool recursive) { return self->GetComponent(type, recursive); });
+    bindNode["GetComponent"]        = sol::overload([](Node* self, StringHash type) { return self->GetComponent(type); }, [](Node* self, StringHash type, bool recursive) { return self->GetComponent(type); });
     bindNode["GetComponents"]       = sol::overload(
         [](Node* self, StringHash type) {
             ea::vector<Component*> dest;
@@ -287,7 +287,7 @@ int sol2_SceneLuaAPI_open(sol::state& lua)
         },
         [](Node* self, StringHash type, bool recursive) {
             ea::vector<Component*> dest;
-            self->GetComponents(dest, type, recursive);
+            self->GetComponents(dest, type);
             return std::vector<Component*>(dest.begin(), dest.end());
         });
     bindNode["RemoveComponent"]     = sol::overload([](Node* self, StringHash type) { self->RemoveComponent(type); }, [](Node* self, Component* component) { self->RemoveComponent(component); });

@@ -137,7 +137,7 @@ public:
 
         auto& value = *static_cast<VariantMap*>(ptr);
 
-        auto it = value.find(name);
+        auto it = value.find(name.c_str());
         if (it == value.end())
         {
             Rml::Log::Message(Rml::Log::LT_WARNING, "Member %s not found in data struct.", name.c_str());
@@ -213,7 +213,7 @@ public:
             {
                 auto& vector = value.GetResourceRefList();
                 return (ValidateIndex(index, vector.names_.size())) ? Rml::DataVariable(
-                           register_->GetDefinition<Rml::String>(), const_cast<Rml::String*>(&(vector.names_[index])))
+                           register_->GetDefinition<Rml::String>(), const_cast<Rml::String*>(&(Rml::String(vector.names_[index].c_str()))))
                                                                     : Rml::DataVariable();
             }
             case VAR_STRINGVECTOR:
@@ -240,7 +240,7 @@ public:
                 if (!valuePtr)
                     return {};
 
-                auto it = valuePtr->find(name);
+                auto it = valuePtr->find(name.c_str());
                 if (it == valuePtr->end())
                 {
                     Rml::Log::Message(Rml::Log::LT_WARNING, "Member %s not found in VariantMap.", name.c_str());
@@ -811,7 +811,7 @@ bool ToRmlUi(const Variant& src, Rml::Variant& dst)
         URHO3D_LOGERROR("This variant type conversion is not supported: {}", Variant::GetTypeNameList()[src.GetType()]);
         return false;
     }
-    dst = string;
+    dst = Rml::String(string.c_str());
     return true;
 }
 

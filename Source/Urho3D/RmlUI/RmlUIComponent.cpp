@@ -127,7 +127,7 @@ bool RmlUIComponent::BindDataModelVariant(const ea::string& name, Variant* value
     {
         return false;
     }
-    return constructor->BindCustomDataVariable(name, {typeRegister_.GetDefinition<Variant>(), value});
+    return constructor->BindCustomDataVariable(name.c_str(), {typeRegister_.GetDefinition<Variant>(), value});
 }
 
 bool RmlUIComponent::BindDataModelVariantVector(const ea::string& name, VariantVector* value)
@@ -137,7 +137,7 @@ bool RmlUIComponent::BindDataModelVariantVector(const ea::string& name, VariantV
     {
         return false;
     }
-    return constructor->BindCustomDataVariable(name, {typeRegister_.GetDefinition<VariantVector>(), value});
+    return constructor->BindCustomDataVariable(name.c_str(), {typeRegister_.GetDefinition<VariantVector>(), value});
 }
 
 bool RmlUIComponent::BindDataModelVariantMap(const ea::string& name, VariantMap* value)
@@ -147,7 +147,7 @@ bool RmlUIComponent::BindDataModelVariantMap(const ea::string& name, VariantMap*
     {
         return false;
     }
-    return constructor->BindCustomDataVariable(name, {typeRegister_.GetDefinition<VariantMap>(), value});
+    return constructor->BindCustomDataVariable(name.c_str(), {typeRegister_.GetDefinition<VariantMap>(), value});
 }
 
 bool RmlUIComponent::BindDataModelEvent(const ea::string& name, EventFunc eventCallback)

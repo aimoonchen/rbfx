@@ -574,7 +574,7 @@ void ProceduralSky::HandleBeginRendering(StringHash eventType, VariantMap& event
 //             t->wait_frame_count++;
 //         }
 //         if(task->wait_frame_count > 1) {
-            auto zone = GetNode()->GetScene()->GetComponent<Zone>(true);
+            auto zone = GetNode()->GetScene()->GetComponent<Zone>();
             zone->SetZoneTexture(task->probe->GetMixedProbeTexture());
             zone->SetProcedurelImageCube(task->cube_image.Get());
             m_readyReadTask.pop_front();

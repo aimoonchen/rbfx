@@ -186,9 +186,9 @@ static uint8_t calcNumMips(bool _hasMips, uint16_t _width, uint16_t _height, uin
 }
 
 static uint32_t imageGetSize(uint16_t _width, uint16_t _height, uint16_t _depth, bool _cubeMap,
-    bool _hasMips, uint16_t _numLayers, CompressedFormat format)
+    bool _hasMips, uint16_t _numLayers, TextureFormat format)
 {
-    const ImageBlockInfo& blockInfo = s_imageBlockInfo[format - CF_ASTC4x4];
+    const ImageBlockInfo& blockInfo = s_imageBlockInfo[format/* - CF_ASTC4x4*/];
     const uint8_t bpp = blockInfo.bitsPerPixel;
     const uint16_t blockWidth = blockInfo.blockWidth;
     const uint16_t blockHeight = blockInfo.blockHeight;
@@ -225,9 +225,9 @@ static uint32_t imageGetSize(uint16_t _width, uint16_t _height, uint16_t _depth,
     return size;
 }
 
-static void DecompressImageASTC(void* _dst, const void* _src, uint32_t _width, uint32_t _height, CompressedFormat format)
+static void DecompressImageASTC(void* _dst, const void* _src, uint32_t _width, uint32_t _height, TextureFormat format)
 {
-    const auto& astcBlockInfo = s_imageBlockInfo[format - CF_ASTC4x4];
+    const auto& astcBlockInfo = s_imageBlockInfo[format/* - CF_ASTC4x4*/];
 
     astcenc_config config{};
 
@@ -305,10 +305,10 @@ bool CompressedLevel::Decompress(unsigned char* dest) const
     case EmulatedTextureFormat::TEX_FORMAT_PVRTC_RGBA_4BPP:
         DecompressImagePVRTC(dest, data_, width_, height_, format_);
         return true;
-    case CF_ASTC4x4:
-    case CF_ASTC5x5:
-    case CF_ASTC6x6:
-        DecompressImageASTC(dest, data_, width_, height_, format_);
+//     case CF_ASTC4x4:
+//     case CF_ASTC5x5:
+//     case CF_ASTC6x6:
+//         DecompressImageASTC(dest, data_, width_, height_, format_);
         return true;
     default:
         // Unknown format
@@ -565,20 +565,20 @@ bool Image::BeginLoad(Deserializer& source)
             components_ = 4;
             break;
 
-        case 0x93d0:
-            compressedFormat_ = CF_ASTC4x4;
-            components_ = 4;
-            break;
-
-        case 0x93d2:
-            compressedFormat_ = CF_ASTC5x5;
-            components_ = 4;
-            break;
-
-        case 0x93d4:
-            compressedFormat_ = CF_ASTC6x6;
-            components_ = 4;
-            break;
+//         case 0x93d0:
+//             compressedFormat_ = CF_ASTC4x4;
+//             components_ = 4;
+//             break;
+// 
+//         case 0x93d2:
+//             compressedFormat_ = CF_ASTC5x5;
+//             components_ = 4;
+//             break;
+// 
+//         case 0x93d4:
+//             compressedFormat_ = CF_ASTC6x6;
+//             components_ = 4;
+//             break;
 
         case 0x8d64:
         case 0x9274:
