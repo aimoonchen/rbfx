@@ -1,0 +1,23 @@
+project(Lua)
+
+# if(IOS)
+#     add_definitions(-DLUA_USE_IOS)
+# endif()
+
+file (GLOB_RECURSE SOURCE_FILES src/*.c include/*.h)
+add_library (Lua STATIC ${SOURCE_FILES})
+
+target_include_directories(Lua
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+# if (BUILD_SHARED_LIBS)
+#     target_compile_definitions(Lua PRIVATE -DLua_EXPORTS INTERFACE -DLua_IMPORTS)
+# endif ()
+
+install (DIRECTORY include/ DESTINATION ${DEST_THIRDPARTY_HEADERS_DIR}/ FILES_MATCHING PATTERN *.h)
+
+if (NOT URHO3D_MERGE_STATIC_LIBS)
+    install(TARGETS Lua EXPORT Urho3D ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG})
+endif ()

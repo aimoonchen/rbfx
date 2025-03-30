@@ -224,6 +224,7 @@ set (PRIVATE_THIRD_PARTY_DEPENDENCIES
     SPIRV-Tools
     SPIRV-Tools-opt
     SPIRV-Reflect
+    Lua
 )
 if (TARGET datachannel-wasm)
     target_link_libraries(Urho3D PUBLIC datachannel-wasm)
@@ -237,6 +238,8 @@ if (URHO3D_XR AND DESKTOP)
     endif ()
 endif ()
 
+list (APPEND PUBLIC_THIRD_PARTY_DEPENDENCIES Effekseer)
+
 if (URHO3D_MERGE_STATIC_LIBS)
     list (APPEND PUBLIC_THIRD_PARTY_DEPENDENCIES Bullet)
 elseif (TARGET Bullet)
@@ -247,6 +250,77 @@ elseif (TARGET Bullet)
         target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/Bullet>)
     else ()
         target_link_libraries(Urho3D PUBLIC Bullet)
+    endif ()
+endif ()
+
+target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Cocos2D>)
+target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/FairyGUI>)
+
+# setup prebuild thirdparty
+set(FMOD_API_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod)
+# if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+#     set(FMOD_LIB_SUFFIX "L")
+# else ()
+    set(FMOD_LIB_SUFFIX "")
+# endif()
+target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Cocos2D>)
+target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/FairyGUI>)
+if (WIN32)
+    target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/include/win>)
+    set_property(TARGET Urho3D APPEND_STRING PROPERTY LINK_FLAGS " ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.lib")
+    add_library(fmod SHARED IMPORTED)
+    set_target_properties(fmod PROPERTIES
+        IMPORTED_LOCATION ${FMOD_API_ROOT}/windows/core/lib/fmod.dll
+        IMPORTED_IMPLIB ${FMOD_API_ROOT}/windows/core/lib/fmod_vc.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/windows/core/inc)
+    add_library(fmodstudio SHARED IMPORTED)
+    set_target_properties(fmodstudio PROPERTIES
+        IMPORTED_LOCATION ${FMOD_API_ROOT}/windows/studio/lib/fmodstudio.dll
+        IMPORTED_IMPLIB ${FMOD_API_ROOT}/windows/studio/lib/fmodstudio_vc.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/windows/studio/inc)
+    target_link_libraries(Urho3D PUBLIC fmod fmodstudio)
+elseif (NOT LINUX)
+    if (ANDROID)
+        target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/include/android>)
+        add_library(zlib STATIC IMPORTED)
+        add_library(curl STATIC IMPORTED)
+        set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/zlib/prebuilt/android/${ANDROID_ABI}/libz.a)
+        set_target_properties(curl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/android/${ANDROID_ABI}/libcurl.a)
+        add_library(fmod SHARED IMPORTED)
+        set_target_properties(fmod PROPERTIES
+                IMPORTED_LOCATION ${FMOD_API_ROOT}/android/core/lib/${ANDROID_ABI}/libfmod${FMOD_LIB_SUFFIX}.so
+                INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/android/core/inc)
+        add_library(fmodstudio SHARED IMPORTED)
+        set_target_properties(fmodstudio PROPERTIES
+                IMPORTED_LOCATION ${FMOD_API_ROOT}/android/studio/lib/${ANDROID_ABI}/libfmodstudio${FMOD_LIB_SUFFIX}.so
+                INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/android/studio/inc)
+        target_link_libraries(Urho3D PUBLIC fmod fmodstudio curl zlib)
+    elseif (MACOSX)
+        add_library(fmod SHARED IMPORTED)
+        set_target_properties(fmod PROPERTIES
+            IMPORTED_LOCATION ${FMOD_API_ROOT}/mac/core/lib/libfmod.dylib
+            INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/mac/core/inc)
+        add_library(fmodstudio SHARED IMPORTED)
+        set_target_properties(fmodstudio PROPERTIES
+            IMPORTED_LOCATION ${FMOD_API_ROOT}/mac/studio/lib/libfmodstudio.dylib
+            INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/mac/studio/inc)
+    elseif (IOS)
+        target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/include/ios>)
+        target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${FMOD_API_ROOT}/ios/core/inc>)
+        target_include_directories(Urho3D PUBLIC $<BUILD_INTERFACE:${FMOD_API_ROOT}/ios/studio/inc>)
+        add_library(curl STATIC IMPORTED)
+        add_library(fmod STATIC IMPORTED)
+        add_library(fmodstudio STATIC IMPORTED)
+        set_target_properties(curl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/ios/libcurl.a)
+        set_target_properties(fmod PROPERTIES IMPORTED_LOCATION ${FMOD_API_ROOT}/ios/core/lib/libfmod_iphoneos.a)# INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/ios/core/inc)
+        set_target_properties(fmodstudio PROPERTIES IMPORTED_LOCATION ${FMOD_API_ROOT}/ios/studio/lib/libfmodstudio_iphoneos.a)# INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/ios/studio/inc)
+        target_link_libraries(Urho3D PUBLIC fmodstudio curl)
+    elseif (WEB)
+        add_library(fmod STATIC IMPORTED)
+        add_library(fmodstudio STATIC IMPORTED)
+        set_target_properties(fmod PROPERTIES IMPORTED_LOCATION ${FMOD_API_ROOT}/html5/core/lib/fmod.a INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/html5/core/inc)
+        set_target_properties(fmodstudio PROPERTIES IMPORTED_LOCATION ${FMOD_API_ROOT}/html5/studio/lib/fmodstudio.a INTERFACE_INCLUDE_DIRECTORIES ${FMOD_API_ROOT}/html5/studio/inc)
+        target_link_libraries(Urho3D PUBLIC fmod fmodstudio)
     endif ()
 endif ()
 
