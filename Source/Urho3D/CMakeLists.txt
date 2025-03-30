@@ -45,6 +45,7 @@ endmacro()
 define_engine_source_files (Container Core IO Math)
 
 define_engine_source_files (Audio Engine Graphics Input Plugins RenderAPI RenderPipeline Resource Scene Script Shader UI Utility)
+define_engine_source_files (Cocos2D GUI FairyGUI EffekseerUrho3D LuaScript)
 list (REMOVE_ITEM SOURCE_FILES BindAll.cpp)     # Utility file for BindTool.
 
 if (URHO3D_PARTICLE_GRAPH)
@@ -506,7 +507,9 @@ endif ()
 # Group them together under 'Resources' in Xcode IDE
 source_group(Resources FILES ${RESOURCE_FILES})     # RESOURCE_PAKS could be empty if packaging is not requested
 target_sources(Urho3D PRIVATE ${RESOURCE_DIRS})
-
+if (MSVC)
+    target_compile_options(Urho3D PRIVATE /bigobj)
+endif ()
 if (URHO3D_CSHARP)
     # Not necessary for build, but required so that users can import Urho3D.i in their bindings .i
     target_include_directories(Urho3D PUBLIC
@@ -552,10 +555,6 @@ if (URHO3D_CSHARP)
         ${EXTRA_NATIVE_HEADERS}
         ${EXTRA_NATIVE_SOURCES}
     )
-
-    if (MSVC)
-        target_compile_options(Urho3D PRIVATE /bigobj)
-    endif ()
 
     install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CSharp/Swig DESTINATION ${DEST_INCLUDE_DIR}/CSharp)
     install (FILES ${EXTRA_NATIVE_HEADERS} DESTINATION ${DEST_INCLUDE_DIR}/CSharp/Native)

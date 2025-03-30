@@ -553,7 +553,7 @@ ea::vector<unsigned char> LuaScriptInstance::GetScriptNetworkDataAttr() const
     return buf.GetBuffer();
 }
 
-void LuaScriptInstance::OnSceneSet(Scene* scene)
+void LuaScriptInstance::OnSceneSet(Scene* previousScene, Scene* scene)
 {
     if (scene)
         SubscribeToScriptMethodEvents();

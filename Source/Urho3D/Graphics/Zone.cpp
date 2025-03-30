@@ -464,4 +464,10 @@ void Zone::MarkCachedTextureDirty()
     cachedAmbientAndBackgroundLighting_.Invalidate();
 }
 
+void Zone::SetProceduralSky(ProceduralSky* sky)
+{
+    // GetSubsystem<Graphics>()->SetProceduralSky(sky);
+    proceduralSky_ = sky;
+}
+
 }

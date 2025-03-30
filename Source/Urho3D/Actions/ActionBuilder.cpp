@@ -37,9 +37,17 @@ namespace Urho3D
 {
 using namespace Actions;
 
-ActionBuilder::ActionBuilder(Context* context)
+ActionBuilder::ActionBuilder(Context* context, bool detachAction)
     : context_(context)
 {
+}
+
+ActionBuilder::~ActionBuilder()
+{
+    if (detach_action_)
+    {
+        action_.Detach();
+    }
 }
 
 /// Continue with provided action.

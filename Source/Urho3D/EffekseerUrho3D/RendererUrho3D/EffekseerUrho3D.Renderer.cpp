@@ -700,19 +700,19 @@ bool RendererImplemented::BeginRendering()
     auto renderDevice = graphicsDevice_->GetRenderDevice();
     if (false)//backend_ == Urho3D::RenderBackend::Vulkan || backend_ == Urho3D::RenderBackend::D3D12)
     {
-        static const auto deferredContextCount = renderDevice->GetDeferredContextCount();
-        if (!releaseFlag_ && (currentDeferredContextIndex_ == (int32_t)deferredContextCount)) {
-            releaseFlag_ = true;
-        }
-        currentDeferredContextIndex_ = currentDeferredContextIndex_ % deferredContextCount;
-        deviceContext_ = renderDevice->GetDeferredContextByIndex(currentDeferredContextIndex_);
-        if (releaseFlag_) {
-            if (commandLists_[currentDeferredContextIndex_]) {
-                commandLists_[currentDeferredContextIndex_]->Release();
-            }
-            deviceContext_->FinishFrame();
-        }
-        deviceContext_->Begin(0);
+//         static const auto deferredContextCount = renderDevice->GetDeferredContextCount();
+//         if (!releaseFlag_ && (currentDeferredContextIndex_ == (int32_t)deferredContextCount)) {
+//             releaseFlag_ = true;
+//         }
+//         currentDeferredContextIndex_ = currentDeferredContextIndex_ % deferredContextCount;
+//         deviceContext_ = renderDevice->GetDeferredContextByIndex(currentDeferredContextIndex_);
+//         if (releaseFlag_) {
+//             if (commandLists_[currentDeferredContextIndex_]) {
+//                 commandLists_[currentDeferredContextIndex_]->Release();
+//             }
+//             deviceContext_->FinishFrame();
+//         }
+//         deviceContext_->Begin(0);
     } else {
         deviceContext_ = immediateContext_;
     }

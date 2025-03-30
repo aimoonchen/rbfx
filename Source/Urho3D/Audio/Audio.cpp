@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
+#ifdef _AUDIO_
 #include "../Precompiled.h"
 
 #include "../Audio/Audio.h"
@@ -578,3 +578,282 @@ void RegisterAudioLibrary(Context* context)
 }
 
 }
+#else
+    #include "../Precompiled.h"
+
+    #include "../Audio/Audio.h"
+    #include "../Audio/Microphone.h"
+    #include "../Audio/Sound.h"
+    #include "../Audio/SoundListener.h"
+    #include "../Audio/SoundSource3D.h"
+    #include "../Core/Context.h"
+    #include "../Core/CoreEvents.h"
+    #include "../Core/ProcessUtils.h"
+    #include "../Core/Profiler.h"
+    #include "../IO/Log.h"
+    
+#include "../Resource/ResourceCache.h"
+#if defined(__linux__) && !defined(__ANDROID__)
+#else
+    #include "fmod_errors.h"
+    #include "fmod_studio.hpp"
+#endif
+
+    #include "../DebugNew.h"
+
+    #ifdef _MSC_VER
+        #pragma warning(disable : 6293)
+    #endif
+
+    #if defined(__linux__) && !defined(__ANDROID__)
+#else
+
+static void ERRCHECK_fn(FMOD_RESULT result, const char* file, int line)
+{
+    if (result != FMOD_OK)
+    {
+        URHO3D_LOGERRORF("%s(%d): FMOD error %d - %s", file, line, result, FMOD_ErrorString(result));
+    }
+}
+    #define ERRCHECK(_result) ERRCHECK_fn(_result, __FILE__, __LINE__)
+#endif
+namespace Urho3D
+{
+
+static const int MIN_BUFFERLENGTH = 20;
+static const int MIN_MIXRATE = 11025;
+static const int MAX_MIXRATE = 48000;
+static const StringHash SOUND_MASTER_HASH("Master");
+
+static void SDLAudioCallback(void* userdata, Uint8* stream, int len);
+
+static const int AUDIO_NUM_CHANNELS[] = {
+    6, // Auto, just aim for 5.1
+    1, // mono
+    2, // stereo
+    4, // quadrophonic
+    6, // 5.1
+};
+
+static const char* SPEAKER_MODE_NAMES[] = {
+    "Auto",
+    "Mono",
+    "Stereo",
+    "Quadrophonic",
+    "5.1 Surround",
+};
+
+Audio::Audio(Context* context)
+    : Object(context)
+{
+    #if defined(__linux__) && !defined(__ANDROID__)
+    #else
+        ERRCHECK(FMOD::Studio::System::create(&studio_));
+        FMOD::System* system{nullptr};
+        // The example Studio project is authored for 5.1 sound, so set up the system output mode to match
+        ERRCHECK(studio_->getCoreSystem(&system));
+        // ERRCHECK(system->setSoftwareFormat(0, FMOD_SPEAKERMODE_5POINT1, 0));
+        ERRCHECK(studio_->initialize(1024, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, nullptr));
+    #endif
+        // Set the master to the default value
+        masterGain_[SOUND_MASTER_HASH] = 1.0f;
+
+    SubscribeToEvent(E_RENDERUPDATE, URHO3D_HANDLER(Audio, HandleRenderUpdate));
+}
+
+Audio::~Audio()
+{
+    Release();
+}
+
+// TODO: remove this, load flag
+ea::unordered_map<ea::string, FMOD::Studio::Bank*> s_bank_cache;
+FMOD::Studio::Bank* Audio::LoadBank(std::string_view path)
+{
+#if defined(__linux__) && !defined(__ANDROID__)
+#else
+    auto it = s_bank_cache.find(path.data());
+    if (it != s_bank_cache.end())
+    {
+        return it->second;
+    }
+    auto cache = GetSubsystem<ResourceCache>();
+    auto urhoFile = cache->GetFile(path.data());
+    auto size = urhoFile->GetSize();
+    auto data = std::make_unique<char[]>(size);
+    if (urhoFile->Read(data.get(), size) != size)
+    {
+        URHO3D_LOGERRORF("Load file : %s failed.\n", path.data());
+        return nullptr;
+    }
+    FMOD::Studio::Bank* bank = nullptr;
+    ERRCHECK(studio_->loadBankMemory(data.get(), size, FMOD_STUDIO_LOAD_MEMORY, FMOD_STUDIO_LOAD_BANK_NORMAL, &bank));
+    if (bank)
+    {
+        s_bank_cache[path.data()] = bank;
+    }
+    return bank;
+#endif
+    return nullptr;
+}
+
+void Audio::UnloadBank(std::string_view path)
+{
+    // cpp 20
+    //     std::erase_if(s_bank_cache, [] (const auto& item) {
+    //         auto const& [key, value] = item;
+    //         return value == bank;
+    //     });
+    auto it = s_bank_cache.find(path.data());
+    if (it != s_bank_cache.end())
+    {
+        it->second->unload();
+        s_bank_cache.erase(it);
+    }
+}
+
+void Audio::Close()
+{
+    Release();
+}
+
+void Audio::Update(float timeStep)
+{
+
+}
+
+bool Audio::Play()
+{
+    if (playing_)
+        return true;
+
+    if (!deviceID_)
+    {
+        URHO3D_LOGERROR("No audio mode set, can not start playback");
+        return false;
+    }
+
+    // Update sound sources before resuming playback to make sure 3D positions are up to date
+    UpdateInternal(0.0f);
+
+    playing_ = true;
+    return true;
+}
+
+void Audio::Stop()
+{
+    playing_ = false;
+}
+
+void Audio::SetMasterGain(const ea::string& type, float gain)
+{
+}
+
+void Audio::PauseSoundType(const ea::string& type)
+{
+    MutexLock lock(audioMutex_);
+    pausedSoundTypes_.insert(type);
+}
+
+void Audio::ResumeSoundType(const ea::string& type)
+{
+    MutexLock lock(audioMutex_);
+    pausedSoundTypes_.erase(type);
+    // Update sound sources before resuming playback to make sure 3D positions are up to date
+    // Done under mutex to ensure no mixing happens before we are ready
+    UpdateInternal(0.0f);
+}
+
+void Audio::ResumeAll()
+{
+    MutexLock lock(audioMutex_);
+    pausedSoundTypes_.clear();
+    UpdateInternal(0.0f);
+}
+
+void Audio::SetListener(SoundListener* listener)
+{
+}
+
+void Audio::StopSound(Sound* sound)
+{
+}
+
+float Audio::GetMasterGain(const ea::string& type) const
+{
+    // By definition previously unknown types return full volume
+    auto findIt = masterGain_.find(type);
+    if (findIt == masterGain_.end())
+        return 1.0f;
+
+    return findIt->second.GetFloat();
+}
+
+bool Audio::IsSoundTypePaused(const ea::string& type) const
+{
+    return pausedSoundTypes_.contains(type);
+}
+
+void Audio::AddSoundSource(SoundSource* soundSource)
+{
+}
+
+void Audio::RemoveSoundSource(SoundSource* soundSource)
+{
+}
+
+float Audio::GetSoundSourceMasterGain(StringHash typeHash) const
+{
+    auto masterIt = masterGain_.find(SOUND_MASTER_HASH);
+
+    if (!typeHash)
+        return masterIt->second.GetFloat();
+
+    auto typeIt = masterGain_.find(typeHash);
+
+    if (typeIt == masterGain_.end() || typeIt == masterIt)
+        return masterIt->second.GetFloat();
+
+    return masterIt->second.GetFloat() * typeIt->second.GetFloat();
+}
+
+
+void Audio::MixOutput(void* dest, unsigned samples)
+{
+    if (!playing_ || !clipBuffer_)
+    {
+        memset(dest, 0, samples * (size_t)sampleSize_);
+        return;
+    }
+}
+
+void Audio::HandleRenderUpdate(StringHash eventType, VariantMap& eventData)
+{
+    using namespace RenderUpdate;
+
+#if defined(__linux__) && !defined(__ANDROID__)
+#else
+    ERRCHECK(studio_->update());
+#endif
+}
+
+void Audio::Release()
+{
+    #if defined(__linux__) && !defined(__ANDROID__)
+    #else
+        studio_->release();
+    #endif
+}
+
+void Audio::UpdateInternal(float timeStep)
+{
+
+}
+
+void RegisterAudioLibrary(Context* context)
+{
+
+}
+
+} // namespace Urho3D
+#endif

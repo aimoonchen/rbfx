@@ -31,7 +31,8 @@
 
 namespace Urho3D
 {
-
+class ImageCube;
+class ProceduralSky;
 /// %Component that describes global rendering properties.
 class URHO3D_API Zone : public Drawable
 {
@@ -177,6 +178,10 @@ public:
     /// Internal. Clear zone reference from drawables inside the bounding box.
     void ClearDrawablesZone();
 
+    // TODO: for procedurel sky
+    void SetProcedurelImageCube(ImageCube* imageCube) { procedurelImageCube_ = imageCube; }
+    void SetProceduralSky(ProceduralSky* sky);
+
 protected:
     /// Handle node transform being dirtied.
     void OnMarkedDirty(Node* node) override;
@@ -244,6 +249,10 @@ protected:
     mutable ThreadSafeCache<SphericalHarmonicsDot9> cachedTextureLighting_;
     mutable ThreadSafeCache<SphericalHarmonicsDot9> cachedAmbientAndBackgroundLighting_;
     /// @}
+
+    // TODO: for procedurel sky
+    ImageCube* procedurelImageCube_{nullptr};
+    ProceduralSky* proceduralSky_{nullptr};
 };
 
 }

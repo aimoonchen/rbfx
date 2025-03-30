@@ -31,7 +31,7 @@ static void RegisterNetworkConst(sol::state& lua)
 {
     auto protocol	= lua["Protocol"].get_or_create<sol::table>();
     //
-    protocol["PACKAGE_FRAGMENT_SIZE"]		= PACKAGE_FRAGMENT_SIZE;
+    //protocol["PACKAGE_FRAGMENT_SIZE"]		= PACKAGE_FRAGMENT_SIZE;
 	//
     protocol["MSG_IDENTITY"]				= MSG_IDENTITY;
 	protocol["MSG_SCENELOADED"]				= MSG_SCENELOADED;

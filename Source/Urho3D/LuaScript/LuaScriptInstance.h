@@ -146,7 +146,7 @@ public:
     void SetScriptObject(sol::table obj);
 protected:
     /// Handle scene being assigned.
-    void OnSceneSet(Scene* scene) override;
+    void OnSceneSet(Scene* previousScene, Scene* scene) override;
     /// Handle node transform being dirtied.
     void OnMarkedDirty(Node* node) override;
 

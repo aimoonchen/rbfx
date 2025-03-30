@@ -2533,7 +2533,7 @@ void Input::HandleSDLEvent(void* sdlEvent)
             SendEvent(E_DROPFILE, eventData);
         }
         break;
-
+#ifdef _AUDIO_
     case SDL_AUDIODEVICEADDED:
         {
             if (evt.adevice.iscapture == SDL_FALSE)
@@ -2544,11 +2544,15 @@ void Input::HandleSDLEvent(void* sdlEvent)
             }
         }
         break;
-
+#endif
     case SDL_AUDIODEVICEREMOVED:
         {
-            if (evt.adevice.iscapture)
-                GetSubsystem<Audio>()->CloseMicrophoneForLoss(evt.adevice.which);
+        if (evt.adevice.iscapture)
+#ifdef _AUDIO_
+            GetSubsystem<Audio>()->CloseMicrophoneForLoss(evt.adevice.which);
+#else
+            ;
+#endif
             else
                 GetSubsystem<Audio>()->Close();
         }

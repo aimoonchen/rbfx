@@ -39,8 +39,8 @@ class URHO3D_API ActionBuilder
 {
 public:
     /// Construct.
-    explicit ActionBuilder(Context* context);
-
+    explicit ActionBuilder(Context* context, bool detachAction = false);
+    ~ActionBuilder();
     /// Continue with provided action.
     ActionBuilder& Then(const SharedPtr<Actions::FiniteTimeAction>& nextAction);
 
@@ -198,6 +198,8 @@ private:
     Context* context_{};
     /// Action on top of stack (current).
     SharedPtr<Actions::FiniteTimeAction> action_;
+    //
+    bool detach_action_{false};
 };
 
 } // namespace Urho3D

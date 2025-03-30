@@ -1,5 +1,6 @@
 #include "../../Core/Context.h"
 #include "../../Graphics/Texture2D.h"
+#include "../../Resource/Image.h"
 #include "../../Resource/ResourceCache.h"
 #include "../../IO/VirtualFileSystem.h"
 #include "EffekseerUrho3D.TextureLoader.h"
