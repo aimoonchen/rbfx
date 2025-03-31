@@ -56,7 +56,6 @@
 #include "../../Urho2D/TileMapLayer2D.h"
 #include "../../Urho2D/TileMap2D.h"
 #include "../../Urho2D/StretchableSprite2D.h"
-
 #include "GetPush.h"
 #include "../LuaScriptInstance.h"
 

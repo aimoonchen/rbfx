@@ -1,6 +1,4 @@
 #include "../../Core/Context.h"
-#include "GetPush.h"
-
 #include "../../Physics2D/CollisionShape2D.h"
 #include "../../Physics2D/RigidBody2D.h"
 #include "../../Physics2D/PhysicsWorld2D.h"
@@ -9,6 +7,7 @@
 #include "../../Physics2D/CollisionCircle2D.h"
 #include "../../Physics2D/CollisionPolygon2D.h"
 #include "../../Physics2D/CollisionChain2D.h"
+#include "GetPush.h"
 
 using namespace Urho3D;
 

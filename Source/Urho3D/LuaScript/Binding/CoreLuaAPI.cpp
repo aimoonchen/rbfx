@@ -1,4 +1,3 @@
-#include "GetPush.h"
 #include <string_view>
 #include "../../Core/Context.h"
 #include "../../Core/ProcessUtils.h"
@@ -13,6 +12,7 @@
 #include "../../Engine/EngineDefs.h"
 #include "../../Physics2D/CollisionShape2D.h"
 #include "../../Physics2D/RigidBody2D.h"
+#include "GetPush.h"
 
 using namespace Urho3D;
 Urho3D::Context* GetContext(lua_State* L);

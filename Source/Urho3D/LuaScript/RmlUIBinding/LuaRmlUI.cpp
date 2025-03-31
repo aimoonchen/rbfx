@@ -25,7 +25,6 @@
 #include "LuaDataModel.h"
 #include "LuaDataSource.h"
 #include "LuaDataFormatter.h"
-//#include <sol/sol.hpp>
 #include "../Binding/GetPush.h"
 
 Urho3D::Context* GetContext(lua_State* L);

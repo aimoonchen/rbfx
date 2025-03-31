@@ -1,12 +1,13 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #else
-#include "GetPush.h"
+
 #include "fmod_studio.hpp"
 #include "fmod_errors.h"
 #include "../../Core/Context.h"
 #include "../../Resource/ResourceCache.h"
 #include "../../Audio/Audio.h"
 #include "../../IO/Log.h"
+#include "GetPush.h"
 
 using namespace Urho3D;
 Urho3D::Context* GetContext(lua_State* L);

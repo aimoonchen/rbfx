@@ -37,6 +37,7 @@
 #define PAR_SHAPES_IMPLEMENTATION
 #include "ThirdParty/par/par_shapes.h"
 #include "GetPush.h"
+
 Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;
 

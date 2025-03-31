@@ -1,4 +1,3 @@
-#include "GetPush.h"
 #include "../../Core/Context.h"
 #if URHO3D_NETWORK
 #include "../../Network/Network.h"
@@ -8,6 +7,7 @@
 #include "../../Scene/Scene.h"
 #endif
 #include "../../Utility/HttpProxy.h"
+#include "GetPush.h"
 
 using namespace Urho3D;
 Urho3D::Context* GetContext(lua_State* L);

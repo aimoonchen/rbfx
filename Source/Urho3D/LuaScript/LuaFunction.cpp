@@ -28,10 +28,9 @@
 #include "../IO/VectorBuffer.h"
 #include "../LuaScript/LuaFunction.h"
 #include "../LuaScript/LuaScript.h"
-#include "../LuaScript/LuaScriptInstance.h"
 
-// #include <toluapp/tolua++.h>
 #include "../sol/sol.hpp"
+#include "../LuaScript/LuaScriptInstance.h"
 #include "../LuaScript/ToluaUtils.h"
 
 #include "../DebugNew.h"

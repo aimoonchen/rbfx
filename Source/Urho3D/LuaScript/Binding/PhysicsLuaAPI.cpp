@@ -1,5 +1,4 @@
 #include "../../Core/Context.h"
-#include "GetPush.h"
 #include "../../Math/Ray.h"
 #include "../../Physics/PhysicsWorld.h"
 #include "../../Physics/RigidBody.h"
@@ -7,6 +6,8 @@
 #include "../../Physics/Constraint.h"
 #include "../../Physics/PhysicsEvents.h"
 #include "../../Physics/KinematicCharacterController.h"
+#include "GetPush.h"
+
 using namespace Urho3D;
 
 Urho3D::Context* GetContext(lua_State* L);

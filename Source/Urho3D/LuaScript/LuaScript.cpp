@@ -35,12 +35,12 @@
 #include "../LuaScript/LuaFunction.h"
 #include "../LuaScript/LuaScript.h"
 #include "../LuaScript/LuaScriptEventInvoker.h"
-#include "../LuaScript/LuaScriptInstance.h"
 #include "../Resource/ResourceCache.h"
 #include "../Scene/Scene.h"
 #include <RmlUi/Core/Core.h>
 #include "RmlUIBinding/LuaPlugin.h"
 #include "../sol/sol.hpp"
+#include "../LuaScript/LuaScriptInstance.h"
 // extern "C"
 // {
 // #include "lualib.h"

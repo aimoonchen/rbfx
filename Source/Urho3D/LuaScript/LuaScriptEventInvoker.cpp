@@ -24,8 +24,8 @@
 #include "../IO/Log.h"
 #include "../LuaScript/LuaFunction.h"
 #include "../LuaScript/LuaScriptEventInvoker.h"
-#include "../LuaScript/LuaScriptInstance.h"
 #include "Binding/GetPush.h"
+#include "../LuaScript/LuaScriptInstance.h"
 #include "../DebugNew.h"
 
 namespace Urho3D

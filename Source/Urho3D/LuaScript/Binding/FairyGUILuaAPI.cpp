@@ -2,7 +2,6 @@
 #else
 #include "../../Core/Context.h"
 #include "../../IO/Log.h"
-#include "GetPush.h"
 #include "../../FairyGUI/UIConfig.h"
 #include "../../FairyGUI/UIPackage.h"
 #include "../../FairyGUI/GComponent.h"
@@ -38,6 +37,7 @@
 #include "../../Cocos2D/math/CCGeometry.h"
 //
 #include "../../GUI/Gui.h"
+#include "GetPush.h"
 
 using namespace Urho3D;
 

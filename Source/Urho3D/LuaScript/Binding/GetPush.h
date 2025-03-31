@@ -1,8 +1,5 @@
 #pragma once
-//#include <EASTL/string.h>
 #include <sol/sol.hpp>
-// #include "../../Math/StringHash.h"
-// #include "../../IO/Log.h"
 /*
 template <typename Handler>
 bool sol_lua_check(

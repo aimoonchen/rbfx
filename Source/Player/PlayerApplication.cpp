@@ -49,6 +49,7 @@ void PlayerApplication::Setup()
 {
     FileSystem* fs = context_->GetSubsystem<FileSystem>();
 
+    auto& engineParameters_ = GetEngineParameters();
 #if MOBILE
     engineParameters_[EP_RESOURCE_PATHS] = "";
 #else

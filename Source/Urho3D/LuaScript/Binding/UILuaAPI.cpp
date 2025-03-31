@@ -4,7 +4,6 @@
 #include "../../UI/Sprite.h"
 #include "../../UI/Font.h"
 #include "../../UI/Text.h"
-#include <sol/sol.hpp>
 #include "GetPush.h"
 
 using namespace Urho3D;

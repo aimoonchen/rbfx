@@ -66,23 +66,3 @@ int sol_lua_push(lua_State* L, const ea::string* str)
     return 1;
 }
 */
-// StringHash sol_lua_get(sol::types<StringHash>, lua_State* L, int index, sol::stack::record& tracking)
-// {
-//     tracking.use(1);
-//     size_t len;
-//     const char* p = lua_tolstring(L, index, &len);
-//     return StringHash(p);
-// }
-// StringHash sol_lua_get(sol::types<const StringHash&>, lua_State* L, int index, sol::stack::record& tracking)
-// {
-//     tracking.use(1);
-//     size_t len;
-//     const char* p = lua_tolstring(L, index, &len);
-//     return StringHash(p);
-// }
-// 
-// int sol_lua_push(lua_State* L, StringHash str)
-// {
-//      const auto& cstr = str.ToString();
-//      return sol::stack::push(L, cstr.CString());
-// }

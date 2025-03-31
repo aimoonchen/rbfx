@@ -1,4 +1,3 @@
-#include "GetPush.h"
 #include "../../Navigation/NavigationMesh.h"
 #include "../../Navigation/DynamicNavigationMesh.h"
 #include "../../Navigation/Navigable.h"
@@ -8,6 +7,7 @@
 #include "../../Navigation/CrowdManager.h"
 #include "../../Navigation/NavigationEvents.h"
 #include "../../Navigation/AStar/AStar.h"
+#include "GetPush.h"
 
 Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;

@@ -17,7 +17,6 @@
 #include "../../Scene/PrefabResource.h"
 #include "../../UI/Font.h"
 #include <map>
-#include <sol/sol.hpp>
 #include "GetPush.h"
 
 using namespace Urho3D;

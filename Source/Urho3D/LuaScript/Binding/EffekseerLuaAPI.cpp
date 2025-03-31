@@ -1,11 +1,12 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #else
-#include "GetPush.h"
+
 #include "../../Core/Context.h"
 #include "../../Resource/ResourceCache.h"
 #include "../../EffekseerUrho3D/EffekseerEffect.h"
 #include "../../EffekseerUrho3D/EffekseerEmitter.h"
 #include "../../EffekseerUrho3D/EffekseerSystem.h"
+#include "GetPush.h"
 
 using namespace Urho3D;
 

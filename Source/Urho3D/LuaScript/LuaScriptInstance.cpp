@@ -33,7 +33,6 @@
 #include "../LuaScript/LuaFunction.h"
 #include "../LuaScript/LuaScript.h"
 #include "../LuaScript/LuaScriptEventInvoker.h"
-#include "../LuaScript/LuaScriptInstance.h"
 #if defined(URHO3D_PHYSICS) || defined(URHO3D_URHO2D)
 #include "../Physics/PhysicsEvents.h"
 #endif
@@ -42,7 +41,7 @@
 #include "../Scene/SceneEvents.h"
 
 #include "../sol/sol.hpp"
-// #include <toluapp/tolua++.h>
+#include "../LuaScript/LuaScriptInstance.h"
 #include "../LuaScript/ToluaUtils.h"
 
 #include "../DebugNew.h"
