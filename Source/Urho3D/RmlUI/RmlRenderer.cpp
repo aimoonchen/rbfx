@@ -343,6 +343,16 @@ void RmlRenderer::SetTransform(const Rml::Matrix4f* transform)
     transform_ = transform ? Matrix3x4(Matrix4(transform->data())) : Matrix3x4::IDENTITY;
 }
 
+RTProxy* RmlRenderer::GetRenderTextureProxy(const ea::string& name)
+{
+    auto it = renderTextures_.find(name);
+    if (it == renderTextures_.end())
+    {
+        renderTextures_.insert({ea::string(name), {SharedPtr{new Texture2D(context_), nullptr}}});
+    }
+    return &renderTextures_[name];
+}
+
 }   // namespace Detail
 
 }   // namespace Urho3D

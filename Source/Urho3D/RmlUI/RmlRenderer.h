@@ -40,6 +40,11 @@ class Texture2D;
 namespace Detail
 {
 
+struct RTProxy
+{
+    Urho3D::SharedPtr<Texture2D> texture;
+    ea::function<void(RTProxy*)> init_func{nullptr};
+};
 class URHO3D_API RmlRenderer : public Object, public Rml::RenderInterface
 {
     URHO3D_OBJECT(RmlRenderer, Object);
@@ -62,6 +67,7 @@ public:
     void SetTransform(const Rml::Matrix4f* transform) override;
     /// @}
 
+    RTProxy* GetRenderTextureProxy(const ea::string& name);
 private:
     /// Perform initialization tasks that require graphics subsystem.
     void InitializeGraphics();
@@ -97,6 +103,7 @@ private:
 
     bool transformEnabled_ = false;
     Matrix3x4 transform_;
+    ea::unordered_map<ea::string, RTProxy> renderTextures_{};
 };
 
 }   // namespace Detail

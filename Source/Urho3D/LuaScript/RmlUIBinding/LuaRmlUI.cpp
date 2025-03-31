@@ -25,7 +25,8 @@
 #include "LuaDataModel.h"
 #include "LuaDataSource.h"
 #include "LuaDataFormatter.h"
-#include <sol/sol.hpp>
+//#include <sol/sol.hpp>
+#include "../Binding/GetPush.h"
 
 Urho3D::Context* GetContext(lua_State* L);
 
@@ -456,8 +457,8 @@ int sol2_RmlUI_open(sol::state& lua)
         "InsertBefore",         [](Rml::Element* self, Rml::ElementPtr& element, Rml::Element* adjacent_element) { return self->InsertBefore(std::move(element), adjacent_element); },
         "IsClassSet",           &Rml::Element::IsClassSet,
         "RemoveAttribute",      &Rml::Element::RemoveAttribute,
-        "RemoveChild",          &Rml::Element::RemoveChild,
-        "ReplaceChild",         [](Rml::Element* self, Rml::ElementPtr& inserted_element, Rml::Element* replaced_element) { return self->ReplaceChild(std::move(inserted_element), replaced_element); },
+        "RemoveChild",          [](Rml::Element* self, Rml::Element* element) { return std::unique_ptr<Rml::Element>{ self->RemoveChild(element).release() }; },
+        "ReplaceChild",         [](Rml::Element* self, Rml::ElementPtr& inserted_element, Rml::Element* replaced_element) { return std::unique_ptr<Rml::Element>{ self->ReplaceChild(std::move(inserted_element), replaced_element).release() }; },
         "ScrollIntoView",       sol::resolve<void(bool)>(&Rml::Element::ScrollIntoView),
         "SetClass",             &Rml::Element::SetClass,
         "GetNumChildren",       &Rml::Element::GetNumChildren,
@@ -484,22 +485,23 @@ int sol2_RmlUI_open(sol::state& lua)
             [](Rml::Element* self, const Rml::String& name, const Rml::String& value, float duration, int tween_type, int tween_dir) { return self->AddAnimationKey(name, PropertyFromString(name, value), duration, Rml::Tween{ (Rml::Tween::Type)tween_type, (Rml::Tween::Direction)tween_dir }); }),
         "GetRealElement",       [](Rml::Element* self) { return self; }
         );
+
     rmlui.new_usertype<Rml::ElementDocument>("Document",
-        "title", sol::property(&Rml::ElementDocument::GetTitle, &Rml::ElementDocument::SetTitle),
-        "context", sol::property(&Rml::ElementDocument::GetContext),
-        "PullToFront", &Rml::ElementDocument::PullToFront,
-        "PushToBack", &Rml::ElementDocument::PushToBack,
-        "Show", sol::overload(
+        "title",            sol::property(&Rml::ElementDocument::GetTitle, &Rml::ElementDocument::SetTitle),
+        "context",          sol::property(&Rml::ElementDocument::GetContext),
+        "PullToFront",      &Rml::ElementDocument::PullToFront,
+        "PushToBack",       &Rml::ElementDocument::PushToBack,
+        "Show",             sol::overload(
             [](Rml::ElementDocument* self) { self->Show(); },
             [](Rml::ElementDocument* self, Rml::ModalFlag modal_flag) { self->Show(modal_flag); },
             [](Rml::ElementDocument* self, Rml::ModalFlag modal_flag, Rml::FocusFlag focus_flag) { self->Show(modal_flag, focus_flag); }),
-        "Hide", &Rml::ElementDocument::Hide,
-        "Close", &Rml::ElementDocument::Close,
-        "IsModal", &Rml::ElementDocument::IsModal,
-        "CreateElement", &Rml::ElementDocument::CreateElement,
-        "CreateTextNode", &Rml::ElementDocument::CreateTextNode,
-        "GetSourceURL", &Rml::ElementDocument::GetSourceURL,
-        "UpdateDocument", &Rml::ElementDocument::UpdateDocument,
+        "Hide",             &Rml::ElementDocument::Hide,
+        "Close",            &Rml::ElementDocument::Close,
+        "IsModal",          &Rml::ElementDocument::IsModal,
+        "CreateElement",    [](Rml::ElementDocument* self, const Rml::String& name) { return std::unique_ptr<Rml::Element>{ self->CreateElement(name).release() }; },
+        "CreateTextNode",   [](Rml::ElementDocument* self, const Rml::String& name) { return std::unique_ptr<Rml::Element>{ self->CreateTextNode(name).release() }; },
+        "GetSourceURL",     &Rml::ElementDocument::GetSourceURL,
+        "UpdateDocument",   &Rml::ElementDocument::UpdateDocument,
         //"SetStyleSheetContainer", &Rml::ElementDocument::SetStyleSheetContainer,
         sol::base_classes, sol::bases<Rml::Element>());
 
@@ -590,8 +592,9 @@ int sol2_RmlUI_open(sol::state& lua)
             return doc ? Urho3D::RmlUIComponent::FromDocument(doc) : (Urho3D::RmlUIComponent*)nullptr;
         },
         [](Rml::ElementDocument* doc) { return Urho3D::RmlUIComponent::FromDocument(doc); });
-    rmlui["context"] = rmlctx;
-    rmlui["EncodeRml"] = [](const Rml::String& str) { return Rml::StringUtilities::EncodeRml(str); };
+    rmlui["context"]        = rmlctx;
+    rmlui["EncodeRml"]      = [](const Rml::String& str) { return Rml::StringUtilities::EncodeRml(str); };
     rmlui["GetElapsedTime"] = []() { return Rml::GetSystemInterface()->GetElapsedTime(); };
+
     return 0;
 }

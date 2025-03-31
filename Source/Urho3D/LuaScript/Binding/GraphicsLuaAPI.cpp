@@ -1,4 +1,3 @@
-#include "GetPush.h"
 #include "../../Core/Context.h"
 #include "../../Resource/Resource.h"
 #include "../../Resource/ResourceCache.h"
@@ -37,7 +36,7 @@
 #include "../../UI/Text3D.h"
 #define PAR_SHAPES_IMPLEMENTATION
 #include "ThirdParty/par/par_shapes.h"
-
+#include "GetPush.h"
 Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;
 
@@ -196,16 +195,16 @@ static void RegisterConst(sol::state& lua)
         "DEFERRED_DECAL",               BLEND_DEFERRED_DECAL
     );
     auto shaderResources = graphic["ShaderResources"].get_or_create<sol::table>();
-    shaderResources["Albedo"]       = ShaderResources::Albedo;
-    shaderResources["Normal"]       = ShaderResources::Normal;
-    shaderResources["Properties"]   = ShaderResources::Properties;
-    shaderResources["Emission"]     = ShaderResources::Emission;
-    shaderResources["Reflection0"]  = ShaderResources::Reflection0;
-    shaderResources["Reflection1"]  = ShaderResources::Reflection1;
-    shaderResources["LightRamp"]    = ShaderResources::LightRamp;
-    shaderResources["LightShape"]   = ShaderResources::LightShape;
-    shaderResources["ShadowMap"]    = ShaderResources::ShadowMap;
-    shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer;
+    shaderResources["Albedo"]       = ShaderResources::Albedo.GetHash();
+    shaderResources["Normal"]       = ShaderResources::Normal.GetHash();
+    shaderResources["Properties"]   = ShaderResources::Properties.GetHash();
+    shaderResources["Emission"]     = ShaderResources::Emission.GetHash();
+    shaderResources["Reflection0"]  = ShaderResources::Reflection0.GetHash();
+    shaderResources["Reflection1"]  = ShaderResources::Reflection1.GetHash();
+    shaderResources["LightRamp"]    = ShaderResources::LightRamp.GetHash();
+    shaderResources["LightShape"]   = ShaderResources::LightShape.GetHash();
+    shaderResources["ShadowMap"]    = ShaderResources::ShadowMap.GetHash();
+    shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer.GetHash();
 
     graphic["FILTER_BILINEAR"]      = FILTER_BILINEAR;
     //

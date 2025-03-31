@@ -43,6 +43,7 @@
 namespace Urho3D
 {
 
+StringVariantMap engineParameters_;
 #if defined(IOS) || defined(TVOS) || defined(__EMSCRIPTEN__)
 // Code for supporting SDL_iPhoneSetAnimationCallback() and emscripten_set_main_loop_arg()
 #if defined(__EMSCRIPTEN__)
@@ -59,14 +60,19 @@ void RunFrame(void* data)
 static CLI::App commandLine_{};
 #endif
 
-Application::Application(Context* context)
+Application::Application(Context* context, uint32_t width, uint32_t height)
     : Object(context)
-    , engineParameters_{{EP_ENGINE_CLI_PARAMETERS, true}}
+    //, engineParameters_{{EP_ENGINE_CLI_PARAMETERS, true}}
     , exitCode_(EXIT_SUCCESS)
 {
+    engineParameters_[EP_ENGINE_CLI_PARAMETERS] = true;
     // Create the Engine, but do not initialize it yet. Subsystems except Graphics & Renderer are registered at this point
     engine_ = new Engine(context);
-
+    if (engineParameters_[EP_WINDOW_WIDTH].GetInt() == 0
+        || engineParameters_[EP_WINDOW_HEIGHT].GetInt() == 0) {
+        engineParameters_[EP_WINDOW_WIDTH] = (width == 0) ? DEFAULT_WINDOW_WIDTH : width;
+        engineParameters_[EP_WINDOW_HEIGHT] = (height == 0) ? DEFAULT_WINDOW_HEIGHT : height;
+    }
     // Subscribe to log messages so that can show errors if ErrorExit() is called with empty message
     SubscribeToEvent(E_LOGMESSAGE, URHO3D_HANDLER(Application, HandleLogMessage));
 }
@@ -212,5 +218,73 @@ CLI::App& Application::GetCommandLineParser()
     return commandLine_;
 }
 #endif
+
+static bool s_command_line_init = false;
+URHO3D_API StringVariantMap& GetEngineParameters()
+{
+    return engineParameters_;
+}
+URHO3D_API int ReadCommandLine(int argc, char** argv, uint32_t& width, uint32_t& height, uint32_t& msaa)
+{
+    if (s_command_line_init)
+    {
+        return 0;
+    }
+    s_command_line_init = true;
+
+#if defined(_WIN32) && !defined(URHO3D_WIN32_CONSOLE)
+    Urho3D::ParseArguments(GetCommandLineW());
+#elif defined(__ANDROID__) || defined(IOS) || defined(TVOS) || defined(__EMSCRIPTEN__)
+    Urho3D::ParseArguments(argc, (char**)argv);
+#endif
+    const StringVector& rawArguments = GetArguments();
+#if defined(_WIN32) || (defined(__APPLE__) && !defined(IOS)) || defined(__EMSCRIPTEN__)
+    if (!rawArguments.empty())
+    {
+        Engine::DefineParameters(commandLine_, engineParameters_);
+        if (!(rawArguments[0].ends_with(".cs") || rawArguments[0].ends_with(".lua")
+                || rawArguments[0].ends_with(".py")))
+        {
+            // console mode
+            return 1;
+        }
+        std::vector<std::string> cliArgs;
+        cliArgs.reserve(rawArguments.size());
+        // CLI11 detail - arguments must be in reversed order.
+        int stopi = 0;
+        if (rawArguments.size() % 2 != 0)
+        {
+            // skip the first args: Main.lua/Lobby.lua
+            stopi = 1;
+        }
+        for (auto i = static_cast<int>(rawArguments.size() - 1); i >= stopi; i--)
+        {
+            cliArgs.emplace_back(rawArguments[static_cast<unsigned>(i)].c_str());
+        }
+        try
+        {
+            commandLine_.parse(cliArgs);
+        }
+        catch (const CLI::ParseError& e)
+        {
+            return commandLine_.exit(e);
+        }
+    }
+#endif
+
+    width = engineParameters_[EP_WINDOW_WIDTH].GetInt();
+    height = engineParameters_[EP_WINDOW_HEIGHT].GetInt();
+    msaa = engineParameters_[EP_MULTI_SAMPLE].GetInt();
+    if (width == 0 || height == 0)
+    {
+        width = DEFAULT_WINDOW_WIDTH;
+        height = DEFAULT_WINDOW_HEIGHT;
+    }
+    if (msaa == 0)
+    {
+        msaa = 1;
+    }
+    return 0;
+}
 
 }

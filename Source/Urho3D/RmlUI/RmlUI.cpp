@@ -274,6 +274,12 @@ static Detail::RmlContextInstancer RmlContextInstancerInstance;
 /// A standalone object which acts as a bridge between our classes and RmlUi middleware.
 static Detail::RmlPlugin RmlPluginInstance;
 
+// TODO : for rmlui lua
+Rml::EventListener* CreateCppListener(const Rml::String& value, Rml::Element* element)
+{
+    return RmlEventListenerInstancerInstance.InstanceEventListener(value, element);
+}
+
 /// Map engine keys to RmlUi keys. Note that top bit is cleared from key constants when they are used as array index.
 static const ea::unordered_map<unsigned, uint16_t> keyMap{
     { KEY_SPACE, Rml::Input::KI_SPACE },

@@ -1,6 +1,7 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #else
 #include "../../Core/Context.h"
+#include "../../IO/Log.h"
 #include "GetPush.h"
 #include "../../FairyGUI/UIConfig.h"
 #include "../../FairyGUI/UIPackage.h"
