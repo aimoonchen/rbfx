@@ -52,25 +52,148 @@ PythonScript::~PythonScript()
     Finalize();
 }
 
+void initialize_python_without_frozen()
+{
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+
+    // 禁用 frozen 模块
+    config._install_importlib = 0;
+
+    // 必须显式设置模块搜索路径
+    config.module_search_paths_set = 1;
+
+    // 添加标准库路径（根据实际安装位置调整）
+    PyWideStringList_Append(&config.module_search_paths, L"/usr/local/python3/lib/python3.9");
+    PyWideStringList_Append(&config.module_search_paths, L"/usr/local/python3/lib/python3.9/lib-dynload");
+
+    // 初始化解释器
+    PyStatus status = Py_InitializeFromConfig(&config);
+    if (PyStatus_Exception(status))
+    {
+        fprintf(stderr, "Python初始化失败: %s\n", status.err_msg);
+        Py_ExitStatusException(status);
+    }
+    PyConfig_Clear(&config);
+}
+
+void bootstrap_core_modules()
+{
+    // 1. 手动创建最小化的 sys 模块
+    PyObject* sys_module = PyModule_New("sys");
+    PyDict_SetItemString(PyImport_GetModuleDict(), "sys", sys_module);
+
+    // 2. 设置基本 sys 属性
+    PyModule_AddStringConstant(sys_module, "version", Py_GetVersion());
+    PyModule_AddObject(sys_module, "path", PyList_New(0));
+    PyModule_AddObject(sys_module, "modules", PyImport_GetModuleDict());
+
+    // 3. 加载 builtins 模块
+    PyObject* builtins = PyImport_ImportModule("builtins");
+    if (!builtins)
+    {
+        PyErr_Print();
+        exit(1);
+    }
+    PyDict_SetItemString(PyImport_GetModuleDict(), "builtins", builtins);
+
+    // 4. 加载 _imp 模块（导入系统核心）
+    PyObject* imp_module = PyImport_ImportModule("_imp");
+    if (!imp_module)
+    {
+        PyErr_Print();
+        exit(1);
+    }
+
+    // 5. 初始化最小化导入系统
+    PyRun_SimpleString(
+        "import sys\n"
+        "import _imp\n"
+        "sys.meta_path = []\n" // 清空默认导入钩子
+        "sys.path_importer_cache = {}\n");
+}
+
+PyObject* load_stdlib_module(const char* name)
+{
+    // 1. 检查模块是否已加载
+    PyObject* modules = PyImport_GetModuleDict();
+    PyObject* module = PyDict_GetItemString(modules, name);
+    if (module)
+    {
+        Py_INCREF(module);
+        return module;
+    }
+
+    // 2. 特殊处理核心模块
+    if (strcmp(name, "sys") == 0)
+    {
+        return PyImport_GetModule(name);
+    }
+
+    // 3. 从文件系统加载
+    PyObject* py_name = PyUnicode_FromString(name);
+    module = PyImport_Import(py_name);
+    Py_DECREF(py_name);
+
+    if (!module)
+    {
+        PyErr_Print();
+        return NULL;
+    }
+
+    // 4. 缓存模块
+    PyDict_SetItemString(modules, name, module);
+    return module;
+}
+
 bool PythonScript::Initialize(const std::string& pythonHome)
 {
     if (initialized_) {
         return true;
     }
-    if (!pythonHome.empty()) {
-        wchar_t* wPythonHome = Py_DecodeLocale(pythonHome.c_str(), nullptr);
-        if (wPythonHome) {
-            Py_SetPythonHome(wPythonHome);
-        }
-        else {
-            return false;
-        }
+//     if (!pythonHome.empty()) {
+//         wchar_t* wPythonHome = Py_DecodeLocale(pythonHome.c_str(), nullptr);
+//         if (wPythonHome) {
+//             Py_SetPythonHome(wPythonHome);
+//         }
+//         else {
+//             return false;
+//         }
+//     }
+//     PyConfig config;
+//     PyConfig_InitPythonConfig(&config);
+//     config.use_frozen_modules = 0;
+//     config._install_importlib = 0;
+//     config.module_search_paths_set = 1;
+//     PyWideStringList_Append(&config.module_search_paths, L"D:/Github/rbfx-v3/Source/ThirdParty/Python/Python-3.13.2/Lib");
+//     PyStatus status = Py_InitializeFromConfig(&config);
+//     PyConfig_Clear(&config);
+//     if (PyStatus_Exception(status)) {
+//         Py_ExitStatusException(status);
+//     }
+    // 1. 初始化Python（禁用frozen模块）
+    initialize_python_without_frozen();
+
+    // 2. 引导核心模块
+    bootstrap_core_modules();
+
+    // 3. 加载需要的标准库模块
+    PyObject* os_module = load_stdlib_module("os");
+    PyObject* json_module = load_stdlib_module("json");
+
+    if (!os_module || !json_module)
+    {
+        fprintf(stderr, "无法加载必需的标准库模块\n");
+        Py_Finalize();
+        return 1;
     }
 
-    Py_Initialize();
     if (!Py_IsInitialized()) {
         return false;
     }
+
+    auto ret = PyRun_SimpleString("print('Hello from embedded Python!')");
+
     main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
     g_python_script = this;

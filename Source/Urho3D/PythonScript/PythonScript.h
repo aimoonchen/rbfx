@@ -2,7 +2,22 @@
 
 #include "../Core/Context.h"
 #include "../Core/Object.h"
-#include "pytypedefs.h"
+extern "C" {
+    typedef struct PyModuleDef PyModuleDef;
+    typedef struct PyModuleDef_Slot PyModuleDef_Slot;
+    typedef struct PyMethodDef PyMethodDef;
+    typedef struct PyGetSetDef PyGetSetDef;
+    typedef struct PyMemberDef PyMemberDef;
+
+    typedef struct _object PyObject;
+    typedef struct _longobject PyLongObject;
+    typedef struct _typeobject PyTypeObject;
+    typedef struct PyCodeObject PyCodeObject;
+    typedef struct _frame PyFrameObject;
+
+    typedef struct _ts PyThreadState;
+    typedef struct _is PyInterpreterState;
+}
 namespace Urho3D
 {
 
