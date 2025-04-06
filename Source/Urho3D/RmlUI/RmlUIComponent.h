@@ -11,6 +11,8 @@
 #include <EASTL/optional.h>
 #include <EASTL/unordered_set.h>
 
+#include <functional>
+
 namespace Rml
 {
 class ElementDocument;

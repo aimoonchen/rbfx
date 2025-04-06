@@ -45,7 +45,7 @@ endmacro()
 define_engine_source_files (Container Core IO Math)
 
 define_engine_source_files (Audio Engine Graphics Input Plugins RenderAPI RenderPipeline Resource Scene Script Shader UI Utility)
-define_engine_source_files (Cocos2D GUI FairyGUI EffekseerUrho3D LuaScript)
+define_engine_source_files (Cocos2D GUI FairyGUI EffekseerUrho3D LuaScript PythonScript)
 list (REMOVE_ITEM SOURCE_FILES BindAll.cpp)     # Utility file for BindTool.
 
 if (URHO3D_PARTICLE_GRAPH)
@@ -226,6 +226,8 @@ set (PRIVATE_THIRD_PARTY_DEPENDENCIES
     SPIRV-Tools-opt
     SPIRV-Reflect
     Lua
+    nanobind
+    Python
 )
 if (TARGET datachannel-wasm)
     target_link_libraries(Urho3D PUBLIC datachannel-wasm)
