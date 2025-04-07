@@ -50,30 +50,66 @@ void PlayerApplication::Setup()
     FileSystem* fs = context_->GetSubsystem<FileSystem>();
 
     auto& engineParameters_ = GetEngineParameters();
-#if MOBILE
-    engineParameters_[EP_RESOURCE_PATHS] = "";
+    engineParameters_[EP_ORGANIZATION_NAME] = "KFEngine";
+    engineParameters_[EP_APPLICATION_NAME] = "KFPlayer";
+#if defined(__EMSCRIPTEN__) || defined(__ANDROID__)
+    engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::OpenGL);
 #else
-    engineParameters_[EP_RESOURCE_PREFIX_PATHS] = fs->GetProgramDir() + ";" + fs->GetCurrentDir();
+    engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::Vulkan);
 #endif
+#ifndef _WIN32
+    engineParameters_[EP_RESOURCE_PATHS] = "Assets/Engine"; // "CoreData;Data";//
+#else
+    engineParameters_[EP_FULL_SCREEN] = false;
+    engineParameters_[EP_WINDOW_MAXIMIZE] = false;
+    engineParameters_[EP_BORDERLESS] = false;
+    engineParameters_[EP_RESOURCE_PREFIX_PATHS] = ";..;../..";
+    // engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::OpenGL);
+    engineParameters_[EP_RENDER_BACKEND] = static_cast<int>(RenderBackend::Vulkan);
+#endif
+
+// #if MOBILE
+//     engineParameters_[EP_RESOURCE_PATHS] = "";
+// #else
+//     engineParameters_[EP_RESOURCE_PREFIX_PATHS] = fs->GetProgramDir() + ";" + fs->GetCurrentDir();
+// #endif
 }
 
 void PlayerApplication::Start()
 {
-    auto engine = GetSubsystem<Engine>();
-    if (!engine->IsHeadless())
+    //     auto engine = GetSubsystem<Engine>();
+    //     if (!engine->IsHeadless())
+    //     {
+    // #if URHO3D_SYSTEMUI
+    //         ui::GetIO().IniFilename = nullptr; // Disable of imgui.ini creation,
+    // #endif
+    // 
+    //         // TODO(editor): Support resource routing
+    //     }
+    // 
+    //     const StringVector loadedPlugins = engine->GetParameter(EP_PLUGINS).GetString().split(';');
+    // 
+    //     auto pluginManager = GetSubsystem<PluginManager>();
+    //     pluginManager->SetPluginsLoaded(loadedPlugins);
+    //     pluginManager->StartApplication();
+
+    auto* input = GetSubsystem<Input>();
+    input->SetMouseMode(MM_FREE);
+    input->SetMouseVisible(true);
+    get_script_filename();
+    ea::string extension = GetExtension(scriptFileName_);
+    if (extension == ".lua" || extension == ".luc")
     {
-#if URHO3D_SYSTEMUI
-        ui::GetIO().IniFilename = nullptr; // Disable of imgui.ini creation,
+#ifdef URHO3D_LUA
+        if (RunLua(context_, scriptFileName_))
+        {
+            return;
+        }
+#else
+        ErrorExit("Lua is not enabled!");
+        return;
 #endif
-
-        // TODO(editor): Support resource routing
     }
-
-    const StringVector loadedPlugins = engine->GetParameter(EP_PLUGINS).GetString().split(';');
-
-    auto pluginManager = GetSubsystem<PluginManager>();
-    pluginManager->SetPluginsLoaded(loadedPlugins);
-    pluginManager->StartApplication();
 }
 
 void PlayerApplication::Stop()
@@ -86,4 +122,17 @@ void PlayerApplication::Stop()
     stateManager->Reset();
 }
 
+void PlayerApplication::get_script_filename()
+{
+    const ea::vector<ea::string>& arguments = GetArguments();
+    if (arguments.size() && arguments[0][0] != '-')
+    {
+        scriptFileName_ = GetInternalPath(arguments[0]);
+        // TODO: remove this, web's lua entry is 'Scripts/App.lua'
+        if (scriptFileName_.starts_with("Scripts/"))
+        {
+            scriptFileName_ = scriptFileName_.substr(scriptFileName_.find_first_of('/') + 1);
+        }
+    }
+}
 }
