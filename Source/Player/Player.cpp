@@ -23,9 +23,9 @@ public:
     {
         PlayerApplication::Setup();
 
-        auto& engineParameters_ = GetEngineParameters();
-        engineParameters_[EP_PLUGINS] = ea::string::joined(LinkedPlugins::GetLinkedPlugins(), ";");
-        LinkedPlugins::RegisterStaticPlugins();
+//         auto& engineParameters_ = GetEngineParameters();
+//         engineParameters_[EP_PLUGINS] = ea::string::joined(LinkedPlugins::GetLinkedPlugins(), ";");
+//         LinkedPlugins::RegisterStaticPlugins();
     }
     /// @}
 };

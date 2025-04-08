@@ -15,6 +15,7 @@
 #include "Python.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
+#include <vector>
 #include "../DebugNew.h"
 
 struct Dog
@@ -126,33 +127,147 @@ void bootstrap_core_modules()
 //     PyDict_SetItemString(modules, name, module);
 //     return module;
 // }
+/*
+PyObject* custom_import(PyObject* self, PyObject* args)
+{
+    const char* name;
+    if (!PyArg_ParseTuple(args, "s", &name))
+        return nullptr;
 
+    std::string code;// = your_load_module_code(name);
+    PyObject* dict = PyDict_New();
+    PyObject* result = PyRun_String(code.c_str(), Py_file_input, dict, dict);
+
+    if (!result)
+        return nullptr;
+
+    PyObject* module = PyModule_New(name);
+    PyModule_ExecDict(module, dict);
+
+    Py_DECREF(dict);
+    return module;
+}
+
+void override_import()
+{
+    PyObject* builtins = PyEval_GetBuiltins();
+    PyObject* import_func = PyCFunction_New(&(PyMethodDef){"custom_import", custom_import, METH_VARARGS, nullptr}, nullptr);
+
+    PyDict_SetItemString(builtins, "__import__", import_func);
+    Py_DECREF(import_func);
+}
+
+extern "C" {
+    static PyObject* original_import = NULL;
+
+    static PyObject* custom_import(PyObject* self, PyObject* args, PyObject* kwargs)
+    {
+        static const char* kwlist[] = {"name", "globals", "locals", "fromlist", "level", NULL};
+
+        PyObject *name, *globals = NULL, *locals = NULL, *fromlist = NULL;
+        int level = 0;
+
+        if (!PyArg_ParseTupleAndKeywords(args, kwargs, "U|OOOi:__import__", (char​ * *​) kwlist, &name, &globals,
+                &locals, &fromlist, &level))
+        {
+            return NULL;
+        }
+
+        // 获取模块名称
+        const char* mod_name = PyUnicode_AsUTF8(name);
+        if (!mod_name)
+            return NULL;
+
+        // 这里实现自定义的模块加载逻辑
+        PyObject* module = your_custom_import_logic(mod_name);
+        if (!module)
+        {
+            // 回退到原版 __import__ 如果自定义加载失败
+            static PyObject* builtins = NULL;
+            static PyObject* orig_import = NULL;
+
+            PyThreadState* tstate = PyThreadState_Get();
+            if (!builtins)
+            {
+                builtins = PyEval_GetBuiltins();
+                orig_import = PyDict_GetItemString(builtins, "__import__");
+                Py_XINCREF(orig_import);
+            }
+
+            if (orig_import)
+            {
+                module = PyObject_Call(orig_import, args, kwargs);
+            }
+            else
+            {
+                PyErr_SetString(PyExc_ImportError, "Import fallback failed");
+            }
+        }
+
+        return module;
+    }
+
+    void install_custom_importer()
+    {
+        PyObject* builtins = PyEval_GetBuiltins();
+        original_import = PyDict_GetItemString(builtins, "__import__");
+        Py_XINCREF(original_import);
+
+        PyMethodDef def = { "__import__", (PyCFunction)custom_import, METH_VARARGS | METH_KEYWORDS, NULL };
+        PyObject* func = PyCFunction_New(&def, NULL);
+
+        if (PyDict_SetItemString(builtins, "__import__", func) < 0)
+        {
+            Py_DECREF(func);
+            return;
+        }
+        Py_DECREF(func);
+    }
+
+    void uninstall_custom_importer()
+    {
+        if (original_import)
+        {
+            PyObject* builtins = PyEval_GetBuiltins();
+            PyDict_SetItemString(builtins, "__import__", original_import);
+            Py_DECREF(original_import);
+            original_import = NULL;
+        }
+    }
+}
+*/
 bool PythonScript::Initialize(const std::string& pythonHome)
 {
     if (initialized_) {
         return true;
     }
-    if (!pythonHome.empty()) {
-        wchar_t* wPythonHome = Py_DecodeLocale(pythonHome.c_str(), nullptr);
-        if (wPythonHome) {
-            Py_SetPythonHome(wPythonHome);
-        }
-        else {
-            return false;
-        }
-    }
     PyConfig config;
-    PyConfig_InitPythonConfig(&config);
+    PyConfig_InitIsolatedConfig(&config);
+    config.module_search_paths_set = 1;
+    config._init_main = 0;
+    config.site_import = 0;
 //     config.use_frozen_modules = 0;
 //     config._install_importlib = 0;
-//     config.module_search_paths_set = 1;
-//     PyWideStringList_Append(&config.module_search_paths, L"D:/Github/rbfx-v3/Source/ThirdParty/Python/Python-3.13.2/Lib");
+    std::vector<std::wstring> moduleSearchPaths = {
+        L"D:/Github/rbfx-v3/Source/ThirdParty/Python/Python-3.13.2/Lib"
+//         L"Script",
+//         L"Script/Lib",
+//         L"Script/Engine",
+    };
+    for (auto& path : moduleSearchPaths) {
+        PyWideStringList_Append(&config.module_search_paths, path.c_str());
+    }
     PyStatus status = Py_InitializeFromConfig(&config);
     PyConfig_Clear(&config);
     if (PyStatus_Exception(status)) {
-        Py_ExitStatusException(status);
+        return false;
     }
+
 //    initialize_python_without_frozen();
+
+    status = _Py_InitializeMain();
+    if (PyStatus_Exception(status))
+        return false;
 
     if (!Py_IsInitialized()) {
         return false;
@@ -167,7 +282,10 @@ bool PythonScript::Initialize(const std::string& pythonHome)
 //         Py_Finalize();
 //         return false;
 //     }
-    auto ret = PyRun_SimpleString("import sys; print('Python sys.path:', sys.path)");
+    auto ret = PyRun_SimpleString(
+        "from time import time,ctime\n"
+        "print('Today is', ctime(time()))\n");
+    ret = PyRun_SimpleString("import sys; print('Python sys.path:', sys.path)");
     ret = PyRun_SimpleString("print('Hello from embedded Python!')");
 
     main_thread_state_ = PyEval_SaveThread();
@@ -357,9 +475,9 @@ bool RunPython(Context* context, const ea::string& scriptFileName)
         context->RegisterSubsystem(pythonScript);
     }
     // If script loading is successful, proceed to main loop
-    if (pythonScript->ExecuteFile(scriptFileName)) {
-        //URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
-    }
+//     if (pythonScript->ExecuteFile(scriptFileName)) {
+//         //URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
+//     }
     return false;
 }
 

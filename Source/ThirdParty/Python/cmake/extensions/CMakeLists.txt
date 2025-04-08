@@ -220,9 +220,7 @@ add_python_extension(_posixshmem REQUIRES UNIX SOURCES _multiprocessing/posixshm
 # add_python_extension(msvcrt REQUIRES MSVC BUILTIN SOURCES ${SRC_DIR}/PC/msvcrtmodule.c)
 add_python_extension(nt REQUIRES WIN32 ALWAYS_BUILTIN SOURCES posixmodule.c)
 
-# set(winreg2_NAME _winreg)
-# set(winreg3_NAME winreg)
-# add_python_extension(${winreg${PY_VERSION_MAJOR}_NAME} REQUIRES WIN32 BUILTIN SOURCES ${SRC_DIR}/PC/${winreg${PY_VERSION_MAJOR}_NAME}.c)
+add_python_extension(winreg REQUIRES WIN32 BUILTIN SOURCES ${SRC_DIR}/PC/winreg.c)
 
 # Python3: Windows-only extensions
 add_python_extension(_overlapped

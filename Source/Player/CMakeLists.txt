@@ -56,22 +56,53 @@ if (NOT URHO3D_NO_EDITOR_PLAYER_EXE)
 
     if (PLAYER_TARGET)
         target_link_libraries(${PLAYER_TARGET} PUBLIC PlayerLibrary)
-        target_link_plugins(${PLAYER_TARGET} "${URHO3D_PLUGIN_LIST}")
+        # target_link_plugins(${PLAYER_TARGET} "${URHO3D_PLUGIN_LIST}")
     endif ()
 endif ()
 
-# SDK installation
-if (PLAYER_TARGET)
-    install (TARGETS ${PLAYER_TARGET}
-        LIBRARY DESTINATION ${DEST_LIBRARY_DIR_CONFIG}
-        RUNTIME DESTINATION ${DEST_BIN_DIR_CONFIG}
-        ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG}
-        BUNDLE  DESTINATION ${DEST_BIN_DIR_CONFIG}
-    )
+if (APPLE)
+    set_target_properties(${PLAYER_TARGET} PROPERTIES RESOURCE "${APP_UI_RES}")
+    if(IOS)
+        set_xcode_property(${PLAYER_TARGET} INFOPLIST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist")
+        set_xcode_property(${PLAYER_TARGET} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon-${PLAYER_TARGET}")
+        find_library(CORE_TEXT_LIBRARY CoreText)
+        find_library(ZLIB_LIBRARY z)
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${CORE_TEXT_LIBRARY})
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${ZLIB_LIBRARY})
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/lib/ios/libfmod_iphoneos.a)
+        target_link_libraries(${PLAYER_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/lib/ios/libfmodstudio_iphoneos.a)
+    elseif(MACOSX)
+        set_xcode_property(${PLAYER_TARGET} INFOPLIST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/mac/Info.plist")
+    endif()
 endif ()
 
-install (TARGETS PlayerLibrary EXPORT Urho3D ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG})
-install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DESTINATION ${DEST_INCLUDE_DIR}/Tools
-    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+if (WIN32)
+    set_property(TARGET ${PLAYER_TARGET} APPEND PROPERTY LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+    add_custom_command(TARGET ${PLAYER_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/windows/core/lib/fmod.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/fmod/windows/studio/lib/fmodstudio.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/curl/prebuilt/win/libcurl.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/zlib1.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/LuaPanda.lua
+        $<TARGET_FILE_DIR:${PLAYER_TARGET}>)
+    add_custom_command(TARGET ${PLAYER_TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/socket/core.dll
+        $<TARGET_FILE_DIR:${PLAYER_TARGET}>/socket/core.dll)
+endif ()
+
+# SDK installation
+# if (PLAYER_TARGET)
+#     install (TARGETS ${PLAYER_TARGET}
+#         LIBRARY DESTINATION ${DEST_LIBRARY_DIR_CONFIG}
+#         RUNTIME DESTINATION ${DEST_BIN_DIR_CONFIG}
+#         ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG}
+#         BUNDLE  DESTINATION ${DEST_BIN_DIR_CONFIG}
+#     )
+# endif ()
+
+# install (TARGETS PlayerLibrary EXPORT Urho3D ARCHIVE DESTINATION ${DEST_ARCHIVE_DIR_CONFIG})
+# install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#     DESTINATION ${DEST_INCLUDE_DIR}/Tools
+#     FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+# )

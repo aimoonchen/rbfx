@@ -36,7 +36,8 @@
 #if URHO3D_RMLUI
 #   include <Urho3D/RmlUI/RmlUI.h>
 #endif
-
+#include <Urho3D/LuaScript/LuaScript.h>
+#include <Urho3D/PythonScript/PythonScript.h>
 namespace Urho3D
 {
 
@@ -98,17 +99,14 @@ void PlayerApplication::Start()
     input->SetMouseVisible(true);
     get_script_filename();
     ea::string extension = GetExtension(scriptFileName_);
-    if (extension == ".lua" || extension == ".luc")
-    {
-#ifdef URHO3D_LUA
-        if (RunLua(context_, scriptFileName_))
-        {
+    if (extension == ".lua" || extension == ".luc") {
+        if (RunLua(context_, scriptFileName_)) {
             return;
         }
-#else
-        ErrorExit("Lua is not enabled!");
-        return;
-#endif
+    } else if (extension == ".py" || extension == ".pyc") {
+        if (RunPython(context_, scriptFileName_)) {
+            return;
+        }
     }
 }
 

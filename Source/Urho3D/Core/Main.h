@@ -52,18 +52,24 @@ int CALLBACK WinMain(HINSTANCE, HINSTANCE, LPSTR, int) \
 }
 // MSVC debug mode: use memory leak reporting
 #elif defined(_MSC_VER) && defined(_DEBUG) && !defined(URHO3D_WIN32_CONSOLE)
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 #define URHO3D_DEFINE_MAIN(function) \
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd) \
+int main(int argc, char** argv) \
 { \
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); \
+    uint32_t width = 1280; uint32_t height = 720; uint32_t msaa = 1; \
+    if (Urho3D::ReadCommandLine(argc, argv, width, height, msaa) != 0) { return Urho3D::ConsoleMain(); } \
     Urho3D::ParseArguments(GetCommandLineW()); \
     return function; \
 }
 // MSVC release mode: write minidump on crash
 #elif defined(_MSC_VER) && defined(URHO3D_MINIDUMPS) && !defined(URHO3D_WIN32_CONSOLE)
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 #define URHO3D_DEFINE_MAIN(function) \
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd) \
+int main(int argc, char** argv) \
 { \
+    uint32_t width = 1280; uint32_t height = 720; uint32_t msaa = 1; \
+    if (Urho3D::ReadCommandLine(argc, argv, width, height, msaa) != 0) { return Urho3D::ConsoleMain(); } \
     Urho3D::ParseArguments(GetCommandLineW()); \
     int exitCode; \
     __try \
