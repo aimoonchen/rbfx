@@ -312,203 +312,193 @@ PyObject* loadPycFile(const char* data, size_t size, PyObject* moduleDict)
     return result;
 }
 
-static PyObject* original_import = nullptr;
-
-// 自定义 __import__ 函数
-static PyObject* custom_import(PyObject* self, PyObject* args, PyObject* kwargs)
-{
-    // 解析参数
-    static char* kwlist[] = {
-        (char*)"name", (char*)"globals", (char*)"locals", (char*)"fromlist", (char*)"level", nullptr};
-
-    PyObject* name;
-    PyObject* globals = nullptr;
-    PyObject* locals = nullptr;
-    PyObject* fromlist = nullptr;
-    int level = 0;
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOi", kwlist, &name, &globals, &locals, &fromlist, &level))
+extern "C" {
+    static PyObject* original_import = nullptr;
+    static PyObject* custom_import(PyObject* self, PyObject* args, PyObject* kwargs)
     {
-        return nullptr;
-    }
+        static char* kwlist[] = {
+            (char*)"name", (char*)"globals", (char*)"locals", (char*)"fromlist", (char*)"level", nullptr };
 
-    // 获取模块名称
-    const char* moduleName = PyUnicode_AsUTF8(name);
-    if (!moduleName)
-    {
-        return PyObject_Call(original_import, args, kwargs);
-    }
+        PyObject* name;
+        PyObject* globals = nullptr;
+        PyObject* locals = nullptr;
+        PyObject* fromlist = nullptr;
+        int level = 0;
 
-    // 构建可能的模块文件路径
-    std::string moduleFilePath = std::string(moduleName);
-    std::replace(moduleFilePath.begin(), moduleFilePath.end(), '.', '/');
-
-    std::string pyFilePath = moduleFilePath + ".py";
-    std::string pycFilePath = moduleFilePath + ".pyc";
-
-    // 检查模块是否在自定义文件系统中
-    bool moduleInCustomFS = true;// g_fileSystem.fileExists(pyFilePath) || g_fileSystem.fileExists(pycFilePath);
-
-    if (moduleInCustomFS)
-    {
-        // 从自定义文件系统加载模块内容
-        std::vector<char> moduleContent;
-        std::string filePath;
-
-//         if (g_fileSystem.fileExists(pycFilePath))
-//         {
-//             moduleContent = g_fileSystem.readFile(pycFilePath);
-//             filePath = pycFilePath;
-//         }
-//         else
-//         {
-//             moduleContent = g_fileSystem.readFile(pyFilePath);
-//             filePath = pyFilePath;
-//         }
-
-        if (moduleContent.empty())
+        if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOi", kwlist, &name, &globals, &locals, &fromlist, &level))
         {
-            // 如果无法读取内容，回退到原始导入
-            return PyObject_Call(original_import, args, kwargs);
+            return nullptr;
         }
 
-        // 创建模块对象
-        PyObject* module = PyImport_AddModule(moduleName);
-        if (!module)
+        const char* moduleName = PyUnicode_AsUTF8(name);
+        if (!moduleName)
         {
             return PyObject_Call(original_import, args, kwargs);
         }
 
-        // 获取模块字典
-        PyObject* moduleDict = PyModule_GetDict(module);
+        // 构建可能的模块文件路径
+        std::string moduleFilePath = std::string(moduleName);
+        std::replace(moduleFilePath.begin(), moduleFilePath.end(), '.', '/');
 
-        // 设置 __file__ 属性
-        PyObject* filePathObj = PyUnicode_FromString(filePath.c_str());
-        PyDict_SetItemString(moduleDict, "__file__", filePathObj);
-        Py_DECREF(filePathObj);
+        std::string pyFilePath = moduleFilePath + ".py";
+        std::string pycFilePath = moduleFilePath + ".pyc";
 
-        // 执行模块代码
-        PyObject* result = nullptr;
+        // 检查模块是否在自定义文件系统中
+        bool moduleInCustomFS = true;// g_fileSystem.fileExists(pyFilePath) || g_fileSystem.fileExists(pycFilePath);
 
-        if (filePath.ends_with(".pyc"))
+        if (moduleInCustomFS)
         {
-            // 处理编译后的 .pyc 文件
-            // 跳过 .pyc 文件头部（通常是 16 字节）
-            const char* codeData = moduleContent.data();
-            size_t codeSize = moduleContent.size();
+            // 从自定义文件系统加载模块内容
+            std::vector<char> moduleContent;
+            std::string filePath;
 
-            if (codeSize > 16)
+            //         if (g_fileSystem.fileExists(pycFilePath))
+            //         {
+            //             moduleContent = g_fileSystem.readFile(pycFilePath);
+            //             filePath = pycFilePath;
+            //         }
+            //         else
+            //         {
+            //             moduleContent = g_fileSystem.readFile(pyFilePath);
+            //             filePath = pyFilePath;
+            //         }
+
+            if (moduleContent.empty())
             {
-                codeData += 16;
-                codeSize -= 16;
+                // 如果无法读取内容，回退到原始导入
+                return PyObject_Call(original_import, args, kwargs);
             }
 
-            // 从 .pyc 文件加载代码对象
-            PyObject* codeObj = PyMarshal_ReadObjectFromString(codeData, codeSize);
-            if (codeObj)
+            // 创建模块对象
+            PyObject* module = PyImport_AddModule(moduleName);
+            if (!module)
             {
-                // 执行代码对象
-                result = PyEval_EvalCode(codeObj, moduleDict, moduleDict);
-                Py_DECREF(codeObj);
+                return PyObject_Call(original_import, args, kwargs);
             }
-        }
-        else
-        {
-            // 处理源代码 .py 文件
-            result = PyRun_StringFlags(moduleContent.data(), Py_file_input, moduleDict, moduleDict, nullptr);
-        }
 
-        if (result)
-        {
-            Py_DECREF(result);
-        }
-        else
-        {
-            // 如果执行失败，打印错误并回退到原始导入
-            PyErr_Print();
-            return PyObject_Call(original_import, args, kwargs);
-        }
+            // 获取模块字典
+            PyObject* moduleDict = PyModule_GetDict(module);
 
-        // 处理 fromlist
-        if (fromlist && PyList_Check(fromlist) && PyList_Size(fromlist) > 0)
-        {
-            // 返回模块本身
-            Py_INCREF(module);
-            return module;
-        }
-        else
-        {
-            // 处理点分模块名称，返回顶级模块
-            const char* dot = strchr(moduleName, '.');
-            if (dot)
+            // 设置 __file__ 属性
+            PyObject* filePathObj = PyUnicode_FromString(filePath.c_str());
+            PyDict_SetItemString(moduleDict, "__file__", filePathObj);
+            Py_DECREF(filePathObj);
+
+            // 执行模块代码
+            PyObject* result = nullptr;
+
+            if (filePath.substr(filePath.length() - 4) == ".pyc"/*filePath.ends_with(".pyc")*/)
             {
-                std::string topModuleName(moduleName, dot - moduleName);
-                PyObject* topModule = PyImport_AddModule(topModuleName.c_str());
-                Py_INCREF(topModule);
-                return topModule;
+                // 处理编译后的 .pyc 文件
+                // 跳过 .pyc 文件头部（通常是 16 字节）
+                const char* codeData = moduleContent.data();
+                size_t codeSize = moduleContent.size();
+
+                if (codeSize > 16)
+                {
+                    codeData += 16;
+                    codeSize -= 16;
+                }
+
+                // 从 .pyc 文件加载代码对象
+                PyObject* codeObj = PyMarshal_ReadObjectFromString(codeData, codeSize);
+                if (codeObj)
+                {
+                    // 执行代码对象
+                    result = PyEval_EvalCode(codeObj, moduleDict, moduleDict);
+                    Py_DECREF(codeObj);
+                }
             }
             else
             {
+                // 处理源代码 .py 文件
+                result = PyRun_StringFlags(moduleContent.data(), Py_file_input, moduleDict, moduleDict, nullptr);
+            }
+
+            if (result)
+            {
+                Py_DECREF(result);
+            }
+            else
+            {
+                // 如果执行失败，打印错误并回退到原始导入
+                PyErr_Print();
+                return PyObject_Call(original_import, args, kwargs);
+            }
+
+            // 处理 fromlist
+            if (fromlist && PyList_Check(fromlist) && PyList_Size(fromlist) > 0)
+            {
+                // 返回模块本身
                 Py_INCREF(module);
                 return module;
             }
+            else
+            {
+                // 处理点分模块名称，返回顶级模块
+                const char* dot = strchr(moduleName, '.');
+                if (dot)
+                {
+                    std::string topModuleName(moduleName, dot - moduleName);
+                    PyObject* topModule = PyImport_AddModule(topModuleName.c_str());
+                    Py_INCREF(topModule);
+                    return topModule;
+                }
+                else
+                {
+                    Py_INCREF(module);
+                    return module;
+                }
+            }
         }
+
+        return PyObject_Call(original_import, args, kwargs);
     }
 
-    // 对于不在自定义文件系统中的模块，使用原始的 __import__ 函数
-    return PyObject_Call(original_import, args, kwargs);
-}
-
-// 安装自定义 __import__ 函数
-bool installCustomImport()
-{
-    // 获取 builtins 模块
-    PyObject* builtins = PyImport_ImportModule("builtins");
-    if (!builtins)
+    bool installCustomImport()
     {
-        //std::cerr << "无法导入 builtins 模块" << std::endl;
-        return false;
-    }
+        PyObject* builtins = PyImport_ImportModule("builtins");
+        if (!builtins)
+        {
+            //std::cerr << "无法导入 builtins 模块" << std::endl;
+            return false;
+        }
 
-    // 保存原始 __import__ 函数
-    original_import = PyObject_GetAttrString(builtins, "__import__");
-    if (!original_import)
-    {
-        Py_DECREF(builtins);
-        //std::cerr << "无法获取原始 __import__ 函数" << std::endl;
-        return false;
-    }
+        original_import = PyObject_GetAttrString(builtins, "__import__");
+        if (!original_import)
+        {
+            Py_DECREF(builtins);
+            //std::cerr << "无法获取原始 __import__ 函数" << std::endl;
+            return false;
+        }
 
-    // 创建自定义 __import__ 函数
-    PyMethodDef custom_import_def = {
-        "__import__", (PyCFunction)custom_import, METH_VARARGS | METH_KEYWORDS, "自定义 __import__ 函数"};
+        PyMethodDef custom_import_def = {
+            "__import__", (PyCFunction)custom_import, METH_VARARGS | METH_KEYWORDS, "自定义 __import__ 函数" };
 
-    PyObject* new_import = PyCFunction_New(&custom_import_def, nullptr);
-    if (!new_import)
-    {
-        Py_DECREF(original_import);
-        Py_DECREF(builtins);
-        //std::cerr << "无法创建自定义 __import__ 函数" << std::endl;
-        return false;
-    }
+        PyObject* new_import = PyCFunction_New(&custom_import_def, nullptr);
+        if (!new_import)
+        {
+            Py_DECREF(original_import);
+            Py_DECREF(builtins);
+            //std::cerr << "无法创建自定义 __import__ 函数" << std::endl;
+            return false;
+        }
 
-    // 替换 builtins.__import__
-    if (PyObject_SetAttrString(builtins, "__import__", new_import) < 0)
-    {
+        if (PyObject_SetAttrString(builtins, "__import__", new_import) < 0)
+        {
+            Py_DECREF(new_import);
+            Py_DECREF(original_import);
+            Py_DECREF(builtins);
+            //std::cerr << "无法替换 __import__ 函数" << std::endl;
+            return false;
+        }
+
         Py_DECREF(new_import);
-        Py_DECREF(original_import);
         Py_DECREF(builtins);
-        //std::cerr << "无法替换 __import__ 函数" << std::endl;
-        return false;
+
+        return true;
     }
-
-    // 清理引用
-    Py_DECREF(new_import);
-    Py_DECREF(builtins);
-
-    return true;
 }
-
 class MinimalPythonEmbedder
 {
 private:
@@ -958,17 +948,18 @@ bool PythonScript::Initialize(const std::string& pythonHome)
     PyConfig config;
     PyConfig_InitIsolatedConfig(&config);
     config.module_search_paths_set = 1;
-    config._init_main = 0;
+    //config._init_main = 0;
     config.site_import = 0;
     config.user_site_directory = 0;
     // 禁用导入警告
     //config.warnings = 0;
 
     // 禁用 __pycache__ 目录
-    config.write_bytecode = 0;
-    //     config.use_frozen_modules = 0;
-//     config._install_importlib = 0;
+    //config.write_bytecode = 0;
+//     config.use_frozen_modules = 1;
+//     config._install_importlib = 1;
     std::vector<std::wstring> moduleSearchPaths = {
+        //L"",
         L"D:/Github/rbfx-v3/Source/ThirdParty/Python/Python-3.13.2/Lib"
 //         L"Script",
 //         L"Script/Lib",
@@ -984,16 +975,16 @@ bool PythonScript::Initialize(const std::string& pythonHome)
     }
 //    cacheAvailableModules();
 //    initialize_python_without_frozen();
-    if (!installCustomImport()) {
-        return false;
-    }
-    status = _Py_InitializeMain();
-    if (PyStatus_Exception(status))
-        return false;
-
-    if (!Py_IsInitialized()) {
-        return false;
-    }
+//     if (!installCustomImport()) {
+//         return false;
+//     }
+//     status = _Py_InitializeMain();
+//     if (PyStatus_Exception(status))
+//         return false;
+// 
+//     if (!Py_IsInitialized()) {
+//         return false;
+//     }
 
 //     bootstrap_core_modules();
 //     PyObject* os_module = load_stdlib_module("os");

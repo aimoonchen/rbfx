@@ -605,10 +605,10 @@ endif()
 #     )
 # endif()
 
-add_python_extension(_md5 ${WIN32_BUILTIN} SOURCES md5module.c _hacl/Hacl_Hash_MD5.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
-add_python_extension(_sha1 ${WIN32_BUILTIN} SOURCES sha1module.c _hacl/Hacl_Hash_SHA1.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
-add_python_extension(_sha2 ${WIN32_BUILTIN} SOURCES sha2module.c _hacl/Hacl_Hash_SHA2.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
-add_python_extension(_sha3 ${WIN32_BUILTIN} SOURCES sha3module.c _hacl/Hacl_Hash_SHA3.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
+# add_python_extension(_md5 ${WIN32_BUILTIN} SOURCES md5module.c _hacl/Hacl_Hash_MD5.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
+# add_python_extension(_sha1 ${WIN32_BUILTIN} SOURCES sha1module.c _hacl/Hacl_Hash_SHA1.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
+# add_python_extension(_sha2 ${WIN32_BUILTIN} SOURCES sha2module.c _hacl/Hacl_Hash_SHA2.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
+# add_python_extension(_sha3 ${WIN32_BUILTIN} SOURCES sha3module.c _hacl/Hacl_Hash_SHA3.c INCLUDEDIRS ${SRC_DIR}/Modules/_hacl/include)
 
 add_python_extension(_tokenize
     SOURCES ${SRC_DIR}/Python/Python-tokenize.c
@@ -694,15 +694,15 @@ add_python_extension(_sysconfig
 #     LIBRARIES ${GDBM_LIBRARY}
 #     INCLUDEDIRS ${GDBM_INCLUDE_PATH}
 # )
-add_python_extension(_hashlib
-    REQUIRES OPENSSL_INCLUDE_DIR OPENSSL_LIBRARIES
-    SOURCES _hashopenssl.c
-    LIBRARIES ${OPENSSL_LIBRARIES}
-    INCLUDEDIRS ${OPENSSL_INCLUDE_DIR}
-)
-if(ENABLE_HASHLIB AND CMAKE_C_COMPILER_ID MATCHES GNU)
-    set_property(SOURCE ${SRC_DIR}/Modules/_hashopenssl.c PROPERTY COMPILE_FLAGS -Wno-deprecated-declarations)
-endif()
+# add_python_extension(_hashlib
+#     REQUIRES OPENSSL_INCLUDE_DIR OPENSSL_LIBRARIES
+#     SOURCES _hashopenssl.c
+#     LIBRARIES ${OPENSSL_LIBRARIES}
+#     INCLUDEDIRS ${OPENSSL_INCLUDE_DIR}
+# )
+# if(ENABLE_HASHLIB AND CMAKE_C_COMPILER_ID MATCHES GNU)
+#     set_property(SOURCE ${SRC_DIR}/Modules/_hashopenssl.c PROPERTY COMPILE_FLAGS -Wno-deprecated-declarations)
+# endif()
 # add_python_extension(_lzma
 #     REQUIRES LZMA_INCLUDE_PATH LZMA_LIBRARY
 #     SOURCES _lzmamodule.c
@@ -737,20 +737,20 @@ endif()
 # if(ENABLE_SQLITE3 AND CMAKE_C_COMPILER_ID MATCHES GNU)
 #     set_property(SOURCE ${SRC_DIR}/Modules/_sqlite/module.c PROPERTY COMPILE_FLAGS -Wno-deprecated-declarations)
 # endif()
-set(_ssl_LIBRARIES ${OPENSSL_LIBRARIES})
-if(WIN32)
-    list(APPEND _ssl_LIBRARIES Crypt32 ws2_32)
-endif()
-set(_ssl_SOURCES _ssl.c)
-if(WIN32)
-    list(APPEND _ssl_SOURCES ${OPENSSL_INCLUDE_DIR}/openssl/applink.c)
-endif()
-add_python_extension(_ssl
-    REQUIRES OPENSSL_INCLUDE_DIR OPENSSL_LIBRARIES
-    SOURCES ${_ssl_SOURCES}
-    LIBRARIES ${_ssl_LIBRARIES}
-    INCLUDEDIRS ${OPENSSL_INCLUDE_DIR}
-)
+# set(_ssl_LIBRARIES ${OPENSSL_LIBRARIES})
+# if(WIN32)
+#     list(APPEND _ssl_LIBRARIES Crypt32 ws2_32)
+# endif()
+# set(_ssl_SOURCES _ssl.c)
+# if(WIN32)
+#     list(APPEND _ssl_SOURCES ${OPENSSL_INCLUDE_DIR}/openssl/applink.c)
+# endif()
+# add_python_extension(_ssl
+#     REQUIRES OPENSSL_INCLUDE_DIR OPENSSL_LIBRARIES
+#     SOURCES ${_ssl_SOURCES}
+#     LIBRARIES ${_ssl_LIBRARIES}
+#     INCLUDEDIRS ${OPENSSL_INCLUDE_DIR}
+# )
 # set(_tkinter_REQUIRES TCL_LIBRARY TK_LIBRARY TCL_INCLUDE_PATH TK_INCLUDE_PATH)
 # set(_tkinter_LIBRARIES ${TCL_LIBRARY} ${TK_LIBRARY})
 # set(_tkinter_INCLUDEDIRS ${TCL_INCLUDE_PATH} ${TK_INCLUDE_PATH})
