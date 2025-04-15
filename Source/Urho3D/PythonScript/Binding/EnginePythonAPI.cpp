@@ -1,5 +1,5 @@
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
+//#include <nanobind/stl/string.h>
 #include "../../Core/Context.h"
 #include "../../Engine/Engine.h"
 #include "../../Resource/XMLFile.h"

@@ -35,7 +35,7 @@
 #include "../../Scene/Scene.h"
 #include "../../Scene/Component.h"
 #include "../../UI/Text3D.h"
-#define PAR_SHAPES_IMPLEMENTATION
+//#define PAR_SHAPES_IMPLEMENTATION
 #include "ThirdParty/par/par_shapes.h"
 
 //Urho3D::Context* GetContext(lua_State* L);
@@ -43,192 +43,190 @@ using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
 
-Urho3D::Model* ParMeshToModel(Urho3D::Context* ctx, par_shapes_mesh* mesh, bool swithYZ)
+Urho3D::Model* ParMeshToModel(Urho3D::Context* ctx, par_shapes_mesh* mesh, bool swithYZ);
+
+// Urho3D::Model* ParMeshToModel(Urho3D::Context* ctx, par_shapes_mesh* mesh, bool swithYZ)
+// {
+//     par_shapes_unweld(mesh, true);
+//     par_shapes_compute_normals(mesh);
+// 
+//     if (swithYZ)
+//     {
+//         // ccw to cw
+//         par_shapes_invert(mesh, 0, 0);
+//     }
+// 
+//     Urho3D::BoundingBox bb;
+//     float bbox[6];
+//     par_shapes_compute_aabb(mesh, bbox);
+//     bb.min_ = Urho3D::Vector3{bbox[0], bbox[2], bbox[1]};
+//     bb.max_ = Urho3D::Vector3{bbox[3], bbox[5], bbox[4]};
+// 
+//     // Get index data
+//     // 		std::vector<uint32_t> indexData;
+//     // 		indexData.resize(mesh->ntriangles * 3);
+//     // 		for (int i = 0; i < indexData.size(); ++i) {
+//     // 			indexData[i] = mesh->triangles[i];
+//     // 		}
+//     struct VertexData
+//     {
+//         Urho3D::Vector3 position;
+//         Urho3D::Vector3 normal;
+//         // 		Urho3D::Vector2 texcoord;
+//     };
+// 
+//     std::vector<VertexData> vertexData;
+//     vertexData.resize(mesh->npoints);
+//     if (swithYZ)
+//     {
+//         for (int i = 0; i < mesh->npoints; ++i)
+//         {
+//             const auto& pos = ((Urho3D::Vector3*)(mesh->points))[i];
+//             vertexData[i].position = {pos.x_, pos.z_, pos.y_};
+//             const auto& nor = ((Urho3D::Vector3*)(mesh->normals))[i];
+//             vertexData[i].normal = {nor.x_, nor.z_, nor.y_};
+//             // 		if (mesh->tcoords) {
+//             // 			vertexData[i].texcoord = ((Urho3D::Vector2*)(mesh->tcoords))[i];
+//             // 		}
+//         }
+//     }
+//     else
+//     {
+//         for (int i = 0; i < mesh->npoints; ++i)
+//         {
+//             vertexData[i].position = ((Urho3D::Vector3*)(mesh->points))[i];
+//             vertexData[i].normal = ((Urho3D::Vector3*)(mesh->normals))[i];
+//             // 		if (mesh->tcoords) {
+//             // 			vertexData[i].texcoord = ((Urho3D::Vector2*)(mesh->tcoords))[i];
+//             // 		}
+//         }
+//     }
+// 
+//     // 	Urho3D::GenerateTangents(vertexData.data(), sizeof(VertexData), indexData.data(), sizeof(unsigned short), 0,
+//     // indexData.size(), 		offsetof(VertexData, normal), offsetof(VertexData, texcoord), offsetof(VertexData, tangent));
+// 
+//     auto geometry = new Urho3D::Geometry(ctx);
+//     geometry->SetNumVertexBuffers(1);
+// 
+//     auto vbo = new Urho3D::VertexBuffer(ctx);
+//     vbo->SetShadowed(true);
+//     vbo->SetSize((unsigned int)vertexData.size(),
+//         {
+//             Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION),
+//             Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL),
+//             // 		Urho3D::VertexElement(Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD)
+//         });
+//     vbo->Update(vertexData.data());
+// 
+//     auto ibo = new Urho3D::IndexBuffer(ctx);
+//     ibo->SetShadowed(true);
+//     ibo->SetSize(mesh->ntriangles * 3, false);
+//     ibo->Update(mesh->triangles);
+// 
+//     geometry->SetVertexBuffer(0, vbo);
+//     geometry->SetIndexBuffer(ibo);
+//     geometry->SetDrawRange(Urho3D::TRIANGLE_LIST, 0, ibo->GetIndexCount());
+// 
+//     par_shapes_free_mesh(mesh);
+// 
+//     auto model = new Urho3D::Model(ctx);
+//     model->SetNumGeometries(1);
+// 
+//     // for save to file, remove this for runtime model?
+//     model->SetVertexBuffers({SharedPtr<VertexBuffer>{vbo}}, {}, {});
+//     model->SetIndexBuffers({SharedPtr<IndexBuffer>{ibo}});
+//     //
+//     model->SetGeometry(0, 0, geometry);
+//     model->SetBoundingBox(bb);
+//     return model;
+// }
+
+static void RegisterConst(nb::module_ m)
 {
-    par_shapes_unweld(mesh, true);
-    par_shapes_compute_normals(mesh);
-
-    if (swithYZ)
-    {
-        // ccw to cw
-        par_shapes_invert(mesh, 0, 0);
-    }
-
-    Urho3D::BoundingBox bb;
-    float bbox[6];
-    par_shapes_compute_aabb(mesh, bbox);
-    bb.min_ = Urho3D::Vector3{bbox[0], bbox[2], bbox[1]};
-    bb.max_ = Urho3D::Vector3{bbox[3], bbox[5], bbox[4]};
-
-    // Get index data
-    // 		std::vector<uint32_t> indexData;
-    // 		indexData.resize(mesh->ntriangles * 3);
-    // 		for (int i = 0; i < indexData.size(); ++i) {
-    // 			indexData[i] = mesh->triangles[i];
-    // 		}
-    struct VertexData
-    {
-        Urho3D::Vector3 position;
-        Urho3D::Vector3 normal;
-        // 		Urho3D::Vector2 texcoord;
-    };
-
-    std::vector<VertexData> vertexData;
-    vertexData.resize(mesh->npoints);
-    if (swithYZ)
-    {
-        for (int i = 0; i < mesh->npoints; ++i)
-        {
-            const auto& pos = ((Urho3D::Vector3*)(mesh->points))[i];
-            vertexData[i].position = {pos.x_, pos.z_, pos.y_};
-            const auto& nor = ((Urho3D::Vector3*)(mesh->normals))[i];
-            vertexData[i].normal = {nor.x_, nor.z_, nor.y_};
-            // 		if (mesh->tcoords) {
-            // 			vertexData[i].texcoord = ((Urho3D::Vector2*)(mesh->tcoords))[i];
-            // 		}
-        }
-    }
-    else
-    {
-        for (int i = 0; i < mesh->npoints; ++i)
-        {
-            vertexData[i].position = ((Urho3D::Vector3*)(mesh->points))[i];
-            vertexData[i].normal = ((Urho3D::Vector3*)(mesh->normals))[i];
-            // 		if (mesh->tcoords) {
-            // 			vertexData[i].texcoord = ((Urho3D::Vector2*)(mesh->tcoords))[i];
-            // 		}
-        }
-    }
-
-    // 	Urho3D::GenerateTangents(vertexData.data(), sizeof(VertexData), indexData.data(), sizeof(unsigned short), 0,
-    // indexData.size(), 		offsetof(VertexData, normal), offsetof(VertexData, texcoord), offsetof(VertexData, tangent));
-
-    auto geometry = new Urho3D::Geometry(ctx);
-    geometry->SetNumVertexBuffers(1);
-
-    auto vbo = new Urho3D::VertexBuffer(ctx);
-    vbo->SetShadowed(true);
-    vbo->SetSize((unsigned int)vertexData.size(),
-        {
-            Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_POSITION),
-            Urho3D::VertexElement(Urho3D::TYPE_VECTOR3, Urho3D::SEM_NORMAL),
-            // 		Urho3D::VertexElement(Urho3D::TYPE_VECTOR2, Urho3D::SEM_TEXCOORD)
-        });
-    vbo->Update(vertexData.data());
-
-    auto ibo = new Urho3D::IndexBuffer(ctx);
-    ibo->SetShadowed(true);
-    ibo->SetSize(mesh->ntriangles * 3, false);
-    ibo->Update(mesh->triangles);
-
-    geometry->SetVertexBuffer(0, vbo);
-    geometry->SetIndexBuffer(ibo);
-    geometry->SetDrawRange(Urho3D::TRIANGLE_LIST, 0, ibo->GetIndexCount());
-
-    par_shapes_free_mesh(mesh);
-
-    auto model = new Urho3D::Model(ctx);
-    model->SetNumGeometries(1);
-
-    // for save to file, remove this for runtime model?
-    model->SetVertexBuffers({SharedPtr<VertexBuffer>{vbo}}, {}, {});
-    model->SetIndexBuffers({SharedPtr<IndexBuffer>{ibo}});
+    m["LIGHT_DIRECTIONAL"]	= LIGHT_DIRECTIONAL;
+    m["LIGHT_SPOT"]			= LIGHT_SPOT;
+    m["LIGHT_POINT"]			= LIGHT_POINT;
     //
-    model->SetGeometry(0, 0, geometry);
-    model->SetBoundingBox(bb);
-    return model;
+    m["DEFAULT_RANGE"]                = DEFAULT_RANGE;
+    m["DEFAULT_LIGHT_FOV"]            = DEFAULT_LIGHT_FOV;
+    m["DEFAULT_SPECULARINTENSITY"]    = DEFAULT_SPECULARINTENSITY;
+    m["DEFAULT_BRIGHTNESS"]           = DEFAULT_BRIGHTNESS;
+    m["DEFAULT_CONSTANTBIAS"]         = DEFAULT_CONSTANTBIAS;
+    m["DEFAULT_SLOPESCALEDBIAS"]      = DEFAULT_SLOPESCALEDBIAS;
+    m["DEFAULT_NORMALOFFSET"]         = DEFAULT_NORMALOFFSET;
+    m["DEFAULT_BIASAUTOADJUST"]       = DEFAULT_BIASAUTOADJUST;
+    m["DEFAULT_SHADOWFADESTART"]      = DEFAULT_SHADOWFADESTART;
+    m["DEFAULT_SHADOWQUANTIZE"]       = DEFAULT_SHADOWQUANTIZE;
+    m["DEFAULT_SHADOWMINVIEW"]        = DEFAULT_SHADOWMINVIEW;
+    m["DEFAULT_SHADOWNEARFARRATIO"]   = DEFAULT_SHADOWNEARFARRATIO;
+    m["DEFAULT_SHADOWMAXEXTRUSION"]   = DEFAULT_SHADOWMAXEXTRUSION;
+    m["DEFAULT_SHADOWSPLIT"]          = DEFAULT_SHADOWSPLIT;
+    m["DEFAULT_TEMPERATURE"]          = DEFAULT_TEMPERATURE;
+    m["FC_NONE"]                      = FC_NONE;
+    m["FC_ROTATE_XYZ"]                = FC_ROTATE_XYZ;
+    m["FC_ROTATE_Y"]                  = FC_ROTATE_Y;
+    m["FC_LOOKAT_XYZ"]                = FC_LOOKAT_XYZ;
+    m["FC_LOOKAT_Y"]                  = FC_LOOKAT_Y;
+    m["FC_LOOKAT_MIXED"]              = FC_LOOKAT_MIXED;
+    m["FC_DIRECTION"]                 = FC_DIRECTION;
+    m["FC_AXIS_ANGLE"]                = FC_AXIS_ANGLE;
+    //
+    auto GIType = m.def_submodule("GlobalIlluminationType");
+    GIType["None"]              = GlobalIlluminationType::None;
+    GIType["UseLightMap"]       = GlobalIlluminationType::UseLightMap;
+    GIType["BlendLightProbes"]  = GlobalIlluminationType::BlendLightProbes;
+    auto graphic = m.def_submodule("graphic");
+    nb::enum_<TextureFormat>(m, "TextureFormat")
+        .value("TEX_FORMAT_RGBA8_UNORM",       TextureFormat::TEX_FORMAT_RGBA8_UNORM)
+        .value("TEX_FORMAT_RGBA8_UNORM_SRGB",  TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB);
+    nb::enum_<TextureFlag>(m, "TextureFlag")
+        .value("None",                         TextureFlag::None)
+        .value("BindRenderTarget",             TextureFlag::BindRenderTarget)
+        .value("BindDepthStencil",             TextureFlag::BindDepthStencil)
+        .value("BindUnorderedAccess",          TextureFlag::BindUnorderedAccess)
+        .value("NoMultiSampledAutoResolve",    TextureFlag::NoMultiSampledAutoResolve);
+    nb::enum_<BlendMode>(m, "BlendMode")
+        .value("REPLACE",                      BLEND_REPLACE)
+        .value("ADD",                          BLEND_ADD)
+        .value("MULTIPLY",                     BLEND_MULTIPLY)
+        .value("ALPHA",                        BLEND_ALPHA)
+        .value("ADDALPHA",                     BLEND_ADDALPHA)
+        .value("PREMULALPHA",                  BLEND_PREMULALPHA)
+        .value("INVDESTALPHA",                 BLEND_INVDESTALPHA)
+        .value("SUBTRACT",                     BLEND_SUBTRACT)
+        .value("SUBTRACTALPHA",                BLEND_SUBTRACTALPHA)
+        .value("DEFERRED_DECAL",               BLEND_DEFERRED_DECAL);
+    auto shaderResources = graphic.def_submodule("ShaderResources");
+    shaderResources["Albedo"]       = ShaderResources::Albedo.GetHash();
+    shaderResources["Normal"]       = ShaderResources::Normal.GetHash();
+    shaderResources["Properties"]   = ShaderResources::Properties.GetHash();
+    shaderResources["Emission"]     = ShaderResources::Emission.GetHash();
+    shaderResources["Reflection0"]  = ShaderResources::Reflection0.GetHash();
+    shaderResources["Reflection1"]  = ShaderResources::Reflection1.GetHash();
+    shaderResources["LightRamp"]    = ShaderResources::LightRamp.GetHash();
+    shaderResources["LightShape"]   = ShaderResources::LightShape.GetHash();
+    shaderResources["ShadowMap"]    = ShaderResources::ShadowMap.GetHash();
+    shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer.GetHash();
+
+    graphic["FILTER_BILINEAR"]      = FILTER_BILINEAR;
+    //
+    graphic["RAY_AABB"]             = RAY_AABB;
+    graphic["RAY_OBB"]              = RAY_OBB;
+    graphic["RAY_TRIANGLE"]         = RAY_TRIANGLE;
+    graphic["RAY_TRIANGLE_UV"]      = RAY_TRIANGLE_UV;
+    //
+    graphic["DRAWABLE_UNDEFINED"]   = DRAWABLE_UNDEFINED;
+    graphic["DRAWABLE_GEOMETRY"]    = DRAWABLE_GEOMETRY;
+    graphic["DRAWABLE_LIGHT"]       = DRAWABLE_LIGHT;
+    graphic["DRAWABLE_ZONE"]        = DRAWABLE_ZONE;
+    graphic["DRAWABLE_GEOMETRY2D"]  = DRAWABLE_GEOMETRY2D;
+    graphic["DRAWABLE_ANY"]         = DRAWABLE_ANY;
+    //
+    graphic["DEFAULT_VIEWMASK"]     = DEFAULT_VIEWMASK;
 }
 
-// static void RegisterConst(sol::state& lua)
-// {
-//     lua["LIGHT_DIRECTIONAL"]	= LIGHT_DIRECTIONAL;
-//     lua["LIGHT_SPOT"]			= LIGHT_SPOT;
-//     lua["LIGHT_POINT"]			= LIGHT_POINT;
-//     //
-//     lua["DEFAULT_RANGE"]                = DEFAULT_RANGE;
-//     lua["DEFAULT_LIGHT_FOV"]            = DEFAULT_LIGHT_FOV;
-//     lua["DEFAULT_SPECULARINTENSITY"]    = DEFAULT_SPECULARINTENSITY;
-//     lua["DEFAULT_BRIGHTNESS"]           = DEFAULT_BRIGHTNESS;
-//     lua["DEFAULT_CONSTANTBIAS"]         = DEFAULT_CONSTANTBIAS;
-//     lua["DEFAULT_SLOPESCALEDBIAS"]      = DEFAULT_SLOPESCALEDBIAS;
-//     lua["DEFAULT_NORMALOFFSET"]         = DEFAULT_NORMALOFFSET;
-//     lua["DEFAULT_BIASAUTOADJUST"]       = DEFAULT_BIASAUTOADJUST;
-//     lua["DEFAULT_SHADOWFADESTART"]      = DEFAULT_SHADOWFADESTART;
-//     lua["DEFAULT_SHADOWQUANTIZE"]       = DEFAULT_SHADOWQUANTIZE;
-//     lua["DEFAULT_SHADOWMINVIEW"]        = DEFAULT_SHADOWMINVIEW;
-//     lua["DEFAULT_SHADOWNEARFARRATIO"]   = DEFAULT_SHADOWNEARFARRATIO;
-//     lua["DEFAULT_SHADOWMAXEXTRUSION"]   = DEFAULT_SHADOWMAXEXTRUSION;
-//     lua["DEFAULT_SHADOWSPLIT"]          = DEFAULT_SHADOWSPLIT;
-//     lua["DEFAULT_TEMPERATURE"]          = DEFAULT_TEMPERATURE;
-//     lua["FC_NONE"]                      = FC_NONE;
-//     lua["FC_ROTATE_XYZ"]                = FC_ROTATE_XYZ;
-//     lua["FC_ROTATE_Y"]                  = FC_ROTATE_Y;
-//     lua["FC_LOOKAT_XYZ"]                = FC_LOOKAT_XYZ;
-//     lua["FC_LOOKAT_Y"]                  = FC_LOOKAT_Y;
-//     lua["FC_LOOKAT_MIXED"]              = FC_LOOKAT_MIXED;
-//     lua["FC_DIRECTION"]                 = FC_DIRECTION;
-//     lua["FC_AXIS_ANGLE"]                = FC_AXIS_ANGLE;
-//     //
-//     auto GIType = lua["GlobalIlluminationType"].get_or_create<sol::table>();
-//     GIType["None"]              = GlobalIlluminationType::None;
-//     GIType["UseLightMap"]       = GlobalIlluminationType::UseLightMap;
-//     GIType["BlendLightProbes"]  = GlobalIlluminationType::BlendLightProbes;
-//     auto graphic = lua["graphic"].get_or_create<sol::table>();
-//     graphic.new_enum("TextureFormat",
-//         "TEX_FORMAT_RGBA8_UNORM",       TextureFormat::TEX_FORMAT_RGBA8_UNORM,
-//         "TEX_FORMAT_RGBA8_UNORM_SRGB",  TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB
-//     );
-//     graphic.new_enum("TextureFlag",
-//         "None",                         TextureFlag::None,
-//         "BindRenderTarget",             TextureFlag::BindRenderTarget,
-//         "BindDepthStencil",             TextureFlag::BindDepthStencil,
-//         "BindUnorderedAccess",          TextureFlag::BindUnorderedAccess,
-//         "NoMultiSampledAutoResolve",    TextureFlag::NoMultiSampledAutoResolve
-//     );
-//     graphic.new_enum("BlendMode",
-//         "REPLACE",                      BLEND_REPLACE,
-//         "ADD",                          BLEND_ADD,
-//         "MULTIPLY",                     BLEND_MULTIPLY,
-//         "ALPHA",                        BLEND_ALPHA,
-//         "ADDALPHA",                     BLEND_ADDALPHA,
-//         "PREMULALPHA",                  BLEND_PREMULALPHA,
-//         "INVDESTALPHA",                 BLEND_INVDESTALPHA,
-//         "SUBTRACT",                     BLEND_SUBTRACT,
-//         "SUBTRACTALPHA",                BLEND_SUBTRACTALPHA,
-//         "DEFERRED_DECAL",               BLEND_DEFERRED_DECAL
-//     );
-//     auto shaderResources = graphic["ShaderResources"].get_or_create<sol::table>();
-//     shaderResources["Albedo"]       = ShaderResources::Albedo.GetHash();
-//     shaderResources["Normal"]       = ShaderResources::Normal.GetHash();
-//     shaderResources["Properties"]   = ShaderResources::Properties.GetHash();
-//     shaderResources["Emission"]     = ShaderResources::Emission.GetHash();
-//     shaderResources["Reflection0"]  = ShaderResources::Reflection0.GetHash();
-//     shaderResources["Reflection1"]  = ShaderResources::Reflection1.GetHash();
-//     shaderResources["LightRamp"]    = ShaderResources::LightRamp.GetHash();
-//     shaderResources["LightShape"]   = ShaderResources::LightShape.GetHash();
-//     shaderResources["ShadowMap"]    = ShaderResources::ShadowMap.GetHash();
-//     shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer.GetHash();
-// 
-//     graphic["FILTER_BILINEAR"]      = FILTER_BILINEAR;
-//     //
-//     graphic["RAY_AABB"]             = RAY_AABB;
-//     graphic["RAY_OBB"]              = RAY_OBB;
-//     graphic["RAY_TRIANGLE"]         = RAY_TRIANGLE;
-//     graphic["RAY_TRIANGLE_UV"]      = RAY_TRIANGLE_UV;
-//     //
-//     graphic["DRAWABLE_UNDEFINED"]   = DRAWABLE_UNDEFINED;
-//     graphic["DRAWABLE_GEOMETRY"]    = DRAWABLE_GEOMETRY;
-//     graphic["DRAWABLE_LIGHT"]       = DRAWABLE_LIGHT;
-//     graphic["DRAWABLE_ZONE"]        = DRAWABLE_ZONE;
-//     graphic["DRAWABLE_GEOMETRY2D"]  = DRAWABLE_GEOMETRY2D;
-//     graphic["DRAWABLE_ANY"]         = DRAWABLE_ANY;
-//     //
-//     graphic["DEFAULT_VIEWMASK"]     = DEFAULT_VIEWMASK;
-// }
 NB_MODULE(graphics, m)
 {
-// 	auto context = GetContext(lua.lua_state());
-//     auto graphic = lua["graphic"].get_or_create<sol::table>();
     Context* context = nullptr;
     nb::class_<BiasParameters>(m, "BiasParameters")
         .def(nb::init<float, float>());
@@ -638,5 +636,5 @@ NB_MODULE(graphics, m)
         
     m.attr("graphics_system") = context->GetSubsystem<Graphics>();
     m.attr("renderer_system") = context->GetSubsystem<Renderer>();
-    RegisterConst(lua);
+    RegisterConst(m);
 }

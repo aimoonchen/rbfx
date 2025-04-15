@@ -57,7 +57,7 @@ static void RegisterCoreConst(nb::module_ m)
     postRenderUpdate["TimeStep"]    = PostRenderUpdate::P_TIMESTEP;
 }
 
-NB_MODULE(core, m)
+NB_MODULE(kfcore, m)
 {
     m.def("GetPlatform", []() { return Urho3D::GetPlatform(); });
     m.def("GetPlatformName", []() { return Urho3D::GetPlatformName(); });

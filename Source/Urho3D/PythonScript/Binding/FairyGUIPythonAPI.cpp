@@ -48,36 +48,36 @@ using namespace nb::literals;
 USING_NS_FGUI;
 
 // TODO: for examples
-class EmojiParser : public UBBParser
-{
-public:
-    static EmojiParser* getInstance() { return _inst; }
-    EmojiParser();
-
-protected:
-    void onTag_Emoji(const std::string& tagName, bool end, const std::string& attr, std::string& replacement);
-
-private:
-    static EmojiParser* _inst;
-};
-
-EmojiParser* EmojiParser::_inst = new EmojiParser();
-
-EmojiParser::EmojiParser()
-{
-    std::vector<std::string> tags(
-        {"88", "am", "bs", "bz", "ch", "cool", "dhq", "dn", "fd", "gz", "han", "hx", "hxiao", "hxiu"});
-
-    for (auto& str : tags)
-        _handlers[":" + str] = UBB_TAG_HANDLER(EmojiParser::onTag_Emoji, this);
-}
-
-void EmojiParser::onTag_Emoji(const std::string& tagName, bool end, const std::string& attr, std::string& replacement)
-{
-    std::string str = tagName.substr(1);
-    transform(str.begin(), str.end(), str.begin(), ::tolower);
-    replacement = "<img src='ui://Emoji/" + str + "'/>";
-}
+// class EmojiParser : public UBBParser
+// {
+// public:
+//     static EmojiParser* getInstance() { return _inst; }
+//     EmojiParser();
+// 
+// protected:
+//     void onTag_Emoji(const std::string& tagName, bool end, const std::string& attr, std::string& replacement);
+// 
+// private:
+//     static EmojiParser* _inst;
+// };
+// 
+// EmojiParser* EmojiParser::_inst = new EmojiParser();
+// 
+// EmojiParser::EmojiParser()
+// {
+//     std::vector<std::string> tags(
+//         {"88", "am", "bs", "bz", "ch", "cool", "dhq", "dn", "fd", "gz", "han", "hx", "hxiao", "hxiu"});
+// 
+//     for (auto& str : tags)
+//         _handlers[":" + str] = UBB_TAG_HANDLER(EmojiParser::onTag_Emoji, this);
+// }
+// 
+// void EmojiParser::onTag_Emoji(const std::string& tagName, bool end, const std::string& attr, std::string& replacement)
+// {
+//     std::string str = tagName.substr(1);
+//     transform(str.begin(), str.end(), str.begin(), ::tolower);
+//     replacement = "<img src='ui://Emoji/" + str + "'/>";
+// }
 
 // namespace{
 // ea::unordered_map<TypeID, ea::function<int(lua_State* L, const GObject* obj)>> fairygui_convert_map = {
@@ -242,17 +242,18 @@ public:
     GRoot* _groot{ nullptr };
 };
 
-bool FairyGUIScene::init()
-{
-    if (!Scene::init()) {
-        return false;
-    }
+// bool FairyGUIScene::init()
+// {
+//     if (!Scene::init()) {
+//         return false;
+//     }
+// 
+//     _groot = GRoot::create(this);
+//     _groot->retain();
+// 
+//     return true;
+// }
 
-    _groot = GRoot::create(this);
-    _groot->retain();
-
-    return true;
-}
 NB_MODULE(fairygui, m)
 {
     m.def_submodule("UIPackage")
@@ -569,9 +570,10 @@ NB_MODULE(fairygui, m)
     m.def("StartDrag", [](const ea::string& icon, const int sourceData, int touchPointID) { DragDropManager::getInstance()->startDrag(icon.c_str(), cocos2d::Value(sourceData), touchPointID); });
     m.def("StartDrag", [](const ea::string& icon, const float sourceData, int touchPointID) { DragDropManager::getInstance()->startDrag(icon.c_str(), cocos2d::Value(sourceData), touchPointID); });
     m.def("StartDrag", [](const ea::string& icon, const bool sourceData, int touchPointID) { DragDropManager::getInstance()->startDrag(icon.c_str(), cocos2d::Value(sourceData), touchPointID); });
-    m.def("EmojiParser", [](const char* str) {
-        return EmojiParser::getInstance()->parse(str);
-    });
+//     m.def("EmojiParser", [](const char* str) {
+//         return EmojiParser::getInstance()->parse(str);
+//     });
+
 //     auto uiconfig = fairygui["UIConfig"].get_or_create<sol::table>();
 //     uiconfig["defaultFont"]         = std::ref(UIConfig::defaultFont);
 //     uiconfig["buttonSound"]         = std::ref(UIConfig::buttonSound);

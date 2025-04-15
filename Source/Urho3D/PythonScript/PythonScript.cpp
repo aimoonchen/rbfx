@@ -14,7 +14,7 @@
 #include "Python.h"
 #include "marshal.h"
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
+//#include <nanobind/stl/string.h>
 #include <vector>
 #include <unordered_set>
 #include "../DebugNew.h"
@@ -53,194 +53,238 @@ PythonScript::~PythonScript()
 {
     Finalize();
 }
-
-// 处理 .pyc 文件的替代方法
-PyObject* loadPycFile(const char* data, size_t size, PyObject* moduleDict)
+/*
+static PyObject* g_original_open = nullptr;
+static PyObject* custom_open(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-    // 在 Python 3.13.2 中，我们可以使用 _imp 模块来加载已编译的代码
-    PyObject* impModule = PyImport_ImportModule("_imp");
-    if (!impModule)
+    static const char* kwlist[] = {
+        "file", "mode", "buffering", "encoding", "errors", "newline", "closefd", "opener", nullptr};
+    const char* path = nullptr;
+    const char* mode = "r";
+    int buffering = -1;
+    const char* encoding = nullptr;
+    const char* errors = nullptr;
+    const char* newline = nullptr;
+    int closefd = 1;
+    PyObject* opener = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|sisspip", const_cast<char**>(kwlist), &path, &mode, &buffering,
+            &encoding, &errors, &newline, &closefd, &opener))
     {
-        PyErr_Print();
         return nullptr;
     }
 
-    // 跳过 .pyc 文件头部（通常是 16 字节，但在 Python 3.13 中可能有变化）
-    // 头部格式: magic number (4 bytes) + 其他元数据
-    size_t headerSize = 16; // 默认头部大小
-    if (size <= headerSize)
-    {
-        PyErr_SetString(PyExc_ImportError, "无效的 .pyc 文件 (太小)");
-        Py_DECREF(impModule);
-        return nullptr;
-    }
+    bool is_read_mode = strchr(mode, 'r') != nullptr;
+    bool is_binary_mode = strchr(mode, 'b') != nullptr;
 
-    // 创建一个包含字节码的字节对象
-    PyObject* codeBytes = PyBytes_FromStringAndSize(data + headerSize, size - headerSize);
-    if (!codeBytes)
+    if (is_read_mode)
     {
-        Py_DECREF(impModule);
-        return nullptr;
-    }
-
-    // 使用 _imp.create_dynamic 或 _imp.exec_dynamic 加载代码对象
-    PyObject* execDynamic = PyObject_GetAttrString(impModule, "exec_dynamic");
-    if (!execDynamic)
-    {
-        // 如果 exec_dynamic 不存在，尝试使用 create_dynamic
-        PyErr_Clear();
-        execDynamic = PyObject_GetAttrString(impModule, "create_dynamic");
-    }
-
-    PyObject* result = nullptr;
-    if (execDynamic && PyCallable_Check(execDynamic))
-    {
-        // 调用 _imp 模块的函数来执行字节码
-        result = PyObject_CallFunction(execDynamic, "OO", codeBytes, moduleDict);
-    }
-    else
-    {
-        // 如果上述方法都不可用，尝试使用 marshal 模块
-        PyErr_Clear();
-        PyObject* marshalModule = PyImport_ImportModule("marshal");
-        if (marshalModule)
+        std::vector<char> content;// = g_file_system.get_file_content(path);
+        if (!content.empty())
         {
-            PyObject* loads = PyObject_GetAttrString(marshalModule, "loads");
-            if (loads)
+            PyObject* io_module = PyImport_ImportModule("io");
+            if (!io_module)
             {
-                PyObject* codeObj = PyObject_CallFunction(loads, "O", codeBytes);
-                if (codeObj)
-                {
-                    result = PyEval_EvalCode(codeObj, moduleDict, moduleDict);
-                    Py_DECREF(codeObj);
-                }
-                Py_DECREF(loads);
+                return nullptr;
             }
-            Py_DECREF(marshalModule);
+
+            PyObject* io_class = nullptr;
+            PyObject* content_obj = nullptr;
+
+            if (is_binary_mode)
+            {
+                io_class = PyObject_GetAttrString(io_module, "BytesIO");
+                content_obj = PyBytes_FromStringAndSize(content.data(), content.size());
+            }
+            else
+            {
+                io_class = PyObject_GetAttrString(io_module, "StringIO");
+                content_obj = PyUnicode_FromStringAndSize(content.data(), content.size());
+            }
+
+            Py_DECREF(io_module);
+
+            if (!io_class || !content_obj)
+            {
+                Py_XDECREF(io_class);
+                Py_XDECREF(content_obj);
+                return nullptr;
+            }
+
+            PyObject* io_obj = PyObject_CallFunctionObjArgs(io_class, content_obj, nullptr);
+            Py_DECREF(io_class);
+            Py_DECREF(content_obj);
+
+            if (!io_obj)
+            {
+                return nullptr;
+            }
+
+            PyObject* name_obj = PyUnicode_FromString(path);
+            if (name_obj)
+            {
+                PyObject_SetAttrString(io_obj, "name", name_obj);
+                Py_DECREF(name_obj);
+            }
+
+            PyObject* mode_obj = PyUnicode_FromString(mode);
+            if (mode_obj)
+            {
+                PyObject_SetAttrString(io_obj, "mode", mode_obj);
+                Py_DECREF(mode_obj);
+            }
+
+            return io_obj;
         }
     }
 
-    Py_XDECREF(execDynamic);
-    Py_DECREF(codeBytes);
-    Py_DECREF(impModule);
-
-    return result;
+    return PyObject_Call(g_original_open, args, kwargs);
 }
 
-typedef struct
+static PyObject* install_custom_file_reader(PyObject* self, PyObject* args)
 {
-    PyObject_HEAD
-} CustomImporter;
-
-static PyObject* CustomImporter_find_spec(PyObject* self, PyObject* args)
-{
-    const char* name;
-    PyObject* path;
-    PyObject* target = Py_None;
-    if (!PyArg_ParseTuple(args, "sO|O", &name, &path, &target))
+    PyObject* builtins_module = PyImport_ImportModule("builtins");
+    if (!builtins_module)
     {
+        PyErr_SetString(PyExc_RuntimeError, "无法导入builtins模块");
         return nullptr;
     }
 
-    // 示例：从自定义存储加载模块（替换为实际实现）
-    if (strcmp(name, "mymodule") == 0)
+    g_original_open = PyObject_GetAttrString(builtins_module, "open");
+    if (!g_original_open)
     {
-        const char* code = "def hello(): return 'From custom loader!'";
-        PyObject* module = PyModule_New(name);
-        PyObject* dict = PyModule_GetDict(module);
-        PyRun_String(code, Py_file_input, dict, dict);
-        return PyObject_GetAttrString(module, "__spec__");
+        Py_DECREF(builtins_module);
+        PyErr_SetString(PyExc_RuntimeError, "无法获取原始open函数");
+        return nullptr;
     }
+
+    PyMethodDef custom_open_def = {
+        "open", (PyCFunction)custom_open, METH_VARARGS | METH_KEYWORDS, "自定义文件打开函数"};
+
+    PyObject* custom_open_func = PyCFunction_New(&custom_open_def, nullptr);
+    if (!custom_open_func)
+    {
+        Py_DECREF(g_original_open);
+        Py_DECREF(builtins_module);
+        PyErr_SetString(PyExc_RuntimeError, "无法创建自定义open函数");
+        return nullptr;
+    }
+
+    if (PyObject_SetAttrString(builtins_module, "open", custom_open_func) < 0)
+    {
+        Py_DECREF(custom_open_func);
+        Py_DECREF(g_original_open);
+        Py_DECREF(builtins_module);
+        PyErr_SetString(PyExc_RuntimeError, "无法替换builtins.open函数");
+        return nullptr;
+    }
+
+    Py_DECREF(custom_open_func);
+    Py_DECREF(builtins_module);
 
     Py_RETURN_NONE;
 }
+*/
+static PyObject* g_original_get_sourcefile = nullptr;
 
-static PyMethodDef CustomImporter_methods[] = {
-    {"find_spec", CustomImporter_find_spec, METH_VARARGS, "Custom find_spec implementation"}, {nullptr, nullptr, 0, nullptr}};
-
-// static PyTypeObject CustomImporterType = {
-//     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "CustomImporter",
-//     .tp_basicsize = sizeof(CustomImporter),
-//     .tp_flags = Py_TPFLAGS_DEFAULT,
-//     .tp_methods = CustomImporter_methods,
-// };
-static PyTypeObject CustomImporterType = []()
+static PyObject* custom_get_sourcefile(PyObject* self, PyObject* args)
 {
-    PyTypeObject type = {PyVarObject_HEAD_INIT(nullptr, 0)};
-    type.tp_name = "CustomImporter";
-    type.tp_basicsize = sizeof(CustomImporter);
-    type.tp_flags = Py_TPFLAGS_DEFAULT;
-    type.tp_methods = CustomImporter_methods;
-    return type;
-}();
+    const char* path;
 
-
-
-nb::object custom_open(const nb::args& args, const nb::kwargs& kwargs)
-{
-    // 解析参数
-    std::string path;
-    std::string mode = "r";
-    int buffering = -1;
-    std::string encoding;
-    std::string errors;
-    std::string newline;
-    bool closefd = true;
-
-    // 从 args 和 kwargs 中提取参数
-    if (args.size() > 0)
-        path = nb::cast<std::string>(args[0]);
-    if (args.size() > 1)
-        mode = nb::cast<std::string>(args[1]);
-
-    if (kwargs)
+    if (!PyArg_ParseTuple(args, "s", &path))
     {
-        if (kwargs.contains("file"))
-            path = nb::cast<std::string>(kwargs["file"]);
-        if (kwargs.contains("mode"))
-            mode = nb::cast<std::string>(kwargs["mode"]);
-        if (kwargs.contains("buffering"))
-            buffering = nb::cast<int>(kwargs["buffering"]);
-        if (kwargs.contains("encoding"))
-            encoding = nb::cast<std::string>(kwargs["encoding"]);
-        if (kwargs.contains("errors"))
-            errors = nb::cast<std::string>(kwargs["errors"]);
-        if (kwargs.contains("newline"))
-            newline = nb::cast<std::string>(kwargs["newline"]);
-        if (kwargs.contains("closefd"))
-            closefd = nb::cast<bool>(kwargs["closefd"]);
+        return nullptr;
     }
-
-    // 仅处理读取模式
-    if (mode == "r")
+    std::vector<char> content;// = g_get_file_content(path);
+    if (!content.empty())
     {
-        if (!fs::exists(path))
+        PyObject* io_module = PyImport_ImportModule("io");
+        if (!io_module)
         {
-            throw std::runtime_error("File not found: " + path);
+            return nullptr;
         }
 
-        std::ifstream file(path);
-        if (!file.is_open())
+        PyObject* bytes_io_class = PyObject_GetAttrString(io_module, "BytesIO");
+        Py_DECREF(io_module);
+
+        if (!bytes_io_class)
         {
-            throw std::runtime_error("Failed to open file: " + path);
+            return nullptr;
         }
 
-        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        return nb::str(content);
+        PyObject* content_bytes = PyBytes_FromStringAndSize(content.data(), content.size());
+        if (!content_bytes)
+        {
+            Py_DECREF(bytes_io_class);
+            return nullptr;
+        }
+
+        PyObject* bytes_io = PyObject_CallFunctionObjArgs(bytes_io_class, content_bytes, nullptr);
+        Py_DECREF(bytes_io_class);
+        Py_DECREF(content_bytes);
+
+        if (!bytes_io)
+        {
+            return nullptr;
+        }
+
+        return bytes_io;
     }
 
-    // 其他模式调用原始 open
-    static nb::object original_open = nb::module_::import("builtins").attr("open");
-    return original_open(*args, ​ * *​kwargs);
+    return PyObject_CallObject(g_original_get_sourcefile, args);
 }
 
-// 模块初始化
-NB_MODULE(override_open, m)
+static bool install_custom_loader()
 {
-    nb::object builtins = nb::module_::import("builtins");
-    nb::object original_open = builtins.attr("open");
-    builtins.attr("open") = nb::cpp_function(custom_open);
-    m.attr("original_open") = original_open;
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    bool success = false;
+
+    PyObject* bootstrap_external = PyImport_ImportModule("importlib._bootstrap_external");
+    if (!bootstrap_external)
+    {
+        //std::cerr << "无法导入importlib._bootstrap_external模块" << std::endl;
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    g_original_get_sourcefile = PyObject_GetAttrString(bootstrap_external, "_get_sourcefile");
+    if (!g_original_get_sourcefile)
+    {
+        //std::cerr << "无法获取_get_sourcefile函数" << std::endl;
+        Py_DECREF(bootstrap_external);
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    PyMethodDef custom_get_sourcefile_def = {
+        "_get_sourcefile", custom_get_sourcefile, METH_VARARGS, "自定义获取源文件函数"};
+
+    PyObject* custom_get_sourcefile_func = PyCFunction_New(&custom_get_sourcefile_def, nullptr);
+    if (!custom_get_sourcefile_func)
+    {
+        //std::cerr << "无法创建自定义_get_sourcefile函数" << std::endl;
+        Py_DECREF(g_original_get_sourcefile);
+        Py_DECREF(bootstrap_external);
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    if (PyObject_SetAttrString(bootstrap_external, "_get_sourcefile", custom_get_sourcefile_func) < 0)
+    {
+        //std::cerr << "无法替换_get_sourcefile函数" << std::endl;
+        Py_DECREF(custom_get_sourcefile_func);
+        Py_DECREF(g_original_get_sourcefile);
+        Py_DECREF(bootstrap_external);
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    Py_DECREF(custom_get_sourcefile_func);
+    Py_DECREF(bootstrap_external);
+
+    success = true;
+    PyGILState_Release(gstate);
+    return success;
 }
 
 bool PythonScript::Initialize(const std::string& pythonHome)
@@ -291,27 +335,19 @@ bool PythonScript::Initialize(const std::string& pythonHome)
         return false;
     }
 
-    PyObject* custom_open_func = PyCFunction_NewEx(
-        &(PyMethodDef){"open", (PyCFunction)custom_open, METH_VARARGS | METH_KEYWORDS, NULL}, NULL, NULL);
+    install_custom_loader();
 
-    PyObject* pModule = PyImport_ImportModule("custom_io");
-    if (!pModule) {
-        PyErr_Print();
-        return false;
-    }
-    PyObject* builtins = PyImport_ImportModule("builtins");
-    PyDict_SetItemString(PyModule_GetDict(builtins), "open", PyObject_GetAttrString(pModule, "custom_open"));
-
-    PyObject* mymodule = PyInit_my_ext();
-    PyObject* sys = PyImport_ImportModule("sys");
-    PyObject* modules = PyObject_GetAttrString(sys, "modules");
-    PyDict_SetItemString(modules, "my_ext", mymodule);
+//     PyObject* mymodule = PyInit_my_ext();
+//     PyObject* sys = PyImport_ImportModule("sys");
+//     PyObject* modules = PyObject_GetAttrString(sys, "modules");
+//     PyDict_SetItemString(modules, "my_ext", mymodule);
 
     //auto ret = PyRun_SimpleString("from time import time,ctime; print('Today is', ctime(time()))\n");
     //ret = PyRun_SimpleString("import sys; print('Python sys.path:', sys.path)");
     //ret = PyRun_SimpleString("import my_ext; print('Hello from embedded Python!')");
-    auto ret = PyRun_SimpleString("import my_ext; print(my_ext)");
-
+    //auto ret = PyRun_SimpleString("import my_ext; print(my_ext)");
+    auto ret = PyRun_SimpleString("import datetime; print(datetime)");
+    
     main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
     g_python_script = this;
