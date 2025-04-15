@@ -57,3 +57,40 @@ void URHO3D_API RegisterPythonScriptLibrary(Context* context);
 bool URHO3D_API RunPython(Context* context, const ea::string& scriptFileName);
 
 }
+
+// nb::object call_python(nb::object py_func, nb::object arg)
+// {
+//     PyObject* result = PyObject_CallFunctionObjArgs(py_func.ptr(), arg.ptr(), nullptr);
+//     if (!result) {
+//         PyObject *ptype, *pvalue, *ptraceback;
+//         PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+//
+//         const char* err_msg = pvalue ? PyUnicode_AsUTF8(pvalue) : "Unknown error";
+//         URHO3D_LOGERRORF("%s", err_msg);
+//
+//         Py_XDECREF(ptype);
+//         Py_XDECREF(pvalue);
+//         Py_XDECREF(ptraceback);
+//         return nb::none();
+//     }
+//     return nb::steal(result);
+// }
+
+// #define CALL_PYTHON(func, ...) \
+//     if (PyObject* result = func(__VA_ARGS__); !result) { \
+//         PyObject *ptype, *pvalue, *ptraceback; \
+//         PyErr_Fetch(&ptype, &pvalue, &ptraceback); \
+//         const char* err_msg = pvalue ? PyUnicode_AsUTF8(pvalue) : "Unknown error"; \
+//         URHO3D_LOGERRORF("%s", err_msg); \
+//         Py_XDECREF(ptype); \
+//         Py_XDECREF(pvalue); \
+//         Py_XDECREF(ptraceback); \
+//     }
+
+#define CALL_PYTHON(func, ...) \
+    nb::object result; \
+    try { \
+        result = func(__VA_ARGS__); \
+    } catch (const nb::python_error& e) { \
+        URHO3D_LOGERRORF("%s", e.what()); \
+    }

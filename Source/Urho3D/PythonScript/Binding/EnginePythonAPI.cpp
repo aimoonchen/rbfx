@@ -19,6 +19,6 @@ NB_MODULE(core, m)
 {
     nb::class_<Engine>(m, "Engine")
         .def("Exit", &Engine::Exit);
-//     lua["engine"] = context->GetSubsystem<Engine>();
-//     RegisterEngineConst(lua);
+//    m.attr("engine") = context->GetSubsystem<Engine>();
+//    RegisterEngineConst(lua);
 }

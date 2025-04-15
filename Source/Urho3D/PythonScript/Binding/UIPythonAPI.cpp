@@ -1,10 +1,10 @@
 #include <nanobind/nanobind.h>
-#include "../../Core/Context.h"
-#include "../../UI/UI.h"
-#include "../../UI/UIElement.h"
-#include "../../UI/Sprite.h"
-#include "../../UI/Font.h"
-#include "../../UI/Text.h"
+#include "Urho3D/Core/Context.h"
+#include "Urho3D/UI/UI.h"
+#include "Urho3D/UI/UIElement.h"
+#include "Urho3D/UI/Sprite.h"
+#include "Urho3D/UI/Font.h"
+#include "Urho3D/UI/Text.h"
 
 using namespace Urho3D;
 namespace nb = nanobind;
@@ -28,8 +28,10 @@ using namespace nb::literals;
 NB_MODULE(ui, m)
 {
     nb::class_<UIElement>(m, "UIElement")//, sol::constructors<UIElement(Context*)>());
-        .def("SetSize", nb::overload_cast<int, int>(&UIElement::SetSize), nb::overload_cast<const IntVector2&>(&UIElement::SetSize))
-        .def("SetPosition", nb::overload_cast<int, int>(&UIElement::SetPosition), nb::overload_cast<const IntVector2&>(&UIElement::SetPosition))
+        .def("SetSize", nb::overload_cast<int, int>(&UIElement::SetSize))
+        .def("SetSize", nb::overload_cast<const IntVector2&>(&UIElement::SetSize))
+        .def("SetPosition", nb::overload_cast<int, int>(&UIElement::SetPosition))
+        .def("SetPosition", nb::overload_cast<const IntVector2&>(&UIElement::SetPosition))
         .def("SetAlignment", &UIElement::SetAlignment)
         .def("CreateChild", [](UIElement* obj, StringHash typeName) { return obj->CreateChild(typeName, EMPTY_STRING, M_MAX_UNSIGNED); })
         .def_prop_rw("opacity", &UIElement::GetOpacity, &UIElement::SetOpacity)
@@ -63,8 +65,8 @@ NB_MODULE(ui, m)
         .def_prop_ro("root", &UI::GetRoot)
         .def_prop_ro("focusElement", &UI::GetFocusElement);
 
-//     auto context = GetContext(lua);
-//     lua["ui"] = context->GetSubsystem<UI>();
+    Context* context = nullptr;
+    m.attr("ui")            = context->GetSubsystem<UI>();
     //
     m.attr("HA_LEFT")       = HA_LEFT;
     m.attr("HA_CENTER")     = HA_CENTER;

@@ -30,32 +30,32 @@ StringVariantMap& GetEngineParameters();
 // {
 // };
 // }
-// static void RegisterCoreConst(sol::state& lua)
-// {
-//     auto eventType = lua["EventType"].get_or_create<sol::table>();
-//     eventType["BeginFrame"]       = E_BEGINFRAME;
-//     eventType["InputReady"]       = E_INPUTREADY;
-//     eventType["Update"]           = E_UPDATE;
-//     eventType["PostUpdate"]       = E_POSTUPDATE;
-//     eventType["RenderUpdate"]     = E_RENDERUPDATE;
-//     eventType["PostRenderUpdate"] = E_POSTRENDERUPDATE;
-//     eventType["EndFrame"]         = E_ENDFRAME;
-// 
-//     auto paramType = lua["ParamType"].get_or_create<sol::table>();
-//     auto beginFrame = paramType["BeginFrame"].get_or_create<sol::table>();
-//     beginFrame["FrameNumber"]       = BeginFrame::P_FRAMENUMBER;
-//     beginFrame["TimeStep"]          = BeginFrame::P_TIMESTEP;
-//     auto inputReady                 = paramType["InputReady"].get_or_create<sol::table>();
-//     inputReady["TimeStep"]          = InputReady::P_TIMESTEP;
-//     auto update                     = paramType["Update"].get_or_create<sol::table>();
-//     update["TimeStep"]              = Update::P_TIMESTEP;
-//     auto postUpdate                 = paramType["PostUpdate"].get_or_create<sol::table>();
-//     postUpdate["TimeStep"]          = PostUpdate::P_TIMESTEP;
-//     auto upRenderUpdatedate         = paramType["UpRenderUpdatedate"].get_or_create<sol::table>();
-//     upRenderUpdatedate["TimeStep"]  = RenderUpdate::P_TIMESTEP;
-//     auto postRenderUpdate           = paramType["PostRenderUpdate"].get_or_create<sol::table>();
-//     postRenderUpdate["TimeStep"]    = PostRenderUpdate::P_TIMESTEP;
-// }
+static void RegisterCoreConst(nb::module_ m)
+{
+    auto eventType = m.def_submodule("EventType");
+    eventType["BeginFrame"]       = E_BEGINFRAME;
+    eventType["InputReady"]       = E_INPUTREADY;
+    eventType["Update"]           = E_UPDATE;
+    eventType["PostUpdate"]       = E_POSTUPDATE;
+    eventType["RenderUpdate"]     = E_RENDERUPDATE;
+    eventType["PostRenderUpdate"] = E_POSTRENDERUPDATE;
+    eventType["EndFrame"]         = E_ENDFRAME;
+
+    auto paramType = m.def_submodule("ParamType");
+    auto beginFrame = paramType.def_submodule("BeginFrame");
+    beginFrame["FrameNumber"]       = BeginFrame::P_FRAMENUMBER;
+    beginFrame["TimeStep"]          = BeginFrame::P_TIMESTEP;
+    auto inputReady                 = paramType.def_submodule("InputReady");
+    inputReady["TimeStep"]          = InputReady::P_TIMESTEP;
+    auto update                     = paramType.def_submodule("Update");
+    update["TimeStep"]              = Update::P_TIMESTEP;
+    auto postUpdate                 = paramType.def_submodule("PostUpdate");
+    postUpdate["TimeStep"]          = PostUpdate::P_TIMESTEP;
+    auto upRenderUpdatedate         = paramType.def_submodule("UpRenderUpdatedate");
+    upRenderUpdatedate["TimeStep"]  = RenderUpdate::P_TIMESTEP;
+    auto postRenderUpdate           = paramType.def_submodule("PostRenderUpdate");
+    postRenderUpdate["TimeStep"]    = PostRenderUpdate::P_TIMESTEP;
+}
 
 NB_MODULE(core, m)
 {
@@ -159,16 +159,16 @@ NB_MODULE(core, m)
     nb::class_<Time>(m, "Time")
         .def("GetTimeStamp", [](Time* self) { return self->GetTimeStamp(); });
 
-//     auto context = GetContext(lua.lua_state());
-//     lua["time"] = context->GetSubsystem<Time>();
-//     //
-//     m.def("GetEventSender", [context]() {
-//         auto obj = context->GetEventSender();
-//         if (obj->GetType() == CrowdManager::GetTypeStatic()) {
-//             return static_cast<const CrowdManager*>(obj);
-//         } else {
-//             return (const CrowdManager*)nullptr;
-//         }
-//     });
-//     RegisterCoreConst(lua);
+    Context* context = nullptr;
+    m.attr("time") = context->GetSubsystem<Time>();
+    //
+    m.def("GetEventSender", [context]() {
+        auto obj = context->GetEventSender();
+        if (obj->GetType() == CrowdManager::GetTypeStatic()) {
+            return static_cast<const CrowdManager*>(obj);
+        } else {
+            return (const CrowdManager*)nullptr;
+        }
+    });
+    RegisterCoreConst(m);
 }

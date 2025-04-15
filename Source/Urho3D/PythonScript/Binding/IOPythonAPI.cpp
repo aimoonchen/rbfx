@@ -105,7 +105,6 @@ NB_MODULE(io, m)
         return self->GetAbsoluteNameFromIdentifier({"", path});
         });
 
-//     lua["filesystem"] = context->GetSubsystem<FileSystem>();
-//     lua["virtual_filesystem"] = context->GetSubsystem<VirtualFileSystem>();
-// 	return 0;
+    m.attr("filesystem") = context->GetSubsystem<FileSystem>();
+    m.attr("virtual_filesystem") = context->GetSubsystem<VirtualFileSystem>();
 }

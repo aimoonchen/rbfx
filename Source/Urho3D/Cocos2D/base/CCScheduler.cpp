@@ -58,6 +58,13 @@ ScriptHandlerEntry::~ScriptHandlerEntry()
 
 //
 // // SchedulerScriptHandlerEntry
+SchedulerScriptHandlerEntry* SchedulerScriptHandlerEntry::create(nanobind::callable handler, float interval, bool paused)
+{
+    SchedulerScriptHandlerEntry* entry = new (std::nothrow) SchedulerScriptHandlerEntry(handler);
+    entry->init(interval, paused);
+    entry->autorelease();
+    return entry;
+}
 
 SchedulerScriptHandlerEntry* SchedulerScriptHandlerEntry::create(sol::function handler, float interval, bool paused)
 {
@@ -713,6 +720,13 @@ void Scheduler::unscheduleAllForTarget(void *target)
 }
 
 #if 1/*CC_ENABLE_SCRIPT_BINDING*/
+unsigned int Scheduler::scheduleScriptFunc(nanobind::callable handler, float interval, bool paused)
+{
+    SchedulerScriptHandlerEntry* entry = SchedulerScriptHandlerEntry::create(handler, interval, paused);
+    _scriptHandlerEntries.pushBack(entry);
+    return entry->getEntryId();
+}
+
 unsigned int Scheduler::scheduleScriptFunc(sol::function handler, float interval, bool paused)
 {
     SchedulerScriptHandlerEntry* entry = SchedulerScriptHandlerEntry::create(handler, interval, paused);

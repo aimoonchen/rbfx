@@ -37,6 +37,7 @@ THE SOFTWARE.
 #include "base/CCVector.h"
 #include "base/uthash.h"
 #include <sol/sol.hpp>
+#include <nanobind/nanobind.h>
 
 NS_CC_BEGIN
 
@@ -97,8 +98,15 @@ protected:
         newEntryId++;
         _entryId = newEntryId;
     }
-
+    ScriptHandlerEntry(nanobind::callable handler)
+        : _handler_py(handler)
+    {
+        static int newEntryId = 0;
+        newEntryId++;
+        _entryId = newEntryId;
+    }
     sol::function _handler;
+    nanobind::callable _handler_py;
     int _entryId;
 };
 
@@ -121,7 +129,7 @@ public:
      * @lua NA
      */
     static SchedulerScriptHandlerEntry* create(sol::function handler, float interval, bool paused);
-
+    static SchedulerScriptHandlerEntry* create(nanobind::callable handler, float interval, bool paused);
     /**
      * Destructor of SchedulerScriptHandlerEntry.
      * @js NA
@@ -171,6 +179,13 @@ public:
 
 private:
     SchedulerScriptHandlerEntry(sol::function handler)
+        : ScriptHandlerEntry(handler)
+        , _timer(nullptr)
+        , _paused(false)
+        , _markedForDeletion(false)
+    {
+    }
+    SchedulerScriptHandlerEntry(nanobind::callable handler)
         : ScriptHandlerEntry(handler)
         , _timer(nullptr)
         , _paused(false)
@@ -440,6 +455,7 @@ public:
      @js NA
      @lua NA
      */
+    unsigned int scheduleScriptFunc(nanobind::callable handler, float interval, bool paused);
     unsigned int scheduleScriptFunc(sol::function handler, float interval, bool paused);
 #endif
     /////////////////////////////////////

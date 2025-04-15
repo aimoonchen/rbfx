@@ -128,29 +128,25 @@ using namespace nb::literals;
 //         return sol::make_object(L, obj).push(L);
 //     }
 // }
-// 
-// Urho3D::Context* GetContext(lua_State* L);
-// 
-// static void RegisterSceneConst(sol::state& lua)
-// {
-// //     auto& lua = *solLua;
-// //     auto eventType = lua["ComponentType"].get_or_create<sol::table>();
-//     auto eventType          = lua["EventType"].get_or_create<sol::table>();
-//     eventType["SceneUpdate"] = E_SCENEUPDATE;
-//     eventType["ScenePostUpdate"] = E_SCENEPOSTUPDATE;
-// 
-//     auto paramType              = lua["ParamType"].get_or_create<sol::table>();
-//     auto sceneUpdate            = paramType["SceneUpdate"].get_or_create<sol::table>();
-//     sceneUpdate["Scene"]        = SceneUpdate::P_SCENE;
-//     sceneUpdate["TimeStep"]     = SceneUpdate::P_TIMESTEP;
-//     auto scenePostUpdate        = paramType["ScenePostUpdate"].get_or_create<sol::table>();
-//     scenePostUpdate["Scene"]    = ScenePostUpdate::P_SCENE;
-//     scenePostUpdate["TimeStep"] = ScenePostUpdate::P_TIMESTEP;
-// }
+
+static void RegisterSceneConst(nb::module_ m)
+{
+    auto eventType          = m.def_submodule("EventType");
+    eventType["SceneUpdate"]        = E_SCENEUPDATE;
+    eventType["ScenePostUpdate"]    = E_SCENEPOSTUPDATE;
+
+    auto paramType              = m.def_submodule("ParamType");
+    auto sceneUpdate            = paramType.def_submodule("SceneUpdate");
+    sceneUpdate["Scene"]        = SceneUpdate::P_SCENE;
+    sceneUpdate["TimeStep"]     = SceneUpdate::P_TIMESTEP;
+    auto scenePostUpdate        = paramType.def_submodule("ScenePostUpdate");
+    scenePostUpdate["Scene"]    = ScenePostUpdate::P_SCENE;
+    scenePostUpdate["TimeStep"] = ScenePostUpdate::P_TIMESTEP;
+}
 
 NB_MODULE(scene, m)
 {
-    //auto context = GetContext(lua.lua_state());
+    Context* context = nullptr;
     nb::class_<Component>(m, "Component")
         .def("GetID", &Component::GetID)
         .def("SetEnabled", &Component::SetEnabled)
@@ -187,167 +183,167 @@ NB_MODULE(scene, m)
 
     nb::class_<Node>(m, "Node")
         //, sol::call_constructor, sol::factories([context]() { return std::make_unique<Node>(context); }));
-    .def_prop_rw("id", &Node::GetID, &Node::SetID)
-    .def_prop_rw("name", &Node::GetName, &Node::SetName)
-    .def_prop_rw("parent", &Node::GetParent, &Node::SetParent)
-    .def_prop_rw("scale", &Node::GetScale, nb::overload_cast<const Vector3&>(&Node::SetScale))
-    .def_prop_rw("rotation", &Node::GetRotation, &Node::SetRotation)
-    .def_prop_rw("position", &Node::GetPosition, &Node::SetPosition)
-    .def_prop_rw("direction", &Node::GetDirection, &Node::SetDirection)
-    .def_prop_rw("local_matrix", &Node::GetTransformMatrix, &Node::SetTransformMatrix)
-    .def_prop_rw("world_scale", &Node::GetWorldScale, nb::overload_cast<const Vector3&>(&Node::SetWorldScale))
-    .def_prop_rw("world_rotation", &Node::GetWorldRotation, &Node::SetWorldRotation)
-    .def_prop_rw("world_position", &Node::GetWorldPosition, &Node::SetWorldPosition)
-    .def_prop_rw("world_direction", &Node::GetWorldDirection, &Node::SetWorldDirection)
-    .def_prop_ro("world_up", &Node::GetWorldUp)
-    .def_prop_ro("world_right", &Node::GetWorldRight)
-    .def_prop_rw("world_matrix"， &Node::GetWorldTransform, nb::overload_cast<const Matrix3x4&>(&Node::SetWorldTransform))
+        .def_prop_rw("id", &Node::GetID, &Node::SetID)
+        .def_prop_rw("name", &Node::GetName, &Node::SetName)
+        .def_prop_rw("parent", &Node::GetParent, &Node::SetParent)
+        .def_prop_rw("scale", &Node::GetScale, nb::overload_cast<const Vector3&>(&Node::SetScale))
+        .def_prop_rw("rotation", &Node::GetRotation, &Node::SetRotation)
+        .def_prop_rw("position", &Node::GetPosition, &Node::SetPosition)
+        .def_prop_rw("direction", &Node::GetDirection, &Node::SetDirection)
+        .def_prop_rw("local_matrix", &Node::GetTransformMatrix, &Node::SetTransformMatrix)
+        .def_prop_rw("world_scale", &Node::GetWorldScale, nb::overload_cast<const Vector3&>(&Node::SetWorldScale))
+        .def_prop_rw("world_rotation", &Node::GetWorldRotation, &Node::SetWorldRotation)
+        .def_prop_rw("world_position", &Node::GetWorldPosition, &Node::SetWorldPosition)
+        .def_prop_rw("world_direction", &Node::GetWorldDirection, &Node::SetWorldDirection)
+        .def_prop_ro("world_up", &Node::GetWorldUp)
+        .def_prop_ro("world_right", &Node::GetWorldRight)
+        .def_prop_rw("world_matrix", &Node::GetWorldTransform, nb::overload_cast<const Matrix3x4&>(&Node::SetWorldTransform))
     
-    .def("SetTransform", [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetTransform(position, rotation); })
-    .def("SetTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, float scale) { self->SetTransform(position, rotation, scale); })
-    .def("SetTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, const Vector3& scale) { self->SetTransform(position, rotation, scale); })
-    .def("SetWorldTransform", [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetWorldTransform(position, rotation); })
-    .def("SetWorldTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, float scale) { self->SetWorldTransform(position, rotation, scale); })
-    .def("SetWorldTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, const Vector3& scale) { self->SetWorldTransform(position, rotation, scale); })
+        .def("SetTransform", [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetTransform(position, rotation); })
+        .def("SetTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, float scale) { self->SetTransform(position, rotation, scale); })
+        .def("SetTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, const Vector3& scale) { self->SetTransform(position, rotation, scale); })
+        .def("SetWorldTransform", [](Node* self, const Vector3& position, const Quaternion& rotation) { self->SetWorldTransform(position, rotation); })
+        .def("SetWorldTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, float scale) { self->SetWorldTransform(position, rotation, scale); })
+        .def("SetWorldTransform", [](Node* self, const Vector3& position, const Quaternion& rotation, const Vector3& scale) { self->SetWorldTransform(position, rotation, scale); })
     
-    .def("AddTag", &Node::AddTag)
-    .def("SetTags", [](Node* self, const ea::string& tags) {
-        self->RemoveAllTags();
-        self->AddTags(tags); })
-    .def("AddTags", [](Node* self, const ea::string& tags) { self->AddTags(tags); })
-    .def("AddTags", [](Node* self, const ea::string& tags, char separator) { self->AddTags(tags, separator); })
-    .def("GetTags", [](Node* self) {
-        const auto& rawtags = self->GetTags();
-        // TODO:
-        std::vector<std::string> tags;
-        tags.reserve(rawtags.size());
-        for (const auto& tag : rawtags) {
-            tags.emplace_back(tag.c_str());
-        }
-        return tags;
-    })
-    .def("HasTag", &Node::HasTag)
-    .def("RemoveTag", &Node::RemoveTag)
-    .def("RemoveAllTags", &Node::RemoveAllTags)
-    .def("SetScale", nb::overload_cast<float>(&Node::SetScale))
-    .def("SetScale", [](Node* self, float sx, float sy, float sz) { self->SetScale({ sx, sy, sz }); })
-    .def("SetScale", nb::overload_cast<const Vector3&>(&Node::SetScale))
-    .def("SetWorldScale", nb::overload_cast<float>(&Node::SetWorldScale))
-    .def("SetWorldScale", [](Node* self, float sx, float sy, float sz) { self->SetWorldScale({ sx, sy, sz }); })
-    .def("SetWorldScale", nb::overload_cast<const Vector3&>(&Node::SetWorldScale))
-    .def("SetRotation", [](Node* self, const Quaternion& rot) { self->SetRotation(rot); })
-    .def("SetRotation", [](Node* self, float rx, float ry, float rz) { self->SetRotation({ rx, ry, rz }); })
-    .def("SetPosition", [](Node* self, const Vector3& pos) { self->SetPosition(pos); })
-    .def("SetPosition", [](Node* self, float x, float y, float z) { self->SetPosition({ x, y, z }); })
-    .def("SetDirection", [](Node* self, const Vector3& dir) { self->SetDirection(dir); })
-    .def("SetDirection", [](Node* self, float dx, float dy, float dz) { self->SetDirection({ dx, dy, dz }); })
-    .def("Rotate", [](Node* self, float rx, float ry, float rz) { self->Rotate({ rx, ry, rz }); })
-    .def("Rotate", [](Node* self, float rx, float ry, float rz, TransformSpace ts) { self->Rotate({ rx, ry, rz }, ts); })
-    .def("Rotate", [](Node* self, const Quaternion& rotation) { self->Rotate(rotation); })
-    .def("Rotate", [](Node* self, const Quaternion& rotation, TransformSpace ts) { self->Rotate(rotation, ts); })
-    .def("RotateAround", [](Node* self, const Vector3& point, float rx, float ry, float rz) { self->RotateAround(point, { rx, ry, rz }); })
-    .def("RotateAround", [](Node* self, const Vector3& point, float rx, float ry, float rz, TransformSpace ts) { self->RotateAround(point, { rx, ry, rz }, ts); })
-    .def("RotateAround", [](Node* self, const Vector3& point, const Quaternion& rotation) { self->RotateAround(point, rotation); })
-    .def("RotateAround", [](Node* self, const Vector3& point, const Quaternion& rotation, TransformSpace ts) { self->RotateAround(point, rotation, ts); })
-    .def("Translate", [](Node* self, float x, float y, float z) { self->Translate({ x, y, z }); })
-    .def("Translate", [](Node* self, float x, float y, float z, TransformSpace ts) { self->Translate({ x, y, z }, ts); })
-    .def("Translate", [](Node* self, const Vector3& translate) { self->Translate(translate); })
-    .def("Translate", [](Node* self, const Vector3& translate, TransformSpace ts) { self->Translate(translate, ts); })
-    .def("Pitch", [](Node* self, float angle) { self->Pitch(angle); })
-    .def("Pitch", [](Node* self, float angle, TransformSpace ts) { self->Pitch(angle, ts); })
-    .def("Yaw", [](Node* self, float angle) { self->Yaw(angle); })
-    .def("Yaw", [](Node* self, float angle, TransformSpace ts) { self->Yaw(angle, ts); })
-    .def("Roll", [](Node* self, float angle) { self->Roll(angle); })
-    .def("Roll", [](Node* self, float angle, TransformSpace ts) { self->Roll(angle, ts); })
-    .def("LookAt", [](Node* self, const Vector3& target) { return self->LookAt(target); })
-    .def("LookAt", [](Node* self, const Vector3& target, const Vector3& up) { return self->LookAt(target, up); })
-    .def("LookAt", [](Node* self, const Vector3& target, const Vector3& up, TransformSpace ts) { return self->LookAt(target, up, ts); })
-    .def("Scale", [](Node* self, float scale) { self->Scale(scale); })
-    .def("Scale", [](Node* self, const Vector3& scale) { self->Scale(scale); })
-    .def("ScaleAround", [](Node* self, const Vector3& point, const Vector3& scale) { self->ScaleAround(point, scale); })
-    .def("ScaleAround", [](Node* self, const Vector3& point, const Vector3& scale, TransformSpace space) { self->ScaleAround(point, scale, space); })
-    .def("GetParent", &Node::GetParent)
-    .def("SetParent", &Node::SetParent)
-    .def("GetScene", &Node::GetScene)
-    .def("CreateChild", [](Node* self) { return self->CreateChild(); })
-    .def("CreateChild", [](Node* self, const ea::string& name) { return self->CreateChild(name); })
-    .def("CreateChild", [](Node* self, const ea::string& name, unsigned id) { return self->CreateChild(name, id); })
-    .def("CreateChild", [](Node* self, const ea::string& name, unsigned id, bool temporary) { return self->CreateChild(name, id, temporary); })
-    .def("Clone", [](Node* self) { return self->Clone(); })
-    .def("Clone", [](Node* self, Node* parent) { return self->Clone(parent); })
-    .def("CreateComponent", [](Node* self, StringHash type) { return self->CreateComponent(type); })
-    .def("GetComponent", [](Node* self, StringHash type) { return self->GetComponent(type); })
-    .def("GetComponent", [](Node* self, StringHash type, bool recursive) { return self->GetComponent(type); })
-    .def("GetComponents", [](Node* self, StringHash type) {
-            ea::vector<Component*> dest;
-            self->GetComponents(dest, type);
-            return std::vector<Component*>(dest.begin(), dest.end());
+        .def("AddTag", &Node::AddTag)
+        .def("SetTags", [](Node* self, const ea::string& tags) {
+            self->RemoveAllTags();
+            self->AddTags(tags); })
+        .def("AddTags", [](Node* self, const ea::string& tags) { self->AddTags(tags); })
+        .def("AddTags", [](Node* self, const ea::string& tags, char separator) { self->AddTags(tags, separator); })
+        .def("GetTags", [](Node* self) {
+            const auto& rawtags = self->GetTags();
+            // TODO:
+            std::vector<std::string> tags;
+            tags.reserve(rawtags.size());
+            for (const auto& tag : rawtags) {
+                tags.emplace_back(tag.c_str());
+            }
+            return tags;
         })
-    .def("GetComponents", [](Node* self, StringHash type, bool recursive) {
-            ea::vector<Component*> dest;
-            self->GetComponents(dest, type);
-            return std::vector<Component*>(dest.begin(), dest.end());
-        })
-    .def("RemoveComponent", [](Node* self, StringHash type) { self->RemoveComponent(type); })
-    .def("RemoveComponent", [](Node* self, Component* component) { self->RemoveComponent(component); })
-    .def("RemoveComponents", [](Node* self, StringHash type) { self->RemoveComponents(type); })
-    .def("RemoveAllComponents", &Node::RemoveAllComponents)
-    .def("CreateScriptObject", [](Node* self, const ea::string& name) {
+        .def("HasTag", &Node::HasTag)
+        .def("RemoveTag", &Node::RemoveTag)
+        .def("RemoveAllTags", &Node::RemoveAllTags)
+        .def("SetScale", nb::overload_cast<float>(&Node::SetScale))
+        .def("SetScale", [](Node* self, float sx, float sy, float sz) { self->SetScale({ sx, sy, sz }); })
+        .def("SetScale", nb::overload_cast<const Vector3&>(&Node::SetScale))
+        .def("SetWorldScale", nb::overload_cast<float>(&Node::SetWorldScale))
+        .def("SetWorldScale", [](Node* self, float sx, float sy, float sz) { self->SetWorldScale({ sx, sy, sz }); })
+        .def("SetWorldScale", nb::overload_cast<const Vector3&>(&Node::SetWorldScale))
+        .def("SetRotation", [](Node* self, const Quaternion& rot) { self->SetRotation(rot); })
+        .def("SetRotation", [](Node* self, float rx, float ry, float rz) { self->SetRotation({ rx, ry, rz }); })
+        .def("SetPosition", [](Node* self, const Vector3& pos) { self->SetPosition(pos); })
+        .def("SetPosition", [](Node* self, float x, float y, float z) { self->SetPosition({ x, y, z }); })
+        .def("SetDirection", [](Node* self, const Vector3& dir) { self->SetDirection(dir); })
+        .def("SetDirection", [](Node* self, float dx, float dy, float dz) { self->SetDirection({ dx, dy, dz }); })
+        .def("Rotate", [](Node* self, float rx, float ry, float rz) { self->Rotate({ rx, ry, rz }); })
+        .def("Rotate", [](Node* self, float rx, float ry, float rz, TransformSpace ts) { self->Rotate({ rx, ry, rz }, ts); })
+        .def("Rotate", [](Node* self, const Quaternion& rotation) { self->Rotate(rotation); })
+        .def("Rotate", [](Node* self, const Quaternion& rotation, TransformSpace ts) { self->Rotate(rotation, ts); })
+        .def("RotateAround", [](Node* self, const Vector3& point, float rx, float ry, float rz) { self->RotateAround(point, { rx, ry, rz }); })
+        .def("RotateAround", [](Node* self, const Vector3& point, float rx, float ry, float rz, TransformSpace ts) { self->RotateAround(point, { rx, ry, rz }, ts); })
+        .def("RotateAround", [](Node* self, const Vector3& point, const Quaternion& rotation) { self->RotateAround(point, rotation); })
+        .def("RotateAround", [](Node* self, const Vector3& point, const Quaternion& rotation, TransformSpace ts) { self->RotateAround(point, rotation, ts); })
+        .def("Translate", [](Node* self, float x, float y, float z) { self->Translate({ x, y, z }); })
+        .def("Translate", [](Node* self, float x, float y, float z, TransformSpace ts) { self->Translate({ x, y, z }, ts); })
+        .def("Translate", [](Node* self, const Vector3& translate) { self->Translate(translate); })
+        .def("Translate", [](Node* self, const Vector3& translate, TransformSpace ts) { self->Translate(translate, ts); })
+        .def("Pitch", [](Node* self, float angle) { self->Pitch(angle); })
+        .def("Pitch", [](Node* self, float angle, TransformSpace ts) { self->Pitch(angle, ts); })
+        .def("Yaw", [](Node* self, float angle) { self->Yaw(angle); })
+        .def("Yaw", [](Node* self, float angle, TransformSpace ts) { self->Yaw(angle, ts); })
+        .def("Roll", [](Node* self, float angle) { self->Roll(angle); })
+        .def("Roll", [](Node* self, float angle, TransformSpace ts) { self->Roll(angle, ts); })
+        .def("LookAt", [](Node* self, const Vector3& target) { return self->LookAt(target); })
+        .def("LookAt", [](Node* self, const Vector3& target, const Vector3& up) { return self->LookAt(target, up); })
+        .def("LookAt", [](Node* self, const Vector3& target, const Vector3& up, TransformSpace ts) { return self->LookAt(target, up, ts); })
+        .def("Scale", [](Node* self, float scale) { self->Scale(scale); })
+        .def("Scale", [](Node* self, const Vector3& scale) { self->Scale(scale); })
+        .def("ScaleAround", [](Node* self, const Vector3& point, const Vector3& scale) { self->ScaleAround(point, scale); })
+        .def("ScaleAround", [](Node* self, const Vector3& point, const Vector3& scale, TransformSpace space) { self->ScaleAround(point, scale, space); })
+        .def("GetParent", &Node::GetParent)
+        .def("SetParent", &Node::SetParent)
+        .def("GetScene", &Node::GetScene)
+        .def("CreateChild", [](Node* self) { return self->CreateChild(); })
+        .def("CreateChild", [](Node* self, const ea::string& name) { return self->CreateChild(name); })
+        .def("CreateChild", [](Node* self, const ea::string& name, unsigned id) { return self->CreateChild(name, id); })
+        .def("CreateChild", [](Node* self, const ea::string& name, unsigned id, bool temporary) { return self->CreateChild(name, id, temporary); })
+        .def("Clone", [](Node* self) { return self->Clone(); })
+        .def("Clone", [](Node* self, Node* parent) { return self->Clone(parent); })
+        .def("CreateComponent", [](Node* self, StringHash type) { return self->CreateComponent(type); })
+        .def("GetComponent", [](Node* self, StringHash type) { return self->GetComponent(type); })
+        .def("GetComponent", [](Node* self, StringHash type, bool recursive) { return self->GetComponent(type); })
+        .def("GetComponents", [](Node* self, StringHash type) {
+                ea::vector<Component*> dest;
+                self->GetComponents(dest, type);
+                return std::vector<Component*>(dest.begin(), dest.end());
+            })
+        .def("GetComponents", [](Node* self, StringHash type, bool recursive) {
+                ea::vector<Component*> dest;
+                self->GetComponents(dest, type);
+                return std::vector<Component*>(dest.begin(), dest.end());
+            })
+        .def("RemoveComponent", [](Node* self, StringHash type) { self->RemoveComponent(type); })
+        .def("RemoveComponent", [](Node* self, Component* component) { self->RemoveComponent(component); })
+        .def("RemoveComponents", [](Node* self, StringHash type) { self->RemoveComponents(type); })
+        .def("RemoveAllComponents", &Node::RemoveAllComponents)
+        .def("CreateScriptObject", [](Node* self, const ea::string& name) {
 //         auto instance = self->CreateComponent<LuaScriptInstance>();
 //         instance->CreateObject(name);
 //         return instance->GetScriptObject();
-    })
-    .def("GetScriptObject", [](Node* self) {
+        })
+        .def("GetScriptObject", [](Node* self) {
 //         auto comp = self->GetComponent<LuaScriptInstance>();
 //         return comp->GetScriptObject();
-    })
-    .def("SetEnabled", nb::overload_cast<bool>(&Node::SetEnabled))
-    .def("SetEnabledRecursive", &Node::SetEnabledRecursive)
-    .def("AddChild", [](Node* self, Node* obj) { self->AddChild(obj); })
-    .def("RemoveChild", nb::overload_cast<Node*>(&Node::RemoveChild))
-    .def("Remove", &Node::Remove)
-    .def("RemoveChildren", &Node::RemoveChildren)
-    .def("GetChildren", [](Node* self, bool recursive) {
-        auto children = self->GetChildren(recursive);
-        std::vector<Node*> ret;
-        for (auto& child : children) {
-            ret.push_back(child);
-        }
-        return ret;
-    })
-    .def("GetChild", [](Node* self, unsigned index) { return self->GetChild(index); })
-    .def("GetChild", [](Node* self, const ea::string& name) { return self->GetChild(name); })
-    .def("GetChild", [](Node* self, const ea::string& name, bool recursive) { return self->GetChild(name, recursive); })
-    .def("GetNumChildren", [](Node* self) { return self->GetNumChildren(); })
-    .def("GetNumChildren", [](Node* self, bool recursive) { return self->GetNumChildren(recursive); })
-    .def("SendEvent", [](Node* self, StringHash name) { self->SendEvent(name); })
-    .def("SendEvent", [](Node* self, StringHash name, VariantMap& param) { self->SendEvent(name, param); })
-    .def("SetVar", &Node::SetVar)
-    .def("SetVarByHash", &Node::SetVarByHash)
-    .def("GetVar", &Node::GetVar)
-    .def("GetVarByHash", &Node::GetVarByHash)
-    // 2D
-    .def("Scale2D", &Node::Scale2D)
-    .def("Rotate2D", [](Node* self, float delta) { self->Rotate2D(delta); })
-    .def("Rotate2D", [](Node* self, float delta, TransformSpace space) { self->Rotate2D(delta, space); })
-    .def("RotateAround2D", [](Node* self, const Vector2& point, float delta) { self->RotateAround2D(point, delta); })
-    .def("RotateAround2D", [](Node* self, const Vector2& point, float delta, TransformSpace space) { self->RotateAround2D(point, delta, space); })
-    .def("Translate2D", [](Node* self, const Vector2& delta) { self->Translate2D(delta); })
-    .def("Translate2D", [](Node* self, const Vector2& delta, TransformSpace space) { self->Translate2D(delta, space); })
-    .def("SetScale2D", [](Node* self, const Vector2& scale) { self->SetScale2D(scale); })
-    .def("SetScale2D", [](Node* self, float x, float y) { self->SetScale2D(x, y); })
-    .def("SetRotation2D", &Node::SetRotation2D)
-    .def("SetPosition2D", [](Node* self, const Vector2& position) { self->SetPosition2D(position); })
-    .def("SetPosition2D", [](Node* self, float x, float y) { self->SetPosition2D(x, y); })
-    .def("GetScale2D", &Node::GetScale2D)
-    .def("GetRotation2D", &Node::GetRotation2D)
-    .def("GetPosition2D", &Node::GetPosition2D)
-    .def("SetTransform2D", [](Node* self, const Vector2& position, float rotation) { self->SetTransform2D(position, rotation); })
-    .def("SetTransform2D", [](Node* self, const Vector2& position, float rotation, float scale) { self->SetTransform2D(position, rotation, scale); })
-    .def("SetTransform2D", [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetTransform2D(position, rotation, scale); })
-    .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation) { self->SetWorldTransform2D(position, rotation); })
-    .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation, float scale) { self->SetWorldTransform2D(position, rotation, scale); })
-    .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetWorldTransform2D(position, rotation, scale); });
+        })
+        .def("SetEnabled", nb::overload_cast<bool>(&Node::SetEnabled))
+        .def("SetEnabledRecursive", &Node::SetEnabledRecursive)
+        .def("AddChild", [](Node* self, Node* obj) { self->AddChild(obj); })
+        .def("RemoveChild", nb::overload_cast<Node*>(&Node::RemoveChild))
+        .def("Remove", &Node::Remove)
+        .def("RemoveChildren", &Node::RemoveChildren)
+        .def("GetChildren", [](Node* self, bool recursive) {
+            auto children = self->GetChildren(recursive);
+            std::vector<Node*> ret;
+            for (auto& child : children) {
+                ret.push_back(child);
+            }
+            return ret;
+        })
+        .def("GetChild", [](Node* self, unsigned index) { return self->GetChild(index); })
+        .def("GetChild", [](Node* self, const ea::string& name) { return self->GetChild(name); })
+        .def("GetChild", [](Node* self, const ea::string& name, bool recursive) { return self->GetChild(name, recursive); })
+        .def("GetNumChildren", [](Node* self) { return self->GetNumChildren(); })
+        .def("GetNumChildren", [](Node* self, bool recursive) { return self->GetNumChildren(recursive); })
+        .def("SendEvent", [](Node* self, StringHash name) { self->SendEvent(name); })
+        .def("SendEvent", [](Node* self, StringHash name, VariantMap& param) { self->SendEvent(name, param); })
+        .def("SetVar", &Node::SetVar)
+        .def("SetVarByHash", &Node::SetVarByHash)
+        .def("GetVar", &Node::GetVar)
+        .def("GetVarByHash", &Node::GetVarByHash)
+        // 2D
+        .def("Scale2D", &Node::Scale2D)
+        .def("Rotate2D", [](Node* self, float delta) { self->Rotate2D(delta); })
+        .def("Rotate2D", [](Node* self, float delta, TransformSpace space) { self->Rotate2D(delta, space); })
+        .def("RotateAround2D", [](Node* self, const Vector2& point, float delta) { self->RotateAround2D(point, delta); })
+        .def("RotateAround2D", [](Node* self, const Vector2& point, float delta, TransformSpace space) { self->RotateAround2D(point, delta, space); })
+        .def("Translate2D", [](Node* self, const Vector2& delta) { self->Translate2D(delta); })
+        .def("Translate2D", [](Node* self, const Vector2& delta, TransformSpace space) { self->Translate2D(delta, space); })
+        .def("SetScale2D", [](Node* self, const Vector2& scale) { self->SetScale2D(scale); })
+        .def("SetScale2D", [](Node* self, float x, float y) { self->SetScale2D(x, y); })
+        .def("SetRotation2D", &Node::SetRotation2D)
+        .def("SetPosition2D", [](Node* self, const Vector2& position) { self->SetPosition2D(position); })
+        .def("SetPosition2D", [](Node* self, float x, float y) { self->SetPosition2D(x, y); })
+        .def("GetScale2D", &Node::GetScale2D)
+        .def("GetRotation2D", &Node::GetRotation2D)
+        .def("GetPosition2D", &Node::GetPosition2D)
+        .def("SetTransform2D", [](Node* self, const Vector2& position, float rotation) { self->SetTransform2D(position, rotation); })
+        .def("SetTransform2D", [](Node* self, const Vector2& position, float rotation, float scale) { self->SetTransform2D(position, rotation, scale); })
+        .def("SetTransform2D", [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetTransform2D(position, rotation, scale); })
+        .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation) { self->SetWorldTransform2D(position, rotation); })
+        .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation, float scale) { self->SetWorldTransform2D(position, rotation, scale); })
+        .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetWorldTransform2D(position, rotation, scale); });
 
     nb::class_<Scene, Node>(m, "Scene")
 //         sol::call_constructor, sol::factories([context]() { return std::make_unique<Scene>(context); }),
@@ -439,16 +435,16 @@ NB_MODULE(scene, m)
         .value("UpdateScale", PrefabInstanceFlag::UpdateScale)
         .value("UpdateVariables", PrefabInstanceFlag::UpdateVariables)
         .value("UpdateAll", PrefabInstanceFlag::UpdateAll);
-//     lua["WM_LOOP"]      = WM_LOOP;
-//     lua["WM_ONCE"]      = WM_ONCE;
-//     lua["WM_CLAMP"]     = WM_CLAMP;
-//     lua["IM_NONE"]      = IM_NONE;
-//     lua["IM_LINEAR"]    = IM_LINEAR;
-//     lua["IM_SPLINE"]    = IM_SPLINE;
-//     lua["TS_LOCAL"]     = TS_LOCAL;
-//     lua["TS_PARENT"]    = TS_PARENT;
-//     lua["TS_WORLD"]     = TS_WORLD;
-//    lua["REPLICATED"]   = REPLICATED;
-//    lua["LOCAL"]        = LOCAL;
-//    RegisterSceneConst(lua);
+    m["WM_LOOP"]      = WM_LOOP;
+    m["WM_ONCE"]      = WM_ONCE;
+    m["WM_CLAMP"]     = WM_CLAMP;
+    m["IM_NONE"]      = IM_NONE;
+    m["IM_LINEAR"]    = IM_LINEAR;
+    m["IM_SPLINE"]    = IM_SPLINE;
+    m["TS_LOCAL"]     = TS_LOCAL;
+    m["TS_PARENT"]    = TS_PARENT;
+    m["TS_WORLD"]     = TS_WORLD;
+//    m["REPLICATED"]   = REPLICATED;
+//    m["LOCAL"]        = LOCAL;
+   RegisterSceneConst(m);
 }

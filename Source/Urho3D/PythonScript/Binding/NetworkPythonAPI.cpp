@@ -12,6 +12,7 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
+
 // int sol_lua_push(lua_State* L, RefCounted* refobj)
 // {
 //     auto obj = dynamic_cast<Object*>(refobj);
@@ -27,86 +28,85 @@ using namespace nb::literals;
 //     return sol::make_object(L, obj).push(L);
 // }
 #if URHO3D_NETWORK
-NB_MODULE(network, m)
+void RegisterNetworkConst(nb::module_ m)
 {
-    auto protocol	= lua["Protocol"].get_or_create<sol::table>();
+    nb::enum_<NetworkMessageId>(m, "Protocol")
     //
     //protocol["PACKAGE_FRAGMENT_SIZE"]		= PACKAGE_FRAGMENT_SIZE;
 	//
-    protocol["MSG_IDENTITY"]				= MSG_IDENTITY;
-	protocol["MSG_SCENELOADED"]				= MSG_SCENELOADED;
-	protocol["MSG_REQUESTPACKAGE"]			= MSG_REQUESTPACKAGE;
-	protocol["MSG_PACKAGEDATA"]				= MSG_PACKAGEDATA;
-	protocol["MSG_LOADSCENE"]				= MSG_LOADSCENE;
-	protocol["MSG_SCENECHECKSUMERROR"]		= MSG_SCENECHECKSUMERROR;
-	protocol["MSG_REMOTEEVENT"]				= MSG_REMOTEEVENT;
+        .value("MSG_IDENTITY", MSG_IDENTITY)
+	    .value("MSG_SCENELOADED", MSG_SCENELOADED)
+	    .value("MSG_REQUESTPACKAGE", MSG_REQUESTPACKAGE)
+	    .value("MSG_PACKAGEDATA", MSG_PACKAGEDATA)
+	    .value("MSG_LOADSCENE", MSG_LOADSCENE)
+	    .value("MSG_SCENECHECKSUMERROR", MSG_SCENECHECKSUMERROR)
+	    .value("MSG_REMOTEEVENT", MSG_REMOTEEVENT)
 //	protocol["MSG_REMOTENODEEVENT"]			= MSG_REMOTENODEEVENT;
-	protocol["MSG_PACKAGEINFO"]				= MSG_PACKAGEINFO;
+        .value("MSG_PACKAGEINFO", MSG_PACKAGEINFO)
 //	protocol["MSG_PACKED_MESSAGE"]			= MSG_PACKED_MESSAGE;
-	protocol["MSG_USER"]					= MSG_USER;
+        .value("MSG_USER", MSG_USER);
 	
 	// event
-	auto eventType = lua["EventType"].get_or_create<sol::table>();
-	eventType["E_NETWORKMESSAGE"] = E_NETWORKMESSAGE;
-
-    auto paramType = lua["ParamType"].get_or_create<sol::table>();
-    paramType["P_CONNECTION"]	= NetworkMessage::P_CONNECTION;
-	paramType["P_MESSAGEID"]	= NetworkMessage::P_MESSAGEID;
-	paramType["P_DATA"]			= NetworkMessage::P_DATA;
+    auto eventType = m.def_submodule("EventType");
+    eventType.attr("E_NETWORKMESSAGE") = E_NETWORKMESSAGE;
+    auto paramType = m.def_submodule("ParamType");
+    paramType.attr("P_CONNECTION")	= NetworkMessage::P_CONNECTION;
+	paramType.attr("P_MESSAGEID")	= NetworkMessage::P_MESSAGEID;
+	paramType.attr("P_DATA")		= NetworkMessage::P_DATA;
 }
 #endif
-int sol2_NetworkLuaAPI_open(sol::state& lua)
+
+NB_MODULE(network, m)
 {
 #if URHO3D_NETWORK
-    auto context = GetContext(lua.lua_state());
-    auto bindConnection = lua.new_usertype<Connection>("Connection");
-    bindConnection["scene"]             = sol::property(&Connection::GetScene, &Connection::SetScene);
-    bindConnection["SendMessage"]       = [](Connection* obj, NetworkMessageId messageId, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->SendMessage(messageId, msg); };
-    bindConnection["SendRemoteEvent"]   = sol::resolve<void(StringHash, bool, const VariantMap&)>(&Connection::SendRemoteEvent);
-	bindConnection["Disconnect"]        = &Connection::Disconnect;
+    Context* context = nullptr;
+    nb::class_<Connection>(m, "Connection")
+        .def_prop_rw("scene", &Connection::GetScene, &Connection::SetScene)
+        .def("SendMessage", [](Connection* obj, NetworkMessageId messageId, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->SendMessage(messageId, msg); })
+        .def("SendRemoteEvent", nb::overload_cast<StringHash, bool, const VariantMap&>(&Connection::SendRemoteEvent))
+        .def("Disconnect", &Connection::Disconnect);
 
-	auto bindNetwork = lua.new_usertype<Network>("Network");
-    bindNetwork["serverConnection"]     = sol::readonly_property(&Network::GetServerConnection);
-    bindNetwork["serverRunning"]        = sol::readonly_property(&Network::IsServerRunning);
-    bindNetwork["StartServer"]          = [](Network* obj, unsigned short port) { obj->StartServer(port); };
-    bindNetwork["StopServer"]           = &Network::StopServer;
-    bindNetwork["Connect"]              = [](Network* obj, ea::string_view& url, Scene* scene, const VariantMap& identity) { return obj->Connect(url, scene, identity); };
-    bindNetwork["Disconnect"]           = &Network::Disconnect;
-    bindNetwork["RegisterRemoteEvent"]  = &Network::RegisterRemoteEvent;
-    bindNetwork["GetServerConnection"]  = &Network::GetServerConnection;
-    bindNetwork["BroadcastMessage"]     = [](Network* obj, int msgID, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->BroadcastMessage((NetworkMessageId)msgID, msg); };
+    nb::class_<Network>(m, "Network")
+        .def_prop_ro("serverConnection", &Network::GetServerConnection)
+        .def_prop_ro("serverRunning", &Network::IsServerRunning)
+        .def("StartServer", [](Network* obj, unsigned short port) { obj->StartServer(port); })
+        .def("StopServer", &Network::StopServer)
+        .def("Connect", [](Network* obj, ea::string_view& url, Scene* scene, const VariantMap& identity) { return obj->Connect(url, scene, identity); })
+        .def("Disconnect", &Network::Disconnect)
+        .def("RegisterRemoteEvent", &Network::RegisterRemoteEvent)
+        .def("GetServerConnection", &Network::GetServerConnection)
+        .def("BroadcastMessage", [](Network* obj, int msgID, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->BroadcastMessage((NetworkMessageId)msgID, msg); });
 
-    lua["network"] = context->GetSubsystem<Network>();
-	RegisterNetworkConst(lua);
+    m.attr("network") = context->GetSubsystem<Network>();
+	RegisterNetworkConst(m);
 #endif
-    auto http = lua["http"].get_or_create<sol::table>();
+    auto http = m.def_submodule("http");
     // http request
-    http["Fetch"] = [](const ea::string& url) {
+    http.def("Fetch", [](const ea::string& url) {
         std::vector<char> body;
         auto code = HttpProxy::Instance().Fetch(url.c_str(), body);
         ea::string message;
         message.assign(body.data(), body.size());
         return std::make_tuple(code, message);
-    };
-    http["Post"] = [](){},
-    http["Download"] = [](const ea::string& url, const ea::string& path) { return HttpProxy::Instance().Download(url.c_str(), path.c_str()); };
-    http["DownloadAsync"] = [](const ea::string& url, const ea::string& path) { return HttpProxy::Instance().DownloadAsync(url.c_str(), path.c_str()); };
+    });
+    http.def("Post", []() {});
+    http.def("Download", [](const ea::string& url, const ea::string& path) { return HttpProxy::Instance().Download(url.c_str(), path.c_str()); });
+    http.def("DownloadAsync", [](const ea::string& url, const ea::string& path) { return HttpProxy::Instance().DownloadAsync(url.c_str(), path.c_str()); });
     // for web platform, Emscripten async default.
-    http["FetchAsync"] = [](const ea::string& url) { return HttpProxy::Instance().FetchAsync(url.c_str()); };
-    http["IsTaskFinish"] = [](uint32_t tid) { return HttpProxy::Instance().IsTaskFinish(tid); };
-    http["GetState"] = [](uint32_t tid) {
+    http.def("FetchAsync", [](const ea::string& url) { return HttpProxy::Instance().FetchAsync(url.c_str()); });
+    http.def("IsTaskFinish", [](uint32_t tid) { return HttpProxy::Instance().IsTaskFinish(tid); });
+    http.def("GetState", [](uint32_t tid) {
         int curl_code{ -1 };
         int download_size{ 0 };
         int response_code{ 0 };
         int size{ 0 };
         HttpProxy::Instance().GetState(tid, curl_code, response_code, download_size, size);
         return std::make_tuple(curl_code, response_code, download_size, size);
-    };
-    http["GetResult"] = [](uint32_t tid) {
+    });
+    http.def("GetResult", [](uint32_t tid) {
         auto body = HttpProxy::Instance().GetResult(tid);
         ea::string message;
         message.assign(body.data(), body.size());
         return message;
-    };
-	return 0;
+    });
 }

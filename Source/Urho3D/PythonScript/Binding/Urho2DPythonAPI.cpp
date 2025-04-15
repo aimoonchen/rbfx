@@ -1,15 +1,17 @@
 #include <nanobind/nanobind.h>
-#include "../../Core/Context.h"
-#include "../../Resource/Resource.h"
-#include "../../Resource/ResourceCache.h"
-#include "../../Urho2D/Sprite2D.h"
-#include "../../Graphics/Material.h"
-#include "../../Urho2D/StaticSprite2D.h"
-#include "../../Urho2D/AnimatedSprite2D.h"
-#include "../../Urho2D/TileMap2D.h"
-#include "../../Urho2D/TileMapLayer2D.h"
-#include "../../Urho2D/TileMapDefs2D.h"
-#include "../../Urho2D/StretchableSprite2D.h"
+#include "Urho3D/Core/Context.h"
+#include "Urho3D/Resource/Resource.h"
+#include "Urho3D/Resource/ResourceCache.h"
+#include "Urho3D/Urho2D/Sprite2D.h"
+#include "Urho3D/Graphics/Material.h"
+#include "Urho3D/Urho2D/StaticSprite2D.h"
+#include "Urho3D/Urho2D/AnimatedSprite2D.h"
+#include "Urho3D/Urho2D/TileMap2D.h"
+#include "Urho3D/Urho2D/TileMapLayer2D.h"
+#include "Urho3D/Urho2D/TileMapDefs2D.h"
+#include "Urho3D/Urho2D/StretchableSprite2D.h"
+#include "Urho3D/Urho2D/AnimationSet2D.h"
+#include "Urho3D/Urho2D/TmxFile2D.h"
 
 using namespace Urho3D;
 namespace nb = nanobind;

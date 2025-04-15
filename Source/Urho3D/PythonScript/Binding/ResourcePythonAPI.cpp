@@ -170,5 +170,5 @@ NB_MODULE(resource, m)
         .def("ToString", &JSONFile::ToString)
         .def("GetRoot", nb::overload_cast<>(&JSONFile::GetRoot));
         
-    //lua["cache"] = context->GetSubsystem<ResourceCache>();
+    m.attr("cache") = context->GetSubsystem<ResourceCache>();
 }

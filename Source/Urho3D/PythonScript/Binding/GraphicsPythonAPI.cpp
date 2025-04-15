@@ -636,7 +636,7 @@ NB_MODULE(graphics, m)
     .def("SetOpacity", &Text3D::SetOpacity)
     .def("SetFaceCameraMode", &Text3D::SetFaceCameraMode);
         
-// 	lua["graphics_system"] = context->GetSubsystem<Graphics>();
-// 	lua["renderer_system"] = context->GetSubsystem<Renderer>();
-// 	RegisterConst(lua);
+    m.attr("graphics_system") = context->GetSubsystem<Graphics>();
+    m.attr("renderer_system") = context->GetSubsystem<Renderer>();
+    RegisterConst(lua);
 }

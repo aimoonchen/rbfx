@@ -14,7 +14,7 @@ using namespace nb::literals;
 NB_MODULE(action, m)
 {
     using namespace Actions;
-    //auto context = GetContext(solLua.lua_state());
+    Context* context = nullptr;
 
     nb::class_<BaseAction>(m, "BaseAction");
 
@@ -110,5 +110,5 @@ NB_MODULE(action, m)
         .def("AddAction", [](ActionManager* self, Actions::BaseAction* action, Component* target, bool paused) { return self->AddAction(action, target, paused); })
         .def("GetEmptyAction", &ActionManager::GetEmptyAction);
 
-    //solLua["action_manager"] = context->GetSubsystem<ActionManager>();
+    m.attr("action_manager") = context->GetSubsystem<ActionManager>();
 }

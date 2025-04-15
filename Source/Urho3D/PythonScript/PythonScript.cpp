@@ -174,6 +174,75 @@ static PyTypeObject CustomImporterType = []()
     return type;
 }();
 
+
+
+nb::object custom_open(const nb::args& args, const nb::kwargs& kwargs)
+{
+    // 解析参数
+    std::string path;
+    std::string mode = "r";
+    int buffering = -1;
+    std::string encoding;
+    std::string errors;
+    std::string newline;
+    bool closefd = true;
+
+    // 从 args 和 kwargs 中提取参数
+    if (args.size() > 0)
+        path = nb::cast<std::string>(args[0]);
+    if (args.size() > 1)
+        mode = nb::cast<std::string>(args[1]);
+
+    if (kwargs)
+    {
+        if (kwargs.contains("file"))
+            path = nb::cast<std::string>(kwargs["file"]);
+        if (kwargs.contains("mode"))
+            mode = nb::cast<std::string>(kwargs["mode"]);
+        if (kwargs.contains("buffering"))
+            buffering = nb::cast<int>(kwargs["buffering"]);
+        if (kwargs.contains("encoding"))
+            encoding = nb::cast<std::string>(kwargs["encoding"]);
+        if (kwargs.contains("errors"))
+            errors = nb::cast<std::string>(kwargs["errors"]);
+        if (kwargs.contains("newline"))
+            newline = nb::cast<std::string>(kwargs["newline"]);
+        if (kwargs.contains("closefd"))
+            closefd = nb::cast<bool>(kwargs["closefd"]);
+    }
+
+    // 仅处理读取模式
+    if (mode == "r")
+    {
+        if (!fs::exists(path))
+        {
+            throw std::runtime_error("File not found: " + path);
+        }
+
+        std::ifstream file(path);
+        if (!file.is_open())
+        {
+            throw std::runtime_error("Failed to open file: " + path);
+        }
+
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        return nb::str(content);
+    }
+
+    // 其他模式调用原始 open
+    static nb::object original_open = nb::module_::import("builtins").attr("open");
+    return original_open(*args, ​ * *​kwargs);
+}
+
+// 模块初始化
+NB_MODULE(override_open, m)
+{
+    nb::object builtins = nb::module_::import("builtins");
+    nb::object original_open = builtins.attr("open");
+    builtins.attr("open") = nb::cpp_function(custom_open);
+    m.attr("original_open") = original_open;
+}
+
 bool PythonScript::Initialize(const std::string& pythonHome)
 {
     if (initialized_) {
@@ -222,15 +291,16 @@ bool PythonScript::Initialize(const std::string& pythonHome)
         return false;
     }
 
-//     if (PyType_Ready(&CustomImporterType) < 0) {
-//         PyErr_Print();
-//         return false;
-//     }
-// 
-//     PyObject* sys_meta_path = PySys_GetObject("meta_path");
-//     PyObject* importer = PyObject_CallFunctionObjArgs((PyObject*)&CustomImporterType, nullptr);
-//     PyList_Insert(sys_meta_path, 0, importer);
+    PyObject* custom_open_func = PyCFunction_NewEx(
+        &(PyMethodDef){"open", (PyCFunction)custom_open, METH_VARARGS | METH_KEYWORDS, NULL}, NULL, NULL);
 
+    PyObject* pModule = PyImport_ImportModule("custom_io");
+    if (!pModule) {
+        PyErr_Print();
+        return false;
+    }
+    PyObject* builtins = PyImport_ImportModule("builtins");
+    PyDict_SetItemString(PyModule_GetDict(builtins), "open", PyObject_GetAttrString(pModule, "custom_open"));
 
     PyObject* mymodule = PyInit_my_ext();
     PyObject* sys = PyImport_ImportModule("sys");
