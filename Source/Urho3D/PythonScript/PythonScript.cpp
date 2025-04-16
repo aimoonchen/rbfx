@@ -185,6 +185,7 @@ static PyObject* install_custom_file_reader(PyObject* self, PyObject* args)
     Py_RETURN_NONE;
 }
 */
+/*
 static PyObject* g_original_get_sourcefile = nullptr;
 
 static PyObject* custom_get_sourcefile(PyObject* self, PyObject* args)
@@ -286,6 +287,348 @@ static bool install_custom_loader()
     PyGILState_Release(gstate);
     return success;
 }
+*/
+typedef std::function<std::vector<char>(const std::string&)> GetFileContentFunc;
+static GetFileContentFunc g_get_file_content = nullptr;
+static PyObject* custom_find_spec(PyObject* self, PyObject* args, PyObject* kwargs)
+{
+    static const char* kwlist[] = {"fullname", "path", "target", NULL};
+    PyObject* fullname;
+    PyObject* path = Py_None;
+    PyObject* target = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OO", const_cast<char**>(kwlist), &fullname, &path, &target))
+    {
+        return NULL;
+    }
+
+    // 获取模块名
+    if (!PyUnicode_Check(fullname))
+    {
+        //PyErr_SetString(PyExc_TypeError, "模块名必须是字符串");
+        return NULL;
+    }
+
+    const char* module_name = PyUnicode_AsUTF8(fullname);
+    if (!module_name)
+    {
+        return NULL;
+    }
+
+    printf("查找模块: %s\n", module_name);
+
+    // 将模块名转换为可能的文件路径
+    std::string module_path = module_name;
+    std::replace(module_path.begin(), module_path.end(), '.', '/');
+
+    // 尝试查找模块文件
+    std::string py_file_path = module_path + ".py";
+    std::string init_file_path = module_path + "/__init__.py";
+
+    std::vector<char> content;
+    std::string final_path;
+    bool is_package = false;
+
+    // 先尝试作为包导入
+    if (g_get_file_content)
+    {
+        content = g_get_file_content(init_file_path);
+        if (!content.empty())
+        {
+            final_path = init_file_path;
+            is_package = true;
+            printf("找到包: %s\n", init_file_path.c_str());
+        }
+        else
+        {
+            // 再尝试作为模块导入
+            content = g_get_file_content(py_file_path);
+            if (!content.empty())
+            {
+                final_path = py_file_path;
+                printf("找到模块: %s\n", py_file_path.c_str());
+            }
+        }
+    }
+
+    if (content.empty())
+    {
+        printf("未找到模块: %s\n", module_name);
+        Py_RETURN_NONE; // 找不到模块
+    }
+
+    // 导入必要的Python模块
+    PyObject* importlib_util = PyImport_ImportModule("importlib.util");
+    if (!importlib_util)
+    {
+        return NULL;
+    }
+
+    PyObject* importlib_machinery = PyImport_ImportModule("importlib.machinery");
+    if (!importlib_machinery)
+    {
+        Py_DECREF(importlib_util);
+        return NULL;
+    }
+
+    // 创建源代码加载器
+    PyObject* source_loader_class = PyObject_GetAttrString(importlib_machinery, "SourceFileLoader");
+    if (!source_loader_class)
+    {
+        Py_DECREF(importlib_util);
+        Py_DECREF(importlib_machinery);
+        return NULL;
+    }
+
+    // 创建自定义加载器
+    PyObject* loader = PyObject_CallFunction(source_loader_class, "Os", fullname, final_path.c_str());
+    Py_DECREF(source_loader_class);
+
+    if (!loader)
+    {
+        Py_DECREF(importlib_util);
+        Py_DECREF(importlib_machinery);
+        return NULL;
+    }
+
+    // 创建ModuleSpec
+    PyObject* spec_from_loader = PyObject_GetAttrString(importlib_util, "spec_from_loader");
+    if (!spec_from_loader)
+    {
+        Py_DECREF(loader);
+        Py_DECREF(importlib_util);
+        Py_DECREF(importlib_machinery);
+        return NULL;
+    }
+
+    PyObject* spec;
+    if (is_package)
+    {
+        spec = PyObject_CallFunction(spec_from_loader, "OOi", fullname, loader, 1);
+    }
+    else
+    {
+        spec = PyObject_CallFunction(spec_from_loader, "OO", fullname, loader);
+    }
+
+    Py_DECREF(spec_from_loader);
+
+    if (!spec)
+    {
+        Py_DECREF(loader);
+        Py_DECREF(importlib_util);
+        Py_DECREF(importlib_machinery);
+        return NULL;
+    }
+
+    // 创建PyMethodDef结构体
+    PyMethodDef get_data_method = {"get_data", [](PyObject* self, PyObject* args) -> PyObject*
+    {
+        const char* path;
+        if (!PyArg_ParseTuple(args, "s", &path))
+        {
+            return NULL;
+        }
+
+        printf("获取文件内容: %s\n", path);
+
+        // 从自定义文件系统获取内容
+        if (g_get_file_content)
+        {
+            std::vector<char> content = g_get_file_content(path);
+            if (!content.empty())
+            {
+                printf("从虚拟文件系统获取内容成功: %s (%zu 字节)\n", path, content.size());
+                return PyBytes_FromStringAndSize(content.data(), content.size());
+            }
+        }
+
+        // 如果找不到内容，调用原始方法
+        PyObject* original_get_data = PyObject_GetAttrString(self, "_original_get_data");
+        if (original_get_data)
+        {
+            PyObject* result = PyObject_CallObject(original_get_data, args);
+            Py_DECREF(original_get_data);
+            return result;
+        }
+
+        PyErr_SetString(PyExc_FileNotFoundError, path);
+        return NULL;
+    }, METH_VARARGS, "获取文件内容"};
+
+    // 然后使用这个结构体创建函数对象
+    PyObject* get_data_func = PyCFunction_New(&get_data_method, NULL);
+
+    // 保存原始get_data方法
+    PyObject* original_get_data = PyObject_GetAttrString(loader, "get_data");
+    if (original_get_data)
+    {
+        PyObject_SetAttrString(loader, "_original_get_data", original_get_data);
+        Py_DECREF(original_get_data);
+    }
+
+    // 设置自定义get_data方法
+    PyObject_SetAttrString(loader, "get_data", get_data_func);
+    Py_DECREF(get_data_func);
+
+    // 清理引用
+    Py_DECREF(loader);
+    Py_DECREF(importlib_util);
+    Py_DECREF(importlib_machinery);
+
+    return spec;
+}
+
+// 安装自定义导入钩子
+bool install_virtual_importer()
+{
+    // 获取GIL
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    bool success = false;
+
+    // 首先定义PyMethodDef数组
+    PyMethodDef finder_methods[] = {
+        {"find_spec", (PyCFunction)custom_find_spec, METH_VARARGS | METH_KEYWORDS, "查找模块规格"},
+        {NULL, NULL, 0, NULL}};
+
+    // 然后定义PyType_Slot数组
+    PyType_Slot finder_slots[] = {{Py_tp_new, (void*)PyType_GenericNew}, {Py_tp_methods, finder_methods}, {0, NULL}};
+
+    // 最后定义PyType_Spec结构体
+    PyType_Spec finder_spec = {"virtual_importer.Finder", sizeof(PyObject), 0, Py_TPFLAGS_DEFAULT, finder_slots};
+
+    // 创建自定义Finder类型
+    PyTypeObject* finder_type = (PyTypeObject*)PyType_FromSpec(&finder_spec);
+
+    if (!finder_type)
+    {
+        printf("无法创建自定义Finder类型\n");
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    // 创建Finder实例
+    PyObject* finder = PyObject_CallObject((PyObject*)finder_type, NULL);
+    Py_DECREF(finder_type);
+
+    if (!finder)
+    {
+        printf("无法创建自定义Finder实例\n");
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    // 获取sys.meta_path
+    PyObject* sys_module = PyImport_ImportModule("sys");
+    if (!sys_module)
+    {
+        printf("无法导入sys模块\n");
+        Py_DECREF(finder);
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    PyObject* meta_path = PyObject_GetAttrString(sys_module, "meta_path");
+    Py_DECREF(sys_module);
+
+    if (!meta_path)
+    {
+        printf("无法获取sys.meta_path\n");
+        Py_DECREF(finder);
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    // 将Finder添加到meta_path的最前面
+    if (PyList_Insert(meta_path, 0, finder) < 0)
+    {
+        printf("无法将Finder添加到sys.meta_path\n");
+        Py_DECREF(meta_path);
+        Py_DECREF(finder);
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    Py_DECREF(meta_path);
+    Py_DECREF(finder);
+
+    success = true;
+    printf("虚拟导入器安装成功\n");
+    PyGILState_Release(gstate);
+    return success;
+}
+
+std::vector<char> get_file_from_binary_package(const std::string& path) {
+    return {};
+}
+
+bool RunScriptFromMemory(const std::vector<char>& scriptContent, const std::string& filename)
+{
+    // 获取GIL
+    PyGILState_STATE gstate = PyGILState_Ensure();
+
+    // 获取主模块和全局字典
+    PyObject* mainModule = PyImport_AddModule("__main__");
+    if (!mainModule)
+    {
+        PyGILState_Release(gstate);
+        return false;
+    }
+
+    PyObject* globalsDict = PyModule_GetDict(mainModule);
+
+    // 设置__file__变量
+    PyObject* filenameObj = PyUnicode_FromString(filename.c_str());
+    if (PyDict_SetItemString(globalsDict, "__file__", filenameObj) < 0)
+    {
+        Py_DECREF(filenameObj);
+        PyGILState_Release(gstate);
+        return false;
+    }
+    Py_DECREF(filenameObj);
+
+    // 从二进制内容创建Python字符串
+    PyObject* codeString = PyUnicode_FromStringAndSize(scriptContent.data(), scriptContent.size());
+    if (!codeString)
+    {
+        // 如果直接转换失败，尝试通过bytes对象转换
+        PyObject* codeBytes = PyBytes_FromStringAndSize(scriptContent.data(), scriptContent.size());
+        if (!codeBytes)
+        {
+            PyGILState_Release(gstate);
+            return false;
+        }
+
+        codeString = PyUnicode_FromEncodedObject(codeBytes, "utf-8", "strict");
+        Py_DECREF(codeBytes);
+
+        if (!codeString)
+        {
+            PyGILState_Release(gstate);
+            return false;
+        }
+    }
+
+    // 执行脚本
+    PyObject* result = PyRun_String(PyUnicode_AsUTF8(codeString), Py_file_input, globalsDict, globalsDict);
+
+    Py_DECREF(codeString);
+
+    bool success = (result != NULL);
+    if (result)
+    {
+        Py_DECREF(result);
+    }
+    else
+    {
+        PyErr_Print();
+    }
+
+    // 释放GIL
+    PyGILState_Release(gstate);
+
+    return success;
+}
 
 bool PythonScript::Initialize(const std::string& pythonHome)
 {
@@ -335,7 +678,7 @@ bool PythonScript::Initialize(const std::string& pythonHome)
         return false;
     }
 
-    install_custom_loader();
+    install_virtual_importer();
 
 //     PyObject* mymodule = PyInit_my_ext();
 //     PyObject* sys = PyImport_ImportModule("sys");
@@ -346,7 +689,7 @@ bool PythonScript::Initialize(const std::string& pythonHome)
     //ret = PyRun_SimpleString("import sys; print('Python sys.path:', sys.path)");
     //ret = PyRun_SimpleString("import my_ext; print('Hello from embedded Python!')");
     //auto ret = PyRun_SimpleString("import my_ext; print(my_ext)");
-    auto ret = PyRun_SimpleString("import datetime; print(datetime)");
+    auto ret = PyRun_SimpleString("import mymodule; print(datetime)");
     
     main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
