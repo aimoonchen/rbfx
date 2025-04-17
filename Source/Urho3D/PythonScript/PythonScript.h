@@ -39,7 +39,7 @@ public:
     PyObject* RunSimpleString(const std::string& code);
     void Finalize();
     /// Execute script file. Return true if successful.
-    bool ExecuteFile(const ea::string& fileName, bool fromui = false);
+    bool ExecuteFile(const ea::string& fileName);
     /// Execute script string. Return true if successful.
     bool ExecuteString(const ea::string& string);
     /// Load script file on file system (i.e. not from resource cache). Return true if successful.
