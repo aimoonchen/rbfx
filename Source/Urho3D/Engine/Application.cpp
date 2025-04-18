@@ -55,7 +55,7 @@ void RunFrame(void* data)
 }
 #endif
 
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
 /// Command line parser.
 static CLI::App commandLine_{};
 #endif
@@ -88,7 +88,7 @@ int Application::Run()
         // Register application command line arguments or set up engine parameters
         Setup();
 
-#if DESKTOP
+#if 0//DESKTOP
         if (engineParameters_[EP_ENGINE_CLI_PARAMETERS].GetBool())
         {
             // Register engine command line arguments
@@ -99,7 +99,7 @@ int Application::Run()
         if (exitCode_)
             return exitCode_;
 
-#if DESKTOP
+#if 0//DESKTOP
         // Parse command line parameters
         {
             const StringVector& rawArguments = GetArguments();
@@ -212,7 +212,7 @@ void Application::HandleLogMessage(StringHash eventType, VariantMap& eventData)
         startupErrors_ += error + "\n";
     }
 }
-#if DESKTOP
+#if defined(DESKTOP) || defined(__EMSCRIPTEN__)
 CLI::App& Application::GetCommandLineParser()
 {
     return commandLine_;

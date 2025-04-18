@@ -42,7 +42,7 @@ public:
 private:
     void get_script_filename();
     //ea::string scriptFileName_{ "App.lua" };
-    ea::string scriptFileName_{ "App.py" };
+    ea::string scriptFileName_{ "Scripts/App.py" };
 };
 
 }

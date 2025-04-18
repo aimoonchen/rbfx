@@ -127,7 +127,7 @@ void PlayerApplication::get_script_filename()
     {
         scriptFileName_ = GetInternalPath(arguments[0]);
         // TODO: remove this, web's lua entry is 'Scripts/App.lua'
-        if (scriptFileName_.starts_with("Scripts/"))
+        if (scriptFileName_.ends_with(".lua") && scriptFileName_.starts_with("Scripts/"))
         {
             scriptFileName_ = scriptFileName_.substr(scriptFileName_.find_first_of('/') + 1);
         }

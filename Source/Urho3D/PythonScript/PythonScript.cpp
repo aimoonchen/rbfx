@@ -1,22 +1,19 @@
-//#include "../Precompiled.h"
+#include "../Precompiled.h"
 #include "PythonScript.h"
-#include "../Core/CoreEvents.h"
-#include "../Core/ProcessUtils.h"
-#include "../Core/Profiler.h"
-#include "../Engine/Engine.h"
-#include "../Engine/EngineEvents.h"
-#include "../Engine/EngineDefs.h"
-#include "../IO/File.h"
-#include "../IO/FileSystem.h"
-#include "../IO/Log.h"
-#include "../Resource/ResourceCache.h"
-#include "../Scene/Scene.h"
+
 #include "Python.h"
-#include "marshal.h"
 #include <nanobind/nanobind.h>
-//#include <nanobind/stl/string.h>
-#include <vector>
-#include <unordered_set>
+#include "Urho3D/Core/CoreEvents.h"
+#include "Urho3D/Core/ProcessUtils.h"
+#include "Urho3D/Core/Profiler.h"
+#include "Urho3D/Engine/Engine.h"
+#include "Urho3D/Engine/EngineEvents.h"
+#include "Urho3D/Engine/EngineDefs.h"
+#include "Urho3D/IO/File.h"
+#include "Urho3D/IO/FileSystem.h"
+#include "Urho3D/IO/Log.h"
+#include "Urho3D/Resource/ResourceCache.h"
+#include "Urho3D/Scene/Scene.h"
 #include "../DebugNew.h"
 
 struct Dog
@@ -37,49 +34,55 @@ NB_MODULE(my_ext, m)
         .def_rw("name", &Dog::name);
 }
 
+
+extern "C" [[maybe_unused]] NB_EXPORT PyObject* PyInit_engine();
+
 Urho3D::PythonScript* g_python_script = nullptr;
 
-namespace Urho3D
+namespace {
+Urho3D::Context* g_context = nullptr;
+ea::vector<char> get_file_content(const ea::string& path)
 {
-StringVariantMap& GetEngineParameters();
-
-PythonScript::PythonScript(Context* context) :
-    Object(context)
-{
-    Initialize();
+    auto cache = g_context->GetSubsystem<Urho3D::ResourceCache>();
+    auto file = cache->GetFile(path.c_str(), false);
+    if (!file) {
+        URHO3D_LOGERRORF("LoadFile failed: %s", path.c_str());
+        return {};
+    }
+    auto size = file->GetSize();
+    ea::vector<char> scriptContent;
+    scriptContent.resize(file->GetSize());
+    if (file->Read(scriptContent.data(), scriptContent.size()) != scriptContent.size()) {
+        URHO3D_LOGERRORF("ReadFile failed: %s", path.c_str());
+        return {};
+    }
+    return ea::move(scriptContent);
 }
 
-PythonScript::~PythonScript()
-{
-    Finalize();
-}
-
-typedef std::function<std::vector<char>(const std::string&)> GetFileContentFunc;
-static GetFileContentFunc g_get_file_content = nullptr;
-
-static PyObject* g_importlib_util = nullptr;
-static PyObject* g_importlib_machinery = nullptr;
-static PyObject* g_spec_from_loader = nullptr;
-static PyObject* g_source_loader_class = nullptr;
+PyObject* g_spec_from_loader = nullptr;
+PyObject* g_source_loader_class = nullptr;
 
 bool initialize_import_cache()
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
 
-    g_importlib_util = PyImport_ImportModule("importlib.util");
-    g_importlib_machinery = PyImport_ImportModule("importlib.machinery");
+    auto importlib_util = PyImport_ImportModule("importlib.util");
+    auto importlib_machinery = PyImport_ImportModule("importlib.machinery");
 
-    if (!g_importlib_util || !g_importlib_machinery) {
-        Py_XDECREF(g_importlib_util);
-        Py_XDECREF(g_importlib_machinery);
+    if (!importlib_util || !importlib_machinery)
+    {
+        Py_XDECREF(importlib_util);
+        Py_XDECREF(importlib_machinery);
         PyGILState_Release(gstate);
         return false;
     }
 
-    g_spec_from_loader = PyObject_GetAttrString(g_importlib_util, "spec_from_loader");
-    g_source_loader_class = PyObject_GetAttrString(g_importlib_machinery, "SourceFileLoader");
-
-    if (!g_spec_from_loader || !g_source_loader_class) {
+    g_spec_from_loader = PyObject_GetAttrString(importlib_util, "spec_from_loader");
+    g_source_loader_class = PyObject_GetAttrString(importlib_machinery, "SourceFileLoader");
+    Py_XDECREF(importlib_util);
+    Py_XDECREF(importlib_machinery);
+    if (!g_spec_from_loader || !g_source_loader_class)
+    {
         PyGILState_Release(gstate);
         return false;
     }
@@ -92,17 +95,29 @@ void cleanup_import_cache()
 {
     PyGILState_STATE gstate = PyGILState_Ensure();
 
-    Py_XDECREF(g_importlib_util);
-    Py_XDECREF(g_importlib_machinery);
     Py_XDECREF(g_spec_from_loader);
     Py_XDECREF(g_source_loader_class);
-
-    g_importlib_util = nullptr;
-    g_importlib_machinery = nullptr;
     g_spec_from_loader = nullptr;
     g_source_loader_class = nullptr;
 
     PyGILState_Release(gstate);
+}
+}
+namespace Urho3D
+{
+StringVariantMap& GetEngineParameters();
+
+PythonScript::PythonScript(Context* context) :
+    Object(context)
+{
+    Initialize();
+    g_context = context;
+    g_python_script = this;
+}
+
+PythonScript::~PythonScript()
+{
+    Finalize();
 }
 
 PyObject* custom_get_data(PyObject* self, PyObject* args)
@@ -113,13 +128,10 @@ PyObject* custom_get_data(PyObject* self, PyObject* args)
         return nullptr;
     }
 
-    if (g_get_file_content)
+    ea::vector<char> content = get_file_content(path);
+    if (!content.empty())
     {
-        std::vector<char> content = g_get_file_content(path);
-        if (!content.empty())
-        {
-            return PyBytes_FromStringAndSize(content.data(), content.size());
-        }
+        return PyBytes_FromStringAndSize(content.data(), content.size());
     }
 
     PyObject* original_get_data = PyObject_GetAttrString(self, "_original_get_data");
@@ -155,26 +167,24 @@ static PyObject* custom_find_spec(PyObject* self, PyObject* args, PyObject* kwar
         return nullptr;
     }
 
-    std::vector<std::string> possible_paths;
-    std::string module_path(module_name);
-    std::replace(module_path.begin(), module_path.end(), '.', '/');
-    possible_paths.push_back("/" + module_path + ".py");
-    possible_paths.push_back("/" + module_path + "/__init__.py");
-    possible_paths.push_back(module_path + ".py");
-    possible_paths.push_back(module_path + "/__init__.py");
+    ea::vector<ea::string> possible_paths;
+    ea::string module_path(module_name);
+    ea::replace(module_path.begin(), module_path.end(), '.', '/');
+//     possible_paths.push_back("/" + module_path + ".py");
+//     possible_paths.push_back("/" + module_path + "/__init__.py");
+    possible_paths.push_back("Scripts/" + module_path + ".py");
+    possible_paths.push_back("Scripts/" + module_path + "/__init__.py");
 
-    std::vector<char> content;
-    std::string found_path;
+    ea::vector<char> content;
+    ea::string found_path;
     bool is_package = false;
 
     for (const auto& possible_path : possible_paths) {
-        if (g_get_file_content) {
-            content = g_get_file_content(possible_path);
-            if (!content.empty()) {
-                found_path = possible_path;
-                is_package = (possible_path.find("__init__.py") != std::string::npos);
-                break;
-            }
+        content = get_file_content(possible_path);
+        if (!content.empty()) {
+            found_path = possible_path;
+            is_package = (possible_path.find("__init__.py") != ea::string::npos);
+            break;
         }
     }
 
@@ -204,8 +214,7 @@ static PyObject* custom_find_spec(PyObject* self, PyObject* args, PyObject* kwar
     PyObject_SetAttrString(loader, "get_data", get_data_func);
     Py_DECREF(get_data_func);
 
-    PyObject* spec_args =
-        is_package ? Py_BuildValue("OOi", fullname, loader, 1) : Py_BuildValue("OO", fullname, loader);
+    PyObject* spec_args = is_package ? Py_BuildValue("OOi", fullname, loader, 1) : Py_BuildValue("OO", fullname, loader);
 
     if (!spec_args) {
         Py_DECREF(loader);
@@ -219,10 +228,8 @@ static PyObject* custom_find_spec(PyObject* self, PyObject* args, PyObject* kwar
     return spec;
 }
 
-bool install_virtual_importer(GetFileContentFunc file_getter)
+static bool install_virtual_importer()
 {
-    g_get_file_content = file_getter;
-
     if (!initialize_import_cache()) {
         return false;
     }
@@ -269,11 +276,15 @@ bool install_virtual_importer(GetFileContentFunc file_getter)
     return success;
 }
 
-std::vector<char> get_file_from_binary_package(const std::string& path) {
-    return {};
+bool PythonScript::InitEngineModule()
+{
+    PyObject* engine = PyInit_engine();
+    PyObject* sys = PyImport_ImportModule("sys");
+    PyObject* modules = PyObject_GetAttrString(sys, "modules");
+    PyDict_SetItemString(modules, "engine", engine);
 }
 
-bool PythonScript::Initialize(const std::string& pythonHome)
+bool PythonScript::Initialize()
 {
     if (initialized_) {
         return true;
@@ -315,16 +326,16 @@ bool PythonScript::Initialize(const std::string& pythonHome)
         return false;
     }
 
-    if (!install_virtual_importer(get_file_from_binary_package)) {
-        ;
+    if (!install_virtual_importer()) {
+        return false;
     }
 
 //     PyObject* mymodule = PyInit_my_ext();
 //     PyObject* sys = PyImport_ImportModule("sys");
 //     PyObject* modules = PyObject_GetAttrString(sys, "modules");
 //     PyDict_SetItemString(modules, "my_ext", mymodule);
-
-    auto ret = PyRun_SimpleString("import mymodule; print(mymodule)");
+//     ExecuteFile("App.py");
+//     auto ret = PyRun_SimpleString("import App; print(App)");
     
     main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
@@ -398,6 +409,7 @@ PyObject* PythonScript::RunSimpleString(const std::string& code)
     PyGILState_Release(gstate);
     return result;
 }
+
 PyObject* PythonScript::CallFunction(const std::string& moduleName, const std::string& funcName, PyObject* args)
 {
     if (!initialized_)
@@ -447,10 +459,12 @@ PyObject* PythonScript::CallFunction(const std::string& moduleName, const std::s
     PyGILState_Release(gstate);
     return pResult;
 }
+
 static PyObject* toPyString(const std::string& str)
 {
     return PyUnicode_FromString(str.c_str());
 }
+
 static std::string toCppString(PyObject* pyStr)
 {
     if (!pyStr || !PyUnicode_Check(pyStr))
@@ -459,6 +473,7 @@ static std::string toCppString(PyObject* pyStr)
     }
     return PyUnicode_AsUTF8(pyStr);
 }
+
 void PythonScript::Finalize()
 {
     if (!initialized_)
@@ -476,16 +491,10 @@ void PythonScript::Finalize()
 
 bool PythonScript::ExecuteFile(const ea::string& filename)
 {
-    File file(context_);
-    if (!file.Open(filename)) {
+    ea::vector<char> scriptContent = get_file_content(filename);
+    if (scriptContent.empty()) {
         return false;
     }
-    ea::vector<char> scriptContent;
-    scriptContent.resize(file.GetSize());
-    if (file.Read(scriptContent.data(), scriptContent.size()) != scriptContent.size()) {
-        return false;
-    }
-
     PyGILState_STATE gstate = PyGILState_Ensure();
 
     PyObject* mainModule = PyImport_AddModule("__main__");
@@ -562,6 +571,21 @@ bool PythonScript::ExecuteRawFile(const ea::string& fileName)
     return false;
 }
 
+void PythonScript::AddEventHandler(Object* sender, const StringHash& eventType, nb::callable function)
+{
+    if (!function) {
+        return;
+    }
+        
+    if (sender) {
+        SubscribeToEvent(sender, eventType,
+            [function](StringHash eventType, VariantMap& eventData) { CALL_PYTHON(function, eventType, eventData); });
+    } else {
+        SubscribeToEvent(eventType,
+            [function](StringHash eventType, VariantMap& eventData) { CALL_PYTHON(function, eventType, eventData); });
+    }
+}
+
 void RegisterPythonScriptLibrary(Context* context)
 {
     static bool test = false;
@@ -581,9 +605,9 @@ bool RunPython(Context* context, const ea::string& scriptFileName)
         context->RegisterSubsystem(pythonScript);
     }
     // If script loading is successful, proceed to main loop
-//     if (pythonScript->ExecuteFile(scriptFileName)) {
-//         //URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
-//     }
+    if (pythonScript->ExecuteFile(scriptFileName)) {
+        //URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
+    }
     return false;
 }
 

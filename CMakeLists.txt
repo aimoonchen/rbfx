@@ -37,6 +37,45 @@ endif ()
 
 # Set project name and languages
 project (rbfx C CXX)
+
+# # [1] 强制使用原生 Clang 编译器 (覆盖 Visual Studio 默认设置)
+# set(CMAKE_C_COMPILER "clang" CACHE STRING "Clang compiler" FORCE)
+# set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "Clang++ compiler" FORCE)
+
+# # [2] 禁用 Visual Studio 的默认 MSVC 工具链
+# set(CMAKE_GENERATOR_TOOLSET "" CACHE STRING "Clear VS toolset" FORCE)
+
+# # [3] 全局 C++ 标准配置 (强制 C++23)
+# set(CMAKE_CXX_STANDARD 23)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_EXTENSIONS OFF)  # 禁用编译器扩展
+
+# # [4] 全局编译选项 (所有目标自动继承)
+# add_compile_options(
+#     "$<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>"      # 强制 libc++
+#     "$<$<COMPILE_LANGUAGE:CXX>:--target=x86_64-pc-windows-msvc>"  # Windows ABI 兼容
+#     "$<$<COMPILE_LANGUAGE:CXX>:-fexperimental-library>"  # 启用实验性特性
+# )
+
+# # [5] 全局链接选项 (所有目标自动继承)
+# add_link_options(
+#     "-stdlib=libc++"
+#     "-fuse-ld=lld"  # 使用 LLVM 的链接器
+#     "-L$ENV{LLVM_INSTALL_DIR}/lib"  # 显式指定 libc++ 库路径
+#     "-lc++"
+#     "-lc++abi"
+# )
+
+# # [6] 为所有目标添加标准库包含路径 (通过 INTERFACE 属性)
+# add_library(global_config INTERFACE)
+# target_include_directories(global_config INTERFACE
+#     "$ENV{LLVM_INSTALL_DIR}/include/c++/v1"  # libc++ 头文件
+# )
+# target_link_libraries(global_config INTERFACE
+#     "$ENV{LLVM_INSTALL_DIR}/lib/libc++.lib"
+#     "$ENV{LLVM_INSTALL_DIR}/lib/libc++abi.lib"
+# )
+
 if (APPLE)
     enable_language(OBJC)
     enable_language(OBJCXX)
