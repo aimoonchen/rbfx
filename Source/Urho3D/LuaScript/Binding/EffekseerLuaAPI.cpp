@@ -13,11 +13,9 @@ using namespace Urho3D;
 namespace sol {
 }
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_EffekseerLuaAPI_open(sol::state& lua)
 {
-	auto context = GetContext(lua.lua_state());
+	auto context = Context::GetInstance();
 	auto effekseer = lua["Effekseer"].get_or_create<sol::table>();
     auto bindEffekseerEmitter = lua.new_usertype<EffekseerEmitter>("EffekseerEmitter",
         sol::base_classes, sol::bases<Drawable, Component>());

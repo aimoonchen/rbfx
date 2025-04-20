@@ -1,27 +1,3 @@
-//
-// Copyright (c) 2008-2020 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-
-/// \file
-
 #pragma once
 
 #include "../PythonScript/PythonScriptEventListener.h"
@@ -30,7 +6,7 @@
 namespace Urho3D
 {
 class PythonFile;
-class Pythoncript;
+class PythonScript;
 class PythonScriptEventInvoker;
 
 /// Python Script object methods.
@@ -79,12 +55,12 @@ public:
     /// Handle enabled/disabled state change.
     void OnSetEnabled() override;
 
-    void AddEventHandler(const ea::string& eventName, nb::callable function) override;
+    void AddEventHandler(const ea::string& eventName, nanobind::callable function) override;
     /// Add a scripted event handler by function.
     void AddEventHandler(const ea::string& eventName, int functionIndex) override;
     /// Add a scripted event handler by function name.
     void AddEventHandler(const ea::string& eventName, const ea::string& functionName) override;
-    void AddEventHandler(Object* sender, const ea::string& eventName, nb::callable function) override;
+    void AddEventHandler(Object* sender, const ea::string& eventName, nanobind::callable function) override;
     /// Add a scripted event handler by function for a specific sender.
     void AddEventHandler(Object* sender, const ea::string& eventName, int functionIndex) override;
     /// Add a scripted event handler by function name for a specific sender.
@@ -118,7 +94,7 @@ public:
     void SetScriptNetworkDataAttr(const ea::vector<unsigned char>& data);
 
     /// Return script file.
-    //LuaFile* GetScriptFile() const;
+    PythonFile* GetScriptFile() const;
 
     /// Return script object type.
     const ea::string& GetScriptObjectType() const { return scriptObjectType_; }
@@ -131,15 +107,16 @@ public:
     /// Get script network serialization attribute by calling a script function.
     ea::vector<unsigned char> GetScriptNetworkDataAttr() const;
     /// Return script object's funcition.
-    nb::callable* GetScriptObjectFunction(const ea::string& functionName) const;
+    nanobind::callable GetScriptObjectFunction(const ea::string& functionName) const;
 
     /// Set script file attribute.
     void SetScriptFileAttr(const ResourceRef& value);
     /// Return script file attribute.
     ResourceRef GetScriptFileAttr() const;
 
-//     sol::table GetScriptObject();
-//     void SetScriptObject(sol::table obj);
+    nanobind::object GetScriptObject();
+    void SetScriptObject(nanobind::object obj);
+
 protected:
     /// Handle scene being assigned.
     void OnSceneSet(Scene* previousScene, Scene* scene) override;
@@ -181,12 +158,12 @@ private:
     /// Python reference to script object.
     //int scriptObjectRef_{};
     //sol::table scriptObjectRef_{ sol::lua_nil };
-    nb::object scriptObjectRef_;
+    nanobind::object scriptObjectRef_;
     /// Script object method.
-    nb::callable scriptObjectMethods_[MAX_LUA_SCRIPT_OBJECT_METHODS]{};
+    nanobind::callable scriptObjectMethods_[MAX_LUA_SCRIPT_OBJECT_METHODS];
 
     /// TODO: remvoe this : just keep alive
-    std::vector<std::shared_ptr<nb::callable>> lua_functions_;
+    std::vector<nanobind::callable> python_functions_;
 };
 
 }

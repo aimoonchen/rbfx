@@ -8,11 +8,9 @@
 
 using namespace Urho3D;
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_IOLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     auto bindDeserializer = lua.new_usertype<Deserializer>("Deserializer");
     bindDeserializer["ReadString"]      = &Deserializer::ReadString;
     bindDeserializer["ReadInt64"]       = &Deserializer::ReadInt64;

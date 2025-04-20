@@ -38,7 +38,6 @@
 #include "ThirdParty/par/par_shapes.h"
 #include "GetPush.h"
 
-Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;
 
 Urho3D::Model* ParMeshToModel(Urho3D::Context* ctx, par_shapes_mesh* mesh, bool swithYZ)
@@ -226,7 +225,7 @@ static void RegisterConst(sol::state& lua)
 
 int sol2_GraphicsLuaAPI_open(sol::state& lua)
 {
-	auto context = GetContext(lua.lua_state());
+	auto context = Context::GetInstance();
     auto graphic = lua["graphic"].get_or_create<sol::table>();
     lua.new_usertype<BiasParameters>("BiasParameters",
 		sol::call_constructor, sol::factories([](float constantBias, float slopeScaledBias) { return BiasParameters(constantBias, slopeScaledBias); }));

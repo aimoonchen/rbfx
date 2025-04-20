@@ -127,8 +127,6 @@ namespace sol {
     }
 }
 
-Urho3D::Context* GetContext(lua_State* L);
-
 static void RegisterSceneConst(sol::state& lua)
 {
 //     auto& lua = *solLua;
@@ -148,7 +146,7 @@ static void RegisterSceneConst(sol::state& lua)
 
 int sol2_SceneLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     auto bindComponent = lua.new_usertype<Component>("Component");
     bindComponent["GetID"]              = &Component::GetID;
     bindComponent["SetEnabled"]         = &Component::SetEnabled;

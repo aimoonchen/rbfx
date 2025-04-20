@@ -43,7 +43,6 @@ static FMOD::Studio::EventInstance* CreateEventInstance(Urho3D::Context* context
 }
 NB_MODULE(audio, m)
 {
-    Context* context = nullptr;
     nb::class_<FMOD::Studio::EventInstance>(m, "EventInstance")
         .def("Start", &FMOD::Studio::EventInstance::start)
         .def("Release", &FMOD::Studio::EventInstance::release)
@@ -52,7 +51,7 @@ NB_MODULE(audio, m)
         .def("SetVolume", &FMOD::Studio::EventInstance::setVolume)
         .def("GetPitch", [](FMOD::Studio::EventInstance* self) { float pitch = 0.0f; self->getPitch(&pitch); return pitch; })
         .def("SetPitch", &FMOD::Studio::EventInstance::setPitch);
-
+    auto context = Context::GetInstance();
     m.def("LoadBank", [context](std::string_view filename) {
         return context->GetSubsystem<Audio>()->LoadBank(filename) != nullptr;
 //         auto bank = context->GetSubsystem<Audio>()->LoadBank(filename);

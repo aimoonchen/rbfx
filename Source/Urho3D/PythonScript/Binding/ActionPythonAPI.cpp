@@ -10,11 +10,9 @@ using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
 
-//Urho3D::Context* GetContext(lua_State* L);
 NB_MODULE(action, m)
 {
     using namespace Actions;
-    Context* context = nullptr;
 
     nb::class_<BaseAction>(m, "BaseAction");
 
@@ -27,6 +25,7 @@ NB_MODULE(action, m)
         .def("IsDone", &ActionState::IsDone);
 
     nb::class_<ActionBuilder>(m, "ActionBuilder")
+        .def(nb::init<Context*, bool>())
         //sol::call_constructor, sol::factories([context]() { return ActionBuilder(context, true); }),
         .def("Then", [](ActionBuilder* self, FiniteTimeAction* nextAction) { return self->Then(SharedPtr<Actions::FiniteTimeAction>(nextAction)); })
         .def("Also", [](ActionBuilder* self, FiniteTimeAction* nextAction) { return self->Also(SharedPtr<Actions::FiniteTimeAction>(nextAction)); })
@@ -110,5 +109,5 @@ NB_MODULE(action, m)
         .def("AddAction", [](ActionManager* self, Actions::BaseAction* action, Component* target, bool paused) { return self->AddAction(action, target, paused); })
         .def("GetEmptyAction", &ActionManager::GetEmptyAction);
 
-    m.attr("action_manager") = context->GetSubsystem<ActionManager>();
+    m.attr("action_manager") = Context::GetInstance()->GetSubsystem<ActionManager>();
 }

@@ -113,8 +113,6 @@ namespace sol {
 	}
 }
 
-Urho3D::Context* GetContext(lua_State* L);
-
 static void BindUIConfig(sol::state& lua)
 {
     auto fairygui = lua["FairyGUI"].get<sol::table>();
@@ -525,7 +523,7 @@ int sol2_FairyGUILuaAPI_open(sol::state& lua)
     bindGTree["GetSelectedNode"]    = &GTree::getSelectedNode;
     bindGTree["SetItemRenderer"]    = [](GTree* obj, sol::function func) { obj->treeNodeRender = [func](GTreeNode* node, GComponent* obj) { CALL_LUA(func, node, obj) }; };
         
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     fairygui["GetRoot"] = [context]() { return context->GetSubsystem<GUI>()->GetFairyGUIRoot(); };
     fairygui["CreateText"] = sol::overload(
         []() { return GBasicTextField::create(); },

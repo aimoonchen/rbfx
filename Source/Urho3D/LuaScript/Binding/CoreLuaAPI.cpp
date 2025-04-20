@@ -15,7 +15,6 @@
 #include "GetPush.h"
 
 using namespace Urho3D;
-Urho3D::Context* GetContext(lua_State* L);
 namespace Urho3D
 {
 class Connection;
@@ -159,7 +158,7 @@ int sol2_CoreLuaAPI_open(sol::state& lua)
         );
 
     lua.new_usertype<Time>("Time", "GetTimeStamp", [](Time* self) { return self->GetTimeStamp(); });
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     lua["time"] = context->GetSubsystem<Time>();
     //
     lua["GetEventSender"] = [context]() {

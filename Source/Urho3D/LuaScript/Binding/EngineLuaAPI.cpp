@@ -6,8 +6,6 @@
 #include "../../Resource/XMLFile.h"
 #include "../../UI/BorderImage.h"
 
-Urho3D::Context* GetContext(lua_State* L);
-
 using namespace Urho3D;
 
 
@@ -19,7 +17,7 @@ static void RegisterEngineConst(sol::state& lua)
 
 int sol2_EngineLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
 //     lua.new_usertype<Console>("Console",// sol::constructors<Console(Context*)>(),
 //         "IsVisible", &Console::IsVisible,
 //         "SetVisible", &Console::SetVisible,

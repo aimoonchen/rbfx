@@ -14,11 +14,9 @@
 
 using namespace Urho3D;
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_Urho2DLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     lua.new_enum("TileMapObjectType2D",
         "RECTANGLE",    OT_RECTANGLE,
         "ELLIPSE",      OT_ELLIPSE,

@@ -10,7 +10,6 @@
 #include "GetPush.h"
 
 using namespace Urho3D;
-Urho3D::Context* GetContext(lua_State* L);
 
 // int sol_lua_push(lua_State* L, RefCounted* refobj)
 // {
@@ -58,7 +57,7 @@ static void RegisterNetworkConst(sol::state& lua)
 int sol2_NetworkLuaAPI_open(sol::state& lua)
 {
 #if URHO3D_NETWORK
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     auto bindConnection = lua.new_usertype<Connection>("Connection");
     bindConnection["scene"]             = sol::property(&Connection::GetScene, &Connection::SetScene);
     bindConnection["SendMessage"]       = [](Connection* obj, NetworkMessageId messageId, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->SendMessage(messageId, msg); };

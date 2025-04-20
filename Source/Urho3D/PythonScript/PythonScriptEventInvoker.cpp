@@ -25,13 +25,14 @@ PythonScriptEventInvoker::~PythonScriptEventInvoker() = default;
 
 void PythonScriptEventInvoker::AddEventHandler(Object* sender, const StringHash& eventType, nb::callable function)
 {
-    if (!function)
+    if (!function) {
         return;
-
-    if (sender)
-        SubscribeToEvent(sender, eventType, [function](StringHash eventType, VariantMap& eventData) { CallPythonFuntion(function, eventType, eventData); });
-    else
-        SubscribeToEvent(eventType, [function](StringHash eventType, VariantMap& eventData) { CallPythonFuntion(function, eventType, eventData); });
+    }
+    if (sender) {
+        SubscribeToEvent(sender, eventType, [function](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
+    } else {
+        SubscribeToEvent(eventType, [function](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
+    }
 }
 
 void PythonScriptEventInvoker::HandlePythonScriptEvent(StringHash eventType, VariantMap& eventData)

@@ -1,5 +1,5 @@
 #include <nanobind/nanobind.h>
-//#include <nanobind/stl/string.h>
+#include <nanobind/stl/unique_ptr.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include "Urho3D/Core/Context.h"
 #include "Urho3D/Scene/Node.h"
@@ -146,7 +146,6 @@ static void RegisterSceneConst(nb::module_ m)
 
 NB_MODULE(scene, m)
 {
-    Context* context = nullptr;
     nb::class_<Component>(m, "Component")
         .def("GetID", &Component::GetID)
         .def("SetEnabled", &Component::SetEnabled)
@@ -172,17 +171,14 @@ NB_MODULE(scene, m)
     .def("SetUpdateEventMask", &LogicComponent::SetUpdateEventMask)
     .def("GetUpdateEventMask", &LogicComponent::GetUpdateEventMask);
     
-//     lua.new_enum("TransformSpace",
-//         "LOCAL",    TS_LOCAL,
-//         "PARENT",   TS_PARENT,
-//         "WORLD",    TS_WORLD);
     nb::enum_<TransformSpace>(m, "TransformSpace")
         .value("LOCAL", TS_LOCAL)
         .value("PARENT", TS_PARENT)
         .value("WORLD", TS_WORLD);
 
     nb::class_<Node>(m, "Node")
-        //, sol::call_constructor, sol::factories([context]() { return std::make_unique<Node>(context); }));
+        .def(nb::init<Context*>())
+        //.def(nb::init<std::unique_ptr<Node>>([]() { return std::make_unique<Node>(Context::GetInstance()); }))
         .def_prop_rw("id", &Node::GetID, &Node::SetID)
         .def_prop_rw("name", &Node::GetName, &Node::SetName)
         .def_prop_rw("parent", &Node::GetParent, &Node::SetParent)
@@ -346,29 +342,30 @@ NB_MODULE(scene, m)
         .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetWorldTransform2D(position, rotation, scale); });
 
     nb::class_<Scene, Node>(m, "Scene")
+        .def(nb::init<Context*>())
 //         sol::call_constructor, sol::factories([context]() { return std::make_unique<Scene>(context); }),
-//         sol::base_classes, sol::bases<Node>());
-    .def("LoadXML", [](Scene* self, XMLFile* file) { return self->LoadXML(file->GetRoot()); }) // sol::resolve<bool(Deserializer&)>(&Scene::LoadXML),
-    .def("GetNode", &Scene::GetNode)
-    .def("GetNodesWithTag", [](Scene* self, const ea::string& tag) {
-        std::vector<Node*> ret;
-        ea::vector<Node*> dest;
-        if (self->GetNodesWithTag(dest, tag)) {
-            ret.reserve(dest.size());
-            for (auto nd : dest) {
-                ret.push_back(nd);
+        .def("LoadXML", [](Scene* self, XMLFile* file) { return self->LoadXML(file->GetRoot()); }) // sol::resolve<bool(Deserializer&)>(&Scene::LoadXML),
+        .def("GetNode", &Scene::GetNode)
+        .def("GetNodesWithTag", [](Scene* self, const ea::string& tag) {
+            std::vector<Node*> ret;
+            ea::vector<Node*> dest;
+            if (self->GetNodesWithTag(dest, tag)) {
+                ret.reserve(dest.size());
+                for (auto nd : dest) {
+                    ret.push_back(nd);
+                }
             }
-        }
-        return ret;
-    })
-    .def("Clear", &Scene::Clear)
-    .def("SetUpdateEnabled", &Scene::SetUpdateEnabled)
-    .def("IsUpdateEnabled", &Scene::IsUpdateEnabled)
-    .def("SetTimeScale", &Scene::SetTimeScale)
-    .def("SetElapsedTime", &Scene::SetElapsedTime);
+            return ret;
+        })
+        .def("Clear", &Scene::Clear)
+        .def("SetUpdateEnabled", &Scene::SetUpdateEnabled)
+        .def("IsUpdateEnabled", &Scene::IsUpdateEnabled)
+        .def("SetTimeScale", &Scene::SetTimeScale)
+        .def("SetElapsedTime", &Scene::SetElapsedTime);
         //"CreateAction", [](ActionType actionType, sol::variadic_args va) { return CreateAction(actionType, va); },
 
     nb::class_<ValueAnimation>(m, "ValueAnimation")
+        .def(nb::init<Context*>())
         //         sol::call_constructor, sol::factories([context]() {
         //             // lua does not hold object, c++ manage object's life
         //             return new ValueAnimation(context);
@@ -380,6 +377,7 @@ NB_MODULE(scene, m)
         .def("SetEventFrame", [](ValueAnimation* self, float time, const StringHash& eventType, const VariantMap& eventData) { self->SetEventFrame(time, eventType, eventData); });
  
     nb::class_<ValueAnimation>(m, "ObjectAnimation")
+        .def(nb::init<Context*>())
         //sol::call_constructor, sol::factories([context]() { return new ObjectAnimation(context); }));
         .def("AddAttributeAnimation", [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation) { self->AddAttributeAnimation(name, attributeAnimation); })
         .def("AddAttributeAnimation", [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) { self->AddAttributeAnimation(name, attributeAnimation, wrapMode, speed); })

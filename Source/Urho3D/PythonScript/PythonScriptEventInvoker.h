@@ -21,7 +21,7 @@ public:
     ~PythonScriptEventInvoker() override;
 
     /// Add a scripted event handler.
-    void AddEventHandler(Object* sender, const StringHash& eventType, nb::callable function);
+    void AddEventHandler(Object* sender, const StringHash& eventType, nanobind::callable function);
 private:
     /// Handle script event in Python script.
     void HandlePythonScriptEvent(StringHash eventType, VariantMap& eventData);

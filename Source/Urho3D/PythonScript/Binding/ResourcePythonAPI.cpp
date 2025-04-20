@@ -63,7 +63,6 @@ using namespace nb::literals;
 
 NB_MODULE(resource, m)
 {
-    Context* context = nullptr;
 //     nb.enum_<ScanFlags>(m, "ScanFlags")
 //         .value("SCAN_FILES", SCAN_FILES)
 //         .value("SCAN_DIRS", SCAN_DIRS)
@@ -125,6 +124,14 @@ NB_MODULE(resource, m)
 //         "JSONNT_FLOAT_DOUBLE", JSONNumberType::JSONNT_FLOAT_DOUBLE);
 
     nb::class_<JSONValue>(m, "JSONValue")
+        .def(nb::init<>())
+        .def(nb::init<JSONValueType, JSONNumberType>())
+        .def(nb::init<bool>())
+        .def(nb::init<int>())
+        .def(nb::init<unsigned>())
+        .def(nb::init<float>())
+        .def(nb::init<double>())
+        .def(nb::init<const char*>())
 //         sol::call_constructor, sol::factories(
 //             []() { return JSONValue(); },
 //             [](JSONValueType valueType, JSONNumberType numberType) { return JSONValue(valueType, numberType); },
@@ -170,5 +177,5 @@ NB_MODULE(resource, m)
         .def("ToString", &JSONFile::ToString)
         .def("GetRoot", nb::overload_cast<>(&JSONFile::GetRoot));
         
-    m.attr("cache") = context->GetSubsystem<ResourceCache>();
+    m.attr("cache") = Context::GetInstance()->GetSubsystem<ResourceCache>();
 }

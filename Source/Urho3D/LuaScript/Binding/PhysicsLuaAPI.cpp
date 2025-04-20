@@ -10,8 +10,6 @@
 
 using namespace Urho3D;
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_PhysicsLuaAPI_open(sol::state& lua)
 {
     auto eventType = lua["EventType"].get_or_create<sol::table>();

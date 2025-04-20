@@ -16,8 +16,6 @@ using namespace nb::literals;
 
 NB_MODULE(navigation, m)
 {
-    Context* context = nullptr;
-
     nb::class_<NavigationMesh, Component>(m, "NavigationMesh")
     //bindNavigationMesh["id"]                = sol::var(StringHash("NavigationMesh"));
         //"AddTile", [](NavigationMesh* self, const ea::vector<unsigned char>& tileData) { return self->AddTile(tileData); },
@@ -149,6 +147,7 @@ NB_MODULE(navigation, m)
 
     // a star
     nb::class_<AStar::Generator>(m, "AStar")
+        .def(nb::init<>())
         //sol::call_constructor, sol::factories([context]() { return std::make_unique<AStar::Generator>(); }),
         .def("SetWorldSize", [](AStar::Generator* self, int xdim, int ydim) { self->setWorldSize({ xdim, ydim }); })
         .def("SetDiagonalMovement", &AStar::Generator::setDiagonalMovement)

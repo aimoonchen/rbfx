@@ -19,7 +19,6 @@ using namespace nb::literals;
 
 NB_MODULE(urho2d, m)
 {
-    Context* context = nullptr;
     nb::enum_<TileMapObjectType2D>(m, "TileMapObjectType2D")
         .value("RECTANGLE",    OT_RECTANGLE)
         .value("ELLIPSE",      OT_ELLIPSE)

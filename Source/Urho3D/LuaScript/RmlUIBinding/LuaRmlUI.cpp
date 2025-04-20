@@ -27,8 +27,6 @@
 #include "LuaDataFormatter.h"
 #include "../Binding/GetPush.h"
 
-Urho3D::Context* GetContext(lua_State* L);
-
 #ifdef GetFirstChild
     #undef GetFirstChild
 #endif
@@ -579,7 +577,7 @@ int sol2_RmlUI_open(sol::state& lua)
     RegisterProperty(lua);
     RegisterTween(lua);
     RegisterTransform(lua);
-    auto rml = GetContext(lua.lua_state())->GetSubsystem<Urho3D::RmlUI>();
+    auto rml = Urho3D::Context::GetInstance()->GetSubsystem<Urho3D::RmlUI>();
     rmlui["LoadFont"] = sol::overload(
         [rml](const Rml::String& filename, bool fallback) { return rml->LoadFont(filename.c_str(), fallback); },
         //[rml](const Rml::String& familyname, const Rml::String& filename) { return rml->LoadFont(ea::string{familyname.c_str()}, ea::string{filename.c_str()}); },

@@ -1,3 +1,4 @@
+#include "../../Core/Context.h"
 #include "../../Navigation/NavigationMesh.h"
 #include "../../Navigation/DynamicNavigationMesh.h"
 #include "../../Navigation/Navigable.h"
@@ -9,12 +10,11 @@
 #include "../../Navigation/AStar/AStar.h"
 #include "GetPush.h"
 
-Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;
 
 int sol2_NavigationLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
 
     auto bindNavigationMesh = lua.new_usertype<NavigationMesh>("NavigationMesh", sol::base_classes, sol::bases<Component>());
     bindNavigationMesh["id"]                = sol::var(StringHash("NavigationMesh"));

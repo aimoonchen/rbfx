@@ -36,11 +36,12 @@
 #if URHO3D_RMLUI
 #   include <Urho3D/RmlUI/RmlUI.h>
 #endif
-#include <Urho3D/LuaScript/LuaScript.h>
-#include <Urho3D/PythonScript/PythonScript.h>
+//#include <Urho3D/LuaScript/LuaScript.h>
+//#include <Urho3D/PythonScript/PythonScript.h>
 namespace Urho3D
 {
-
+bool URHO3D_API RunLua(Context* context, const ea::string& scriptFileName);
+bool URHO3D_API RunPython(Context* context, const ea::string& scriptFileName);
 PlayerApplication::PlayerApplication(Context* context)
     : Application(context)
 {

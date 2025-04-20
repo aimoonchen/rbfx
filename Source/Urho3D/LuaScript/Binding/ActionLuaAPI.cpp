@@ -7,12 +7,11 @@
 #include "GetPush.h"
 
 using namespace Urho3D;
-Urho3D::Context* GetContext(lua_State* L);
 
 int sol2_ActionLuaAPI_open(sol::state& solLua)
 {
     using namespace Actions;
-    auto context = GetContext(solLua.lua_state());
+    auto context = Context::GetInstance();
 
     solLua.new_usertype<BaseAction>("BaseAction");
 
@@ -120,6 +119,6 @@ int sol2_ActionLuaAPI_open(sol::state& solLua)
         "GetEmptyAction", &ActionManager::GetEmptyAction,
         sol::base_classes, sol::bases<Object>());
 
-    solLua["action_manager"] = context->GetSubsystem<ActionManager>();
+    solLua["action_manager"] = Context::GetInstance()->GetSubsystem<ActionManager>();
     return 0;
 }

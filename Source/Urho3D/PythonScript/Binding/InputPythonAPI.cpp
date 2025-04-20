@@ -96,9 +96,7 @@ NB_MODULE(input, m)
         .def_rw("delta", &TouchState::delta_)
         .def_prop_ro("touchedElement", [](TouchState* self) { return self->touchedElement_.Get(); });
 
-    //auto context = GetContext(lua.lua_state());
-    Context* context = nullptr;
-    auto gui = context->GetSubsystem<GUI>();
+    auto gui = Context::GetInstance()->GetSubsystem<GUI>();
     nb::class_<Input, Object>(m, "Input")
         .def("GetNumJoysticks", &Input::GetNumJoysticks)
         .def("AddScreenJoystick", &Input::AddScreenJoystick)
@@ -136,5 +134,5 @@ NB_MODULE(input, m)
     RegisterKeyboard(m);
     RegisterInputConst(m);
      
-    m.attr("input_system") = context->GetSubsystem<Input>();
+    m.attr("input_system") = Context::GetInstance()->GetSubsystem<Input>();
 }

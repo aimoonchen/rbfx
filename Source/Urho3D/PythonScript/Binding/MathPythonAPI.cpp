@@ -1,6 +1,5 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h> 
-//#include <nanobind/stl/string.h>
 
 #include "Urho3D/Math/Vector2.h"
 #include "Urho3D/Math/Vector3.h"

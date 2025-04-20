@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../Core/Context.h"
-#include "../Core/Object.h"
+#include "Urho3D/Core/Context.h"
+#include "Urho3D/Core/Object.h"
 #include "PythonScriptEventListener.h"
+#include "PythonScriptEventInvoker.h"
 
 extern "C" {
     typedef struct PyModuleDef PyModuleDef;
@@ -26,7 +27,7 @@ namespace Urho3D
 class Scene;
 
 /// Python script subsystem.
-class URHO3D_API PythonScript : public PythonScriptEventListener, public Object
+class URHO3D_API PythonScript : public Object, public PythonScriptEventListener
 {
     URHO3D_OBJECT(PythonScript, Object);
 
@@ -50,12 +51,12 @@ public:
     /// Load and execute script file on file system (i.e. not from resource cache). Return true if successful.
     bool ExecuteRawFile(const ea::string& fileName);
     //
-    void AddEventHandler(const ea::string& eventName, nb::callable function) override;
+    void AddEventHandler(const ea::string& eventName, nanobind::callable function) override;
     /// Add a scripted event handler by function at the given stack index.
     void AddEventHandler(const ea::string& eventName, int index) override;
     /// Add a scripted event handler by function name.
     void AddEventHandler(const ea::string& eventName, const ea::string& functionName) override;
-    void AddEventHandler(Object* sender, const ea::string& eventName, nb::callable function) override;
+    void AddEventHandler(Object* sender, const ea::string& eventName, nanobind::callable function) override;
     /// Add a scripted event handler by function at the given stack index for a specific sender.
     void AddEventHandler(Object* sender, const ea::string& eventName, int index) override;
     /// Add a scripted event handler by function name for a specific sender.
@@ -74,10 +75,20 @@ public:
     bool HasEventHandler(const ea::string& eventName) const override;
     /// Return whether has subscribed to a specific sender's event.
     bool HasEventHandler(Object* sender, const ea::string& eventName) const override;
+    nanobind::callable GetFunction(const ea::string& functionName, bool silentIfNotFound = false);
 
 private:
     bool initialized_{ false };
     PyThreadState* main_thread_state_{ nullptr };
+    /// Procedural event invoker.
+    SharedPtr<PythonScriptEventInvoker> eventInvoker_;
+    /// Coroutine update function.
+    nanobind::callable coroutineUpdate_;
+    /// Function name to function map.
+    ea::unordered_map<ea::string, nanobind::callable> functionNameToFunctionMap_;
+
+    /// TODO: remvoe this : just keep alive
+    ea::vector<nanobind::callable> python_functions_;
 };
 
 /// Register Python script library objects.
@@ -126,11 +137,9 @@ bool URHO3D_API RunPython(Context* context, const ea::string& scriptFileName);
 
 template <typename F, typename... Args> auto CallPythonFunction(F function, Args&&... args)
 {
-    nb::object result;
     try {
-        result = function(std::forward<Args>(args)...);
+        nb::object result = function(std::forward<Args>(args)...);
     } catch (const nb::python_error& e) {
         URHO3D_LOGERRORF("%s", e.what());
     }
-    return result;
 }

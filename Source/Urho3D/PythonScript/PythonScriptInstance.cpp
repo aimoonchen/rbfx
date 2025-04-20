@@ -5,7 +5,7 @@
 #include "../Core/ProcessUtils.h"
 #include "../IO/Log.h"
 #include "../IO/MemoryBuffer.h"
-// #include "../LuaScript/LuaFile.h"
+#include "../PythonScript/PythonFile.h"
 // #include "../LuaScript/LuaFunction.h"
 #include "../PythonScript/PythonScript.h"
 #include "../PythonScript/PythonScriptEventInvoker.h"
@@ -39,19 +39,6 @@ static const char* scriptObjectMethodNames[] = {
     "ApplyAttributes",
     "TransformChanged"
 };
-
-// template<typename F, typename ...Args>
-// auto CallLuaFunction(F f, Args&& ...args)
-// {
-//     sol::protected_function_result result = (*f)(std::forward<Args>(args)...);
-//     if (!result.valid()) {
-//         sol::error err = result;
-//         sol::call_status status = result.status();
-//         URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
-//     }
-//     return result;
-// }
-
 
 PythonScriptInstance::PythonScriptInstance(Context* context) :
     Component(context),
@@ -108,7 +95,7 @@ void PythonScriptInstance::OnSetAttribute(const AttributeInfo& attr, const Varia
 // //             function->PushVariant(src);
 // //             function->EndCall();
 // //         }
-//         CallLuaFunction(function, scriptObjectRef_, src);
+//         CallPythonFunction(function, scriptObjectRef_, src);
 //     }
 //     else
 //     {
@@ -220,7 +207,7 @@ void PythonScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& de
 // //         if (function->BeginCall(this))
 // //             function->EndCall(1);
 // //        (*function)();
-//         CallLuaFunction(function, scriptObjectRef_);
+//         CallPythonFunction(function, scriptObjectRef_);
 //     }
 // //     else
 // //     {
@@ -274,13 +261,12 @@ void PythonScriptInstance::OnGetAttribute(const AttributeInfo& attr, Variant& de
 
 void PythonScriptInstance::ApplyAttributes()
 {
-    auto function = scriptObjectMethods_[LSOM_APPLYATTRIBUTES];
+    auto& function = scriptObjectMethods_[LSOM_APPLYATTRIBUTES];
 //     if (function && function->BeginCall(this))
 //         function->EndCall();
-    if (function)
-    {
+    if (function) {
         //(*function)();
-        CallLuaFunction(function, scriptObjectRef_);
+        CallPythonFunction(function, scriptObjectRef_);
     }
 }
 
@@ -295,7 +281,7 @@ void PythonScriptInstance::OnSetEnabled()
 void PythonScriptInstance::AddEventHandler(const ea::string& eventName, nb::callable function)
 {
     eventInvoker_->AddEventHandler(nullptr, eventName, function);
-    lua_functions_.emplace_back(function);
+    python_functions_.emplace_back(function);
 }
 
 void PythonScriptInstance::AddEventHandler(Object* sender, const ea::string& eventName, nb::callable function)
@@ -303,7 +289,7 @@ void PythonScriptInstance::AddEventHandler(Object* sender, const ea::string& eve
     if (!sender)
         return;
     eventInvoker_->AddEventHandler(sender, eventName, function);
-    lua_functions_.emplace_back(function);
+    python_functions_.emplace_back(function);
 }
 
 void PythonScriptInstance::AddEventHandler(const ea::string& eventName, int functionIndex)
@@ -394,6 +380,7 @@ bool PythonScriptInstance::CreateObject(const ea::string& scriptObjectType)
 //     SetScriptFile(nullptr);
 //     SetScriptObjectType(scriptObjectType);
 //     return scriptObjectRef_ != sol::lua_nil;
+    return false;
 }
 
 bool PythonScriptInstance::CreateObject(PythonFile* scriptFile, const ea::string& scriptObjectType)
@@ -401,6 +388,7 @@ bool PythonScriptInstance::CreateObject(PythonFile* scriptFile, const ea::string
 //     SetScriptFile(scriptFile);
 //     SetScriptObjectType(scriptObjectType);
 //     return scriptObjectRef_ != sol::lua_nil;
+    return false;
 }
 
 void PythonScriptInstance::SetScriptFile(PythonFile* scriptFile)
@@ -423,13 +411,13 @@ void PythonScriptInstance::SetScriptObjectType(const ea::string& scriptObjectTyp
         return;
 
     ReleaseObject();
-
-    auto function = luaScript_->GetFunction("CreateScriptObjectInstance");
-    if (!function/* || !function->BeginCall()*/)
+    /*
+    auto function = pythonScript_->GetFunction("CreateScriptObjectInstance");
+    if (!function)
         return;
     auto sol_lua = sol::state_view(luaState_);
     sol::table scriptClass = sol_lua[scriptObjectType.c_str()];
-    sol::protected_function_result result = CallLuaFunction(function, scriptClass, this);
+    sol::protected_function_result result = CallPythonFunction(function, scriptClass, this);
     if (!result.valid()) {
         return;
     }
@@ -447,14 +435,14 @@ void PythonScriptInstance::SetScriptObjectType(const ea::string& scriptObjectTyp
     scriptObjectType_ = scriptObjectType;
     scriptObjectRef_ = scriptObject;
     //scriptObjectRef_ = luaL_ref(luaState_, LUA_REGISTRYINDEX);
-
+    */
     // Find script object method refs
     FindScriptObjectMethodRefs();
 }
 
 void PythonScriptInstance::SetScriptDataAttr(const ea::vector<unsigned char>& data)
 {
-    if (scriptObjectRef_ == sol::lua_nil)
+    if (!scriptObjectRef_)
         return;
 
     auto function = scriptObjectMethods_[LSOM_LOAD];
@@ -464,13 +452,13 @@ void PythonScriptInstance::SetScriptDataAttr(const ea::vector<unsigned char>& da
 //         function->PushUserType((Deserializer&)buf, "Deserializer");
 //         function->EndCall();
         //(*function)((Deserializer&)buf);
-        CallLuaFunction(function, scriptObjectRef_, (Deserializer&)buf);
+        CallPythonFunction(function, scriptObjectRef_, (Deserializer&)buf);
     }
 }
 
 void PythonScriptInstance::SetScriptNetworkDataAttr(const ea::vector<unsigned char>& data)
 {
-    if (scriptObjectRef_ == sol::lua_nil)
+    if (!scriptObjectRef_)
         return;
 
     auto function = scriptObjectMethods_[LSOM_READNETWORKUPDATE];
@@ -479,7 +467,7 @@ void PythonScriptInstance::SetScriptNetworkDataAttr(const ea::vector<unsigned ch
         MemoryBuffer buf(data);
 //         function->PushUserType((Deserializer&)buf, "Deserializer");
 //         function->EndCall();
-        CallLuaFunction(function, scriptObjectRef_, (Deserializer&)buf);
+        CallPythonFunction(function, scriptObjectRef_, (Deserializer&)buf);
     }
 }
 
@@ -490,7 +478,7 @@ PythonFile* PythonScriptInstance::GetScriptFile() const
 
 ea::vector<unsigned char> PythonScriptInstance::GetScriptDataAttr() const
 {
-    if (scriptObjectRef_ == sol::lua_nil)
+    if (!scriptObjectRef_)
         return ea::vector<unsigned char>();
 
     VectorBuffer buf;
@@ -500,7 +488,7 @@ ea::vector<unsigned char> PythonScriptInstance::GetScriptDataAttr() const
     {
 //         function->PushUserType((Serializer&)buf, "Serializer");
 //         function->EndCall();
-        CallLuaFunction(function, scriptObjectRef_, (Serializer&)buf);
+        CallPythonFunction(function, scriptObjectRef_, (Serializer&)buf);
     }
 
     return buf.GetBuffer();
@@ -508,7 +496,7 @@ ea::vector<unsigned char> PythonScriptInstance::GetScriptDataAttr() const
 
 ea::vector<unsigned char> PythonScriptInstance::GetScriptNetworkDataAttr() const
 {
-    if (scriptObjectRef_ == sol::lua_nil)
+    if (!scriptObjectRef_)
         return ea::vector<unsigned char>();
 
     VectorBuffer buf;
@@ -518,7 +506,7 @@ ea::vector<unsigned char> PythonScriptInstance::GetScriptNetworkDataAttr() const
     {
 //         function->PushUserType((Serializer&)buf, "Serializer");
 //         function->EndCall();
-        CallLuaFunction(function, scriptObjectRef_, (Serializer&)buf);
+        CallPythonFunction(function, scriptObjectRef_, (Serializer&)buf);
     }
 
     return buf.GetBuffer();
@@ -545,92 +533,92 @@ void PythonScriptInstance::OnMarkedDirty(Node* node)
     auto function = scriptObjectMethods_[LSOM_TRANSFORMCHANGED];
     if (function/* && function->BeginCall(this)*/)
         //function->EndCall();
-        CallLuaFunction(function, scriptObjectRef_);
+        CallPythonFunction(function, scriptObjectRef_);
 }
 
 void PythonScriptInstance::GetScriptAttributes()
 {
-    // Get all attribute names
-    ea::vector<ea::string> names;
-    if (lua_istable(luaState_, -1))
-    {
-        size_t length = lua_rawlen(luaState_, -1);
-        for (size_t i = 1; i <= length; ++i)
-        {
-            lua_pushinteger(luaState_, (int)i);
-            lua_gettable(luaState_, -2);
-
-            if (!lua_isstring(luaState_, -1))
-            {
-                lua_pop(luaState_, 1);
-                continue;
-            }
-
-            ea::string name = lua_tostring(luaState_, -1);
-            names.push_back(name);
-
-            lua_pop(luaState_, 1);
-        }
-    }
-    lua_pop(luaState_, 1);
-
-    attributeInfos_ = *context_->GetAttributes(GetTypeStatic());
-
-    for (unsigned i = 0; i < names.size(); ++i)
-    {
-        lua_pushstring(luaState_, names[i].c_str());
-        lua_gettable(luaState_, -2);
-
-        // Get attribute type
-        int type = lua_type(luaState_, -1);
-
-        AttributeInfo info;
-        info.mode_ = AM_FILE;
-        info.name_ = names[i];
-        info.ptr_ = (void*)0xffffffffffffffff;
-
-        switch (type)
-        {
-        case LUA_TBOOLEAN:
-            info.type_ = VAR_BOOL;
-            break;
-        case LUA_TNUMBER:
-            info.type_ = VAR_DOUBLE;
-            break;
-        case LUA_TSTRING:
-            info.type_ = VAR_STRING;
-            break;
-        case LUA_TUSERDATA:
-            {
-                ea::string typeName = "";// tolua_typename(luaState_, -1);
-                lua_pop(luaState_, 1);
-
-                if (typeName == "Vector2")
-                    info.type_ = VAR_VECTOR2;
-                else if (typeName == "Vector3")
-                    info.type_ = VAR_VECTOR3;
-                else if (typeName == "Vector4")
-                    info.type_ = VAR_VECTOR4;
-                else if (typeName == "Quaternion")
-                    info.type_ = VAR_QUATERNION;
-                else if (typeName == "Color")
-                    info.type_ = VAR_COLOR;
-                else if (typeName == "IntRect")
-                    info.type_ = VAR_INTRECT;
-                else if (typeName == "IntVector2")
-                    info.type_ = VAR_INTVECTOR2;
-                else if (typeName == "IntVector3")
-                    info.type_ = VAR_INTVECTOR3;
-            }
-            break;
-        default:
-            break;
-        }
-        lua_pop(luaState_, 1);
-
-        if (info.type_ != VAR_NONE)
-            attributeInfos_.push_back(info);
-    }
+//     // Get all attribute names
+//     ea::vector<ea::string> names;
+//     if (lua_istable(luaState_, -1))
+//     {
+//         size_t length = lua_rawlen(luaState_, -1);
+//         for (size_t i = 1; i <= length; ++i)
+//         {
+//             lua_pushinteger(luaState_, (int)i);
+//             lua_gettable(luaState_, -2);
+// 
+//             if (!lua_isstring(luaState_, -1))
+//             {
+//                 lua_pop(luaState_, 1);
+//                 continue;
+//             }
+// 
+//             ea::string name = lua_tostring(luaState_, -1);
+//             names.push_back(name);
+// 
+//             lua_pop(luaState_, 1);
+//         }
+//     }
+//     lua_pop(luaState_, 1);
+// 
+//     attributeInfos_ = *context_->GetAttributes(GetTypeStatic());
+// 
+//     for (unsigned i = 0; i < names.size(); ++i)
+//     {
+//         lua_pushstring(luaState_, names[i].c_str());
+//         lua_gettable(luaState_, -2);
+// 
+//         // Get attribute type
+//         int type = lua_type(luaState_, -1);
+// 
+//         AttributeInfo info;
+//         info.mode_ = AM_FILE;
+//         info.name_ = names[i];
+//         info.ptr_ = (void*)0xffffffffffffffff;
+// 
+//         switch (type)
+//         {
+//         case LUA_TBOOLEAN:
+//             info.type_ = VAR_BOOL;
+//             break;
+//         case LUA_TNUMBER:
+//             info.type_ = VAR_DOUBLE;
+//             break;
+//         case LUA_TSTRING:
+//             info.type_ = VAR_STRING;
+//             break;
+//         case LUA_TUSERDATA:
+//             {
+//                 ea::string typeName = "";// tolua_typename(luaState_, -1);
+//                 lua_pop(luaState_, 1);
+// 
+//                 if (typeName == "Vector2")
+//                     info.type_ = VAR_VECTOR2;
+//                 else if (typeName == "Vector3")
+//                     info.type_ = VAR_VECTOR3;
+//                 else if (typeName == "Vector4")
+//                     info.type_ = VAR_VECTOR4;
+//                 else if (typeName == "Quaternion")
+//                     info.type_ = VAR_QUATERNION;
+//                 else if (typeName == "Color")
+//                     info.type_ = VAR_COLOR;
+//                 else if (typeName == "IntRect")
+//                     info.type_ = VAR_INTRECT;
+//                 else if (typeName == "IntVector2")
+//                     info.type_ = VAR_INTVECTOR2;
+//                 else if (typeName == "IntVector3")
+//                     info.type_ = VAR_INTVECTOR3;
+//             }
+//             break;
+//         default:
+//             break;
+//         }
+//         lua_pop(luaState_, 1);
+// 
+//         if (info.type_ != VAR_NONE)
+//             attributeInfos_.push_back(info);
+//     }
 }
 
 void PythonScriptInstance::FindScriptObjectMethodRefs()
@@ -690,14 +678,14 @@ void PythonScriptInstance::HandleUpdate(StringHash eventType, VariantMap& eventD
     {
 //         if (scriptObjectMethods_[LSOM_DELAYEDSTART]->BeginCall(this))
 //             scriptObjectMethods_[LSOM_DELAYEDSTART]->EndCall();
-        CallLuaFunction(scriptObjectMethods_[LSOM_DELAYEDSTART], scriptObjectRef_);
-        scriptObjectMethods_[LSOM_DELAYEDSTART] = nullptr;  // Only execute once
+        CallPythonFunction(scriptObjectMethods_[LSOM_DELAYEDSTART], scriptObjectRef_);
+//        scriptObjectMethods_[LSOM_DELAYEDSTART] = nb::none;  // Only execute once
     }
 
-    auto function = scriptObjectMethods_[LSOM_UPDATE];
+    auto& function = scriptObjectMethods_[LSOM_UPDATE];
     if (function) {
         //(*function)(timeStep);
-        CallLuaFunction(function, scriptObjectRef_, timeStep);
+        CallPythonFunction(function, scriptObjectRef_, timeStep);
     }
 //     if (function && function->BeginCall(this))
 //     {
@@ -714,7 +702,7 @@ void PythonScriptInstance::HandlePostUpdate(StringHash eventType, VariantMap& ev
     auto function = scriptObjectMethods_[LSOM_POSTUPDATE];
     if (function/* && function->BeginCall(this)*/)
     {
-        CallLuaFunction(function, scriptObjectRef_, timeStep);
+        CallPythonFunction(function, scriptObjectRef_, timeStep);
         //         function->PushFloat(timeStep);
 //         function->EndCall();
     }
@@ -729,17 +717,17 @@ void PythonScriptInstance::HandleFixedUpdate(StringHash eventType, VariantMap& e
     {
 //         if (scriptObjectMethods_[LSOM_DELAYEDSTART]->BeginCall(this))
 //             scriptObjectMethods_[LSOM_DELAYEDSTART]->EndCall();
-        CallLuaFunction(scriptObjectMethods_[LSOM_DELAYEDSTART], scriptObjectRef_);
-        scriptObjectMethods_[LSOM_DELAYEDSTART] = nullptr;  // Only execute once
+        CallPythonFunction(scriptObjectMethods_[LSOM_DELAYEDSTART], scriptObjectRef_);
+//        scriptObjectMethods_[LSOM_DELAYEDSTART] = nullptr;  // Only execute once
     }
 
     using namespace PhysicsPreStep;
     float timeStep = eventData[P_TIMESTEP].GetFloat();
 
-    auto function = scriptObjectMethods_[LSOM_FIXEDUPDATE];
+    auto& function = scriptObjectMethods_[LSOM_FIXEDUPDATE];
     if (function/* && function->BeginCall(this)*/)
     {
-        CallLuaFunction(function, scriptObjectRef_, timeStep);
+        CallPythonFunction(function, scriptObjectRef_, timeStep);
         //         function->PushFloat(timeStep);
 //         function->EndCall();
     }
@@ -753,7 +741,7 @@ void PythonScriptInstance::HandlePostFixedUpdate(StringHash eventType, VariantMa
     auto function = scriptObjectMethods_[LSOM_FIXEDPOSTUPDATE];
     if (function/* && function->BeginCall(this)*/)
     {
-        CallLuaFunction(function, scriptObjectRef_, timeStep);
+        CallPythonFunction(function, scriptObjectRef_, timeStep);
         //         function->PushFloat(timeStep);
 //         function->EndCall();
     }
@@ -763,52 +751,53 @@ void PythonScriptInstance::HandlePostFixedUpdate(StringHash eventType, VariantMa
 
 void PythonScriptInstance::ReleaseObject()
 {
-    if (scriptObjectRef_ == sol::lua_nil)
-        return;
-
-    attributeInfos_ = *context_->GetAttributes(GetTypeStatic());
-
-    if (IsEnabledEffective())
-        UnsubscribeFromScriptMethodEvents();
-
-    // Unref script object
-    //luaL_unref(luaState_, LUA_REGISTRYINDEX, scriptObjectRef_);
-    scriptObjectRef_ = sol::lua_nil;
-
-    auto function = luaScript_->GetFunction("DestroyScriptObjectInstance");
-    if (function/* && function->BeginCall()*/)
-    {
-        CallLuaFunction(function, this);
-        //         function->PushUserType((void*)this, "PythonScriptInstance");
-//         function->EndCall();
-    }
-
-    for (auto& scriptObjectMethod : scriptObjectMethods_)
-        scriptObjectMethod = nullptr;
+//     if (scriptObjectRef_ == sol::lua_nil)
+//         return;
+// 
+//     attributeInfos_ = *context_->GetAttributes(GetTypeStatic());
+// 
+//     if (IsEnabledEffective())
+//         UnsubscribeFromScriptMethodEvents();
+// 
+//     // Unref script object
+//     //luaL_unref(luaState_, LUA_REGISTRYINDEX, scriptObjectRef_);
+//     scriptObjectRef_ = sol::lua_nil;
+// 
+//     auto function = luaScript_->GetFunction("DestroyScriptObjectInstance");
+//     if (function/* && function->BeginCall()*/)
+//     {
+//         CallPythonFunction(function, this);
+//         //         function->PushUserType((void*)this, "PythonScriptInstance");
+// //         function->EndCall();
+//     }
+// 
+//     for (auto& scriptObjectMethod : scriptObjectMethods_)
+//         scriptObjectMethod = nullptr;
 }
 
-sol::function* PythonScriptInstance::GetScriptObjectFunction(const ea::string& functionName) const
+nb::callable PythonScriptInstance::GetScriptObjectFunction(const ea::string& functionName) const
 {
-    return luaScript_->GetFunction(scriptObjectType_ + "." + functionName, true);
+    return pythonScript_->GetFunction(scriptObjectType_ + "." + functionName, true);
 }
 
 void PythonScriptInstance::SetScriptFileAttr(const ResourceRef& value)
 {
     auto* cache = GetSubsystem<ResourceCache>();
-    SetScriptFile(cache->GetResource<LuaFile>("Scripts/" + value.name_));
+    SetScriptFile(cache->GetResource<PythonFile>("Scripts/" + value.name_));
 }
 
 ResourceRef PythonScriptInstance::GetScriptFileAttr() const
 {
-    return GetResourceRef(scriptFile_, LuaFile::GetTypeStatic());
+    //return GetResourceRef(scriptFile_, PythonFile::GetTypeStatic());
+    return {};
 }
 
-sol::table PythonScriptInstance::GetScriptObject()
+nb::object PythonScriptInstance::GetScriptObject()
 {
     return scriptObjectRef_;
 }
 
-void PythonScriptInstance::SetScriptObject(sol::table obj)
+void PythonScriptInstance::SetScriptObject(nb::object obj)
 {
     scriptObjectRef_ = obj;
 }

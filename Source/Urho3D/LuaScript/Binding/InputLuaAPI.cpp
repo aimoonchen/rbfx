@@ -5,7 +5,6 @@
 #include "../../GUI/Gui.h"
 
 using namespace Urho3D;
-Urho3D::Context* GetContext(lua_State* L);
 
 static void RegisterKeyboard(sol::table& lua)
 {
@@ -94,7 +93,7 @@ int sol2_InputLuaAPI_open(sol::state& lua)
     bindTouchState["delta"]             = sol::readonly_property(&TouchState::delta_);
     bindTouchState["touchedElement"]    = sol::readonly_property([](TouchState* self) { return self->touchedElement_.Get(); });
 
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     auto gui = context->GetSubsystem<GUI>();
     auto bindInput = input.new_usertype<Input>("Input", sol::base_classes, sol::bases<Object>());
     bindInput["GetNumJoysticks"]        = &Input::GetNumJoysticks;

@@ -23,11 +23,11 @@ using namespace nb::literals;
 //     }
 // }
 // 
-// Urho3D::Context* GetContext(lua_State* L);
 
 NB_MODULE(ui, m)
 {
-    nb::class_<UIElement>(m, "UIElement")//, sol::constructors<UIElement(Context*)>());
+    nb::class_<UIElement>(m, "UIElement")
+        .def(nb::init<Context*>())//, sol::constructors<UIElement(Context*)>());
         .def("SetSize", nb::overload_cast<int, int>(&UIElement::SetSize))
         .def("SetSize", nb::overload_cast<const IntVector2&>(&UIElement::SetSize))
         .def("SetPosition", nb::overload_cast<int, int>(&UIElement::SetPosition))
@@ -65,8 +65,7 @@ NB_MODULE(ui, m)
         .def_prop_ro("root", &UI::GetRoot)
         .def_prop_ro("focusElement", &UI::GetFocusElement);
 
-    Context* context = nullptr;
-    m.attr("ui")            = context->GetSubsystem<UI>();
+    m.attr("ui")            = Context::GetInstance()->GetSubsystem<UI>();
     //
     m.attr("HA_LEFT")       = HA_LEFT;
     m.attr("HA_CENTER")     = HA_CENTER;

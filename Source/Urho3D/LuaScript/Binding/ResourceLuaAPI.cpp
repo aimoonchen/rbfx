@@ -60,11 +60,9 @@ namespace sol {
     }
 }
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_ResourceLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
     lua.new_enum("ScanFlags",
         "SCAN_FILES", SCAN_FILES,
         "SCAN_DIRS", SCAN_DIRS,

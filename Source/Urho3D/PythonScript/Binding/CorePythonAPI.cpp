@@ -1,5 +1,4 @@
 #include <nanobind/nanobind.h>
-//#include <nanobind/stl/string.h>
 #include <string_view>
 #include "../../Core/Context.h"
 #include "../../Core/ProcessUtils.h"
@@ -159,11 +158,10 @@ NB_MODULE(kfcore, m)
     nb::class_<Time>(m, "Time")
         .def("GetTimeStamp", [](Time* self) { return self->GetTimeStamp(); });
 
-    Context* context = nullptr;
-    m.attr("time") = context->GetSubsystem<Time>();
+    m.attr("time") = Context::GetInstance()->GetSubsystem<Time>();
     //
-    m.def("GetEventSender", [context]() {
-        auto obj = context->GetEventSender();
+    m.def("GetEventSender", []() {
+        auto obj = Context::GetInstance()->GetEventSender();
         if (obj->GetType() == CrowdManager::GetTypeStatic()) {
             return static_cast<const CrowdManager*>(obj);
         } else {

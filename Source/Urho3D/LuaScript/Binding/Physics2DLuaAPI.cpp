@@ -11,11 +11,9 @@
 
 using namespace Urho3D;
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_Physics2DLuaAPI_open(sol::state& lua)
 {
-    auto context = GetContext(lua.lua_state());
+    auto context = Context::GetInstance();
 
     auto eventType = lua["EventType"].get_or_create<sol::table>();
     eventType["PhysicsBeginContact2D"] = E_PHYSICSBEGINCONTACT2D;

@@ -16,8 +16,6 @@ using namespace nb::literals;
 
 NB_MODULE(physics2d, m)
 {
-    Context* context = nullptr;
-
     auto eventType = m.def_submodule("EventType");
     eventType.attr("PhysicsBeginContact2D") = E_PHYSICSBEGINCONTACT2D;
 

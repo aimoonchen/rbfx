@@ -21,8 +21,6 @@ namespace sol {
     }
 }
 
-Urho3D::Context* GetContext(lua_State* L);
-
 int sol2_UILuaAPI_open(sol::state& lua)
 {
     auto bindUIElement = lua.new_usertype<UIElement>("UIElement", sol::constructors<UIElement(Context*)>());
@@ -60,8 +58,7 @@ int sol2_UILuaAPI_open(sol::state& lua)
     bindUI["root"]              = sol::readonly_property(&UI::GetRoot);
     bindUI["focusElement"]      = sol::readonly_property(&UI::GetFocusElement);
 
-    auto context = GetContext(lua);
-    lua["ui"] = context->GetSubsystem<UI>();
+    lua["ui"] = Context::GetInstance()->GetSubsystem<UI>();
     //
     lua["HA_LEFT"]      = HA_LEFT;
     lua["HA_CENTER"]    = HA_CENTER;

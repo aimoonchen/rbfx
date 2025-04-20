@@ -1,8 +1,9 @@
 #include "../Precompiled.h"
+
+#include <nanobind/nanobind.h>
 #include "PythonScript.h"
 
 #include "Python.h"
-#include <nanobind/nanobind.h>
 #include "Urho3D/Core/CoreEvents.h"
 #include "Urho3D/Core/ProcessUtils.h"
 #include "Urho3D/Core/Profiler.h"
@@ -282,6 +283,7 @@ bool PythonScript::InitEngineModule()
     PyObject* sys = PyImport_ImportModule("sys");
     PyObject* modules = PyObject_GetAttrString(sys, "modules");
     PyDict_SetItemString(modules, "engine", engine);
+    return true;
 }
 
 bool PythonScript::Initialize()
@@ -489,6 +491,103 @@ void PythonScript::Finalize()
     initialized_ = false;
 }
 
+void PythonScript::AddEventHandler(const ea::string& eventName, nanobind::callable function)
+{
+    eventInvoker_->AddEventHandler(nullptr, eventName, function);
+    python_functions_.emplace_back(function);
+}
+
+void PythonScript::AddEventHandler(const ea::string& eventName, int index)
+{
+    assert(false);
+    //     LuaFunction* function = GetFunction(index);
+    //     if (function)
+    //         eventInvoker_->AddEventHandler(nullptr, eventName, function);
+}
+
+void PythonScript::AddEventHandler(const ea::string& eventName, const ea::string& functionName)
+{
+    auto function = GetFunction(functionName);
+    if (function)
+        eventInvoker_->AddEventHandler(nullptr, eventName, function);
+}
+
+void PythonScript::AddEventHandler(Object* sender, const ea::string& eventName, nanobind::callable function)
+{
+    if (!sender)
+    {
+        return;
+    }
+    eventInvoker_->AddEventHandler(sender, eventName, function);
+    python_functions_.emplace_back(function);
+}
+
+void PythonScript::AddEventHandler(Object* sender, const ea::string& eventName, int index)
+{
+    assert(false);
+    //     if (!sender)
+    //         return;
+    //
+    //     LuaFunction* function = GetFunction(index);
+    //     if (function)
+    //         eventInvoker_->AddEventHandler(sender, eventName, function);
+}
+
+void PythonScript::AddEventHandler(Object* sender, const ea::string& eventName, const ea::string& functionName)
+{
+    if (!sender)
+        return;
+
+    auto function = GetFunction(functionName);
+    if (function)
+        eventInvoker_->AddEventHandler(sender, eventName, function);
+}
+
+void PythonScript::RemoveEventHandler(const ea::string& eventName)
+{
+    eventInvoker_->UnsubscribeFromEvent(eventName);
+}
+
+void PythonScript::RemoveEventHandler(Object* sender, const ea::string& eventName)
+{
+    if (!sender)
+        return;
+
+    eventInvoker_->UnsubscribeFromEvent(sender, eventName);
+}
+
+void PythonScript::RemoveEventHandlers(Object* sender)
+{
+    if (!sender)
+        return;
+
+    eventInvoker_->UnsubscribeFromEvents(sender);
+}
+
+void PythonScript::RemoveAllEventHandlers()
+{
+    eventInvoker_->UnsubscribeFromAllEvents();
+}
+
+void PythonScript::RemoveEventHandlersExcept(const ea::vector<ea::string>& exceptionNames)
+{
+    ea::vector<StringHash> exceptionTypes(exceptionNames.size());
+    for (unsigned i = 0; i < exceptionTypes.size(); ++i)
+        exceptionTypes[i] = StringHash(exceptionNames[i]);
+
+    eventInvoker_->UnsubscribeFromAllEventsExcept(exceptionTypes);
+}
+
+bool PythonScript::HasEventHandler(const ea::string& eventName) const
+{
+    return eventInvoker_->HasSubscribedToEvent(eventName);
+}
+
+bool PythonScript::HasEventHandler(Object* sender, const ea::string& eventName) const
+{
+    return eventInvoker_->HasSubscribedToEvent(sender, eventName);
+}
+
 bool PythonScript::ExecuteFile(const ea::string& filename)
 {
     ea::vector<char> scriptContent = get_file_content(filename);
@@ -571,19 +670,32 @@ bool PythonScript::ExecuteRawFile(const ea::string& fileName)
     return false;
 }
 
-void PythonScript::AddEventHandler(Object* sender, const StringHash& eventType, nb::callable function)
+nb::callable PythonScript::GetFunction(const ea::string& functionName, bool silentIfNotFound)
 {
-    if (!function) {
-        return;
+    auto i = functionNameToFunctionMap_.find(functionName);
+    if (i != functionNameToFunctionMap_.end())
+        return i->second;
+    const auto& path = functionName.split('.');
+//     nb::object lobj = (*luaState_)[path[0].c_str()];
+//     if (path.size() > 1)
+//     {
+//         for (size_t idx = 1; idx < path.size() - 1; ++idx)
+//         {
+//             lobj = lobj.as<sol::table>()[path[idx].c_str()];
+//         }
+//         lobj = lobj.as<sol::table>()[path[path.size() - 1].c_str()];
+//     }
+    nb::callable func;
+//     if (lobj.get_type() == sol::type::function) {
+//         func = std::make_shared<sol::function>(lobj.as<sol::function>());
+//     }
+
+    if (func) {
+        functionNameToFunctionMap_[functionName] = func;
+    } else if (!silentIfNotFound) {
+        URHO3D_LOGERRORF("Can not find lua function : %s", functionName.c_str());
     }
-        
-    if (sender) {
-        SubscribeToEvent(sender, eventType,
-            [function](StringHash eventType, VariantMap& eventData) { CALL_PYTHON(function, eventType, eventData); });
-    } else {
-        SubscribeToEvent(eventType,
-            [function](StringHash eventType, VariantMap& eventData) { CALL_PYTHON(function, eventType, eventData); });
-    }
+    return func;
 }
 
 void RegisterPythonScriptLibrary(Context* context)

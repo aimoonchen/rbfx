@@ -117,8 +117,6 @@ USING_NS_FGUI;
 // 	}
 // }
 // 
-// Urho3D::Context* GetContext(lua_State* L);
-// 
 // static void BindUIConfig(sol::state& lua)
 // {
 //     auto fairygui = lua["FairyGUI"].get<sol::table>();
@@ -516,8 +514,8 @@ NB_MODULE(fairygui, m)
         .def("GetRootNode", &GTree::getRootNode)
         .def("GetSelectedNode", &GTree::getSelectedNode)
         .def("SetItemRenderer", [](GTree* obj, sol::function func) { obj->treeNodeRender = [func](GTreeNode* node, GComponent* obj) { CALL_PYTHON(func, node, obj) }; });
-        
-    Context* context = nullptr;
+
+    auto context = Context::GetInstance();
     m.def("GetRoot", [context]() { return context->GetSubsystem<GUI>()->GetFairyGUIRoot(); });
     m.def("CreateText", []() { return GBasicTextField::create(); });
     m.def("CreateText", [](const std::string& text) {
@@ -556,6 +554,7 @@ NB_MODULE(fairygui, m)
         .value("DOWN", PopupDirection::DOWN);
 
     nb::class_<FairyGUIScene>(m, "FairyGUIScene")
+        .def(nb::init<>())
         //         sol::call_constructor, sol::factories([]() { return std::unique_ptr<FairyGUIScene>(FairyGUIScene::create()); }),
         //         sol::base_classes, sol::bases<cocos2d::Scene>());
         .def_prop_ro("groot", [](FairyGUIScene* self) { return self->_groot; })

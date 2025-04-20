@@ -9,11 +9,9 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-//Urho3D::Context* GetContext(lua_State* L);
 
 NB_MODULE(io, m)
 {
-    Context* context = nullptr;
     nb::class_<Deserializer>(m, "Deserializer")
         .def("ReadString", &Deserializer::ReadString)
         .def("ReadInt64", &Deserializer::ReadInt64)
@@ -50,16 +48,17 @@ NB_MODULE(io, m)
 
     nb::class_<AbstractFile, Serializer>(m, "AbstractFile");
 
-    nb::class_<VectorBuffer, AbstractFile>(m, "VectorBuffer");
+    nb::class_<VectorBuffer, AbstractFile>(m, "VectorBuffer")
+        .def(nb::init<>())
+        .def(nb::init<const void*, unsigned>());
 //         sol::call_constructor, sol::constructors<VectorBuffer(), VectorBuffer(const void*, unsigned)>(),
-//         sol::base_classes, sol::bases<AbstractFile, Deserializer, Serializer>());
 
-    nb::class_<MemoryBuffer, AbstractFile>(m, "MemoryBuffer");
+    nb::class_<MemoryBuffer, AbstractFile>(m, "MemoryBuffer")
+        .def(nb::init<void*, unsigned>())
+        .def(nb::init<const void*, unsigned>());
         //         sol::call_constructor, sol::constructors<MemoryBuffer(void*, unsigned), MemoryBuffer(const void*, unsigned)>(),
-        //         sol::base_classes, sol::bases<AbstractFile, Deserializer, Serializer>());
 
     nb::class_<File, AbstractFile>(m, "File");
-        //sol::base_classes, sol::bases<Object, AbstractFile>());
 
     nb::class_<FileSystem>(m, "FileSystem")
         .def("Copy", &FileSystem::Copy)
@@ -105,6 +104,6 @@ NB_MODULE(io, m)
         return self->GetAbsoluteNameFromIdentifier({"", path});
         });
 
-    m.attr("filesystem") = context->GetSubsystem<FileSystem>();
-    m.attr("virtual_filesystem") = context->GetSubsystem<VirtualFileSystem>();
+    m.attr("filesystem") = Context::GetInstance()->GetSubsystem<FileSystem>();
+    m.attr("virtual_filesystem") = Context::GetInstance()->GetSubsystem<VirtualFileSystem>();
 }

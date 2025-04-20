@@ -38,7 +38,6 @@
 //#define PAR_SHAPES_IMPLEMENTATION
 #include "ThirdParty/par/par_shapes.h"
 
-//Urho3D::Context* GetContext(lua_State* L);
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -227,7 +226,6 @@ static void RegisterConst(nb::module_ m)
 
 NB_MODULE(graphics, m)
 {
-    Context* context = nullptr;
     nb::class_<BiasParameters>(m, "BiasParameters")
         .def(nb::init<float, float>());
 
@@ -235,6 +233,8 @@ NB_MODULE(graphics, m)
         .def(nb::init<float, float, float, float, float>());
 
     nb::class_<Material, Resource>(m, "Material")
+        .def(nb::init<Context*>())
+        //.def(nb::init<Context*, const ea::string&, const ea::string&, const ea::string&>())
 //         sol::call_constructor,
 //         sol::factories([context](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
 //             auto tech = new Technique(context);
@@ -245,7 +245,6 @@ NB_MODULE(graphics, m)
 //             mtl->SetTechnique(0, tech);
 //             return mtl;
 //             }),
-//         sol::base_classes, sol::bases<Resource>());
         .def_prop_rw("scene", &Material::GetScene, &Material::SetScene)
         .def_prop_rw("render_order", &Material::GetRenderOrder, &Material::SetRenderOrder)
         .def_prop_rw("depth_bias", &Material::GetDepthBias, &Material::SetDepthBias)
@@ -267,29 +266,28 @@ NB_MODULE(graphics, m)
         //.def("SetShaderParameterAnimationWrapMode", [](Material& self, const char* name, WrapMode wrapMode) { self.SetShaderParameterAnimationWrapMode(name, wrapMode); })
         //.def("SetShaderParameterAnimationSpeed", [](Material& self, const char* name, float speed) { self.SetShaderParameterAnimationSpeed(name, speed); });
         
-    nb::class_<ResourceWithMetadata, Resource>(m, "ResourceWithMetadata");
+    nb::class_<ResourceWithMetadata, Resource>(m, "ResourceWithMetadata").def(nb::init<Context*>());
 //         sol::constructors<ResourceWithMetadata(Context*)>(),
-// 		sol::base_classes, sol::bases<Resource>());
 
     nb::class_<Animation, ResourceWithMetadata>(m, "Animation")
 		//sol::base_classes, sol::bases<ResourceWithMetadata>());
         .def_prop_rw("length", &Animation::GetLength, &Animation::SetLength);
 
     nb::class_<Model, ResourceWithMetadata>(m, "Model")
+        .def(nb::init<Context*>())
 //         , sol::constructors<Model(Context*)>(),
-// 		sol::base_classes, sol::bases<ResourceWithMetadata>());
         .def("GetNumGeometries", &Model::GetNumGeometries)
         .def("HideGeometry", [](Model* self, unsigned geomIndex) { self->GetGeometry(geomIndex, 0)->SetIndexBuffer(nullptr); })
-        .def("CreateRock", [context](int seed, int nsubdivisions) {
+        .def("CreateRock", [](int seed, int nsubdivisions) {
             auto par_mesh = par_shapes_create_rock(seed, nsubdivisions);
-            return ParMeshToModel(context, par_mesh, false);
+            return ParMeshToModel(Context::GetInstance(), par_mesh, false);
         });
 
-    nb::class_<Texture, ResourceWithMetadata>(m, "Texture");
+    nb::class_<Texture, ResourceWithMetadata>(m, "Texture").def(nb::init<Context*>());
 //     , sol::constructors<Texture(Context*)>(),
-// 		sol::base_classes, sol::bases<ResourceWithMetadata>());
 
     nb::class_<Texture2D>(m, "Texture2D")
+        .def(nb::init<Context*>())
 //         , sol::call_constructor,
 //         sol::factories([context]() {
 //             // TODO:for water demo, the texture will be managed by engine
@@ -297,7 +295,6 @@ NB_MODULE(graphics, m)
 //             // lua manage the object
 //             //return std::make_unique<Texture2D>(context);
 //             }),
-//         sol::base_classes, sol::bases<Texture>()
 //     );
         .def_prop_ro("width", &Texture2D::GetWidth)
 	    .def_prop_ro("height", &Texture2D::GetHeight)
@@ -343,6 +340,8 @@ NB_MODULE(graphics, m)
         });
         
     nb::class_<Viewport>(m, "Viewport")
+        .def(nb::init<Context*>())
+        .def(nb::init<Context*, Scene*, Camera*>())
     //         sol::call_constructor, sol::factories(
     //             [context]() { return new Viewport(context); },
     //             [context](Scene* scene, Camera* camera) { return new Viewport(context, scene, camera); }));
@@ -359,6 +358,7 @@ NB_MODULE(graphics, m)
         .def("AddTriangle", [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color, bool depthTest) {self->AddTriangle(v1, v2, v3, color, depthTest); });
         
     nb::class_<MeshLine::LineDesc>(m, "MeshLineDesc")
+        .def(nb::init<>())
         //, sol::call_constructor, sol::factories([]() { return MeshLine::LineDesc(); }));
         .def_rw("model_mat", &MeshLine::LineDesc::model_mat)
         .def_rw("color", &MeshLine::LineDesc::color)
@@ -424,6 +424,7 @@ NB_MODULE(graphics, m)
             return ret; });// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
 
     nb::class_<Renderer>(m, "Renderer")
+        .def(nb::init<Context*>())
         // , sol::constructors<Renderer(Context*)>());
         .def("SetViewport", &Renderer::SetViewport)
         .def("DrawDebugGeometry", &Renderer::DrawDebugGeometry);
@@ -503,6 +504,8 @@ NB_MODULE(graphics, m)
         .def_prop_rw("model", &AnimatedModel::GetModel, [](AnimatedModel* self, Model* model) { self->SetModel(model); });
 
     nb::class_<AnimationParameters>(m, "AnimationParameters")
+        .def(nb::init<Animation*>())
+        .def(nb::init<Context*, const ea::string&>())
 //         , sol::call_constructor, sol::factories(
 //             [](Animation* animation) { return AnimationParameters(animation); },
 //             [context](const ea::string& animationName) { return AnimationParameters(context, animationName); }));
@@ -634,7 +637,7 @@ NB_MODULE(graphics, m)
     .def("SetOpacity", &Text3D::SetOpacity)
     .def("SetFaceCameraMode", &Text3D::SetFaceCameraMode);
         
-    m.attr("graphics_system") = context->GetSubsystem<Graphics>();
-    m.attr("renderer_system") = context->GetSubsystem<Renderer>();
+    m.attr("graphics_system") = Context::GetInstance()->GetSubsystem<Graphics>();
+    m.attr("renderer_system") = Context::GetInstance()->GetSubsystem<Renderer>();
     RegisterConst(m);
 }

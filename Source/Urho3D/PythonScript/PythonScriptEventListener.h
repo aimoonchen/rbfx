@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Core/Object.h"
+#include "Urho3D/Core/Object.h"
 
 namespace Urho3D
 {
@@ -11,12 +11,12 @@ class URHO3D_API PythonScriptEventListener
 public:
     /// Destruct.
     virtual ~PythonScriptEventListener() = default;
-    virtual void AddEventHandler(const ea::string& eventName, nb::callable function) = 0;
+    virtual void AddEventHandler(const ea::string& eventName, nanobind::callable function) = 0;
     /// Add a scripted event handler by function at the given stack index.
     virtual void AddEventHandler(const ea::string& eventName, int index) = 0;
     /// Add a scripted event handler by function name.
     virtual void AddEventHandler(const ea::string& eventName, const ea::string& functionName) = 0;
-    virtual void AddEventHandler(Object* sender, const ea::string& eventName, nb::callable function) = 0;
+    virtual void AddEventHandler(Object* sender, const ea::string& eventName, nanobind::callable function) = 0;
     /// Add a scripted event handler by function at the given stack index for a specific sender.
     virtual void AddEventHandler(Object* sender, const ea::string& eventName, int index) = 0;
     /// Add a scripted event handler by function name for a specific sender.

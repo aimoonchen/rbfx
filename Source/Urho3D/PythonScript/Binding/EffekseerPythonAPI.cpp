@@ -11,10 +11,8 @@ using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
 
-//Urho3D::Context* GetContext(lua_State* L);
 NB_MODULE(effekseer, m)
 {
-	//auto context = GetContext(lua.lua_state());
 	//auto effekseer = lua["Effekseer"].get_or_create<sol::table>();
     nb::class_<EffekseerEmitter, Drawable>(m, "EffekseerEmitter")
         //.def("id"]          = sol::var(StringHash("EffekseerEmitter"));

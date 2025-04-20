@@ -59,7 +59,6 @@ void RegisterNetworkConst(nb::module_ m)
 NB_MODULE(network, m)
 {
 #if URHO3D_NETWORK
-    Context* context = nullptr;
     nb::class_<Connection>(m, "Connection")
         .def_prop_rw("scene", &Connection::GetScene, &Connection::SetScene)
         .def("SendMessage", [](Connection* obj, NetworkMessageId messageId, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->SendMessage(messageId, msg); })
@@ -77,7 +76,7 @@ NB_MODULE(network, m)
         .def("GetServerConnection", &Network::GetServerConnection)
         .def("BroadcastMessage", [](Network* obj, int msgID, bool reliable, bool inOrder, const VectorBuffer& msg) { obj->BroadcastMessage((NetworkMessageId)msgID, msg); });
 
-    m.attr("network") = context->GetSubsystem<Network>();
+    m.attr("network") = Context::GetInstance()->GetSubsystem<Network>();
 	RegisterNetworkConst(m);
 #endif
     auto http = m.def_submodule("http");

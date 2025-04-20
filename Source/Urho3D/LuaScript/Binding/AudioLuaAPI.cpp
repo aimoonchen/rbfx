@@ -10,7 +10,6 @@
 #include "GetPush.h"
 
 using namespace Urho3D;
-Urho3D::Context* GetContext(lua_State* L);
 
 static void ERRCHECK_fn(FMOD_RESULT result, const char* file, int line)
 {
@@ -44,7 +43,7 @@ static FMOD::Studio::EventInstance* CreateEventInstance(Urho3D::Context* context
 
 int sol2_AudioLuaAPI_open(sol::state& solLua)
 {
-    auto context = GetContext(solLua.lua_state());
+    auto context = Context::GetInstance();
     auto audio = solLua["Audio"].get_or_create<sol::table>();
     auto bindEventInstance = audio.new_usertype<FMOD::Studio::EventInstance>("EventInstance");
     bindEventInstance["Start"]      = &FMOD::Studio::EventInstance::start;
