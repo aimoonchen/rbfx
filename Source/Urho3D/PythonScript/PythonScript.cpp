@@ -650,6 +650,22 @@ bool PythonScript::ExecuteFile(const ea::string& filename)
         PyErr_Print();
     }
 
+    // test
+    const char* function_name = "Start";
+    PyObject* func = PyDict_GetItemString(globalsDict, function_name);
+    if (func && PyCallable_Check(func)) {
+        PyObject* result = PyObject_CallObject(func, nullptr);
+        if (result) {
+            printf("Function returned: ");
+            PyObject_Print(result, stdout, 0);
+            Py_DECREF(result);
+        } else {
+            PyErr_Print();
+        }
+    } else {
+        printf("Function '%s' not found or not callable\n", function_name);
+    }
+
     PyGILState_Release(gstate);
 
     return success;
@@ -668,6 +684,10 @@ bool PythonScript::LoadRawFile(const ea::string& fileName)
 bool PythonScript::ExecuteRawFile(const ea::string& fileName)
 {
     return false;
+}
+bool PythonScript::ExecuteFunction(const ea::string& functionName)
+{
+
 }
 
 nb::callable PythonScript::GetFunction(const ea::string& functionName, bool silentIfNotFound)
@@ -718,7 +738,7 @@ bool RunPython(Context* context, const ea::string& scriptFileName)
     }
     // If script loading is successful, proceed to main loop
     if (pythonScript->ExecuteFile(scriptFileName)) {
-        //URHO3D_LOGERRORF("%s error\n\t%s", sol::to_string(status).c_str(), err.what());
+        return pythonScript->ExecuteFunction("Start");
     }
     return false;
 }

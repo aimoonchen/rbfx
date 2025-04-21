@@ -177,7 +177,8 @@ NB_MODULE(scene, m)
         .value("WORLD", TS_WORLD);
 
     nb::class_<Node>(m, "Node")
-        .def(nb::init<Context*>())
+        //.def(nb::init<Context*>())
+        .def(nb::new_([]() { return std::make_unique<Node>(Context::GetInstance()); }))
         //.def(nb::init<std::unique_ptr<Node>>([]() { return std::make_unique<Node>(Context::GetInstance()); }))
         .def_prop_rw("id", &Node::GetID, &Node::SetID)
         .def_prop_rw("name", &Node::GetName, &Node::SetName)

@@ -50,7 +50,8 @@ public:
     bool LoadRawFile(const ea::string& fileName);
     /// Load and execute script file on file system (i.e. not from resource cache). Return true if successful.
     bool ExecuteRawFile(const ea::string& fileName);
-    //
+    /// Execute script function.
+    bool ExecuteFunction(const ea::string& functionName);
     void AddEventHandler(const ea::string& eventName, nanobind::callable function) override;
     /// Add a scripted event handler by function at the given stack index.
     void AddEventHandler(const ea::string& eventName, int index) override;
