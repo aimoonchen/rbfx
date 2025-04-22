@@ -2,8 +2,6 @@
 
 #include <nanobind/nanobind.h>
 #include "PythonScript.h"
-
-#include "Python.h"
 #include "Urho3D/Core/CoreEvents.h"
 #include "Urho3D/Core/ProcessUtils.h"
 #include "Urho3D/Core/Profiler.h"
@@ -291,6 +289,7 @@ bool PythonScript::Initialize()
     if (initialized_) {
         return true;
     }
+    URHO3D_LOGERRORF("Python version: %s\n", PY_VERSION);
     PyStatus status;
 //     PyPreConfig preconfig;
 //     PyPreConfig_InitIsolatedConfig(&preconfig);
@@ -302,8 +301,7 @@ bool PythonScript::Initialize()
 //         printf("Python initialize failed, %s : %s\n", status.func, status.err_msg);
 //         return false;
 //     }
-    //
-    PyConfig config;
+    PyConfig config = {};
     PyConfig_InitIsolatedConfig(&config);
     config.use_environment = 0;
     config.module_search_paths_set = 1;
@@ -315,16 +313,18 @@ bool PythonScript::Initialize()
 //     config._install_importlib = 1;
 //     config.module_search_paths.length = 0;
 //     config.module_search_paths.items = nullptr;
-    std::vector<std::wstring> moduleSearchPaths = {
-        L"D:/Github/rbfx-v3/Source/ThirdParty/Python/Python-3.13.2/Lib"
-    };
-    for (auto& path : moduleSearchPaths) {
-        PyWideStringList_Append(&config.module_search_paths, path.c_str());
+
+    status = PyWideStringList_Append(&config.module_search_paths, L"D:/Github/rbfx-v3/Source/ThirdParty/Python/Python-3.13.2/Lib");
+    if (PyStatus_Exception(status)) {
+        PyConfig_Clear(&config);
+        URHO3D_LOGERRORF("Failed to append module search path: %s\n", status.err_msg);
+        return false;
     }
+
     status = Py_InitializeFromConfig(&config);
     PyConfig_Clear(&config);
     if (PyStatus_Exception(status)) {
-        printf("Python initialize failed, %s : %s\n", status.func, status.err_msg);
+        URHO3D_LOGERRORF("Python initialize failed, %s : %s\n", status.func, status.err_msg);
         return false;
     }
 
@@ -687,7 +687,7 @@ bool PythonScript::ExecuteRawFile(const ea::string& fileName)
 }
 bool PythonScript::ExecuteFunction(const ea::string& functionName)
 {
-
+    return false;
 }
 
 nb::callable PythonScript::GetFunction(const ea::string& functionName, bool silentIfNotFound)
