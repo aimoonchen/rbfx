@@ -109,8 +109,8 @@ StringVariantMap& GetEngineParameters();
 PythonScript::PythonScript(Context* context) :
     Object(context)
 {
-    Initialize();
     g_context = context;
+    Initialize();
     g_python_script = this;
 }
 
@@ -275,13 +275,23 @@ static bool install_virtual_importer()
     return success;
 }
 
-bool PythonScript::InitEngineModule()
+void PythonScript::RegisterModule()
 {
-    PyObject* engine = PyInit_engine();
-    PyObject* sys = PyImport_ImportModule("sys");
-    PyObject* modules = PyObject_GetAttrString(sys, "modules");
-    PyDict_SetItemString(modules, "engine", engine);
-    return true;
+    auto ret = PyImport_AppendInittab("my_ext", PyInit_my_ext);
+    if (ret != 0) {
+        ;
+    }
+}
+
+void PythonScript::ImportModule()
+{
+    PyObject* my_ext_module = PyImport_ImportModule("my_ext");
+    if (my_ext_module) {
+        Py_DECREF(my_ext_module);
+    }
+    else {
+        ;
+    }
 }
 
 bool PythonScript::Initialize()
@@ -289,7 +299,8 @@ bool PythonScript::Initialize()
     if (initialized_) {
         return true;
     }
-    URHO3D_LOGERRORF("Python version: %s\n", PY_VERSION);
+    URHO3D_LOGINFOF("Python version: %s\n", PY_VERSION);
+    URHO3D_LOGINFOF("Python runtime version: %s\n", Py_GetVersion());
     PyStatus status;
 //     PyPreConfig preconfig;
 //     PyPreConfig_InitIsolatedConfig(&preconfig);
@@ -321,6 +332,8 @@ bool PythonScript::Initialize()
         return false;
     }
 
+    RegisterModule();
+
     status = Py_InitializeFromConfig(&config);
     PyConfig_Clear(&config);
     if (PyStatus_Exception(status)) {
@@ -332,12 +345,9 @@ bool PythonScript::Initialize()
         return false;
     }
 
-//     PyObject* mymodule = PyInit_my_ext();
-//     PyObject* sys = PyImport_ImportModule("sys");
-//     PyObject* modules = PyObject_GetAttrString(sys, "modules");
-//     PyDict_SetItemString(modules, "my_ext", mymodule);
-//     ExecuteFile("App.py");
-//     auto ret = PyRun_SimpleString("import App; print(App)");
+    ImportModule();
+
+    auto ret = PyRun_SimpleString("import my_ext; print(my_ext)");
     
     main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
