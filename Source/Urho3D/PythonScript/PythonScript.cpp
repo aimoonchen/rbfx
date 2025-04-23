@@ -110,6 +110,7 @@ PythonScript::PythonScript(Context* context) :
     Object(context)
 {
     g_context = context;
+    eventInvoker_ = new PythonScriptEventInvoker(context_);
     Initialize();
     g_python_script = this;
 }
@@ -281,6 +282,11 @@ void PythonScript::RegisterModule()
     if (ret != 0) {
         ;
     }
+    ret = PyImport_AppendInittab("engine", PyInit_engine);
+    if (ret != 0)
+    {
+        ;
+    }
 }
 
 void PythonScript::ImportModule()
@@ -290,6 +296,15 @@ void PythonScript::ImportModule()
         Py_DECREF(my_ext_module);
     }
     else {
+        ;
+    }
+    PyObject* engine_module = PyImport_ImportModule("engine");
+    if (engine_module)
+    {
+        Py_DECREF(engine_module);
+    }
+    else
+    {
         ;
     }
 }
@@ -347,7 +362,7 @@ bool PythonScript::Initialize()
 
     ImportModule();
 
-    auto ret = PyRun_SimpleString("import my_ext; print(my_ext)");
+    //auto ret = PyRun_SimpleString("import my_ext; print(my_ext)");
     
     main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
@@ -504,7 +519,6 @@ void PythonScript::Finalize()
 void PythonScript::AddEventHandler(const ea::string& eventName, nanobind::callable function)
 {
     eventInvoker_->AddEventHandler(nullptr, eventName, function);
-    python_functions_.emplace_back(function);
 }
 
 void PythonScript::AddEventHandler(const ea::string& eventName, int index)
@@ -524,12 +538,10 @@ void PythonScript::AddEventHandler(const ea::string& eventName, const ea::string
 
 void PythonScript::AddEventHandler(Object* sender, const ea::string& eventName, nanobind::callable function)
 {
-    if (!sender)
-    {
+    if (!sender) {
         return;
     }
     eventInvoker_->AddEventHandler(sender, eventName, function);
-    python_functions_.emplace_back(function);
 }
 
 void PythonScript::AddEventHandler(Object* sender, const ea::string& eventName, int index)

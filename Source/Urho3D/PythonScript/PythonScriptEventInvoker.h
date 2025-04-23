@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Urho3D/Core/Object.h"
-
+#include <vector>
 namespace Urho3D
 {
 
@@ -28,6 +28,9 @@ private:
 
     /// Python script instance.
     WeakPtr<PythonScriptInstance> instance_;
+
+    /// TODO: remvoe this : just keep alive
+    std::vector<nanobind::object> python_functions_;
 };
 
 }

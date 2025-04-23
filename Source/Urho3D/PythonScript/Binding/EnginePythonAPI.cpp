@@ -38,19 +38,19 @@ NB_MODULE(engine, m)
         .def("Exit", &Engine::Exit);
 //    m.attr("engine") = context->GetSubsystem<Engine>();
 //    RegisterEngineConst(lua);
-    m.attr("SubscribeToEvent") = [](const ea::string& eventName, const ea::string& functionName) {
+    m.def("SubscribeToEvent", [](const char* eventName, const char* functionName) {
         g_python_script->AddEventHandler(eventName, functionName);
-    };
-    m.attr("SubscribeToEvent") = [](const ea::string& eventName, nb::callable function) {
+    });
+    m.def("SubscribeToEvent", [](const char* eventName, nb::callable function) {
         PythonScriptAddEventHandler(eventName, function);
-    };
-    m.attr("SubscribeToEvent") = [](Object* sender, const ea::string& eventName, const ea::string& functionName) {
+    });
+    m.def("SubscribeToEvent", [](Object* sender, const char* eventName, const char* functionName) {
         PythonScriptAddEventHandler(sender, eventName, functionName);
-    };
-    m.attr("SubscribeToEvent") = [](Object* sender, const ea::string& eventName, nb::callable function) {
+    });
+    m.def("SubscribeToEvent", [](Object* sender, const char* eventName, nb::callable function) {
         PythonScriptAddEventHandler(sender, eventName, function);
-    };
-    m.attr("UnSubscribeToEvent") = [](const ea::string& eventName) { PythonScriptRemoveEventHandler(eventName); };
-    m.attr("UnSubscribeToEvent") = [](Object* sender, const ea::string& eventName) { PythonScriptRemoveEventHandler(sender, eventName); };
-    m.attr("UnSubscribeToAllEvent") = []() { PythonScriptRemoveAllEventHandlers(); };
+    });
+    m.def("UnSubscribeToEvent", [](const char* eventName) { PythonScriptRemoveEventHandler(eventName); });
+    m.def("UnSubscribeToEvent", [](Object* sender, const char* eventName) { PythonScriptRemoveEventHandler(sender, eventName); });
+    m.def("UnSubscribeToAllEvent", []() { PythonScriptRemoveAllEventHandlers(); });
 }

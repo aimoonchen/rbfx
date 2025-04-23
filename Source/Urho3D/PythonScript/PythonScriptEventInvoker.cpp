@@ -23,15 +23,16 @@ PythonScriptEventInvoker::PythonScriptEventInvoker(PythonScriptInstance* instanc
 
 PythonScriptEventInvoker::~PythonScriptEventInvoker() = default;
 
-void PythonScriptEventInvoker::AddEventHandler(Object* sender, const StringHash& eventType, nb::callable function)
+void PythonScriptEventInvoker::AddEventHandler(Object* sender, const StringHash& eventType, nb::callable pyfunction)
 {
-    if (!function) {
+    if (!pyfunction) {
         return;
     }
+    python_functions_.emplace_back(pyfunction);
     if (sender) {
-        SubscribeToEvent(sender, eventType, [function](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
+        SubscribeToEvent(sender, eventType, [&function = python_functions_.back()](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
     } else {
-        SubscribeToEvent(eventType, [function](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
+        SubscribeToEvent(eventType, [&function = python_functions_.back()](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
     }
 }
 

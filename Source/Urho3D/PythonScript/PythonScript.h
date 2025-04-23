@@ -72,9 +72,6 @@ private:
     nanobind::callable coroutineUpdate_;
     /// Function name to function map.
     ea::unordered_map<ea::string, nanobind::callable> functionNameToFunctionMap_;
-
-    /// TODO: remvoe this : just keep alive
-    ea::vector<nanobind::callable> python_functions_;
 };
 
 /// Register Python script library objects.
