@@ -27,10 +27,9 @@
  */
 #include <RmlUi/Core/Stream.h>
 #include "LuaDocument.h"
-// #include <RmlUi/Lua/IncludeLua.h>
-//#include "Interpreter.h"
-#include "Urho3D/LuaScript/LuaScript.h"
-extern Urho3D::LuaScript* g_lua_script;
+
+bool ExecuteLuaFile(const ea::string& fileName, bool fromui);
+bool ExecuteLuaString(const ea::string& string);
 
 namespace Rml {
 namespace Lua {
@@ -48,13 +47,13 @@ void LuaDocument::LoadInlineScript(const String& context, const String& source_p
     buffer += Rml::ToString(source_line);
     buffer += "\n";
     buffer += context;
-    g_lua_script->ExecuteString(buffer.c_str());
+    ExecuteLuaString(buffer.c_str());
     //Interpreter::DoString(buffer, buffer);
 }
 
 void LuaDocument::LoadExternalScript(const String& source_path)
 {
-    bool ret = g_lua_script->ExecuteFile(source_path.c_str(), true);
+    bool ret = ExecuteLuaFile(source_path.c_str(), true);
     if (!ret) {
         ;
     }

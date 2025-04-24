@@ -26,19 +26,15 @@
 #include "../Core/Object.h"
 #include "../LuaScript/LuaScriptEventListener.h"
 #include "../sol/forward.hpp"
-struct lua_State;
-namespace sol {
-    class state;
-}
+//struct lua_State;
 namespace Urho3D
 {
-
 class LuaFunction;
 class LuaScriptEventInvoker;
 class Scene;
 
 /// Lua script subsystem.
-class URHO3D_API LuaScript : public LuaScriptEventListener, public Object
+class URHO3D_API LuaScript : public Object, public LuaScriptEventListener
 {
     URHO3D_OBJECT(LuaScript, Object);
 
@@ -47,12 +43,12 @@ public:
     explicit LuaScript(Context* context);
     /// Destruct.
     ~LuaScript() override;
-    void AddEventHandler(const ea::string& eventName, void* function) override;
+    void AddEventHandler(const ea::string& eventName, sol::function function) override;
     /// Add a scripted event handler by function at the given stack index.
     void AddEventHandler(const ea::string& eventName, int index) override;
     /// Add a scripted event handler by function name.
     void AddEventHandler(const ea::string& eventName, const ea::string& functionName) override;
-    void AddEventHandler(Object* sender, const ea::string& eventName, void* function) override;
+    void AddEventHandler(Object* sender, const ea::string& eventName, sol::function function) override;
     /// Add a scripted event handler by function at the given stack index for a specific sender.
     void AddEventHandler(Object* sender, const ea::string& eventName, int index) override;
     /// Add a scripted event handler by function name for a specific sender.
@@ -92,7 +88,7 @@ public:
 //     LuaFunction* GetFunction(int index);
 //     /// Return Lua function by function name.
 //     LuaFunction* GetFunction(const ea::string& functionName, bool silentIfNotFound = false);
-    sol::function* GetFunction(const ea::string& functionName, bool silentIfNotFound = false);
+    sol::function GetFunction(const ea::string& functionName, bool silentIfNotFound = false);
     /// Return whether is executing engine console commands as script code.
     bool GetExecuteConsoleCommands() const { return executeConsoleCommands_; }
 
@@ -129,10 +125,7 @@ private:
     /// Function pointer to function map.
     //HashMap<const void*, SharedPtr<LuaFunction> > functionPointerToFunctionMap_;
     /// Function name to function map.
-    ea::unordered_map<ea::string, std::shared_ptr<sol::function> > functionNameToFunctionMap_;
-
-    /// TODO: remvoe this : just keep alive
-    ea::vector<std::shared_ptr<sol::function>> lua_functions_;
+    ea::unordered_map<ea::string, sol::function> functionNameToFunctionMap_;
 };
 
 /// Register Lua script library objects.

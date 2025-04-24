@@ -22,6 +22,7 @@
 
 #include "../Precompiled.h"
 
+#include "../sol/sol.hpp"
 #include "../Core/CoreEvents.h"
 #include "../Core/ProcessUtils.h"
 #include "../Core/Profiler.h"
@@ -39,7 +40,6 @@
 #include "../Scene/Scene.h"
 #include <RmlUi/Core/Core.h>
 #include "RmlUIBinding/LuaPlugin.h"
-#include "../sol/sol.hpp"
 #include "../LuaScript/LuaScriptInstance.h"
 // extern "C"
 // {
@@ -87,6 +87,15 @@ extern int sol2_LuaScriptLuaAPI_open(sol::state&);
 
 Urho3D::LuaScript* g_lua_script = nullptr;
 
+lua_State* g_lua_state = nullptr;
+bool ExecuteLuaFile(const ea::string& fileName, bool fromui = false)
+{
+    return g_lua_script->ExecuteFile(fileName, fromui);
+}
+bool ExecuteLuaString(const ea::string& string)
+{
+    return g_lua_script->ExecuteString(string);
+}
 namespace Urho3D
 {
 StringVariantMap& GetEngineParameters();
@@ -98,12 +107,11 @@ LuaScript::LuaScript(Context* context) :
     RegisterLuaScriptLibrary(context_);
 
     luaState_ = std::make_unique<sol::state>();// luaL_newstate();
-    if (!luaState_)
-    {
+    if (!luaState_) {
         URHO3D_LOGERROR("Could not create Lua state");
         return;
     }
-
+    g_lua_state = luaState_->lua_state();
     lua_atpanic(luaState_->lua_state(), &LuaScript::AtPanic);
     luaState_->open_libraries();
     //luaL_openlibs(luaState_);
@@ -189,11 +197,9 @@ LuaScript::~LuaScript()
 //         lua_close(luaState);
 }
 
-void LuaScript::AddEventHandler(const ea::string& eventName, void* function)
+void LuaScript::AddEventHandler(const ea::string& eventName, sol::function function)
 {
-    auto sf = std::make_shared<sol::function>(*(sol::function*)function);
-    eventInvoker_->AddEventHandler(nullptr, eventName, sf.get());
-    lua_functions_.emplace_back(sf);
+    eventInvoker_->AddEventHandler(nullptr, eventName, function);
 }
 
 void LuaScript::AddEventHandler(const ea::string& eventName, int index)
@@ -206,19 +212,17 @@ void LuaScript::AddEventHandler(const ea::string& eventName, int index)
 
 void LuaScript::AddEventHandler(const ea::string& eventName, const ea::string& functionName)
 {
-    auto* function = GetFunction(functionName);
+    auto function = GetFunction(functionName);
     if (function)
         eventInvoker_->AddEventHandler(nullptr, eventName, function);
 }
 
-void LuaScript::AddEventHandler(Object* sender, const ea::string& eventName, void* function)
+void LuaScript::AddEventHandler(Object* sender, const ea::string& eventName, sol::function function)
 {
     if (!sender) {
         return;
     }
-    auto sf = std::make_shared<sol::function>(*(sol::function*)function);
-    eventInvoker_->AddEventHandler(sender, eventName, sf.get());
-    lua_functions_.emplace_back(sf);
+    eventInvoker_->AddEventHandler(sender, eventName, function);
 }
 
 void LuaScript::AddEventHandler(Object* sender, const ea::string& eventName, int index)
@@ -374,7 +378,7 @@ sol::protected_function_result LuaScript::ExecuteFunction(const ea::string& func
     if (!function) {
         return {};
     }
-    return (*function)();
+    return function();
 }
 
 void LuaScript::SetExecuteConsoleCommands(bool enable)
@@ -543,7 +547,7 @@ int LuaScript::Print(lua_State* L)
 //     return function;
 // }
 
-sol::function* LuaScript::GetFunction(const ea::string& functionName, bool silentIfNotFound)
+sol::function LuaScript::GetFunction(const ea::string& functionName, bool silentIfNotFound)
 {
     auto L = luaState_->lua_state();
     if (/*!L*/ destorying_)
@@ -551,7 +555,7 @@ sol::function* LuaScript::GetFunction(const ea::string& functionName, bool silen
 
     auto i = functionNameToFunctionMap_.find(functionName);
     if (i != functionNameToFunctionMap_.end())
-        return i->second.get();
+        return i->second;
     const auto& path = functionName.split('.');
     sol::object lobj = (*luaState_)[path[0].c_str()];
     if (path.size() > 1)
@@ -562,10 +566,10 @@ sol::function* LuaScript::GetFunction(const ea::string& functionName, bool silen
         }
         lobj = lobj.as<sol::table>()[path[path.size() - 1].c_str()];
     }
-    std::shared_ptr<sol::function> func;
+    sol::function func;
     if (lobj.get_type() == sol::type::function)
     {
-        func = std::make_shared<sol::function>(lobj.as<sol::function>());
+        func = lobj.as<sol::function>();
     }
 //     else
 //     {
@@ -576,7 +580,7 @@ sol::function* LuaScript::GetFunction(const ea::string& functionName, bool silen
     } else if (!silentIfNotFound) {
         URHO3D_LOGERRORF("Can not find lua function : %s", functionName.c_str());
     }
-    return func.get();
+    return func;
 }
 
 void LuaScript::HandlePostUpdate(StringHash eventType, VariantMap& eventData)

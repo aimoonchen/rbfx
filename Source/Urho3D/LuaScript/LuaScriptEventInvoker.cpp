@@ -44,8 +44,8 @@ LuaScriptEventInvoker::LuaScriptEventInvoker(LuaScriptInstance* instance) :
 
 LuaScriptEventInvoker::~LuaScriptEventInvoker() = default;
 
-static void CallLuaFuntion(sol::function* function, StringHash eventType, VariantMap& eventData) {
-    sol::protected_function_result result = (*function)(eventType, eventData);
+static void CallLuaFuntion(const sol::function& function, StringHash eventType, VariantMap& eventData) {
+    sol::protected_function_result result = function(eventType, eventData);
     if (!result.valid()) {
         sol::error err = result;
         sol::call_status status = result.status();
@@ -53,7 +53,7 @@ static void CallLuaFuntion(sol::function* function, StringHash eventType, Varian
     }
 }
 
-void LuaScriptEventInvoker::AddEventHandler(Object* sender, const StringHash& eventType, sol::function* function)
+void LuaScriptEventInvoker::AddEventHandler(Object* sender, const StringHash& eventType, sol::function function)
 {
     if (!function)
         return;

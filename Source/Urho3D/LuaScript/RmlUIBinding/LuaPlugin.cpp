@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  *
  */
- 
 #include "LuaPlugin.h"
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/FileInterface.h>
@@ -66,15 +65,12 @@
 // #include "Elements/ElementDataGrid.h"
 // #include "Elements/ElementDataGridRow.h"
 // #include "Elements/ElementTabSet.h"
-#include <sol/sol.hpp>
-#include "Urho3D/LuaScript/LuaScript.h"
-extern Urho3D::LuaScript* g_lua_script;
 
+extern lua_State* g_lua_state;
 namespace Rml {
 namespace Lua {
 
 static lua_State* g_L = nullptr;
-
 
 /** This will populate the global Lua table with all of the Lua core types by calling LuaType<T>::Register
 @remark This is called automatically by LuaPlugin::OnInitialise(). */
@@ -94,10 +90,9 @@ int LuaPlugin::GetEventClasses()
 
 void LuaPlugin::OnInitialise()
 {
-	if (g_L == nullptr)
-	{
+	if (!g_L) {
 		Log::Message(Log::LT_INFO, "Loading Lua plugin using a new Lua state.");
-        g_L = g_lua_script->GetState()->lua_state();
+        g_L = g_lua_state;
 // 		g_L = luaL_newstate();
 // 		luaL_openlibs(g_L);
 //		owns_lua_state = true;
@@ -109,18 +104,16 @@ void LuaPlugin::OnInitialise()
 	}
 //	RegisterTypes();
 
-	lua_document_element_instancer = new LuaDocumentElementInstancer();
-	lua_event_listener_instancer = new LuaEventListenerInstancer();
-    Factory::RegisterElementInstancer("body", lua_document_element_instancer);
-	Factory::RegisterEventListenerInstancer(lua_event_listener_instancer);
+	lua_document_element_instancer = std::make_unique<LuaDocumentElementInstancer>();
+	lua_event_listener_instancer = std::make_unique<LuaEventListenerInstancer>();
+    Factory::RegisterElementInstancer("body", lua_document_element_instancer.get());
+	Factory::RegisterEventListenerInstancer(lua_event_listener_instancer.get());
 }
 
 void LuaPlugin::OnShutdown()
 {
-	delete lua_document_element_instancer;
-	delete lua_event_listener_instancer;
-	lua_document_element_instancer = nullptr;
-	lua_event_listener_instancer = nullptr;
+	lua_document_element_instancer.reset();
+	lua_event_listener_instancer.reset();
 
 // 	if (owns_lua_state)
 // 		lua_close(g_L);

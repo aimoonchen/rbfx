@@ -83,12 +83,12 @@ public:
     /// Handle enabled/disabled state change.
     void OnSetEnabled() override;
 
-    void AddEventHandler(const ea::string& eventName, void* function) override;
+    void AddEventHandler(const ea::string& eventName, sol::function function) override;
     /// Add a scripted event handler by function.
     void AddEventHandler(const ea::string& eventName, int functionIndex) override;
     /// Add a scripted event handler by function name.
     void AddEventHandler(const ea::string& eventName, const ea::string& functionName) override;
-    void AddEventHandler(Object* sender, const ea::string& eventName, void* function) override;
+    void AddEventHandler(Object* sender, const ea::string& eventName, sol::function function) override;
     /// Add a scripted event handler by function for a specific sender.
     void AddEventHandler(Object* sender, const ea::string& eventName, int functionIndex) override;
     /// Add a scripted event handler by function name for a specific sender.
@@ -135,7 +135,7 @@ public:
     /// Get script network serialization attribute by calling a script function.
     ea::vector<unsigned char> GetScriptNetworkDataAttr() const;
     /// Return script object's funcition.
-    sol::function* GetScriptObjectFunction(const ea::string& functionName) const;
+    sol::function GetScriptObjectFunction(const ea::string& functionName) const;
 
     /// Set script file attribute.
     void SetScriptFileAttr(const ResourceRef& value);
@@ -188,7 +188,7 @@ private:
     //int scriptObjectRef_{};
     sol::table scriptObjectRef_{ sol::lua_nil };
     /// Script object method.
-    sol::function *scriptObjectMethods_[MAX_LUA_SCRIPT_OBJECT_METHODS]{};
+    sol::function scriptObjectMethods_[MAX_LUA_SCRIPT_OBJECT_METHODS]{};
 
     /// TODO: remvoe this : just keep alive
     std::vector<std::shared_ptr<sol::function>> lua_functions_;

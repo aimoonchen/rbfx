@@ -9,7 +9,7 @@ namespace Urho3D
 {
 
 class Scene;
-
+class PythonInterpreter;
 /// Python script subsystem.
 class URHO3D_API PythonScript : public Object, public PythonScriptEventListener
 {
@@ -20,13 +20,9 @@ public:
     explicit PythonScript(Context* context);
     /// Destruct.
     ~PythonScript() override;
-    bool Initialize();
-    void RegisterModule();
-    void ImportModule();
-    bool AddModulePath(const std::string& path);
-    PyObject* CallFunction(const std::string& moduleName, const std::string& funcName, PyObject* args = nullptr);
-    PyObject* RunSimpleString(const std::string& code);
-    void Finalize();
+    PyObject* CallFunction(const ea::string& moduleName, const ea::string& funcName, PyObject* args = nullptr);
+    int RunSimpleString(const ea::string& code);
+    PyObject* RunString(const ea::string& code);
     /// Execute script file. Return true if successful.
     bool ExecuteFile(const ea::string& fileName);
     /// Execute script string. Return true if successful.
@@ -64,10 +60,11 @@ public:
     nanobind::callable GetFunction(const ea::string& functionName, bool silentIfNotFound = false);
 
 private:
+    std::unique_ptr<PythonInterpreter> interpreter_;
     bool initialized_{ false };
     PyThreadState* main_thread_state_{ nullptr };
     /// Procedural event invoker.
-    SharedPtr<PythonScriptEventInvoker> eventInvoker_;
+    std::unique_ptr<PythonScriptEventInvoker> eventInvoker_;
     /// Coroutine update function.
     nanobind::callable coroutineUpdate_;
     /// Function name to function map.
@@ -81,36 +78,8 @@ bool URHO3D_API RunPython(Context* context, const ea::string& scriptFileName);
 
 }
 
-// nb::object call_python(nb::object py_func, nb::object arg)
-// {
-//     PyObject* result = PyObject_CallFunctionObjArgs(py_func.ptr(), arg.ptr(), nullptr);
-//     if (!result) {
-//         PyObject *ptype, *pvalue, *ptraceback;
-//         PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-//
-//         const char* err_msg = pvalue ? PyUnicode_AsUTF8(pvalue) : "Unknown error";
-//         URHO3D_LOGERRORF("%s", err_msg);
-//
-//         Py_XDECREF(ptype);
-//         Py_XDECREF(pvalue);
-//         Py_XDECREF(ptraceback);
-//         return nb::none();
-//     }
-//     return nb::steal(result);
-// }
-
-// #define CALL_PYTHON(func, ...) \
-//     if (PyObject* result = func(__VA_ARGS__); !result) { \
-//         PyObject *ptype, *pvalue, *ptraceback; \
-//         PyErr_Fetch(&ptype, &pvalue, &ptraceback); \
-//         const char* err_msg = pvalue ? PyUnicode_AsUTF8(pvalue) : "Unknown error"; \
-//         URHO3D_LOGERRORF("%s", err_msg); \
-//         Py_XDECREF(ptype); \
-//         Py_XDECREF(pvalue); \
-//         Py_XDECREF(ptraceback); \
-//     }
-
 #define CALL_PYTHON(func, ...) \
+    nb::gil_scoped_acquire gil; \
     nb::object result; \
     try { \
         result = func(__VA_ARGS__); \
@@ -118,10 +87,11 @@ bool URHO3D_API RunPython(Context* context, const ea::string& scriptFileName);
         URHO3D_LOGERRORF("%s", e.what()); \
     }
 
-template <typename F, typename... Args> auto CallPythonFunction(F function, Args&&... args)
+template <typename F, typename... Args> auto CallPythonFunction(F&& function, Args&&... args)
 {
+    nb::gil_scoped_acquire gil;
     try {
-        nb::object result = function(std::forward<Args>(args)...);
+        nb::object result = std::forward<F>(function)(std::forward<Args>(args)...);
     } catch (const nb::python_error& e) {
         URHO3D_LOGERRORF("%s", e.what());
     }

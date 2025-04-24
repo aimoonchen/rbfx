@@ -1,7 +1,7 @@
+#include "GetPush.h"
 #include "../../Scene/Node.h"
 #include "../../LuaScript/ToluaUtils.h"
 #include "../../LuaScript/LuaScript.h"
-#include "GetPush.h"
 #include "../../LuaScript/LuaScriptInstance.h"
 
 using namespace Urho3D;
@@ -41,13 +41,13 @@ int sol2_LuaScriptLuaAPI_open(sol::state& lua)
             LuaScriptAddEventHandler(eventName, functionName);
         },
         [&lua](const ea::string& eventName, sol::function function) {
-            LuaScriptAddEventHandler(eventName, &function);
+            LuaScriptAddEventHandler(eventName, function);
         },
         [&lua](Object* sender, const ea::string& eventName, const ea::string& functionName) {
             LuaScriptAddEventHandler(sender, eventName, functionName);
         },
         [&lua](Object* sender, const ea::string& eventName, sol::function function) {
-            LuaScriptAddEventHandler(sender, eventName, &function);
+            LuaScriptAddEventHandler(sender, eventName, function);
         });
     lua["UnSubscribeToEvent"] = sol::overload(
         [&lua](const ea::string& eventName) { LuaScriptRemoveEventHandler(eventName); },

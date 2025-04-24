@@ -57,8 +57,8 @@ private:
     
 	void OnShutdown() override;
 
-	LuaDocumentElementInstancer* lua_document_element_instancer = nullptr;
-	LuaEventListenerInstancer* lua_event_listener_instancer = nullptr;
+	std::unique_ptr<LuaDocumentElementInstancer> lua_document_element_instancer;
+	std::unique_ptr<LuaEventListenerInstancer> lua_event_listener_instancer;
 	bool owns_lua_state = false;
 };
 

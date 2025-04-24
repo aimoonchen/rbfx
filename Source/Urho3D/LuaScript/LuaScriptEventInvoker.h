@@ -45,7 +45,7 @@ public:
 
     /// Add a scripted event handler.
     //void AddEventHandler(Object* sender, const StringHash& eventType, LuaFunction* function);
-    void AddEventHandler(Object* sender, const StringHash& eventType, sol::function* function);
+    void AddEventHandler(Object* sender, const StringHash& eventType, sol::function function);
 private:
     /// Handle script event in Lua script.
     void HandleLuaScriptEvent(StringHash eventType, VariantMap& eventData);

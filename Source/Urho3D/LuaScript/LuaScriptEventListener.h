@@ -33,12 +33,12 @@ class URHO3D_API LuaScriptEventListener
 public:
     /// Destruct.
     virtual ~LuaScriptEventListener() = default;
-    virtual void AddEventHandler(const ea::string& eventName, void* function) = 0;
+    virtual void AddEventHandler(const ea::string& eventName, sol::function function) = 0;
     /// Add a scripted event handler by function at the given stack index.
     virtual void AddEventHandler(const ea::string& eventName, int index) = 0;
     /// Add a scripted event handler by function name.
     virtual void AddEventHandler(const ea::string& eventName, const ea::string& functionName) = 0;
-    virtual void AddEventHandler(Object* sender, const ea::string& eventName, void* function) = 0;
+    virtual void AddEventHandler(Object* sender, const ea::string& eventName, sol::function function) = 0;
     /// Add a scripted event handler by function at the given stack index for a specific sender.
     virtual void AddEventHandler(Object* sender, const ea::string& eventName, int index) = 0;
     /// Add a scripted event handler by function name for a specific sender.

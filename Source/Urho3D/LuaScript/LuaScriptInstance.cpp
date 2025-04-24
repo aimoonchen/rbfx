@@ -22,8 +22,7 @@
 
 #include "../Precompiled.h"
 
-#include "lua.hpp"
-
+#include "../sol/sol.hpp"
 #include "../Core/CoreEvents.h"
 #include "../Core/Context.h"
 #include "../Core/ProcessUtils.h"
@@ -39,8 +38,6 @@
 #include "../Resource/ResourceCache.h"
 #include "../Scene/Scene.h"
 #include "../Scene/SceneEvents.h"
-
-#include "../sol/sol.hpp"
 #include "../LuaScript/LuaScriptInstance.h"
 #include "../LuaScript/ToluaUtils.h"
 
@@ -67,7 +64,7 @@ static const char* scriptObjectMethodNames[] = {
 template<typename F, typename ...Args>
 auto CallLuaFunction(F f, Args&& ...args)
 {
-    sol::protected_function_result result = (*f)(std::forward<Args>(args)...);
+    sol::protected_function_result result = f(std::forward<Args>(args)...);
     if (!result.valid()) {
         sol::error err = result;
         sol::call_status status = result.status();
@@ -318,20 +315,16 @@ void LuaScriptInstance::OnSetEnabled()
         UnsubscribeFromScriptMethodEvents();
 }
 
-void LuaScriptInstance::AddEventHandler(const ea::string& eventName, void* function)
+void LuaScriptInstance::AddEventHandler(const ea::string& eventName, sol::function function)
 {
-    auto sf = std::make_shared<sol::function>(*(sol::function*)function);
-    eventInvoker_->AddEventHandler(nullptr, eventName, sf.get());
-    lua_functions_.emplace_back(sf);
+    eventInvoker_->AddEventHandler(nullptr, eventName, function);
 }
 
-void LuaScriptInstance::AddEventHandler(Object* sender, const ea::string& eventName, void* function)
+void LuaScriptInstance::AddEventHandler(Object* sender, const ea::string& eventName, sol::function function)
 {
     if (!sender)
         return;
-    auto sf = std::make_shared<sol::function>(*(sol::function*)function);
-    eventInvoker_->AddEventHandler(sender, eventName, sf.get());
-    lua_functions_.emplace_back(sf);
+    eventInvoker_->AddEventHandler(sender, eventName, function);
 }
 
 void LuaScriptInstance::AddEventHandler(const ea::string& eventName, int functionIndex)
@@ -815,7 +808,7 @@ void LuaScriptInstance::ReleaseObject()
         scriptObjectMethod = nullptr;
 }
 
-sol::function* LuaScriptInstance::GetScriptObjectFunction(const ea::string& functionName) const
+sol::function LuaScriptInstance::GetScriptObjectFunction(const ea::string& functionName) const
 {
     return luaScript_->GetFunction(scriptObjectType_ + "." + functionName, true);
 }
