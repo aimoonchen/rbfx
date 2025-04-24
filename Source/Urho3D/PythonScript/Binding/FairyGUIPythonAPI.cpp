@@ -251,7 +251,8 @@ public:
 // 
 //     return true;
 // }
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(fairygui, m)
 {
     m.def_submodule("UIPackage")

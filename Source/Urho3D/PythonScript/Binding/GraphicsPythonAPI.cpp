@@ -223,7 +223,8 @@ static void RegisterConst(nb::module_ m)
     //
     graphic["DEFAULT_VIEWMASK"]     = DEFAULT_VIEWMASK;
 }
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(graphics, m)
 {
     nb::class_<BiasParameters>(m, "BiasParameters")

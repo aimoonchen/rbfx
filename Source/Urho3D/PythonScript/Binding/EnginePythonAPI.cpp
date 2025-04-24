@@ -31,7 +31,8 @@ extern Urho3D::PythonScript* g_python_script;
 #define PythonScriptSetGlobalVar g_python_script->SetGlobalVar
 #define PythonScriptGetGlobalVar g_python_script->GetGlobalVar
 #define PythonScriptGetGlobalVars g_python_script->GetGlobalVars
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(engine, m)
 {
     nb::class_<Engine>(m, "Engine")

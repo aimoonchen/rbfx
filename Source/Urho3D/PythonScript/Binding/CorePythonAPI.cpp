@@ -23,12 +23,6 @@ namespace Urho3D
 class Connection;
 StringVariantMap& GetEngineParameters();
 }
-
-// namespace sol {
-// template <> struct is_automagical<VariantMap> : std::integral_constant<bool, false>
-// {
-// };
-// }
 static void RegisterCoreConst(nb::module_ m)
 {
     auto eventType = m.def_submodule("EventType");
@@ -55,8 +49,9 @@ static void RegisterCoreConst(nb::module_ m)
     auto postRenderUpdate           = paramType.def_submodule("PostRenderUpdate");
     postRenderUpdate["TimeStep"]    = PostRenderUpdate::P_TIMESTEP;
 }
-
-NB_MODULE(kfcore, m)
+#undef NB_EXPORT
+#define NB_EXPORT
+NB_MODULE(core, m)
 {
     m.def("GetPlatform", []() { return Urho3D::GetPlatform(); });
     m.def("GetPlatformName", []() { return Urho3D::GetPlatformName(); });
@@ -150,10 +145,10 @@ NB_MODULE(kfcore, m)
 //     enrollments.less_than_operator = false;
     nb::class_<VariantMap>(m, "VariantMap")
         .def(nb::init<>())
-        .def("__getitem__", [](VariantMap* map, StringHash key) { return &(*map)[key]; }, nb::is_operator())
-        .def("__setitem__", [](VariantMap* map, StringHash key, const Variant& variant) { (*map)[key] = variant; }, nb::is_operator())
-        .def("HasKey", [](VariantMap* map, StringHash key) { return map->find(key) != map->end(); })
-        .def("Size", [](VariantMap* map) { return map->size(); });
+        .def("__getitem__", [](VariantMap& map, StringHash key) { return &map[key]; }, nb::is_operator())
+        .def("__setitem__", [](VariantMap& map, StringHash key, const Variant& variant) { map[key] = variant; }, nb::is_operator())
+        .def("HasKey", [](VariantMap& map, StringHash key) { return map.find(key) != map.end(); })
+        .def("Size", [](VariantMap& map) { return map.size(); });
 
     nb::class_<Time>(m, "Time")
         .def("GetTimeStamp", [](Time* self) { return self->GetTimeStamp(); });

@@ -55,7 +55,8 @@ void RegisterNetworkConst(nb::module_ m)
 	paramType.attr("P_DATA")		= NetworkMessage::P_DATA;
 }
 #endif
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(network, m)
 {
 #if URHO3D_NETWORK

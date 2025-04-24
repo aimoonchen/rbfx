@@ -13,7 +13,8 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(navigation, m)
 {
     nb::class_<NavigationMesh, Component>(m, "NavigationMesh")

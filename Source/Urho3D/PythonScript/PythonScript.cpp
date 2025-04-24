@@ -16,36 +16,13 @@
 #include "PythonInterpreter.h"
 #include "../DebugNew.h"
 
-struct Dog
-{
-    std::string name;
-
-    std::string bark() const { return name + ": woof!"; }
-};
-
-namespace nb = nanobind;
-
-static void setup_module_spec(nb::module_& m)
-{
-    nb::object spec = nb::module_::import_("importlib.machinery").attr("ModuleSpec")(nb::getattr(m, "__name__"), nb::none());
-    spec.attr("origin") = "builtin";
-    m.attr("__spec__") = spec;
-}
-
-NB_MODULE(my_ext, m)
-{
-    nb::class_<Dog>(m, "Dog")
-        .def(nb::init<>())
-        .def(nb::init<const std::string&>())
-        .def("bark", &Dog::bark)
-        .def_rw("name", &Dog::name);
-}
-
-
-extern "C" [[maybe_unused]] NB_EXPORT PyObject* PyInit_engine();
+extern "C" PyObject* PyInit_engine();
+extern "C" PyObject* PyInit_core();
+extern "C" PyObject* PyInit_graphics();
+extern "C" PyObject* PyInit_math3d();
 
 Urho3D::PythonScript* g_python_script = nullptr;
-
+namespace nb = nanobind;
 namespace Urho3D
 {
 StringVariantMap& GetEngineParameters();
@@ -56,9 +33,10 @@ PythonScript::PythonScript(Context* context) :
     interpreter_ = std::make_unique<PythonInterpreter>();
     eventInvoker_ = std::make_unique<PythonScriptEventInvoker>(context);
     g_python_script = this;
-    interpreter_->RegisterModule("my_ext", PyInit_my_ext());
     interpreter_->RegisterModule("engine", PyInit_engine());
-
+    interpreter_->RegisterModule("core", PyInit_core());
+    interpreter_->RegisterModule("graphics", PyInit_graphics());
+    interpreter_->RegisterModule("math3d", PyInit_math3d());
     // auto ret = RunSimpleString("import my_ext; print(my_ext)");
 }
 

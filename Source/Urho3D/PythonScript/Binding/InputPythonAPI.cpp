@@ -86,7 +86,8 @@ static void RegisterInputConst(nb::module_ m)
     paramType["P_DY"] = MouseMove::P_DY;
     paramType["P_KEY"] = KeyDown::P_KEY;
 }
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(input, m)
 {
     //auto input = lua["input"].get_or_create<sol::table>();

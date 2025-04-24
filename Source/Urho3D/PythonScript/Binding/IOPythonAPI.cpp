@@ -9,7 +9,8 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(io, m)
 {
     nb::class_<Deserializer>(m, "Deserializer")

@@ -16,7 +16,8 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(math3d, m)
 {
     nb::class_<IntVector2>(m, "IntVector2")

@@ -23,7 +23,8 @@ using namespace nb::literals;
 //     }
 // }
 // 
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(ui, m)
 {
     nb::class_<UIElement>(m, "UIElement")

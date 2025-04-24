@@ -60,7 +60,8 @@ using namespace nb::literals;
 //         return sol::make_object(L, obj).push(L);
 //     }
 // }
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(resource, m)
 {
 //     nb.enum_<ScanFlags>(m, "ScanFlags")

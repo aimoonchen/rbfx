@@ -41,6 +41,8 @@ static FMOD::Studio::EventInstance* CreateEventInstance(Urho3D::Context* context
     }
     return sound;
 }
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(audio, m)
 {
     nb::class_<FMOD::Studio::EventInstance>(m, "EventInstance")

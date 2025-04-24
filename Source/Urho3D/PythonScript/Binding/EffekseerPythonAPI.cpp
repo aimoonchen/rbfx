@@ -10,7 +10,8 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(effekseer, m)
 {
 	//auto effekseer = lua["Effekseer"].get_or_create<sol::table>();

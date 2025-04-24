@@ -143,7 +143,8 @@ static void RegisterSceneConst(nb::module_ m)
     scenePostUpdate["Scene"]    = ScenePostUpdate::P_SCENE;
     scenePostUpdate["TimeStep"] = ScenePostUpdate::P_TIMESTEP;
 }
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(scene, m)
 {
     nb::class_<Component>(m, "Component")

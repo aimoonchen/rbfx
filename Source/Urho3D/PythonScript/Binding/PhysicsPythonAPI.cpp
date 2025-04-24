@@ -13,7 +13,8 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-
+#undef NB_EXPORT
+#define NB_EXPORT
 NB_MODULE(physics, m)
 {
     auto subm = m.def_submodule("EventType");
