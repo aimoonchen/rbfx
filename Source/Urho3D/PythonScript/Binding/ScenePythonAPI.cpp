@@ -131,22 +131,37 @@ using namespace nb::literals;
 
 static void RegisterSceneConst(nb::module_ m)
 {
-    auto eventType          = m.def_submodule("EventType");
-    eventType["SceneUpdate"]        = E_SCENEUPDATE;
-    eventType["ScenePostUpdate"]    = E_SCENEPOSTUPDATE;
+    auto eventType              = m.def_submodule("EventType");
+    eventType.attr("SceneUpdate") = E_SCENEUPDATE;
+    eventType.attr("ScenePostUpdate") = E_SCENEPOSTUPDATE;
 
     auto paramType              = m.def_submodule("ParamType");
     auto sceneUpdate            = paramType.def_submodule("SceneUpdate");
-    sceneUpdate["Scene"]        = SceneUpdate::P_SCENE;
-    sceneUpdate["TimeStep"]     = SceneUpdate::P_TIMESTEP;
+    sceneUpdate.attr("Scene") = SceneUpdate::P_SCENE;
+    sceneUpdate.attr("TimeStep") = SceneUpdate::P_TIMESTEP;
     auto scenePostUpdate        = paramType.def_submodule("ScenePostUpdate");
-    scenePostUpdate["Scene"]    = ScenePostUpdate::P_SCENE;
-    scenePostUpdate["TimeStep"] = ScenePostUpdate::P_TIMESTEP;
+    scenePostUpdate.attr("Scene") = ScenePostUpdate::P_SCENE;
+    scenePostUpdate.attr("TimeStep") = ScenePostUpdate::P_TIMESTEP;
 }
 #undef NB_EXPORT
 #define NB_EXPORT
 NB_MODULE(scene, m)
 {
+    nb::enum_<WrapMode>(m, "WrapMode")
+        .value("WM_LOOP", WM_LOOP)
+        .value("WM_ONCE", WM_ONCE)
+        .value("WM_CLAMP", WM_CLAMP);
+
+    nb::enum_<InterpMethod>(m, "InterpMethod")
+        .value("IM_NONE", IM_NONE)
+        .value("IM_LINEAR", IM_LINEAR)
+        .value("IM_SPLINE", IM_SPLINE);
+
+    nb::enum_<TransformSpace>(m, "TransformSpace")
+        .value("TS_LOCAL", TS_LOCAL)
+        .value("TS_PARENT", TS_PARENT)
+        .value("TS_WORLD", TS_WORLD);
+
     nb::class_<Component>(m, "Component")
         .def("GetID", &Component::GetID)
         .def("SetEnabled", &Component::SetEnabled)
@@ -168,14 +183,9 @@ NB_MODULE(scene, m)
         //         "RemoveAttributeAnimation", &Animatable::RemoveAttributeAnimation
 
     nb::class_<LogicComponent, Component>(m, "LogicComponent")
-    .def("GetID", &LogicComponent::GetID)
-    .def("SetUpdateEventMask", &LogicComponent::SetUpdateEventMask)
-    .def("GetUpdateEventMask", &LogicComponent::GetUpdateEventMask);
-    
-    nb::enum_<TransformSpace>(m, "TransformSpace")
-        .value("LOCAL", TS_LOCAL)
-        .value("PARENT", TS_PARENT)
-        .value("WORLD", TS_WORLD);
+        .def("GetID", &LogicComponent::GetID)
+        .def("SetUpdateEventMask", &LogicComponent::SetUpdateEventMask)
+        .def("GetUpdateEventMask", &LogicComponent::GetUpdateEventMask);
 
     nb::class_<Node>(m, "Node")
         //.def(nb::init<Context*>())
@@ -378,7 +388,7 @@ NB_MODULE(scene, m)
         .def("SetEventFrame", [](ValueAnimation* self, float time, const StringHash& eventType) { self->SetEventFrame(time, eventType); })
         .def("SetEventFrame", [](ValueAnimation* self, float time, const StringHash& eventType, const VariantMap& eventData) { self->SetEventFrame(time, eventType, eventData); });
  
-    nb::class_<ValueAnimation>(m, "ObjectAnimation")
+    nb::class_<ObjectAnimation>(m, "ObjectAnimation")
         .def(nb::init<Context*>())
         //sol::call_constructor, sol::factories([context]() { return new ObjectAnimation(context); }));
         .def("AddAttributeAnimation", [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation) { self->AddAttributeAnimation(name, attributeAnimation); })
@@ -435,16 +445,6 @@ NB_MODULE(scene, m)
         .value("UpdateScale", PrefabInstanceFlag::UpdateScale)
         .value("UpdateVariables", PrefabInstanceFlag::UpdateVariables)
         .value("UpdateAll", PrefabInstanceFlag::UpdateAll);
-    m["WM_LOOP"]      = WM_LOOP;
-    m["WM_ONCE"]      = WM_ONCE;
-    m["WM_CLAMP"]     = WM_CLAMP;
-    m["IM_NONE"]      = IM_NONE;
-    m["IM_LINEAR"]    = IM_LINEAR;
-    m["IM_SPLINE"]    = IM_SPLINE;
-    m["TS_LOCAL"]     = TS_LOCAL;
-    m["TS_PARENT"]    = TS_PARENT;
-    m["TS_WORLD"]     = TS_WORLD;
-//    m["REPLICATED"]   = REPLICATED;
-//    m["LOCAL"]        = LOCAL;
+
    RegisterSceneConst(m);
 }

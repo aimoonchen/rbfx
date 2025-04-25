@@ -309,9 +309,9 @@ bool PythonInterpreter::Initialize()
     if (!install_virtual_importer()) {
         return false;
     }
-    
-    main_thread_state_ = PyEval_SaveThread();
+
     module_dict_ = PyImport_GetModuleDict();
+    main_thread_state_ = PyEval_SaveThread();
     initialized_ = true;
     return true;
 }

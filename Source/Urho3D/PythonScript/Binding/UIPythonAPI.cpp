@@ -27,6 +27,19 @@ using namespace nb::literals;
 #define NB_EXPORT
 NB_MODULE(ui, m)
 {
+    nb::enum_<HorizontalAlignment>(m, "HorizontalAlignment")
+        .value("HA_LEFT", HA_LEFT)
+        .value("HA_CENTER", HA_CENTER)
+        .value("HA_RIGHT", HA_RIGHT)
+        .value("HA_CUSTOM", HA_CUSTOM);
+    nb::enum_<VerticalAlignment>(m, "VerticalAlignment")
+        .value("VA_TOP", VA_TOP)
+        .value("VA_CENTER", VA_CENTER)
+        .value("VA_BOTTOM", VA_BOTTOM)
+        .value("VA_CUSTOM", VA_CUSTOM);
+    nb::enum_<Orientation>(m, "Orientation")
+        .value("O_HORIZONTAL", O_HORIZONTAL)
+        .value("O_VERTICAL", O_VERTICAL);
     nb::class_<UIElement>(m, "UIElement")
         .def(nb::init<Context*>())//, sol::constructors<UIElement(Context*)>());
         .def("SetSize", nb::overload_cast<int, int>(&UIElement::SetSize))
@@ -67,15 +80,4 @@ NB_MODULE(ui, m)
         .def_prop_ro("focusElement", &UI::GetFocusElement);
 
     m.attr("ui")            = Context::GetInstance()->GetSubsystem<UI>();
-    //
-    m.attr("HA_LEFT")       = HA_LEFT;
-    m.attr("HA_CENTER")     = HA_CENTER;
-    m.attr("HA_RIGHT")      = HA_RIGHT;
-    m.attr("HA_CUSTOM")     = HA_CUSTOM;
-    m.attr("VA_TOP")        = VA_TOP;
-    m.attr("VA_CENTER")     = VA_CENTER;
-    m.attr("VA_BOTTOM")     = VA_BOTTOM;
-    m.attr("VA_CUSTOM")     = VA_CUSTOM;
-    m.attr("O_HORIZONTAL")  = O_HORIZONTAL;
-    m.attr("O_VERTICAL")    = O_VERTICAL;
 }

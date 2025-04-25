@@ -142,39 +142,42 @@ Urho3D::Model* ParMeshToModel(Urho3D::Context* ctx, par_shapes_mesh* mesh, bool 
 
 static void RegisterConst(nb::module_ m)
 {
-    m["LIGHT_DIRECTIONAL"]	= LIGHT_DIRECTIONAL;
-    m["LIGHT_SPOT"]			= LIGHT_SPOT;
-    m["LIGHT_POINT"]			= LIGHT_POINT;
+    nb::enum_<LightType>(m, "LightType")
+        .value("LIGHT_DIRECTIONAL", LIGHT_DIRECTIONAL)
+        .value("LIGHT_SPOT", LIGHT_SPOT)
+        .value("LIGHT_POINT", LIGHT_POINT);
     //
-    m["DEFAULT_RANGE"]                = DEFAULT_RANGE;
-    m["DEFAULT_LIGHT_FOV"]            = DEFAULT_LIGHT_FOV;
-    m["DEFAULT_SPECULARINTENSITY"]    = DEFAULT_SPECULARINTENSITY;
-    m["DEFAULT_BRIGHTNESS"]           = DEFAULT_BRIGHTNESS;
-    m["DEFAULT_CONSTANTBIAS"]         = DEFAULT_CONSTANTBIAS;
-    m["DEFAULT_SLOPESCALEDBIAS"]      = DEFAULT_SLOPESCALEDBIAS;
-    m["DEFAULT_NORMALOFFSET"]         = DEFAULT_NORMALOFFSET;
-    m["DEFAULT_BIASAUTOADJUST"]       = DEFAULT_BIASAUTOADJUST;
-    m["DEFAULT_SHADOWFADESTART"]      = DEFAULT_SHADOWFADESTART;
-    m["DEFAULT_SHADOWQUANTIZE"]       = DEFAULT_SHADOWQUANTIZE;
-    m["DEFAULT_SHADOWMINVIEW"]        = DEFAULT_SHADOWMINVIEW;
-    m["DEFAULT_SHADOWNEARFARRATIO"]   = DEFAULT_SHADOWNEARFARRATIO;
-    m["DEFAULT_SHADOWMAXEXTRUSION"]   = DEFAULT_SHADOWMAXEXTRUSION;
-    m["DEFAULT_SHADOWSPLIT"]          = DEFAULT_SHADOWSPLIT;
-    m["DEFAULT_TEMPERATURE"]          = DEFAULT_TEMPERATURE;
-    m["FC_NONE"]                      = FC_NONE;
-    m["FC_ROTATE_XYZ"]                = FC_ROTATE_XYZ;
-    m["FC_ROTATE_Y"]                  = FC_ROTATE_Y;
-    m["FC_LOOKAT_XYZ"]                = FC_LOOKAT_XYZ;
-    m["FC_LOOKAT_Y"]                  = FC_LOOKAT_Y;
-    m["FC_LOOKAT_MIXED"]              = FC_LOOKAT_MIXED;
-    m["FC_DIRECTION"]                 = FC_DIRECTION;
-    m["FC_AXIS_ANGLE"]                = FC_AXIS_ANGLE;
+    m.attr("DEFAULT_RANGE") = DEFAULT_RANGE;
+    m.attr("DEFAULT_LIGHT_FOV") = DEFAULT_LIGHT_FOV;
+    m.attr("DEFAULT_SPECULARINTENSITY") = DEFAULT_SPECULARINTENSITY;
+    m.attr("DEFAULT_BRIGHTNESS") = DEFAULT_BRIGHTNESS;
+    m.attr("DEFAULT_CONSTANTBIAS") = DEFAULT_CONSTANTBIAS;
+    m.attr("DEFAULT_SLOPESCALEDBIAS") = DEFAULT_SLOPESCALEDBIAS;
+    m.attr("DEFAULT_NORMALOFFSET") = DEFAULT_NORMALOFFSET;
+    m.attr("DEFAULT_BIASAUTOADJUST") = DEFAULT_BIASAUTOADJUST;
+    m.attr("DEFAULT_SHADOWFADESTART") = DEFAULT_SHADOWFADESTART;
+    m.attr("DEFAULT_SHADOWQUANTIZE") = DEFAULT_SHADOWQUANTIZE;
+    m.attr("DEFAULT_SHADOWMINVIEW") = DEFAULT_SHADOWMINVIEW;
+    m.attr("DEFAULT_SHADOWNEARFARRATIO") = DEFAULT_SHADOWNEARFARRATIO;
+    m.attr("DEFAULT_SHADOWMAXEXTRUSION") = DEFAULT_SHADOWMAXEXTRUSION;
+    m.attr("DEFAULT_SHADOWSPLIT") = DEFAULT_SHADOWSPLIT;
+    m.attr("DEFAULT_TEMPERATURE") = DEFAULT_TEMPERATURE;
+
+    nb::enum_<FaceCameraMode>(m, "FaceCameraMode")
+        .value("FC_NONE", FC_NONE)
+        .value("FC_ROTATE_XYZ", FC_ROTATE_XYZ)
+        .value("FC_ROTATE_Y", FC_ROTATE_Y)
+        .value("FC_LOOKAT_XYZ", FC_LOOKAT_XYZ)
+        .value("FC_LOOKAT_Y", FC_LOOKAT_Y)
+        .value("FC_LOOKAT_MIXED", FC_LOOKAT_MIXED)
+        .value("FC_DIRECTION", FC_DIRECTION)
+        .value("FC_AXIS_ANGLE", FC_AXIS_ANGLE);
     //
-    auto GIType = m.def_submodule("GlobalIlluminationType");
-    GIType["None"]              = GlobalIlluminationType::None;
-    GIType["UseLightMap"]       = GlobalIlluminationType::UseLightMap;
-    GIType["BlendLightProbes"]  = GlobalIlluminationType::BlendLightProbes;
-    auto graphic = m.def_submodule("graphic");
+    nb::enum_<GlobalIlluminationType>(m, "GlobalIlluminationType")
+        .value("None", GlobalIlluminationType::None)
+        .value("UseLightMap", GlobalIlluminationType::UseLightMap)
+        .value("BlendLightProbes", GlobalIlluminationType::BlendLightProbes);
+
     nb::enum_<TextureFormat>(m, "TextureFormat")
         .value("TEX_FORMAT_RGBA8_UNORM",       TextureFormat::TEX_FORMAT_RGBA8_UNORM)
         .value("TEX_FORMAT_RGBA8_UNORM_SRGB",  TextureFormat::TEX_FORMAT_RGBA8_UNORM_SRGB);
@@ -195,33 +198,42 @@ static void RegisterConst(nb::module_ m)
         .value("SUBTRACT",                     BLEND_SUBTRACT)
         .value("SUBTRACTALPHA",                BLEND_SUBTRACTALPHA)
         .value("DEFERRED_DECAL",               BLEND_DEFERRED_DECAL);
-    auto shaderResources = graphic.def_submodule("ShaderResources");
-    shaderResources["Albedo"]       = ShaderResources::Albedo.GetHash();
-    shaderResources["Normal"]       = ShaderResources::Normal.GetHash();
-    shaderResources["Properties"]   = ShaderResources::Properties.GetHash();
-    shaderResources["Emission"]     = ShaderResources::Emission.GetHash();
-    shaderResources["Reflection0"]  = ShaderResources::Reflection0.GetHash();
-    shaderResources["Reflection1"]  = ShaderResources::Reflection1.GetHash();
-    shaderResources["LightRamp"]    = ShaderResources::LightRamp.GetHash();
-    shaderResources["LightShape"]   = ShaderResources::LightShape.GetHash();
-    shaderResources["ShadowMap"]    = ShaderResources::ShadowMap.GetHash();
-    shaderResources["DepthBuffer"]  = ShaderResources::DepthBuffer.GetHash();
+    auto shaderResources = m.def_submodule("ShaderResources");
+    shaderResources.attr("Albedo") = ShaderResources::Albedo.GetHash();
+    shaderResources.attr("Normal") = ShaderResources::Normal.GetHash();
+    shaderResources.attr("Properties") = ShaderResources::Properties.GetHash();
+    shaderResources.attr("Emission") = ShaderResources::Emission.GetHash();
+    shaderResources.attr("Reflection0") = ShaderResources::Reflection0.GetHash();
+    shaderResources.attr("Reflection1") = ShaderResources::Reflection1.GetHash();
+    shaderResources.attr("LightRamp") = ShaderResources::LightRamp.GetHash();
+    shaderResources.attr("LightShape") = ShaderResources::LightShape.GetHash();
+    shaderResources.attr("ShadowMap") = ShaderResources::ShadowMap.GetHash();
+    shaderResources.attr("DepthBuffer") = ShaderResources::DepthBuffer.GetHash();
 
-    graphic["FILTER_BILINEAR"]      = FILTER_BILINEAR;
-    //
-    graphic["RAY_AABB"]             = RAY_AABB;
-    graphic["RAY_OBB"]              = RAY_OBB;
-    graphic["RAY_TRIANGLE"]         = RAY_TRIANGLE;
-    graphic["RAY_TRIANGLE_UV"]      = RAY_TRIANGLE_UV;
-    //
-    graphic["DRAWABLE_UNDEFINED"]   = DRAWABLE_UNDEFINED;
-    graphic["DRAWABLE_GEOMETRY"]    = DRAWABLE_GEOMETRY;
-    graphic["DRAWABLE_LIGHT"]       = DRAWABLE_LIGHT;
-    graphic["DRAWABLE_ZONE"]        = DRAWABLE_ZONE;
-    graphic["DRAWABLE_GEOMETRY2D"]  = DRAWABLE_GEOMETRY2D;
-    graphic["DRAWABLE_ANY"]         = DRAWABLE_ANY;
-    //
-    graphic["DEFAULT_VIEWMASK"]     = DEFAULT_VIEWMASK;
+    nb::enum_<TextureFilterMode>(m, "TextureFilterMode")
+        .value("FILTER_NEAREST", FILTER_NEAREST)
+        .value("FILTER_BILINEAR", FILTER_BILINEAR)
+        .value("FILTER_TRILINEAR", FILTER_TRILINEAR)
+        .value("FILTER_ANISOTROPIC", FILTER_ANISOTROPIC)
+        .value("FILTER_NEAREST_ANISOTROPIC", FILTER_NEAREST_ANISOTROPIC)
+        .value("FILTER_DEFAULT", FILTER_DEFAULT)
+        .value("MAX_FILTERMODES", MAX_FILTERMODES);
+
+    nb::enum_<RayQueryLevel>(m, "RayQueryLevel")
+        .value("RAY_AABB", RAY_AABB)
+        .value("RAY_OBB", RAY_OBB)
+        .value("RAY_TRIANGLE", RAY_TRIANGLE)
+        .value("RAY_TRIANGLE_UV", RAY_TRIANGLE_UV);
+
+    nb::enum_<DrawableFlag>(m, "DrawableFlag", nb::is_flag())
+        .value("DRAWABLE_UNDEFINED", DRAWABLE_UNDEFINED)
+        .value("DRAWABLE_GEOMETRY", DRAWABLE_GEOMETRY)
+        .value("DRAWABLE_LIGHT", DRAWABLE_LIGHT)
+        .value("DRAWABLE_ZONE", DRAWABLE_ZONE)
+        .value("DRAWABLE_GEOMETRY2D", DRAWABLE_GEOMETRY2D)
+        .value("DRAWABLE_ANY", DRAWABLE_ANY);
+
+    m.attr("DEFAULT_VIEWMASK")     = DEFAULT_VIEWMASK;
 }
 #undef NB_EXPORT
 #define NB_EXPORT
@@ -232,6 +244,8 @@ NB_MODULE(graphics, m)
 
     nb::class_<CascadeParameters>(m, "CascadeParameters")
         .def(nb::init<float, float, float, float, float>());
+
+    nb::class_<Resource>(m, "Resource");
 
     nb::class_<Material, Resource>(m, "Material")
         .def(nb::init<Context*>())
@@ -522,6 +536,8 @@ NB_MODULE(graphics, m)
         .def("KeepOnCompletion", &AnimationParameters::KeepOnCompletion)
         .def("KeepOnZeroWeight", &AnimationParameters::KeepOnZeroWeight);
 
+    nb::class_<AnimationStateSource>(m, "AnimationStateSource");
+
     nb::class_<AnimationController, AnimationStateSource>(m, "AnimationController")
         //bindAnimationController["id"]                   = sol::var(StringHash("AnimationController"));
         .def("SetSpeed", &AnimationController::SetSpeed)
@@ -595,48 +611,48 @@ NB_MODULE(graphics, m)
         .def("SetRenderPassEnabled", &RenderPipeline::SetRenderPassEnabled);
 
     nb::class_<ProceduralSky, StaticModel>(m, "ProceduralSky")
-    //bindProceduralSky["id"]                     = sol::var(StringHash("ProceduralSky"));
-    .def("Init", [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time) { self->Init(verticalCount, horizontalCount, month, time); })
-    .def("Init", [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time, uint32_t cubemapSize, const Vector3& northDir) { self->Init(verticalCount, horizontalCount, month, time, cubemapSize, northDir); })
-//     .attr("January", ProceduralSky::January)
-//     .attr("February", ProceduralSky::February)
-//     .attr("April", ProceduralSky::April)
-//     .attr("May", ProceduralSky::May)
-//     .attr("June", ProceduralSky::June)
-//     .attr("July", ProceduralSky::July)
-//     .attr("August", ProceduralSky::August)
-//     .attr("September", ProceduralSky::September)
-//     .attr("October", ProceduralSky::October)
-//     .attr("November", ProceduralSky::November)
-//     .attr("December", ProceduralSky::December)
-    .def("SetMonth", &ProceduralSky::SetMonth)
-    .def("SetTime", &ProceduralSky::SetTime)
-    .def("SetTimeScale", &ProceduralSky::SetTimeScale)
-    .def("GetSunDirection", &ProceduralSky::GetSunDirection)
-    .def("GetSunLuminance", &ProceduralSky::GetSunLuminance)
-    .def("GetSunLuminanceGamma", &ProceduralSky::GetSunLuminanceGamma)
-    .def("GetSkyLuminance", &ProceduralSky::GetSkyLuminance)
-    .def("GetSkyLuminanceGamma", &ProceduralSky::GetSkyLuminanceGamma);
+        //bindProceduralSky["id"]                     = sol::var(StringHash("ProceduralSky"));
+        .def("Init", [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time) { self->Init(verticalCount, horizontalCount, month, time); })
+        .def("Init", [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time, uint32_t cubemapSize, const Vector3& northDir) { self->Init(verticalCount, horizontalCount, month, time, cubemapSize, northDir); })
+    //     .attr("January", ProceduralSky::January)
+    //     .attr("February", ProceduralSky::February)
+    //     .attr("April", ProceduralSky::April)
+    //     .attr("May", ProceduralSky::May)
+    //     .attr("June", ProceduralSky::June)
+    //     .attr("July", ProceduralSky::July)
+    //     .attr("August", ProceduralSky::August)
+    //     .attr("September", ProceduralSky::September)
+    //     .attr("October", ProceduralSky::October)
+    //     .attr("November", ProceduralSky::November)
+    //     .attr("December", ProceduralSky::December)
+        .def("SetMonth", &ProceduralSky::SetMonth)
+        .def("SetTime", &ProceduralSky::SetTime)
+        .def("SetTimeScale", &ProceduralSky::SetTimeScale)
+        .def("GetSunDirection", &ProceduralSky::GetSunDirection)
+        .def("GetSunLuminance", &ProceduralSky::GetSunLuminance)
+        .def("GetSunLuminanceGamma", &ProceduralSky::GetSunLuminanceGamma)
+        .def("GetSkyLuminance", &ProceduralSky::GetSkyLuminance)
+        .def("GetSkyLuminanceGamma", &ProceduralSky::GetSkyLuminanceGamma);
 
     nb::class_<OutlineGroup, Component>(m, "OutlineGroup")
-    //bindOutlineGroup["id"]                  = sol::var(StringHash("OutlineGroup"));
-    .def("SetColor", &OutlineGroup::SetColor)
-    .def("GetOutlineMaterial", &OutlineGroup::GetOutlineMaterial)
-    .def("HasDrawables", &OutlineGroup::HasDrawables)
-    .def("ContainsDrawable", &OutlineGroup::ContainsDrawable)
-    .def("ClearDrawables", &OutlineGroup::ClearDrawables)
-    .def("AddDrawable", &OutlineGroup::AddDrawable)
-    .def("RemoveDrawable", &OutlineGroup::RemoveDrawable);
+        //bindOutlineGroup["id"]                  = sol::var(StringHash("OutlineGroup"));
+        .def("SetColor", &OutlineGroup::SetColor)
+        .def("GetOutlineMaterial", &OutlineGroup::GetOutlineMaterial)
+        .def("HasDrawables", &OutlineGroup::HasDrawables)
+        .def("ContainsDrawable", &OutlineGroup::ContainsDrawable)
+        .def("ClearDrawables", &OutlineGroup::ClearDrawables)
+        .def("AddDrawable", &OutlineGroup::AddDrawable)
+        .def("RemoveDrawable", &OutlineGroup::RemoveDrawable);
         
     nb::class_<Text3D, Drawable>(m, "Text3D")
-    //bindText3D["id"]                = sol::var(StringHash("Text3D"));
-    .def_prop_rw("material", &Text3D::GetMaterial, &Text3D::SetMaterial)
-    .def("SetFont", [](Text3D* self, const ea::string& fontName) { self->SetFont(fontName); })
-    .def("SetFontSize", &Text3D::SetFontSize)
-    .def("SetText", &Text3D::SetText)
-    .def("SetColor", nb::overload_cast<const Color&>(&Text3D::SetColor))
-    .def("SetOpacity", &Text3D::SetOpacity)
-    .def("SetFaceCameraMode", &Text3D::SetFaceCameraMode);
+        //bindText3D["id"]                = sol::var(StringHash("Text3D"));
+        .def_prop_rw("material", &Text3D::GetMaterial, &Text3D::SetMaterial)
+        .def("SetFont", [](Text3D* self, const ea::string& fontName) { self->SetFont(fontName); })
+        .def("SetFontSize", &Text3D::SetFontSize)
+        .def("SetText", &Text3D::SetText)
+        .def("SetColor", nb::overload_cast<const Color&>(&Text3D::SetColor))
+        .def("SetOpacity", &Text3D::SetOpacity)
+        .def("SetFaceCameraMode", &Text3D::SetFaceCameraMode);
         
     m.attr("graphics_system") = Context::GetInstance()->GetSubsystem<Graphics>();
     m.attr("renderer_system") = Context::GetInstance()->GetSubsystem<Renderer>();

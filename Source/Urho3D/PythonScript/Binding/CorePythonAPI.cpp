@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/operators.h>
 #include <string_view>
 #include "../../Core/Context.h"
 #include "../../Core/ProcessUtils.h"
@@ -26,28 +27,28 @@ StringVariantMap& GetEngineParameters();
 static void RegisterCoreConst(nb::module_ m)
 {
     auto eventType = m.def_submodule("EventType");
-    eventType["BeginFrame"]       = E_BEGINFRAME;
-    eventType["InputReady"]       = E_INPUTREADY;
-    eventType["Update"]           = E_UPDATE;
-    eventType["PostUpdate"]       = E_POSTUPDATE;
-    eventType["RenderUpdate"]     = E_RENDERUPDATE;
-    eventType["PostRenderUpdate"] = E_POSTRENDERUPDATE;
-    eventType["EndFrame"]         = E_ENDFRAME;
+    eventType.attr("BeginFrame")        = E_BEGINFRAME;
+    eventType.attr("InputReady")        = E_INPUTREADY;
+    eventType.attr("Update")            = E_UPDATE;
+    eventType.attr("PostUpdate")        = E_POSTUPDATE;
+    eventType.attr("RenderUpdate")      = E_RENDERUPDATE;
+    eventType.attr("PostRenderUpdate")  = E_POSTRENDERUPDATE;
+    eventType.attr("EndFrame")          = E_ENDFRAME;
 
     auto paramType = m.def_submodule("ParamType");
     auto beginFrame = paramType.def_submodule("BeginFrame");
-    beginFrame["FrameNumber"]       = BeginFrame::P_FRAMENUMBER;
-    beginFrame["TimeStep"]          = BeginFrame::P_TIMESTEP;
+    beginFrame.attr("FrameNumber")       = BeginFrame::P_FRAMENUMBER;
+    beginFrame.attr("TimeStep") = BeginFrame::P_TIMESTEP;
     auto inputReady                 = paramType.def_submodule("InputReady");
-    inputReady["TimeStep"]          = InputReady::P_TIMESTEP;
+    inputReady.attr("TimeStep") = InputReady::P_TIMESTEP;
     auto update                     = paramType.def_submodule("Update");
-    update["TimeStep"]              = Update::P_TIMESTEP;
+    update.attr("TimeStep") = Update::P_TIMESTEP;
     auto postUpdate                 = paramType.def_submodule("PostUpdate");
-    postUpdate["TimeStep"]          = PostUpdate::P_TIMESTEP;
+    postUpdate.attr("TimeStep") = PostUpdate::P_TIMESTEP;
     auto upRenderUpdatedate         = paramType.def_submodule("UpRenderUpdatedate");
-    upRenderUpdatedate["TimeStep"]  = RenderUpdate::P_TIMESTEP;
+    upRenderUpdatedate.attr("TimeStep") = RenderUpdate::P_TIMESTEP;
     auto postRenderUpdate           = paramType.def_submodule("PostRenderUpdate");
-    postRenderUpdate["TimeStep"]    = PostRenderUpdate::P_TIMESTEP;
+    postRenderUpdate.attr("TimeStep") = PostRenderUpdate::P_TIMESTEP;
 }
 #undef NB_EXPORT
 #define NB_EXPORT
@@ -69,7 +70,11 @@ NB_MODULE(core, m)
         .def("Error", [](const ea::string& msg) { URHO3D_LOGERROR(msg); });
 
     nb::class_<StringHash>(m, "StringHash")
-        .def(nb::init<const char*>());
+        .def(nb::init<const char*>())
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self)
+        .def("ToString", [](const StringHash& self) { return std::string{ self.ToString().c_str() }; })
+        .def("IsEmpty", &StringHash::IsEmpty);
 
     nb::class_<Object>(m, "Object")
         .def("GetType", &Object::GetType)
@@ -130,28 +135,28 @@ NB_MODULE(core, m)
         .def("GetUInt64", &Variant::GetUInt64)
         .def("GetBool", &Variant::GetBool)
         .def("GetFloat", &Variant::GetFloat)
-        .def("Quaternion", &Variant::GetQuaternion)
-        .def("Color", &Variant::GetColor)
-        .def("GetIntVector2", &Variant::GetIntVector2)
-        .def("GetIntVector3", &Variant::GetIntVector3)
-        .def("GetVector2", &Variant::GetVector2)
-        .def("GetVector3", &Variant::GetVector3)
-        .def("GetVector4", &Variant::GetVector4)
+        .def("Quaternion", &Variant::GetQuaternion, nb::rv_policy::reference)
+        .def("Color", &Variant::GetColor, nb::rv_policy::reference)
+        .def("GetIntVector2", &Variant::GetIntVector2, nb::rv_policy::reference)
+        .def("GetIntVector3", &Variant::GetIntVector3, nb::rv_policy::reference)
+        .def("GetVector2", &Variant::GetVector2, nb::rv_policy::reference)
+        .def("GetVector3", &Variant::GetVector3, nb::rv_policy::reference)
+        .def("GetVector4", &Variant::GetVector4, nb::rv_policy::reference)
         .def("GetVectorBuffer", &Variant::GetVectorBuffer)
-        .def("GetString", &Variant::GetString);//[](Variant* obj) { return std::string_view{(const char*)obj->GetBuffer().Buffer(), obj->GetBuffer().Size()}; }
+        .def("GetString", &Variant::GetString, nb::rv_policy::reference);//[](Variant* obj) { return std::string_view{(const char*)obj->GetBuffer().Buffer(), obj->GetBuffer().Size()}; }
     
 //     sol::automagic_enrollments enrollments;
 //     enrollments.less_than_operator = false;
 //     enrollments.less_than_operator = false;
     nb::class_<VariantMap>(m, "VariantMap")
         .def(nb::init<>())
-        .def("__getitem__", [](VariantMap& map, StringHash key) { return &map[key]; }, nb::is_operator())
-        .def("__setitem__", [](VariantMap& map, StringHash key, const Variant& variant) { map[key] = variant; }, nb::is_operator())
-        .def("HasKey", [](VariantMap& map, StringHash key) { return map.find(key) != map.end(); })
+        .def("__getitem__", [](VariantMap& map, const StringHash& key) { return &map[key]; }, nb::is_operator(), nb::rv_policy::reference)
+        .def("__setitem__", [](VariantMap& map, const StringHash& key, const Variant& variant) { map[key] = variant; }, nb::is_operator())
+        .def("HasKey", [](VariantMap& map, const StringHash& key) { return map.find(key) != map.end(); })
         .def("Size", [](VariantMap& map) { return map.size(); });
 
     nb::class_<Time>(m, "Time")
-        .def("GetTimeStamp", [](Time* self) { return self->GetTimeStamp(); });
+        .def("GetTimeStamp", [](Time& self) { return self.GetTimeStamp(); });
 
     m.attr("time") = Context::GetInstance()->GetSubsystem<Time>();
     //

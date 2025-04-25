@@ -94,23 +94,26 @@ NB_MODULE(physics, m)
     subm.attr("OtherBody") = NodeCollisionEnd::P_OTHERBODY;
     subm.attr("Trigger") = NodeCollisionEnd::P_TRIGGER;
 
-    m.attr("COLLISION_NEVER")      = COLLISION_NEVER;
-    m.attr("COLLISION_ACTIVE")     = COLLISION_ACTIVE;
-    m.attr("COLLISION_ALWAYS") = COLLISION_ALWAYS;
-    m.attr("SHAPE_BOX") = SHAPE_BOX;
-    m.attr("SHAPE_SPHERE") = SHAPE_SPHERE;
-    m.attr("SHAPE_STATICPLANE") = SHAPE_STATICPLANE;
-    m.attr("SHAPE_CYLINDER") = SHAPE_CYLINDER;
-    m.attr("SHAPE_CAPSULE") = SHAPE_CAPSULE;
-    m.attr("SHAPE_CONE") = SHAPE_CONE;
-    m.attr("SHAPE_TRIANGLEMESH") = SHAPE_TRIANGLEMESH;
-    m.attr("SHAPE_CONVEXHULL") = SHAPE_CONVEXHULL;
-    m.attr("SHAPE_TERRAIN") = SHAPE_TERRAIN;
-    m.attr("SHAPE_GIMPACTMESH") = SHAPE_GIMPACTMESH;
-    m.attr("CONSTRAINT_POINT") = CONSTRAINT_POINT;
-    m.attr("CONSTRAINT_HINGE") = CONSTRAINT_HINGE;
-    m.attr("CONSTRAINT_SLIDER") = CONSTRAINT_SLIDER;
-    m.attr("CONSTRAINT_CONETWIST") = CONSTRAINT_CONETWIST;
+    nb::enum_<CollisionEventMode>(m, "CollisionEventMode")
+        .value("COLLISION_NEVER", COLLISION_NEVER)
+        .value("COLLISION_ACTIVE", COLLISION_ACTIVE)
+        .value("COLLISION_ALWAYS", COLLISION_ALWAYS);
+    nb::enum_<ShapeType>(m, "ShapeType")
+        .value("SHAPE_BOX", SHAPE_BOX)
+        .value("SHAPE_SPHERE", SHAPE_SPHERE)
+        .value("SHAPE_STATICPLANE", SHAPE_STATICPLANE)
+        .value("SHAPE_CYLINDER", SHAPE_CYLINDER)
+        .value("SHAPE_CAPSULE", SHAPE_CAPSULE)
+        .value("SHAPE_CONE", SHAPE_CONE)
+        .value("SHAPE_TRIANGLEMESH", SHAPE_TRIANGLEMESH)
+        .value("SHAPE_CONVEXHULL", SHAPE_CONVEXHULL)
+        .value("SHAPE_TERRAIN", SHAPE_TERRAIN)
+        .value("SHAPE_GIMPACTMESH", SHAPE_GIMPACTMESH);
+    nb::enum_<ConstraintType>(m, "ConstraintType")
+        .value("CONSTRAINT_POINT", CONSTRAINT_POINT)
+        .value("CONSTRAINT_HINGE", CONSTRAINT_HINGE)
+        .value("CONSTRAINT_SLIDER", CONSTRAINT_SLIDER)
+        .value("CONSTRAINT_CONETWIST", CONSTRAINT_CONETWIST);
         
     nb::class_<RigidBody, Component>(m, "RigidBody")
     //bindRigidBody["id"]                       = sol::var(StringHash("RigidBody"));

@@ -143,35 +143,35 @@ NB_MODULE(resource, m)
 //             [](double value) { return JSONValue(value); },
 //             [](const char* value) { return JSONValue(value); }
 //         ));
-    .def("SetType", &JSONValue::SetType)
-    .def("Set", &JSONValue::Set)
-    .def("Get", nb::overload_cast<const ea::string&>(&JSONValue::Get, nb::const_))
-    .def("Get", nb::overload_cast<int>(&JSONValue::Get, nb::const_))
-    .def("GetBool", &JSONValue::GetBool)
-    .def("GetInt", &JSONValue::GetInt)
-    .def("GetFloat", &JSONValue::GetFloat)
-    .def("GetDouble", &JSONValue::GetDouble)
-    .def("GetString", [](JSONValue* self, const ea::string& defaultValue) { return self->GetString(defaultValue); })
-    .def("GetArray", [](JSONValue* self) {
-        const auto& arrs = self->GetArray();
-        return std::vector<JSONValue>(arrs.begin(), arrs.end());
-        })
-    .def("GetObject", [](JSONValue* self) {
-        const auto& objects = self->GetObject();
-        std::map<std::string, JSONValue> ret;
-        for (auto& obj : objects) {
-            ret.insert({ obj.first.c_str(), obj.second });
-        }
-        return ret; })
-    .def("Push", &JSONValue::Push)
-    .def("Pop", &JSONValue::Pop)
-    .def("Insert", &JSONValue::Insert)
-    .def("Erase", nb::overload_cast<const ea::string&>(&JSONValue::Erase))
-    .def("Erase", nb::overload_cast<unsigned, unsigned>(&JSONValue::Erase))
-    .def("Contains", &JSONValue::Contains)
-    .def("Clear", &JSONValue::Clear)
-    .def("Resize", &JSONValue::Resize)
-    .def("Size", &JSONValue::Size);
+        .def("SetType", &JSONValue::SetType)
+        .def("Set", &JSONValue::Set)
+        .def("Get", nb::overload_cast<const ea::string&>(&JSONValue::Get, nb::const_))
+        .def("Get", nb::overload_cast<int>(&JSONValue::Get, nb::const_))
+        .def("GetBool", &JSONValue::GetBool)
+        .def("GetInt", &JSONValue::GetInt)
+        .def("GetFloat", &JSONValue::GetFloat)
+        .def("GetDouble", &JSONValue::GetDouble)
+        .def("GetString", [](JSONValue* self, const ea::string& defaultValue) { return self->GetString(defaultValue); })
+        .def("GetArray", [](JSONValue* self) {
+            const auto& arrs = self->GetArray();
+            return std::vector<JSONValue>(arrs.begin(), arrs.end());
+            })
+        .def("GetObject", [](JSONValue* self) {
+            const auto& objects = self->GetObject();
+            std::map<std::string, JSONValue> ret;
+            for (auto& obj : objects) {
+                ret.insert({ obj.first.c_str(), obj.second });
+            }
+            return ret; })
+        .def("Push", &JSONValue::Push)
+        .def("Pop", &JSONValue::Pop)
+        .def("Insert", &JSONValue::Insert)
+        .def("Erase", nb::overload_cast<const ea::string&>(&JSONValue::Erase))
+        .def("Erase", nb::overload_cast<unsigned, unsigned>(&JSONValue::Erase))
+        .def("Contains", &JSONValue::Contains)
+        .def("Clear", &JSONValue::Clear)
+        .def("Resize", &JSONValue::Resize)
+        .def("Size", &JSONValue::Size);
         
     nb::class_<JSONFile>(m, "JSONFile")// , sol::constructors<JSONFile(Context*)>());
         .def("FromString", &JSONFile::FromString)

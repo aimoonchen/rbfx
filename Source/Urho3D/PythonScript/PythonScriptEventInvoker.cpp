@@ -30,9 +30,9 @@ void PythonScriptEventInvoker::AddEventHandler(Object* sender, const StringHash&
     }
     python_functions_.emplace_back(pyfunction);
     if (sender) {
-        SubscribeToEvent(sender, eventType, [function = python_functions_.back()](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
+        SubscribeToEvent(sender, eventType, [function = python_functions_.back()](StringHash& eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
     } else {
-        SubscribeToEvent(eventType, [function = python_functions_.back()](StringHash eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
+        SubscribeToEvent(eventType, [function = python_functions_.back()](StringHash& eventType, VariantMap& eventData) { CallPythonFunction(function, eventType, eventData); });
     }
 }
 
