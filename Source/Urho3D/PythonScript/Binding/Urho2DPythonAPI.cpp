@@ -16,10 +16,9 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(urho2d, m)
+void init_cmodule_urho2d(nb::module_& pm)
 {
+    auto m = pm.def_submodule("urho2d");
     nb::enum_<TileMapObjectType2D>(m, "TileMapObjectType2D")
         .value("RECTANGLE",    OT_RECTANGLE)
         .value("ELLIPSE",      OT_ELLIPSE)
@@ -35,7 +34,7 @@ NB_MODULE(urho2d, m)
         .def("GetOrderInLayer", & Drawable2D::GetOrderInLayer);
 
     nb::class_<StaticSprite2D, Drawable2D>(m, "StaticSprite2D")
-    //bindStaticSprite2D["id"]                = sol::var(StringHash("StaticSprite2D"));
+        .def_ro_static("TypeId", &StaticSprite2D::TypeId)
         .def("SetSprite", &StaticSprite2D::SetSprite)
         .def("SetDrawRect", &StaticSprite2D::SetDrawRect)
         .def("SetTextureRect", &StaticSprite2D::SetTextureRect)
@@ -75,7 +74,7 @@ NB_MODULE(urho2d, m)
         .value("FORCE_CLAMPED", LM_FORCE_CLAMPED);
 
     nb::class_<AnimatedSprite2D, StaticSprite2D>(m, "AnimatedSprite2D")
-        //bindAnimatedSprite2D["id"]              = sol::var(StringHash("AnimatedSprite2D"));
+        .def_ro_static("TypeId", &AnimatedSprite2D::TypeId)
         .def("SetAnimationSet", & AnimatedSprite2D::SetAnimationSet)
         .def("SetEntity", & AnimatedSprite2D::SetEntity)
         .def("SetAnimation", [](AnimatedSprite2D* self, const ea::string& name) { self->SetAnimation(name); })
@@ -93,7 +92,7 @@ NB_MODULE(urho2d, m)
         .value("HEXAGONAL",    O_HEXAGONAL);
 
     nb::class_<StretchableSprite2D, StaticSprite2D>(m, "StretchableSprite2D")
-    //bindStretchableSprite2D["id"]           = sol::var(StringHash("StretchableSprite2D"));
+        .def_ro_static("TypeId", &StretchableSprite2D::TypeId)
         .def("SetBorder", &StretchableSprite2D::SetBorder)
         .def("GetBorder", &StretchableSprite2D::GetBorder);
 
@@ -114,7 +113,7 @@ NB_MODULE(urho2d, m)
         });
 
     nb::class_<TileMap2D, Component>(m, "TileMap2D")
-    //bindTileMap2D["id"]                     = sol::var(StringHash("TileMap2D"));
+        .def_ro_static("TypeId", &TileMap2D::TypeId)
         .def("SetTmxFile", &TileMap2D::SetTmxFile)
         .def("GetInfo", &TileMap2D::GetInfo)
         .def("GetLayer", &TileMap2D::GetLayer)
@@ -133,7 +132,7 @@ NB_MODULE(urho2d, m)
         .def("GetPoint", &TileMapObject2D::GetPoint);
 
     nb::class_<TileMapLayer2D, Component>(m, "TileMapLayer2D")
-    //bindTileMapLayer2D["id"]                = sol::var(StringHash("TileMapLayer2D"));
+        .def_ro_static("TypeId", &TileMapLayer2D::TypeId)
         .def("GetNumObjects", &TileMapLayer2D::GetNumObjects)
         .def("GetObject", &TileMapLayer2D::GetObject);
 }

@@ -13,10 +13,9 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(physics2d, m)
+void init_cmodule_physics2d(nb::module_& pm)
 {
+    auto m = pm.def_submodule("physics2d");
     auto eventType = m.def_submodule("EventType");
     eventType.attr("PhysicsBeginContact2D") = E_PHYSICSBEGINCONTACT2D;
 
@@ -83,7 +82,7 @@ NB_MODULE(physics2d, m)
         .value("DYNAMIC",      BT_DYNAMIC);
 
     nb::class_<CollisionShape2D, Component>(m, "CollisionShape2D")
-    //bindCollisionShape2D.def("id"]              = sol::var(StringHash("CollisionShape2D"));
+        .def_ro_static("TypeId", &CollisionShape2D::TypeId)
         .def("SetTrigger", &CollisionShape2D::SetTrigger)
         .def("SetCategoryBits", &CollisionShape2D::SetCategoryBits)
         .def("SetMaskBits", &CollisionShape2D::SetMaskBits)
@@ -105,7 +104,7 @@ NB_MODULE(physics2d, m)
         .def("GetMassCenter", &CollisionShape2D::GetMassCenter);
 
     nb::class_<CollisionBox2D, CollisionShape2D>(m, "CollisionBox2D")
-        //bindCollisionBox2D["id"]        = sol::var(StringHash("CollisionBox2D"));
+        .def_ro_static("TypeId", &CollisionBox2D::GetTypeStatic)
         .def("SetSize", [](CollisionBox2D* self, const Vector2& size) { self->SetSize(size); })
         .def("SetSize", [](CollisionBox2D* self, float width, float height) { self->SetSize(width, height); })
         .def("SetCenter", [](CollisionBox2D* self, const Vector2& size) { self->SetCenter(size); })
@@ -116,7 +115,7 @@ NB_MODULE(physics2d, m)
         .def("GetAngle", &CollisionBox2D::GetAngle);
 
     nb::class_<CollisionCircle2D, CollisionShape2D>(m, "CollisionCircle2D")
-        //bindCollisionCircle2D["id"]         = sol::var(StringHash("CollisionCircle2D"));
+        .def_ro_static("TypeId", &CollisionCircle2D::GetTypeStatic)
         .def("SetRadius", &CollisionCircle2D::SetRadius)
         .def("SetCenter", [](CollisionCircle2D* self, const Vector2& size) { self->SetCenter(size); })
         .def("SetCenter", [](CollisionCircle2D* self, float width, float height) { self->SetCenter(width, height); })
@@ -124,37 +123,37 @@ NB_MODULE(physics2d, m)
         .def("GetCenter", &CollisionCircle2D::GetCenter);
 
     nb::class_<CollisionChain2D, CollisionShape2D>(m, "CollisionChain2D")
-    //bindCollisionChain2D["id"]              = sol::var(StringHash("CollisionChain2D"));
-    .def("SetLoop", &CollisionChain2D::SetLoop)
-    .def("SetVertexCount", &CollisionChain2D::SetVertexCount)
-    .def("SetVertex", &CollisionChain2D::SetVertex)
-    .def("SetVertices", [](CollisionChain2D* self, const std::vector<Vector2>& vertices) {
-        self->SetVertices(ea::vector<Vector2>(vertices.begin(), vertices.end()));
-    })
-    .def("GetLoop", &CollisionChain2D::GetLoop)
-    .def("GetVertexCount", &CollisionChain2D::GetVertexCount)
-    .def("GetVertex", &CollisionChain2D::GetVertex)
-    .def("GetVertices", [](CollisionChain2D* self) {
-        auto& eav = self->GetVertices();
-        return std::vector<Vector2>(eav.begin(), eav.end());
-    });
+        .def_ro_static("TypeId", &CollisionChain2D::GetTypeStatic)
+        .def("SetLoop", &CollisionChain2D::SetLoop)
+        .def("SetVertexCount", &CollisionChain2D::SetVertexCount)
+        .def("SetVertex", &CollisionChain2D::SetVertex)
+        .def("SetVertices", [](CollisionChain2D* self, const std::vector<Vector2>& vertices) {
+            self->SetVertices(ea::vector<Vector2>(vertices.begin(), vertices.end()));
+        })
+        .def("GetLoop", &CollisionChain2D::GetLoop)
+        .def("GetVertexCount", &CollisionChain2D::GetVertexCount)
+        .def("GetVertex", &CollisionChain2D::GetVertex)
+        .def("GetVertices", [](CollisionChain2D* self) {
+            auto& eav = self->GetVertices();
+            return std::vector<Vector2>(eav.begin(), eav.end());
+        });
 
     nb::class_<CollisionPolygon2D, CollisionShape2D>(m, "CollisionPolygon2D")
-    //bindCollisionPolygon2D["id"]                = sol::var(StringHash("CollisionPolygon2D"));
-    .def("SetVertexCount", &CollisionPolygon2D::SetVertexCount)
-    .def("SetVertex", &CollisionPolygon2D::SetVertex)
-    .def("GetVertexCount", &CollisionPolygon2D::GetVertexCount)
-    .def("GetVertex", &CollisionPolygon2D::GetVertex)
-    .def("SetVertices", [](CollisionPolygon2D* self, const std::vector<Vector2>& vertices) {
-        self->SetVertices(ea::vector<Vector2>(vertices.begin(), vertices.end()));
-    })
-    .def("GetVertices", [](CollisionPolygon2D* self) {
-        auto& eav = self->GetVertices();
-        return std::vector<Vector2>(eav.begin(), eav.end());
-    });
+        .def_ro_static("TypeId", &CollisionPolygon2D::GetTypeStatic)
+        .def("SetVertexCount", &CollisionPolygon2D::SetVertexCount)
+        .def("SetVertex", &CollisionPolygon2D::SetVertex)
+        .def("GetVertexCount", &CollisionPolygon2D::GetVertexCount)
+        .def("GetVertex", &CollisionPolygon2D::GetVertex)
+        .def("SetVertices", [](CollisionPolygon2D* self, const std::vector<Vector2>& vertices) {
+            self->SetVertices(ea::vector<Vector2>(vertices.begin(), vertices.end()));
+        })
+        .def("GetVertices", [](CollisionPolygon2D* self) {
+            auto& eav = self->GetVertices();
+            return std::vector<Vector2>(eav.begin(), eav.end());
+        });
 
     nb::class_<RigidBody2D, Component>(m, "RigidBody2D")
-    //bindRigidBody2D["id"]                   = sol::var(StringHash("RigidBody2D"));
+        .def_ro_static("TypeId", &RigidBody2D::GetTypeStatic)
         .def("SetBodyType", &RigidBody2D::SetBodyType)
         .def("SetMass", &RigidBody2D::SetMass)
         .def("SetInertia", &RigidBody2D::SetInertia)
@@ -199,7 +198,7 @@ NB_MODULE(physics2d, m)
         .def("GetAngularVelocity", &RigidBody2D:: GetAngularVelocity);
 
     nb::class_<PhysicsWorld2D, Component>(m, "PhysicsWorld2D")
-    //bindPhysicsWorld2D["id"]                        = sol::var(StringHash("PhysicsWorld2D"));
+        .def_ro_static("TypeId", &PhysicsWorld2D::GetTypeStatic)
         .def("SetGravity", &PhysicsWorld2D::SetGravity)
         .def("SetAutoClearForces", &PhysicsWorld2D::SetAutoClearForces)
         .def("SetVelocityIterations", &PhysicsWorld2D::SetVelocityIterations)

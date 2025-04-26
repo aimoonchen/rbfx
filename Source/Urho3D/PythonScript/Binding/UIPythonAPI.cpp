@@ -23,10 +23,9 @@ using namespace nb::literals;
 //     }
 // }
 // 
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(ui, m)
+void init_cmodule_ui(nb::module_& pm)
 {
+    auto m = pm.def_submodule("ui");
     nb::enum_<HorizontalAlignment>(m, "HorizontalAlignment")
         .value("HA_LEFT", HA_LEFT)
         .value("HA_CENTER", HA_CENTER)
@@ -78,6 +77,4 @@ NB_MODULE(ui, m)
     nb::class_<UI>(m, "UI")//, sol::constructors<UI(Context*)>());
         .def_prop_ro("root", &UI::GetRoot)
         .def_prop_ro("focusElement", &UI::GetFocusElement);
-
-    m.attr("ui")            = Context::GetInstance()->GetSubsystem<UI>();
 }

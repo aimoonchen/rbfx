@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
+#include "EAStringAPI.h"
 #include <string_view>
 #include "../../Core/Context.h"
 #include "../../Core/ProcessUtils.h"
@@ -50,13 +51,24 @@ static void RegisterCoreConst(nb::module_ m)
     auto postRenderUpdate           = paramType.def_submodule("PostRenderUpdate");
     postRenderUpdate.attr("TimeStep") = PostRenderUpdate::P_TIMESTEP;
 }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(core, m)
+
+void init_cmodule_core(::nanobind::module_& pm)
 {
+    auto m = pm.def_submodule("core");
+    nb::enum_<PlatformId>(m, "PlatformId")
+        .value("Windows", PlatformId::Windows)
+        .value("UniversalWindowsPlatform", PlatformId::UniversalWindowsPlatform)
+        .value("Linux", PlatformId::Linux)
+        .value("Android", PlatformId::Android)
+        .value("RaspberryPi", PlatformId::RaspberryPi)
+        .value("MacOS", PlatformId::MacOS)
+        .value("iOS", PlatformId::iOS)
+        .value("tvOS", PlatformId::tvOS)
+        .value("Web", PlatformId::Web)
+        .export_values();
+
     m.def("GetPlatform", []() { return Urho3D::GetPlatform(); });
-    m.def("GetPlatformName", []() { return Urho3D::GetPlatformName(); });
-    //
+    m.def("GetPlatformName", []() { return Urho3D::GetPlatformName().c_str(); });
     m.def("GetUserID", []() {
         auto& engineParameters = Urho3D::GetEngineParameters();
         if (engineParameters.find(EP_USERID) != engineParameters.end()) {
@@ -73,7 +85,7 @@ NB_MODULE(core, m)
         .def(nb::init<const char*>())
         .def(nb::self == nb::self)
         .def(nb::self != nb::self)
-        .def("ToString", [](const StringHash& self) { return std::string{ self.ToString().c_str() }; })
+        .def("ToString", &StringHash::ToString)
         .def("IsEmpty", &StringHash::IsEmpty);
 
     nb::class_<Object>(m, "Object")
@@ -158,7 +170,6 @@ NB_MODULE(core, m)
     nb::class_<Time>(m, "Time")
         .def("GetTimeStamp", [](Time& self) { return self.GetTimeStamp(); });
 
-    m.attr("time") = Context::GetInstance()->GetSubsystem<Time>();
     //
     m.def("GetEventSender", []() {
         auto obj = Context::GetInstance()->GetEventSender();

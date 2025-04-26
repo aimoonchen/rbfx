@@ -251,10 +251,9 @@ public:
 // 
 //     return true;
 // }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(fairygui, m)
+void init_cmodule_fairygui(nb::module_& pm)
 {
+    auto m = pm.def_submodule("fairygui");
     m.def_submodule("UIPackage")
 	    .def("GetById", &UIPackage::getById)
 	    .def("GetByName", &UIPackage::getByName)

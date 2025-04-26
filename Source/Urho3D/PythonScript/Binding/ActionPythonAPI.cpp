@@ -9,11 +9,11 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(action, m)
+void init_cmodule_action(nb::module_& pm)
 {
     using namespace Actions;
+
+    auto m = pm.def_submodule("action");
 
     nb::class_<BaseAction>(m, "BaseAction");
 
@@ -109,6 +109,4 @@ NB_MODULE(action, m)
         .def("AddAction", [](ActionManager* self, Actions::BaseAction* action, Component* target) { return self->AddAction(action, target); })
         .def("AddAction", [](ActionManager* self, Actions::BaseAction* action, Component* target, bool paused) { return self->AddAction(action, target, paused); })
         .def("GetEmptyAction", &ActionManager::GetEmptyAction);
-
-    m.attr("action_manager") = Context::GetInstance()->GetSubsystem<ActionManager>();
 }

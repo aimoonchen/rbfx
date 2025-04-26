@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include "EAStringAPI.h"
 #include "../../Core/Context.h"
 #include "../../Resource/Resource.h"
 #include "../../Resource/ResourceCache.h"
@@ -60,11 +61,10 @@ using namespace nb::literals;
 //         return sol::make_object(L, obj).push(L);
 //     }
 // }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(resource, m)
+void init_cmodule_resource(nb::module_& pm)
 {
-//     nb.enum_<ScanFlags>(m, "ScanFlags")
+    auto m = pm.def_submodule("resource");
+    //     nb.enum_<ScanFlags>(m, "ScanFlags")
 //         .value("SCAN_FILES", SCAN_FILES)
 //         .value("SCAN_DIRS", SCAN_DIRS)
 //         .value("SCAN_HIDDEN", SCAN_HIDDEN)
@@ -73,7 +73,7 @@ NB_MODULE(resource, m)
     nb::class_<ResourceCache>(m, "ResourceCache")
         .def("GetResource", [](ResourceCache* obj, /*StringHash*/const char* typeName, const ea::string& filePath) {
             return obj->GetResource(StringHash(typeName), filePath);
-            })
+            }, nb::rv_policy::reference)
         .def("GetFile", [](ResourceCache* obj, const ea::string& filePath) { return obj->GetFile(filePath).Detach(); })
         .def("SetSearchPackagesFirst", &ResourceCache::SetSearchPackagesFirst)
 //         "AddResourceDir", sol::overload(
@@ -177,6 +177,4 @@ NB_MODULE(resource, m)
         .def("FromString", &JSONFile::FromString)
         .def("ToString", &JSONFile::ToString)
         .def("GetRoot", nb::overload_cast<>(&JSONFile::GetRoot));
-        
-    m.attr("cache") = Context::GetInstance()->GetSubsystem<ResourceCache>();
 }

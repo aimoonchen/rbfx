@@ -16,23 +16,7 @@
 #include "PythonInterpreter.h"
 #include "../DebugNew.h"
 
-extern "C" PyObject* PyInit_engine();
-extern "C" PyObject* PyInit_core();
-extern "C" PyObject* PyInit_math3d();
-extern "C" PyObject* PyInit_input();
-extern "C" PyObject* PyInit_io();
-extern "C" PyObject* PyInit_audio();
-extern "C" PyObject* PyInit_resource();
-extern "C" PyObject* PyInit_action();
-extern "C" PyObject* PyInit_scene();
-extern "C" PyObject* PyInit_graphics();
-extern "C" PyObject* PyInit_network();
-extern "C" PyObject* PyInit_physics();
-extern "C" PyObject* PyInit_physics2d();
-extern "C" PyObject* PyInit_ui();
-extern "C" PyObject* PyInit_fairygui();
-extern "C" PyObject* PyInit_effekseer();
-extern "C" PyObject* PyInit_urho2d();
+extern "C" PyObject* PyInit_kfengine();
 
 Urho3D::PythonScript* g_python_script = nullptr;
 namespace nb = nanobind;
@@ -48,23 +32,7 @@ PythonScript::PythonScript(Context* context) :
     g_python_script = this;
 
     nb::gil_scoped_acquire gil;
-    interpreter_->RegisterModule("engine", PyInit_engine());
-    interpreter_->RegisterModule("core", PyInit_core());
-    interpreter_->RegisterModule("math3d", PyInit_math3d());
-    interpreter_->RegisterModule("input", PyInit_input());
-    interpreter_->RegisterModule("io", PyInit_io());
-    interpreter_->RegisterModule("audio", PyInit_audio());
-    interpreter_->RegisterModule("action", PyInit_action());
-    interpreter_->RegisterModule("resource", PyInit_resource());
-    interpreter_->RegisterModule("scene", PyInit_scene());
-    interpreter_->RegisterModule("graphics", PyInit_graphics());
-    interpreter_->RegisterModule("network", PyInit_network());
-    interpreter_->RegisterModule("physics", PyInit_physics());
-    interpreter_->RegisterModule("physics2d", PyInit_physics2d());
-    interpreter_->RegisterModule("ui", PyInit_ui());
-    interpreter_->RegisterModule("fairygui", PyInit_fairygui());
-    interpreter_->RegisterModule("effekseer", PyInit_effekseer());
-    interpreter_->RegisterModule("urho2d", PyInit_urho2d());
+    interpreter_->RegisterModule("kfengine", PyInit_kfengine());
     
     // auto ret = RunSimpleString("import my_ext; print(my_ext)");
 }

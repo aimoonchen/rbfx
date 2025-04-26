@@ -41,10 +41,9 @@ static FMOD::Studio::EventInstance* CreateEventInstance(Urho3D::Context* context
     }
     return sound;
 }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(audio, m)
+void init_cmodule_audio(nb::module_& pm)
 {
+    auto m = pm.def_submodule("audio");
     nb::class_<FMOD::Studio::EventInstance>(m, "EventInstance")
         .def("Start", &FMOD::Studio::EventInstance::start)
         .def("Release", &FMOD::Studio::EventInstance::release)

@@ -13,10 +13,9 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(physics, m)
+void init_cmodule_physics(nb::module_& pm)
 {
+    auto m = pm.def_submodule("physics");
     auto subm = m.def_submodule("EventType");
     subm.attr("PhysicsPreUpdate") = E_PHYSICSPREUPDATE;
     subm.attr("PhysicsPostUpdate") = E_PHYSICSPOSTUPDATE;
@@ -116,7 +115,7 @@ NB_MODULE(physics, m)
         .value("CONSTRAINT_CONETWIST", CONSTRAINT_CONETWIST);
         
     nb::class_<RigidBody, Component>(m, "RigidBody")
-    //bindRigidBody["id"]                       = sol::var(StringHash("RigidBody"));
+        .def_ro_static("TypeId", &RigidBody::TypeId)
         .def_prop_rw("position", &RigidBody::GetPosition, &RigidBody::SetPosition)
         .def_prop_rw("rotation", &RigidBody::GetRotation, &RigidBody::SetRotation)
         .def_prop_rw("mass", &RigidBody::GetMass, &RigidBody::SetMass)
@@ -157,7 +156,7 @@ NB_MODULE(physics, m)
         .def("SetCollisionEventMode", &RigidBody::SetCollisionEventMode);
 
     nb::class_<CollisionShape, Component>(m, "CollisionShape")
-    //bindCollisionShape["id"]                       = sol::var(StringHash("CollisionShape"));
+        .def_ro_static("TypeId", &CollisionShape::TypeId)
         .def_prop_rw("size", &CollisionShape::GetSize, &CollisionShape::SetSize)
         .def_prop_rw("margin", &CollisionShape::GetMargin, &CollisionShape::SetMargin)
         .def_prop_rw("position", &CollisionShape::GetPosition, &CollisionShape::SetPosition)
@@ -188,7 +187,7 @@ NB_MODULE(physics, m)
         .def("SetLodLevel", &CollisionShape::SetLodLevel);
 
     nb::class_<Constraint, Component>(m, "Constraint")
-    //bindConstraint["id"]                   = sol::var(StringHash("Constraint"));
+        .def_ro_static("TypeId", &Constraint::TypeId)
         .def_prop_rw("constraint_type", &Constraint::GetConstraintType, &Constraint::SetConstraintType)
         .def_prop_rw("position", &Constraint::GetPosition, &Constraint::SetPosition)
         .def_prop_rw("rotation", &Constraint::GetRotation, &Constraint::SetRotation)
@@ -217,7 +216,7 @@ NB_MODULE(physics, m)
         .def_rw("rigid_body", &PhysicsRaycastResult::body_);
     
     nb::class_<PhysicsWorld, Component>(m, "PhysicsWorld")
-    //bindPhysicsWorld["id"]               = sol::var(StringHash("PhysicsWorld"));
+        .def_ro_static("TypeId", &PhysicsWorld::TypeId)
         .def_prop_rw("fps", &PhysicsWorld::GetFps, &PhysicsWorld::SetFps)
         .def_prop_rw("gravity", &PhysicsWorld::GetGravity, &PhysicsWorld::SetGravity)
         .def_prop_rw("max_sub_steps", &PhysicsWorld::GetMaxSubSteps, &PhysicsWorld::SetMaxSubSteps)
@@ -310,7 +309,7 @@ NB_MODULE(physics, m)
         });
 
     nb::class_<KinematicCharacterController, Component>(m, "KinematicCharacterController")
-    //bindKinematicCharacterController["id"]                       = sol::var(StringHash("KinematicCharacterController"));
+        .def_ro_static("TypeId", &KinematicCharacterController::TypeId)
         .def_prop_rw("gravity", &KinematicCharacterController::GetGravity, &KinematicCharacterController::SetGravity)
         .def_prop_rw("linear_damping", &KinematicCharacterController::GetLinearDamping, &KinematicCharacterController::SetLinearDamping)
         .def_prop_rw("angular_damping", &KinematicCharacterController::GetAngularDamping, &KinematicCharacterController::SetAngularDamping)

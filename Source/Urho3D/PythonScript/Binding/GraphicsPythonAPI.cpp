@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include "EAStringAPI.h"
 #include "../../Core/Context.h"
 #include "../../Resource/Resource.h"
 #include "../../Resource/ResourceCache.h"
@@ -235,10 +236,9 @@ static void RegisterConst(nb::module_ m)
 
     m.attr("DEFAULT_VIEWMASK")     = DEFAULT_VIEWMASK;
 }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(graphics, m)
+void init_cmodule_graphics(nb::module_& pm)
 {
+    auto m = pm.def_submodule("graphics");
     nb::class_<BiasParameters>(m, "BiasParameters")
         .def(nb::init<float, float>());
 
@@ -249,6 +249,16 @@ NB_MODULE(graphics, m)
 
     nb::class_<Material, Resource>(m, "Material")
         .def(nb::init<Context*>())
+        .def(nb::new_([](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
+            auto context = Context::GetInstance();
+            auto tech = new Technique(context);
+            auto pass = tech->CreatePass(passName);
+            pass->SetVertexShader(vs);
+            pass->SetPixelShader(fs);
+            auto mtl = new Material(context);
+            mtl->SetTechnique(0, tech);
+            return mtl;
+        }), nb::rv_policy::reference)
         //.def(nb::init<Context*, const ea::string&, const ea::string&, const ea::string&>())
 //         sol::call_constructor,
 //         sol::factories([context](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
@@ -267,8 +277,8 @@ NB_MODULE(graphics, m)
         .def_prop_rw("cull_mode", &Material::GetCullMode, &Material::SetCullMode)
         .def_prop_rw("occlusion", &Material::GetOcclusion, &Material::SetOcclusion)
         .def_prop_rw("shadow_cull_mode", &Material::GetShadowCullMode, &Material::SetShadowCullMode)
-        .def("Clone", [](Material* self) { return self->Clone().Detach(); })
-        .def("Clone", [](Material* self, const ea::string& cloneName) { return self->Clone(cloneName).Detach(); })
+        .def("Clone", [](Material* self) { return self->Clone().Detach(); }, nb::rv_policy::reference)
+        .def("Clone", [](Material* self, const ea::string& cloneName) { return self->Clone(cloneName).Detach(); }, nb::rv_policy::reference)
         .def("SetTexture", [](Material* self, const char* name, Texture* texture) { self->SetTexture(name, texture); })
         .def("SetUVTransform", [](Material* self, const Vector2& offset, float rotation, const Vector2& repeat) { self->SetUVTransform(offset, rotation, repeat); })
         .def("SetUVTransform", [](Material* self, const Vector2& offset, float rotation, float repeat) { self->SetUVTransform(offset, rotation, repeat); })
@@ -296,7 +306,7 @@ NB_MODULE(graphics, m)
         .def("CreateRock", [](int seed, int nsubdivisions) {
             auto par_mesh = par_shapes_create_rock(seed, nsubdivisions);
             return ParMeshToModel(Context::GetInstance(), par_mesh, false);
-        });
+        }, nb::rv_policy::reference);
 
     nb::class_<Texture, ResourceWithMetadata>(m, "Texture").def(nb::init<Context*>());
 //     , sol::constructors<Texture(Context*)>(),
@@ -337,7 +347,8 @@ NB_MODULE(graphics, m)
         .def("GetHeight", &RenderSurface::GetHeight);
 
     nb::class_<Octree, Component>(m, "Octree")
-        //bindOctree["id"]                    = sol::var(StringHash("Octree"));
+        //.def(nb::new_([]() { return new Octree(Context::GetInstance()); }))
+        .def_ro_static("TypeId", &Octree::TypeId)
         .def("AddManualDrawable", &Octree::AddManualDrawable)
         .def("RemoveManualDrawable", &Octree::RemoveManualDrawable)
         .def("RaycastSingle", [](Octree* self, const Ray& ray, RayQueryLevel level, float maxDistance, int drawableFlags) {
@@ -366,7 +377,7 @@ NB_MODULE(graphics, m)
         .def("GetCamera", &Viewport::GetCamera);
 
     nb::class_<DebugRenderer, Component>(m, "DebugRenderer")
-        //bindDebugRenderer["id"] = sol::var(StringHash("DebugRenderer"));
+        .def_ro_static("TypeId", &DebugRenderer::TypeId)
         .def("AddLine", [](DebugRenderer* self, const Vector3& start, const Vector3& end, const Color& color) { self->AddLine(start, end, color); })
         .def("AddLine", [](DebugRenderer* self, const Vector3& start, const Vector3& end, const Color& color, bool depthTest) {self->AddLine(start, end, color, depthTest); })
         .def("AddTriangle", [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color) { self->AddTriangle(v1, v2, v3, color); })
@@ -394,7 +405,7 @@ NB_MODULE(graphics, m)
         .def_rw("visible", &MeshLine::LineDesc::visible);
 
     nb::class_<MeshLine, Component>(m, "MeshLine")
-        //bindMeshLine["id"]                  = sol::var(StringHash("MeshLine"));
+        .def_ro_static("TypeId", &MeshLine::TypeId)
         .def("SetDepthBias", &MeshLine::SetDepthBias)
         .def("SetSlopeScaledDepthBias", &MeshLine::SetSlopeScaledDepthBias)
         .def("RemoveLine", &MeshLine::RemoveLine)
@@ -406,8 +417,8 @@ NB_MODULE(graphics, m)
         .def("AddLine", [](MeshLine* self, std::vector<Vector3> points, const MeshLine::LineDesc& lineDesc) { return self->AppendLine(points, lineDesc); });
         
     nb::class_<Camera, Component>(m, "Camera")
+        .def_ro_static("TypeId", &Camera::TypeId)
         .def_prop_rw("zoom", &Camera::GetZoom, &Camera::SetZoom)
-        //bindCamera["id"]                    = sol::var(StringHash("Camera"));
         .def_prop_rw("far_clip", &Camera::GetFarClip, &Camera::SetFarClip)
         .def_prop_rw("near_clip", &Camera::GetNearClip, &Camera::SetNearClip)
         .def_prop_rw("fov", &Camera::GetFov, &Camera::SetFov)
@@ -458,7 +469,7 @@ NB_MODULE(graphics, m)
         .def("SetGlobalIlluminationType", &Drawable::SetGlobalIlluminationType);
 		
     nb::class_<Zone, Drawable>(m, "Zone")
-        //bindZone["id"]                      = sol::var(StringHash("Zone"));
+        .def_ro_static("TypeId", &Zone::TypeId)
         .def_prop_rw("bounding_box", [](Zone* self) { return self->GetBoundingBox(); }, &Zone::SetBoundingBox)
         .def_prop_rw("ambient_color", &Zone::GetAmbientColor, &Zone::SetAmbientColor)
         .def_prop_rw("ambient_brightness", &Zone::GetAmbientBrightness, &Zone::SetAmbientBrightness)
@@ -470,7 +481,7 @@ NB_MODULE(graphics, m)
         .def("SetZoneTextureAttr", [](Zone* self, const ea::string& filename) { filename.empty() ? self->SetZoneTexture(nullptr) : self->SetZoneTextureAttr(ResourceRef(StringHash("TextureCube"), filename)); });
 		
     nb::class_<Light, Drawable>(m, "Light")
-        //bindLight["id"]                     = sol::var(StringHash("Light"));
+        .def_ro_static("TypeId", &Light::TypeId)
         .def_prop_rw("light_type", &Light::GetLightType, &Light::SetLightType)
         .def_prop_rw("range", &Light::GetRange, &Light::SetRange)
         .def_prop_rw("color", &Light::GetColor, &Light::SetColor)
@@ -487,7 +498,7 @@ NB_MODULE(graphics, m)
         .def_prop_rw("shadow_near_far_ratio", &Light::GetShadowNearFarRatio, &Light::SetShadowNearFarRatio);
 		
     nb::class_<StaticModel, Drawable>(m, "StaticModel")
-    //bindStaticModel["id"]           = sol::var(StringHash("StaticModel"));
+        .def_ro_static("TypeId", &StaticModel::TypeId)
         .def_prop_rw("model", &StaticModel::GetModel, &StaticModel::SetModel)
         .def_prop_rw("material", [](StaticModel* self) { return self->GetMaterial(0); }, [](StaticModel* self, Material* mtl) { self->SetMaterial(mtl); })
         .def("SetModel", &StaticModel::SetModel)
@@ -515,7 +526,7 @@ NB_MODULE(graphics, m)
         .def_prop_rw("time", &AnimationState::GetTime, &AnimationState::SetTime);
 
     nb::class_<AnimatedModel, StaticModel>(m, "AnimatedModel")
-        //bindAnimatedModel["id"] = sol::var(StringHash("AnimatedModel"));
+        .def_ro_static("TypeId", &AnimatedModel::TypeId)
         .def_prop_rw("model", &AnimatedModel::GetModel, [](AnimatedModel* self, Model* model) { self->SetModel(model); });
 
     nb::class_<AnimationParameters>(m, "AnimationParameters")
@@ -539,7 +550,7 @@ NB_MODULE(graphics, m)
     nb::class_<AnimationStateSource>(m, "AnimationStateSource");
 
     nb::class_<AnimationController, AnimationStateSource>(m, "AnimationController")
-        //bindAnimationController["id"]                   = sol::var(StringHash("AnimationController"));
+        .def_ro_static("TypeId", &AnimationController::TypeId)
         .def("SetSpeed", &AnimationController::SetSpeed)
         .def("SetWeight", &AnimationController::SetWeight)
         .def("SetTime", &AnimationController::SetTime)
@@ -564,11 +575,11 @@ NB_MODULE(graphics, m)
         .def("GetLastAnimationParameters", [](AnimationController* self, Animation* animation) { return self->GetLastAnimationParameters(animation); })
         .def("GetLastAnimationParameters", [](AnimationController* self, Animation* animation, unsigned layer) { return self->GetLastAnimationParameters(animation, layer); });
         
-    nb::class_<Skybox, StaticModel>(m, "Skybox");
-        //"id", sol::var(StringHash("Skybox")),
+    nb::class_<Skybox, StaticModel>(m, "Skybox")
+        .def_ro_static("TypeId", &Skybox::TypeId);
 
     nb::class_<DecalSet, Drawable>(m, "DecalSet")
-        //bindDecalSet["id"] = sol::var(StringHash("DecalSet"));
+        .def_ro_static("TypeId", &DecalSet::TypeId)
         .def_prop_rw("material", &DecalSet::GetMaterial, &DecalSet::SetMaterial)
         .def("AddDecal", [](DecalSet* self, Drawable* target, const Vector3& worldPosition, const Quaternion& worldRotation, float size, float aspectRatio, float depth, const Vector2& topLeftUV, const Vector2& bottomRightUV) {
                 return self->AddDecal(target, worldPosition, worldRotation, size, aspectRatio, depth, topLeftUV, bottomRightUV); })
@@ -586,7 +597,7 @@ NB_MODULE(graphics, m)
         .def_rw("enabled", &Billboard::enabled_);
 
     nb::class_<BillboardSet, Drawable>(m, "BillboardSet")
-        //bindBillboardSet["id"]                  = sol::var(StringHash("BillboardSet"));
+        .def_ro_static("TypeId", &BillboardSet::TypeId)
         .def_prop_rw("num_billboards", &BillboardSet::GetNumBillboards, &BillboardSet::SetNumBillboards)
         .def_prop_rw("material", &BillboardSet::GetMaterial, &BillboardSet::SetMaterial)
         .def_prop_rw("sorted", &BillboardSet::IsSorted, &BillboardSet::SetSorted)
@@ -595,7 +606,7 @@ NB_MODULE(graphics, m)
         .def("SetFaceCameraMode", &BillboardSet::SetFaceCameraMode);
         
     nb::class_<Terrain, Component>(m, "Terrain")
-        //bindTerrain["id"]           = sol::var(StringHash("Terrain"));
+        .def_ro_static("TypeId", &Terrain::TypeId)
         .def_prop_rw("patch_size", &Terrain::GetPatchSize, &Terrain::SetPatchSize)
         .def_prop_rw("spacing", &Terrain::GetSpacing, &Terrain::SetSpacing)
         .def_prop_rw("smoothing", &Terrain::GetSmoothing, &Terrain::SetSmoothing)
@@ -607,11 +618,11 @@ NB_MODULE(graphics, m)
         .def("GetNormal", &Terrain::GetNormal);
 
     nb::class_<RenderPipeline, Component>(m, "RenderPipeline")
-        //"id", sol::var(StringHash("RenderPipeline")),
+        .def_ro_static("TypeId", &RenderPipeline::TypeId)
         .def("SetRenderPassEnabled", &RenderPipeline::SetRenderPassEnabled);
 
     nb::class_<ProceduralSky, StaticModel>(m, "ProceduralSky")
-        //bindProceduralSky["id"]                     = sol::var(StringHash("ProceduralSky"));
+        .def_ro_static("TypeId", &ProceduralSky::TypeId)
         .def("Init", [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time) { self->Init(verticalCount, horizontalCount, month, time); })
         .def("Init", [](ProceduralSky* self, uint32_t verticalCount, uint32_t horizontalCount, ProceduralSky::Month month, float time, uint32_t cubemapSize, const Vector3& northDir) { self->Init(verticalCount, horizontalCount, month, time, cubemapSize, northDir); })
     //     .attr("January", ProceduralSky::January)
@@ -635,7 +646,7 @@ NB_MODULE(graphics, m)
         .def("GetSkyLuminanceGamma", &ProceduralSky::GetSkyLuminanceGamma);
 
     nb::class_<OutlineGroup, Component>(m, "OutlineGroup")
-        //bindOutlineGroup["id"]                  = sol::var(StringHash("OutlineGroup"));
+        .def_ro_static("TypeId", &OutlineGroup::TypeId)
         .def("SetColor", &OutlineGroup::SetColor)
         .def("GetOutlineMaterial", &OutlineGroup::GetOutlineMaterial)
         .def("HasDrawables", &OutlineGroup::HasDrawables)
@@ -645,7 +656,7 @@ NB_MODULE(graphics, m)
         .def("RemoveDrawable", &OutlineGroup::RemoveDrawable);
         
     nb::class_<Text3D, Drawable>(m, "Text3D")
-        //bindText3D["id"]                = sol::var(StringHash("Text3D"));
+        .def_ro_static("TypeId", &Text3D::TypeId)
         .def_prop_rw("material", &Text3D::GetMaterial, &Text3D::SetMaterial)
         .def("SetFont", [](Text3D* self, const ea::string& fontName) { self->SetFont(fontName); })
         .def("SetFontSize", &Text3D::SetFontSize)
@@ -653,8 +664,5 @@ NB_MODULE(graphics, m)
         .def("SetColor", nb::overload_cast<const Color&>(&Text3D::SetColor))
         .def("SetOpacity", &Text3D::SetOpacity)
         .def("SetFaceCameraMode", &Text3D::SetFaceCameraMode);
-        
-    m.attr("graphics_system") = Context::GetInstance()->GetSubsystem<Graphics>();
-    m.attr("renderer_system") = Context::GetInstance()->GetSubsystem<Renderer>();
     RegisterConst(m);
 }

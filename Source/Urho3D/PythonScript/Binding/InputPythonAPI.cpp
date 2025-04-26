@@ -90,10 +90,10 @@ static void RegisterInputConst(nb::module_ m)
     paramType.attr("P_DY") = MouseMove::P_DY;
     paramType.attr("P_KEY") = KeyDown::P_KEY;
 }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(input, m)
+void init_cmodule_input(nb::module_& pm)
 {
+    auto m = pm.def_submodule("input");
+
     nb::enum_<MouseMode>(m, "MouseMode")
         .value("MM_ABSOLUTE", MM_ABSOLUTE)
         .value("MM_RELATIVE", MM_RELATIVE)

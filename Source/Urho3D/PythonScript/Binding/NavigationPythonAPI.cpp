@@ -13,12 +13,11 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(navigation, m)
+void init_cmodule_navigation(nb::module_& pm)
 {
+    auto m = pm.def_submodule("navigation");
     nb::class_<NavigationMesh, Component>(m, "NavigationMesh")
-    //bindNavigationMesh["id"]                = sol::var(StringHash("NavigationMesh"));
+        .def_ro_static("TypeId", &NavigationMesh::TypeId)
         //"AddTile", [](NavigationMesh* self, const ea::vector<unsigned char>& tileData) { return self->AddTile(tileData); },
         .def("Build", nb::overload_cast<>(&NavigationMesh::Rebuild))
         .def("Build", nb::overload_cast<const BoundingBox&>(&NavigationMesh::BuildTilesInRegion))
@@ -35,7 +34,7 @@ NB_MODULE(navigation, m)
         });
 
     nb::class_<DynamicNavigationMesh, Component>(m, "DynamicNavigationMesh")
-    //bindDynamicNavigationMesh["id"]                 = sol::var(StringHash("DynamicNavigationMesh"));
+        .def_ro_static("TypeId", &DynamicNavigationMesh::TypeId)
     //bindDynamicNavigationMesh["bounding_box"]       = sol::readonly_property(&DynamicNavigationMesh::GetBoundingBox);
         .def("Allocate", &DynamicNavigationMesh::Allocate)
         .def("GetTileData", [](DynamicNavigationMesh* self, const IntVector2& tile) {
@@ -73,7 +72,7 @@ NB_MODULE(navigation, m)
         .def_rw("adaptiveDepth", &CrowdObstacleAvoidanceParams::adaptiveDepth);
         
     nb::class_<CrowdAgent, Component>(m, "CrowdAgent")
-    //bindCrowdAgent["id"]                    = sol::var(StringHash("CrowdAgent"));
+        .def_ro_static("TypeId", &CrowdAgent::TypeId)
         .def_prop_rw("radius", &CrowdAgent::GetRadius, &CrowdAgent::SetRadius)
         .def_prop_rw("height", &CrowdAgent::GetHeight, &CrowdAgent::SetHeight)
         .def_prop_rw("max_speed", &CrowdAgent::GetMaxSpeed, &CrowdAgent::SetMaxSpeed)
@@ -86,7 +85,7 @@ NB_MODULE(navigation, m)
         .def("SetNavigationQuality", &CrowdAgent::SetNavigationQuality);
     
     nb::class_<CrowdManager, Component>(m, "CrowdManager")
-    //bindCrowdManager["id"]                          = sol::var(StringHash("CrowdManager"));
+        .def_ro_static("TypeId", &CrowdManager::TypeId)
         .def("GetObstacleAvoidanceParams", &CrowdManager::GetObstacleAvoidanceParams)
         .def("SetObstacleAvoidanceParams", &CrowdManager::SetObstacleAvoidanceParams)
         .def("SetCrowdTarget", [](CrowdManager* self, const Vector3& position) { self->SetCrowdTarget(position); })
@@ -95,19 +94,19 @@ NB_MODULE(navigation, m)
         .def("DrawDebugGeometry", nb::overload_cast<bool>(&CrowdManager::DrawDebugGeometry));
 
     nb::class_<Navigable, Component>(m, "Navigable")
-    //bindNavigable["id"]                     = sol::var(StringHash("Navigable"));
+        .def_ro_static("TypeId", &Navigable::TypeId)
         .def("SetRecursive", &Navigable::SetRecursive)
         .def("IsRecursive", &Navigable::IsRecursive);
 
     nb::class_<Obstacle, Component>(m, "Obstacle")
-    //bindObstacle["id"]                      = sol::var(StringHash("Obstacle"));
+        .def_ro_static("TypeId", &Obstacle::TypeId)
         .def_prop_rw("radius", &Obstacle::GetRadius, &Obstacle::SetRadius)
         .def_prop_rw("height", &Obstacle::GetHeight, &Obstacle::SetHeight)
         .def("SetRadius", &Obstacle::SetRadius)
         .def("SetHeight", &Obstacle::SetHeight);
 
     nb::class_<OffMeshConnection, Component>(m, "OffMeshConnection")
-    //bindOffMeshConnection["id"]             = sol::var(StringHash("OffMeshConnection"));
+        .def_ro_static("TypeId", &OffMeshConnection::TypeId)
         .def("SetEndPoint", &OffMeshConnection::SetEndPoint);
 
     //auto eventType = lua["EventType"].get_or_create<sol::table>();

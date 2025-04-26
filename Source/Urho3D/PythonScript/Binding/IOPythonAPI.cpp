@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include "EAStringAPI.h"
 #include "../../Core/Context.h"
 #include "../../IO/VectorBuffer.h"
 #include "../../IO/MemoryBuffer.h"
@@ -9,10 +10,10 @@
 using namespace Urho3D;
 namespace nb = nanobind;
 using namespace nb::literals;
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(io, m)
+void init_cmodule_io(nb::module_& pm)
 {
+    auto m = pm.def_submodule("io");
+
     nb::class_<Deserializer>(m, "Deserializer")
         .def("ReadString", &Deserializer::ReadString)
         .def("ReadInt64", &Deserializer::ReadInt64)
@@ -104,7 +105,4 @@ NB_MODULE(io, m)
         .def("GetAbsoluteFileName", [](VirtualFileSystem* self, const ea::string& path) {
         return self->GetAbsoluteNameFromIdentifier({"", path});
         });
-
-    m.attr("filesystem") = Context::GetInstance()->GetSubsystem<FileSystem>();
-    m.attr("virtual_filesystem") = Context::GetInstance()->GetSubsystem<VirtualFileSystem>();
 }

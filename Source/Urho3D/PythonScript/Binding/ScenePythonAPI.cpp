@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include "EAStringAPI.h"
 #include <nanobind/stl/unique_ptr.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include "Urho3D/Core/Context.h"
@@ -143,10 +144,9 @@ static void RegisterSceneConst(nb::module_ m)
     scenePostUpdate.attr("Scene") = ScenePostUpdate::P_SCENE;
     scenePostUpdate.attr("TimeStep") = ScenePostUpdate::P_TIMESTEP;
 }
-#undef NB_EXPORT
-#define NB_EXPORT
-NB_MODULE(scene, m)
+void init_cmodule_scene(nb::module_& pm)
 {
+    auto m = pm.def_submodule("scene");
     nb::enum_<WrapMode>(m, "WrapMode")
         .value("WM_LOOP", WM_LOOP)
         .value("WM_ONCE", WM_ONCE)
@@ -273,15 +273,15 @@ NB_MODULE(scene, m)
         .def("GetParent", &Node::GetParent)
         .def("SetParent", &Node::SetParent)
         .def("GetScene", &Node::GetScene)
-        .def("CreateChild", [](Node* self) { return self->CreateChild(); })
-        .def("CreateChild", [](Node* self, const ea::string& name) { return self->CreateChild(name); })
-        .def("CreateChild", [](Node* self, const ea::string& name, unsigned id) { return self->CreateChild(name, id); })
-        .def("CreateChild", [](Node* self, const ea::string& name, unsigned id, bool temporary) { return self->CreateChild(name, id, temporary); })
+        .def("CreateChild", [](Node* self) { return self->CreateChild(); }, nb::rv_policy::reference)
+        .def("CreateChild", [](Node* self, const ea::string& name) { return self->CreateChild(name); }, nb::rv_policy::reference)
+        .def("CreateChild", [](Node* self, const ea::string& name, unsigned id) { return self->CreateChild(name, id); }, nb::rv_policy::reference)
+        .def("CreateChild", [](Node* self, const ea::string& name, unsigned id, bool temporary) { return self->CreateChild(name, id, temporary); }, nb::rv_policy::reference)
         .def("Clone", [](Node* self) { return self->Clone(); })
         .def("Clone", [](Node* self, Node* parent) { return self->Clone(parent); })
-        .def("CreateComponent", [](Node* self, StringHash type) { return self->CreateComponent(type); })
-        .def("GetComponent", [](Node* self, StringHash type) { return self->GetComponent(type); })
-        .def("GetComponent", [](Node* self, StringHash type, bool recursive) { return self->GetComponent(type); })
+        .def("CreateComponent", [](Node* self, StringHash type) { return self->CreateComponent(type); }, nb::rv_policy::reference)
+        .def("GetComponent", [](Node* self, StringHash type) { return self->GetComponent(type); }, nb::rv_policy::reference)
+        .def("GetComponent", [](Node* self, StringHash type, bool recursive) { return self->GetComponent(type); }, nb::rv_policy::reference)
         .def("GetComponents", [](Node* self, StringHash type) {
                 ea::vector<Component*> dest;
                 self->GetComponents(dest, type);
@@ -354,8 +354,7 @@ NB_MODULE(scene, m)
         .def("SetWorldTransform2D", [](Node* self, const Vector2& position, float rotation, const Vector2& scale) { self->SetWorldTransform2D(position, rotation, scale); });
 
     nb::class_<Scene, Node>(m, "Scene")
-        .def(nb::init<Context*>())
-//         sol::call_constructor, sol::factories([context]() { return std::make_unique<Scene>(context); }),
+        .def(nb::new_([]() { return new Scene(Context::GetInstance()); }))
         .def("LoadXML", [](Scene* self, XMLFile* file) { return self->LoadXML(file->GetRoot()); }) // sol::resolve<bool(Deserializer&)>(&Scene::LoadXML),
         .def("GetNode", &Scene::GetNode)
         .def("GetNodesWithTag", [](Scene* self, const ea::string& tag) {
@@ -397,35 +396,35 @@ NB_MODULE(scene, m)
         .def("RemoveAttributeAnimation", [](ObjectAnimation* self, ValueAnimation* attributeAnimation) { self->RemoveAttributeAnimation(attributeAnimation); });
     
     nb::class_<PrefabReference, Component>(m, "PrefabReference")
-    //.def_rw("id"                   = sol::var(StringHash("PrefabReference"))
-    .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab) { self->SetPrefab(prefab); })
-    .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab, const ea::string& path) { self->SetPrefab(prefab, path); })
-    .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab, const ea::string& path, bool createInstance) { self->SetPrefab(prefab, path, createInstance); })
-    .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab, const ea::string& path, bool createInstance, PrefabInstanceFlags instanceFlags) { self->SetPrefab(prefab, path, createInstance, instanceFlags); })
-    .def("Inline", &PrefabReference::Inline)
-    .def("InlineConservative", &PrefabReference::InlineConservative)
-    .def("InlineAggressive", &PrefabReference::InlineAggressive);
+        .def_ro_static("TypeId", &PrefabReference::TypeId)
+        .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab) { self->SetPrefab(prefab); })
+        .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab, const ea::string& path) { self->SetPrefab(prefab, path); })
+        .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab, const ea::string& path, bool createInstance) { self->SetPrefab(prefab, path, createInstance); })
+        .def("SetPrefab", [](PrefabReference* self, PrefabResource* prefab, const ea::string& path, bool createInstance, PrefabInstanceFlags instanceFlags) { self->SetPrefab(prefab, path, createInstance, instanceFlags); })
+        .def("Inline", &PrefabReference::Inline)
+        .def("InlineConservative", &PrefabReference::InlineConservative)
+        .def("InlineAggressive", &PrefabReference::InlineAggressive);
 
     nb::class_<SplinePath, Component>(m, "SplinePath")
-    //bindSplinePath["id"]                        = sol::var(StringHash("SplinePath"));
-    .def("SetSpeed", &SplinePath::SetSpeed)
-    .def("SetPosition", &SplinePath::SetPosition)
-    .def("GetPoint", &SplinePath::GetPoint)
-    .def("GetControlledNode", &SplinePath::GetControlledNode)
-    .def("SetControlledNode", &SplinePath::SetControlledNode)
-    .def("GetInterpolationMode", &SplinePath::GetInterpolationMode)
-    .def("SetInterpolationMode", &SplinePath::SetInterpolationMode)
-    .def("Move", &SplinePath::Move)
-    .def("Reset", &SplinePath::Reset)
-    .def("IsFinished", &SplinePath::IsFinished)
-    .def("SetControlPointIdsAttr", &SplinePath::SetControlPointIdsAttr)
-    .def("ClearControlPoints", &SplinePath::ClearControlPoints)
-    .def("RemoveControlPoint", &SplinePath::RemoveControlPoint)
-    .def("AddControlPoint", [](SplinePath* self, Node* point) { self->AddControlPoint(point); })
-    .def("AddControlPoint", [](SplinePath* self, Node* point, unsigned index) { self->AddControlPoint(point, index); });
+        .def_ro_static("TypeId", &SplinePath::TypeId)
+        .def("SetSpeed", &SplinePath::SetSpeed)
+        .def("SetPosition", &SplinePath::SetPosition)
+        .def("GetPoint", &SplinePath::GetPoint)
+        .def("GetControlledNode", &SplinePath::GetControlledNode)
+        .def("SetControlledNode", &SplinePath::SetControlledNode)
+        .def("GetInterpolationMode", &SplinePath::GetInterpolationMode)
+        .def("SetInterpolationMode", &SplinePath::SetInterpolationMode)
+        .def("Move", &SplinePath::Move)
+        .def("Reset", &SplinePath::Reset)
+        .def("IsFinished", &SplinePath::IsFinished)
+        .def("SetControlPointIdsAttr", &SplinePath::SetControlPointIdsAttr)
+        .def("ClearControlPoints", &SplinePath::ClearControlPoints)
+        .def("RemoveControlPoint", &SplinePath::RemoveControlPoint)
+        .def("AddControlPoint", [](SplinePath* self, Node* point) { self->AddControlPoint(point); })
+        .def("AddControlPoint", [](SplinePath* self, Node* point, unsigned index) { self->AddControlPoint(point, index); });
 
     nb::class_<RmlUIComponent, LogicComponent>(m, "RmlUIComponent")
-        //.def("id"]                    , sol::var(StringHash("RmlUIComponent"))
+        .def_ro_static("TypeId", &RmlUIComponent::TypeId)
         .def_prop_rw("position", &RmlUIComponent::GetPosition, &RmlUIComponent::SetPosition)
         .def_prop_rw("size", &RmlUIComponent::GetSize, &RmlUIComponent::SetSize)
         .def_prop_rw("auto_size", &RmlUIComponent::GetAutoSize, &RmlUIComponent::SetAutoSize)
