@@ -147,8 +147,7 @@ void init_cmodule_navigation(nb::module_& pm)
 
     // a star
     nb::class_<AStar::Generator>(m, "AStar")
-        .def(nb::init<>())
-        //sol::call_constructor, sol::factories([context]() { return std::make_unique<AStar::Generator>(); }),
+        .def(nb::new_([]() { return new AStar::Generator(); }))
         .def("SetWorldSize", [](AStar::Generator* self, int xdim, int ydim) { self->setWorldSize({ xdim, ydim }); })
         .def("SetDiagonalMovement", &AStar::Generator::setDiagonalMovement)
         .def("SetHeuristic", [](AStar::Generator* self, int type) {

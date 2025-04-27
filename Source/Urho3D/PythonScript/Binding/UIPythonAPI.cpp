@@ -40,7 +40,8 @@ void init_cmodule_ui(nb::module_& pm)
         .value("O_HORIZONTAL", O_HORIZONTAL)
         .value("O_VERTICAL", O_VERTICAL);
     nb::class_<UIElement>(m, "UIElement")
-        .def(nb::init<Context*>())//, sol::constructors<UIElement(Context*)>());
+        .def(nb::new_([](){ return new UIElement(Context::GetInstance()); }))
+        //.def(nb::init<Context*>())//, sol::constructors<UIElement(Context*)>());
         .def("SetSize", nb::overload_cast<int, int>(&UIElement::SetSize))
         .def("SetSize", nb::overload_cast<const IntVector2&>(&UIElement::SetSize))
         .def("SetPosition", nb::overload_cast<int, int>(&UIElement::SetPosition))

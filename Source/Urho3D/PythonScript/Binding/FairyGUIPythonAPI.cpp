@@ -554,7 +554,7 @@ void init_cmodule_fairygui(nb::module_& pm)
         .value("DOWN", PopupDirection::DOWN);
 
     nb::class_<FairyGUIScene>(m, "FairyGUIScene")
-        .def(nb::init<>())
+        //.def(nb::init<>())
         //         sol::call_constructor, sol::factories([]() { return std::unique_ptr<FairyGUIScene>(FairyGUIScene::create()); }),
         //         sol::base_classes, sol::bases<cocos2d::Scene>());
         .def_prop_ro("groot", [](FairyGUIScene* self) { return self->_groot; })

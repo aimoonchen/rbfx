@@ -26,8 +26,7 @@ void init_cmodule_action(nb::module_& pm)
         .def("IsDone", &ActionState::IsDone);
 
     nb::class_<ActionBuilder>(m, "ActionBuilder")
-        .def(nb::init<Context*, bool>())
-        //sol::call_constructor, sol::factories([context]() { return ActionBuilder(context, true); }),
+        .def(nb::new_([](bool detachAction = false) { return new ActionBuilder(Context::GetInstance(), detachAction); }))
         .def("Then", [](ActionBuilder* self, FiniteTimeAction* nextAction) { return self->Then(SharedPtr<Actions::FiniteTimeAction>(nextAction)); })
         .def("Also", [](ActionBuilder* self, FiniteTimeAction* nextAction) { return self->Also(SharedPtr<Actions::FiniteTimeAction>(nextAction)); })
         .def("MoveBy", [](ActionBuilder* self, float duration, const Vector3& offset) { return self->MoveBy(duration, offset); })

@@ -7,6 +7,7 @@
 #include "../../Actions/ActionManager.h"
 #include "../../IO/VirtualFileSystem.h"
 #include "../../Network/Network.h"
+#include "../../Input/Input.h"
 #include "../../Resource/ResourceCache.h"
 #include "../PythonScript.h"
 
@@ -99,4 +100,5 @@ NB_MODULE(kfengine, m)
     m.attr("virtual_filesystem")    = context->GetSubsystem<VirtualFileSystem>();
     m.attr("network")               = context->GetSubsystem<Network>();
     m.attr("cache")                 = context->GetSubsystem<ResourceCache>();
+    m.attr("input_system")          = context->GetSubsystem<Input>();
 }

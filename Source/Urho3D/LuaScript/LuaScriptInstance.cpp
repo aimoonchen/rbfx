@@ -62,9 +62,9 @@ static const char* scriptObjectMethodNames[] = {
     "TransformChanged"
 };
 template<typename F, typename ...Args>
-auto CallLuaFunction(F f, Args&& ...args)
+auto CallLuaFunction(F&& f, Args&& ...args)
 {
-    sol::protected_function_result result = f(std::forward<Args>(args)...);
+    sol::protected_function_result result = std::forward<F>(f)(std::forward<Args>(args)...);
     if (!result.valid()) {
         sol::error err = result;
         sol::call_status status = result.status();

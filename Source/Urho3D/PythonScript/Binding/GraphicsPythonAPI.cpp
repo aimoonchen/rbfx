@@ -248,7 +248,6 @@ void init_cmodule_graphics(nb::module_& pm)
     nb::class_<Resource>(m, "Resource");
 
     nb::class_<Material, Resource>(m, "Material")
-        .def(nb::init<Context*>())
         .def(nb::new_([](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
             auto context = Context::GetInstance();
             auto tech = new Technique(context);
@@ -259,17 +258,6 @@ void init_cmodule_graphics(nb::module_& pm)
             mtl->SetTechnique(0, tech);
             return mtl;
         }), nb::rv_policy::reference)
-        //.def(nb::init<Context*, const ea::string&, const ea::string&, const ea::string&>())
-//         sol::call_constructor,
-//         sol::factories([context](const ea::string& vs, const ea::string& fs, const ea::string& passName) {
-//             auto tech = new Technique(context);
-//             auto pass = tech->CreatePass(passName);
-//             pass->SetVertexShader(vs);
-//             pass->SetPixelShader(fs);
-//             auto mtl = new Material(context);
-//             mtl->SetTechnique(0, tech);
-//             return mtl;
-//             }),
         .def_prop_rw("scene", &Material::GetScene, &Material::SetScene)
         .def_prop_rw("render_order", &Material::GetRenderOrder, &Material::SetRenderOrder)
         .def_prop_rw("depth_bias", &Material::GetDepthBias, &Material::SetDepthBias)
@@ -291,16 +279,12 @@ void init_cmodule_graphics(nb::module_& pm)
         //.def("SetShaderParameterAnimationWrapMode", [](Material& self, const char* name, WrapMode wrapMode) { self.SetShaderParameterAnimationWrapMode(name, wrapMode); })
         //.def("SetShaderParameterAnimationSpeed", [](Material& self, const char* name, float speed) { self.SetShaderParameterAnimationSpeed(name, speed); });
         
-    nb::class_<ResourceWithMetadata, Resource>(m, "ResourceWithMetadata").def(nb::init<Context*>());
-//         sol::constructors<ResourceWithMetadata(Context*)>(),
+    nb::class_<ResourceWithMetadata, Resource>(m, "ResourceWithMetadata");
 
     nb::class_<Animation, ResourceWithMetadata>(m, "Animation")
-		//sol::base_classes, sol::bases<ResourceWithMetadata>());
         .def_prop_rw("length", &Animation::GetLength, &Animation::SetLength);
 
     nb::class_<Model, ResourceWithMetadata>(m, "Model")
-        .def(nb::init<Context*>())
-//         , sol::constructors<Model(Context*)>(),
         .def("GetNumGeometries", &Model::GetNumGeometries)
         .def("HideGeometry", [](Model* self, unsigned geomIndex) { self->GetGeometry(geomIndex, 0)->SetIndexBuffer(nullptr); })
         .def("CreateRock", [](int seed, int nsubdivisions) {
@@ -308,19 +292,10 @@ void init_cmodule_graphics(nb::module_& pm)
             return ParMeshToModel(Context::GetInstance(), par_mesh, false);
         }, nb::rv_policy::reference);
 
-    nb::class_<Texture, ResourceWithMetadata>(m, "Texture").def(nb::init<Context*>());
-//     , sol::constructors<Texture(Context*)>(),
+    nb::class_<Texture, ResourceWithMetadata>(m, "Texture");
 
     nb::class_<Texture2D>(m, "Texture2D")
-        .def(nb::init<Context*>())
-//         , sol::call_constructor,
-//         sol::factories([context]() {
-//             // TODO:for water demo, the texture will be managed by engine
-//             return new Texture2D(context);
-//             // lua manage the object
-//             //return std::make_unique<Texture2D>(context);
-//             }),
-//     );
+        .def(nb::new_([]() { return new Texture2D(Context::GetInstance()); }))
         .def_prop_ro("width", &Texture2D::GetWidth)
 	    .def_prop_ro("height", &Texture2D::GetHeight)
         .def_prop_rw("filter_mode", &Texture2D::GetFilterMode, &Texture2D::SetFilterMode)
@@ -366,11 +341,8 @@ void init_cmodule_graphics(nb::module_& pm)
         });
         
     nb::class_<Viewport>(m, "Viewport")
-        .def(nb::init<Context*>())
-        .def(nb::init<Context*, Scene*, Camera*>())
-    //         sol::call_constructor, sol::factories(
-    //             [context]() { return new Viewport(context); },
-    //             [context](Scene* scene, Camera* camera) { return new Viewport(context, scene, camera); }));
+        .def(nb::new_([]() { return new Viewport(Context::GetInstance()); }))
+        .def(nb::new_([](Scene* scene, Camera* camera) { return new Viewport(Context::GetInstance(), scene, camera); }))
         .def("SetScene", &Viewport::SetScene)
         .def("GetScene", &Viewport::GetScene)
         .def("SetCamera", &Viewport::SetCamera)
@@ -384,8 +356,7 @@ void init_cmodule_graphics(nb::module_& pm)
         .def("AddTriangle", [](DebugRenderer* self, const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color& color, bool depthTest) {self->AddTriangle(v1, v2, v3, color, depthTest); });
         
     nb::class_<MeshLine::LineDesc>(m, "MeshLineDesc")
-        .def(nb::init<>())
-        //, sol::call_constructor, sol::factories([]() { return MeshLine::LineDesc(); }));
+        .def(nb::new_([]() { return MeshLine::LineDesc(); }))
         .def_rw("model_mat", &MeshLine::LineDesc::model_mat)
         .def_rw("color", &MeshLine::LineDesc::color)
         .def_rw("width", &MeshLine::LineDesc::width)
@@ -450,8 +421,6 @@ void init_cmodule_graphics(nb::module_& pm)
             return ret; });// ea::string{ {}, "DP: %d, Triangles(Lines): %d", stats.numDraws_, stats.numPrimitives_ };
 
     nb::class_<Renderer>(m, "Renderer")
-        .def(nb::init<Context*>())
-        // , sol::constructors<Renderer(Context*)>());
         .def("SetViewport", &Renderer::SetViewport)
         .def("DrawDebugGeometry", &Renderer::DrawDebugGeometry);
 
@@ -530,11 +499,10 @@ void init_cmodule_graphics(nb::module_& pm)
         .def_prop_rw("model", &AnimatedModel::GetModel, [](AnimatedModel* self, Model* model) { self->SetModel(model); });
 
     nb::class_<AnimationParameters>(m, "AnimationParameters")
-        .def(nb::init<Animation*>())
-        .def(nb::init<Context*, const ea::string&>())
-//         , sol::call_constructor, sol::factories(
-//             [](Animation* animation) { return AnimationParameters(animation); },
-//             [context](const ea::string& animationName) { return AnimationParameters(context, animationName); }));
+        .def(nb::new_([](Animation* animation) { return AnimationParameters(animation); }))
+        .def(nb::new_([](Animation* animation, float minTime, float maxTime) { return AnimationParameters(animation, minTime, maxTime); }))
+        .def(nb::new_([](const ea::string& animationName) { return AnimationParameters(Context::GetInstance(), animationName); }))
+        .def(nb::new_([](const ea::string& animationName, float minTime, float maxTime) { return AnimationParameters(Context::GetInstance(), animationName, minTime, maxTime); }))
         .def_rw("weight", &AnimationParameters::weight_)
         .def("Looped", &AnimationParameters::Looped)
         .def("StartBone", [](AnimationParameters* self, std::string_view startBone) { return self->StartBone(startBone.data()); })

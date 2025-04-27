@@ -137,6 +137,4 @@ void init_cmodule_input(nb::module_& pm)
     
     RegisterKeyboard(m);
     RegisterInputConst(m);
-     
-    m.attr("input_system") = Context::GetInstance()->GetSubsystem<Input>();
 }

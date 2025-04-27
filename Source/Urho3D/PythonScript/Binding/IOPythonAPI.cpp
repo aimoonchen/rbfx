@@ -50,15 +50,13 @@ void init_cmodule_io(nb::module_& pm)
 
     nb::class_<AbstractFile, Serializer>(m, "AbstractFile");
 
-    nb::class_<VectorBuffer, AbstractFile>(m, "VectorBuffer")
-        .def(nb::init<>())
-        .def(nb::init<const void*, unsigned>());
-//         sol::call_constructor, sol::constructors<VectorBuffer(), VectorBuffer(const void*, unsigned)>(),
+    nb::class_<VectorBuffer, AbstractFile>(m, "VectorBuffer");
+//         .def(nb::init<>())
+//         .def(nb::init<const void*, unsigned>());
 
-    nb::class_<MemoryBuffer, AbstractFile>(m, "MemoryBuffer")
-        .def(nb::init<void*, unsigned>())
-        .def(nb::init<const void*, unsigned>());
-        //         sol::call_constructor, sol::constructors<MemoryBuffer(void*, unsigned), MemoryBuffer(const void*, unsigned)>(),
+    nb::class_<MemoryBuffer, AbstractFile>(m, "MemoryBuffer");
+//         .def(nb::init<void*, unsigned>())
+//         .def(nb::init<const void*, unsigned>());
 
     nb::class_<File, AbstractFile>(m, "File");
 

@@ -188,9 +188,7 @@ void init_cmodule_scene(nb::module_& pm)
         .def("GetUpdateEventMask", &LogicComponent::GetUpdateEventMask);
 
     nb::class_<Node>(m, "Node")
-        //.def(nb::init<Context*>())
-        .def(nb::new_([]() { return std::make_unique<Node>(Context::GetInstance()); }))
-        //.def(nb::init<std::unique_ptr<Node>>([]() { return std::make_unique<Node>(Context::GetInstance()); }))
+        //.def(nb::new_([]() { return std::make_unique<Node>(Context::GetInstance()); }))
         .def_prop_rw("id", &Node::GetID, &Node::SetID)
         .def_prop_rw("name", &Node::GetName, &Node::SetName)
         .def_prop_rw("parent", &Node::GetParent, &Node::SetParent)
@@ -376,11 +374,7 @@ void init_cmodule_scene(nb::module_& pm)
         //"CreateAction", [](ActionType actionType, sol::variadic_args va) { return CreateAction(actionType, va); },
 
     nb::class_<ValueAnimation>(m, "ValueAnimation")
-        .def(nb::init<Context*>())
-        //         sol::call_constructor, sol::factories([context]() {
-        //             // lua does not hold object, c++ manage object's life
-        //             return new ValueAnimation(context);
-        //             }));
+        .def(nb::new_([]() { return new ValueAnimation(Context::GetInstance()); }), nb::rv_policy::reference)
         .def("SetSplineTension", &ValueAnimation::SetSplineTension)
         .def("SetInterpolationMethod", &ValueAnimation::SetInterpolationMethod)
         .def("SetKeyFrame", &ValueAnimation::SetKeyFrame)
@@ -388,8 +382,7 @@ void init_cmodule_scene(nb::module_& pm)
         .def("SetEventFrame", [](ValueAnimation* self, float time, const StringHash& eventType, const VariantMap& eventData) { self->SetEventFrame(time, eventType, eventData); });
  
     nb::class_<ObjectAnimation>(m, "ObjectAnimation")
-        .def(nb::init<Context*>())
-        //sol::call_constructor, sol::factories([context]() { return new ObjectAnimation(context); }));
+        .def(nb::new_([]() { return new ObjectAnimation(Context::GetInstance()); }), nb::rv_policy::reference)
         .def("AddAttributeAnimation", [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation) { self->AddAttributeAnimation(name, attributeAnimation); })
         .def("AddAttributeAnimation", [](ObjectAnimation* self, const ea::string& name, ValueAnimation* attributeAnimation, WrapMode wrapMode, float speed) { self->AddAttributeAnimation(name, attributeAnimation, wrapMode, speed); })
         .def("RemoveAttributeAnimation", [](ObjectAnimation* self, const ea::string& name) { self->RemoveAttributeAnimation(name); })

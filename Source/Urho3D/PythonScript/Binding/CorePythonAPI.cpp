@@ -95,7 +95,7 @@ void init_cmodule_core(::nanobind::module_& pm)
         .def("SendEvent", [](Object* self, StringHash name, VariantMap& param) { self->SendEvent(name, param); });
 
     nb::class_<Variant>(m, "Variant")
-        .def(nb::init<>())
+        //.def(nb::init<>())
         .def(nb::init<int>())
         .def(nb::init<unsigned>())
         .def(nb::init<bool>())
@@ -161,7 +161,7 @@ void init_cmodule_core(::nanobind::module_& pm)
 //     enrollments.less_than_operator = false;
 //     enrollments.less_than_operator = false;
     nb::class_<VariantMap>(m, "VariantMap")
-        .def(nb::init<>())
+        //.def(nb::init<>())
         .def("__getitem__", [](VariantMap& map, const StringHash& key) { return &map[key]; }, nb::is_operator(), nb::rv_policy::reference)
         .def("__setitem__", [](VariantMap& map, const StringHash& key, const Variant& variant) { map[key] = variant; }, nb::is_operator())
         .def("HasKey", [](VariantMap& map, const StringHash& key) { return map.find(key) != map.end(); })
