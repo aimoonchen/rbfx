@@ -287,7 +287,7 @@ ea::string ShaderVariation::PrepareGLSLShaderCode(const ea::string& originalShad
             const bool isCompute = GetShaderType() == CS;
 
             static const char* versions[2][2] = {
-                {"#version 410\n", "#version 430\n"},
+                {"#version 430\n", "#version 430\n"},
                 {"#version 300 es\n", "#version 310 es\n"},
             };
 

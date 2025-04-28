@@ -1,6 +1,7 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #else
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/string_view.h>
 #include "../../Core/Context.h"
 #include "../../Resource/ResourceCache.h"
 #include "../../EffekseerUrho3D/EffekseerEffect.h"

@@ -70,7 +70,10 @@
 #include "Urho3D/Resource/ResourceCache.h"
 
 #include <SDL.h>
-
+#include "../EffekseerUrho3D/EffekseerEffect.h"
+#include "../EffekseerUrho3D/EffekseerEmitter.h"
+#include "../Graphics/ProceduralSky.h"
+#include "../Graphics/MeshLine.h"
 #include "../DebugNew.h"
 
 namespace Urho3D
@@ -111,8 +114,10 @@ unsigned Graphics::maxBonesHWSkinned = 0;
 Graphics::Graphics(Context* context)
     : Object(context)
     , position_(SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED)
-    , shaderPath_("Shaders/HLSL/")
-    , shaderExtension_(".hlsl")
+//     , shaderPath_("Shaders/HLSL/")
+//     , shaderExtension_(".hlsl")
+    , shaderPath_("Shaders/GLSL/")
+    , shaderExtension_(".glsl")
     , apiName_("Diligent")
 {
     // TODO: This can be used to have DPI scaling work on Windows, but it leads to blurry fonts
@@ -724,6 +729,10 @@ void RegisterGraphicsLibrary(Context* context)
     OcclusionBuffer::RegisterObject(context);
     ReflectionProbe::RegisterObject(context);
     ReflectionProbeManager::RegisterObject(context);
+    EffekseerEffect::RegisterObject(context);
+    EffekseerEmitter::RegisterObject(context);
+    ProceduralSky::RegisterObject(context);
+    MeshLine::RegisterObject(context);
 }
 
 
