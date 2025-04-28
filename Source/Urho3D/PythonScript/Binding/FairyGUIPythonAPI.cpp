@@ -1,6 +1,8 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #else
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+#include "EAStringAPI.h"
 #include "Urho3D/Core/Context.h"
 #include "Urho3D/IO/Log.h"
 #include "Urho3D/FairyGUI/UIConfig.h"
@@ -254,14 +256,14 @@ public:
 void init_cmodule_fairygui(nb::module_& pm)
 {
     auto m = pm.def_submodule("fairygui");
-    m.def_submodule("UIPackage")
-	    .def("GetById", &UIPackage::getById)
-	    .def("GetByName", &UIPackage::getByName)
-	    .def("AddPackage", &UIPackage::addPackage)
-	    .def("RemovePackage", &UIPackage::removePackage)
-	    .def("RemoveAllPackages", &UIPackage::removeAllPackages)
-	    .def("CreateObject", [](const std::string& pkgName, const std::string& resName) { return UIPackage::createObject(pkgName, resName); })
-	    .def("CreateObjectFromURL", &UIPackage::createObjectFromURL);
+    nb::class_<UIPackage>(m, "UIPackage")
+	    .def_static("GetById", &UIPackage::getById, nb::rv_policy::reference)
+	    .def_static("GetByName", &UIPackage::getByName, nb::rv_policy::reference)
+	    .def_static("AddPackage", &UIPackage::addPackage, nb::rv_policy::reference)
+	    .def_static("RemovePackage", &UIPackage::removePackage)
+	    .def_static("RemoveAllPackages", &UIPackage::removeAllPackages)
+	    .def_static("CreateObject", [](const std::string& pkgName, const std::string& resName) { return UIPackage::createObject(pkgName, resName); }, nb::rv_policy::reference)
+	    .def_static("CreateObjectFromURL", &UIPackage::createObjectFromURL, nb::rv_policy::reference);
 
     nb::class_<EventContext>(m, "EventContext")
         .def("GetData", [](EventContext* obj) { return (GObject*)obj->getData(); })
@@ -394,10 +396,10 @@ void init_cmodule_fairygui(nb::module_& pm)
         .def("RemoveChild", &GComponent::removeChild)
         .def("RemoveChildren", [](GComponent* self) { self->removeChildren(); })
         .def("RemoveChildren", [](GComponent* self, int beginIndex, int endIndex) { self->removeChildren(beginIndex, endIndex); })
-        .def("GetChild", &GComponent::getChild)
-        .def("GetChildAt", &GComponent::getChildAt)
-        .def("GetChildById", [](GComponent* self, const ea::string& id) { return self->getChildById(id.c_str()); })
-        .def("GetController", &GComponent::getController)
+        .def("GetChild", &GComponent::getChild, nb::rv_policy::reference)
+        .def("GetChildAt", &GComponent::getChildAt, nb::rv_policy::reference)
+        .def("GetChildById", [](GComponent* self, const ea::string& id) { return self->getChildById(id.c_str()); }, nb::rv_policy::reference)
+        .def("GetController", &GComponent::getController, nb::rv_policy::reference)
         .def("GetViewWidth", &GComponent::getViewWidth)
         .def("NumChildren", &GComponent::numChildren)
         .def("GetTransition", &GComponent::getTransition)
@@ -554,9 +556,7 @@ void init_cmodule_fairygui(nb::module_& pm)
         .value("DOWN", PopupDirection::DOWN);
 
     nb::class_<FairyGUIScene>(m, "FairyGUIScene")
-        //.def(nb::init<>())
-        //         sol::call_constructor, sol::factories([]() { return std::unique_ptr<FairyGUIScene>(FairyGUIScene::create()); }),
-        //         sol::base_classes, sol::bases<cocos2d::Scene>());
+        .def(nb::new_([]() { return FairyGUIScene::create(); }), nb::rv_policy::reference)
         .def_prop_ro("groot", [](FairyGUIScene* self) { return self->_groot; })
         .def("Schedule", [](FairyGUIScene* self, nb::callable func, const char* key) { self->schedule([func](float dt) { CALL_PYTHON(func, dt) }, key); })
         .def("ScheduleOnce", [](FairyGUIScene* self, nb::callable func, float delay, const char* key) { self->scheduleOnce([func](float dt) { CALL_PYTHON(func, dt) }, delay, key); });

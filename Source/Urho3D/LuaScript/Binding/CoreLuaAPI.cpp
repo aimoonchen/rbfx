@@ -38,7 +38,7 @@ static void RegisterCoreConst(sol::state& lua)
     eventType["EndFrame"]         = E_ENDFRAME;
 
     auto paramType = lua["ParamType"].get_or_create<sol::table>();
-    auto beginFrame = paramType["BeginFrame"].get_or_create<sol::table>();
+    auto beginFrame                 = paramType["BeginFrame"].get_or_create<sol::table>();
     beginFrame["FrameNumber"]       = BeginFrame::P_FRAMENUMBER;
     beginFrame["TimeStep"]          = BeginFrame::P_TIMESTEP;
     auto inputReady                 = paramType["InputReady"].get_or_create<sol::table>();

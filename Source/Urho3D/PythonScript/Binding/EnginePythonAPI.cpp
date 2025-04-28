@@ -91,14 +91,14 @@ NB_MODULE(kfengine, m)
     init_cmodule_urho2d(m);
 
     auto context = Context::GetInstance();
-    m.attr("ui")                    = context->GetSubsystem<UI>();
-    m.attr("action_manager")        = context->GetSubsystem<ActionManager>();
-    m.attr("time")                  = context->GetSubsystem<Time>();
-    m.attr("graphics_system")       = context->GetSubsystem<Graphics>();
-    m.attr("renderer_system")       = context->GetSubsystem<Renderer>();
-    m.attr("filesystem")            = context->GetSubsystem<FileSystem>();
-    m.attr("virtual_filesystem")    = context->GetSubsystem<VirtualFileSystem>();
-    m.attr("network")               = context->GetSubsystem<Network>();
-    m.attr("cache")                 = context->GetSubsystem<ResourceCache>();
-    m.attr("input_system")          = context->GetSubsystem<Input>();
+    m.attr("ui_system")                 = context->GetSubsystem<UI>();
+    m.attr("action_manager_system")     = context->GetSubsystem<ActionManager>();
+    m.attr("time_system")               = context->GetSubsystem<Time>();
+    m.attr("graphics_system")           = context->GetSubsystem<Graphics>();
+    m.attr("renderer_system")           = context->GetSubsystem<Renderer>();
+    m.attr("file_system")               = context->GetSubsystem<FileSystem>();
+    m.attr("virtual_file_system")       = context->GetSubsystem<VirtualFileSystem>();
+    m.attr("network_system")            = context->GetSubsystem<Network>();
+    m.attr("resource_cache_system")     = context->GetSubsystem<ResourceCache>();
+    m.attr("input_system")              = context->GetSubsystem<Input>();
 }

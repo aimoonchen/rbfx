@@ -50,6 +50,7 @@
 #include "../Resource/XMLFile.h"
 #include "../Scene/Scene.h"
 #include "../UI/UI.h"
+#include "../GUI/Gui.h"
 
 #include <EASTL/bonus/adaptors.h>
 #include <EASTL/functional.h>
@@ -498,6 +499,11 @@ void Renderer::Render()
     // Render RenderPipeline views.
     for (RenderPipelineView* renderPipelineView : ea::reverse(renderPipelineViews_))
         renderPipelineView->Render();
+
+    // TODO: Draw joystick before RMLUI
+    if (auto gui = GetSubsystem<GUI>(); gui) {
+        gui->Render();
+    }
 
     // All views done, custom rendering can now be done before UI
     SendEvent(E_ENDALLVIEWSRENDER);

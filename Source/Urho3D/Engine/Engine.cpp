@@ -87,6 +87,7 @@
 #include "../Scene/Scene.h"
 #include "../Scene/SceneEvents.h"
 #include "../UI/UI.h"
+#include "../GUI/Gui.h"
 #ifdef URHO3D_RMLUI
 #include "../RmlUI/RmlUI.h"
 #endif
@@ -94,6 +95,7 @@
 #include "../Urho2D/Urho2D.h"
 #endif
 #include "../Engine/EngineEvents.h"
+#include "../EffekseerUrho3D/EffekseerSystem.h"
 #ifdef URHO3D_PARTICLE_GRAPH
 #include "../Particles/ParticleGraphSystem.h"
 #endif
@@ -377,7 +379,7 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
     RegisterInputLibrary(context_);
 
     context_->RegisterSubsystem(new UI(context_));
-
+    context_->RegisterSubsystem(new GUI(context_));
 #ifdef URHO3D_RMLUI
     RegisterRmlUILibrary(context_);
     context_->RegisterSubsystem(new RmlUI(context_));
@@ -546,6 +548,7 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
             );
         }
 #endif
+    context_->RegisterSubsystem(new EffekseerSystem(context_));
 #ifdef URHO3D_RMLUI
         const auto rmlUi = GetSubsystem<RmlUI>();
 

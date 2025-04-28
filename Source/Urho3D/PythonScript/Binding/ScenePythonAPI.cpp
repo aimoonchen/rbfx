@@ -423,10 +423,10 @@ void init_cmodule_scene(nb::module_& pm)
         .def_prop_rw("auto_size", &RmlUIComponent::GetAutoSize, &RmlUIComponent::SetAutoSize)
         //.def("SetResource", [&lua](RmlUIComponent* self, const ea::string& res, sol::table t) { lua["rmlui"]["uicontext"][res.c_str()] = t; self->SetResource(res); };//sol::resolve<void(const ea::string&)>(&RmlUIComponent::SetResource),//
         .def("GetResource", [](RmlUIComponent* self) { auto& res = self->GetResource(); return res.name_; })
-        .def("GetDocument", &RmlUIComponent::GetDocument)
+        .def("GetDocument", &RmlUIComponent::GetDocument, nb::rv_policy::reference)
         //.def("AddUpdateListener", [](RmlUIComponent* self, sol::function func) { self->AddUpdateListener([func](float timeStep, Rml::ElementDocument* doc) { CALL_LUA(func, timeStep, doc) }); };
         .def("RemoveUpdateListener", [](RmlUIComponent* self) { self->AddUpdateListener(nullptr); })
-        .def("GetRenderTexture", &RmlUIComponent::GetRenderTexture);
+        .def("GetRenderTexture", &RmlUIComponent::GetRenderTexture, nb::rv_policy::reference);
 
     nb::enum_<PrefabInstanceFlag>(m, "PrefabInstanceFlag", nb::is_flag())
         .value("None", PrefabInstanceFlag::None)

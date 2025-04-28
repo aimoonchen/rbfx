@@ -129,11 +129,11 @@ void init_cmodule_input(nb::module_& pm)
         .def("GetQualifierDown", [](Input* self, int qualifier) { return self->GetQualifierDown((Qualifier)qualifier); })
         .def("GetQualifierPress", [](Input* self, int qualifier) { return self->GetQualifierPress((Qualifier)qualifier); })
         // TODO: rework joystick
-        .def("CreateJoystick", [gui](const IntVector2& area, float scale) { gui->CreateJoystick(area, scale); })
-        .def("EnableJoystick", [gui](bool enabled) { return gui->EnableJoystick(enabled); })
-        .def("GetJoystickDegree", [gui]() { return gui->GetJoystickDegree(); })
-        .def("GetJoystickTouchID", [gui]() { return gui->GetJoystickTouchID(); })
-        .def("IsJoystickCapture", [gui]() { return gui->GetJoystickTouchID() != -1; });
+        .def_static("CreateJoystick", [gui](const IntVector2& area, float scale) { gui->CreateJoystick(area, scale); })
+        .def_static("EnableJoystick", [gui](bool enabled) { return gui->EnableJoystick(enabled); })
+        .def_static("GetJoystickDegree", [gui]() { return gui->GetJoystickDegree(); })
+        .def_static("GetJoystickTouchID", [gui]() { return gui->GetJoystickTouchID(); })
+        .def_static("IsJoystickCapture", [gui]() { return gui->GetJoystickTouchID() != -1; });
     
     RegisterKeyboard(m);
     RegisterInputConst(m);
