@@ -1,6 +1,7 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #else
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/string_view.h>
 #include "fmod_studio.hpp"
 #include "fmod_errors.h"
 #include "../../Core/Context.h"
@@ -45,34 +46,17 @@ void init_cmodule_audio(nb::module_& pm)
 {
     auto m = pm.def_submodule("audio");
     nb::class_<FMOD::Studio::EventInstance>(m, "EventInstance")
-        .def("Start", &FMOD::Studio::EventInstance::start)
-        .def("Release", &FMOD::Studio::EventInstance::release)
+        .def("Start", [](FMOD::Studio::EventInstance& self) { return self.start() == FMOD_OK; })
+        .def("Release", [](FMOD::Studio::EventInstance& self) { return self.release() == FMOD_OK; })
         .def("Stop", [](FMOD::Studio::EventInstance* self, bool fadeout) { self->stop(fadeout ? FMOD_STUDIO_STOP_ALLOWFADEOUT : FMOD_STUDIO_STOP_IMMEDIATE); })
         .def("GetVolume", [](FMOD::Studio::EventInstance* self) { float volume = 0.0f; self->getVolume(&volume); return volume; })
-        .def("SetVolume", &FMOD::Studio::EventInstance::setVolume)
+        .def("SetVolume", [](FMOD::Studio::EventInstance& self, float volume) { return self.setVolume(volume) == FMOD_OK; })
         .def("GetPitch", [](FMOD::Studio::EventInstance* self) { float pitch = 0.0f; self->getPitch(&pitch); return pitch; })
-        .def("SetPitch", &FMOD::Studio::EventInstance::setPitch);
+        .def("SetPitch", [](FMOD::Studio::EventInstance& self, float pitch) { return self.setPitch(pitch) == FMOD_OK; });
     auto context = Context::GetInstance();
     m.def("LoadBank", [context](std::string_view filename) {
         return context->GetSubsystem<Audio>()->LoadBank(filename) != nullptr;
-//         auto bank = context->GetSubsystem<Audio>()->LoadBank(filename);
-//         std::vector<FMOD::Studio::EventDescription*> event_desc;
-//         std::vector<std::string> event_list;
-//         int count = 0;
-//         bank->getEventCount(&count);
-//         if (count > 0) {
-//             event_list.reserve(count);
-//             event_desc.resize(count);
-//             bank->getEventList(&event_desc[0], count, &count);
-//         }
-//         char temp[256];
-//         for (auto desc : event_desc) {
-//             desc->getPath(temp, 256, nullptr);
-//             event_list.push_back(temp);
-//         }
-//         //bank->getPath(temp, 256, nullptr);
-//         return sol::as_table(event_list);
-    });
+    }, nb::rv_policy::reference);
     m.def("Play", [context](std::string_view eventName) {
         auto inst = CreateEventInstance(context, eventName);
         inst->start();
